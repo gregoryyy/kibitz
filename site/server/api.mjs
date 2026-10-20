@@ -2,8 +2,11 @@
 //   GET  /api/ai/status  -> {provider, model, available, reason}
 //   POST /api/ai/sample  -> NDJSON stream: {"text":"..."} lines, then {"done":true,"truncated":false,"usage":{"input":n,"output":n}}
 //                           or {"error":{"code":"...","message":"..."}}
+//   POST /api/ai/structured {messages|prompt, format} -> {data, truncated, usage, mode} as JSON;
+//                           format names one of schema.mjs FORMATS, e.g. "annotations"
 import net from 'net';
 import { createProvider, GatewayError, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
+import { completeJson, FORMATS } from './schema.mjs';
 
 const MAX_BODY = 1_000_000;
 const SECURITY_HEADERS = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
@@ -17,6 +20,7 @@ export function createApi({ config, provider = config.available ? createProvider
       checkHost(req);
       if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, publicStatus(config));
       if (pathname === '/api/ai/sample' && req.method === 'POST') return await sample(req, res);
+      if (pathname === '/api/ai/structured' && req.method === 'POST') return await structured(req, res);
       throw new GatewayError('not_found', 'Not found', 404);
     } catch (e) {
       const g = toGatewayError(e);
@@ -26,12 +30,19 @@ export function createApi({ config, provider = config.available ? createProvider
     return true;
   };
 
-  async function sample(req, res) {
+  // Checks shared by every POST: same origin, JSON body, a provider, valid messages, the rate limit.
+  async function accept(req) {
     checkOrigin(req);
     if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) throw new GatewayError('bad_request', 'Content-Type must be application/json', 415);
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
-    const messages = validateMessages(await readJson(req));
+    const body = await readJson(req);
+    const messages = validateMessages(body);
     if (!allow()) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
+    return { body, messages };
+  }
+
+  async function sample(req, res) {
+    const { messages } = await accept(req);
 
     res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', ...SECURITY_HEADERS });
     const ac = new AbortController();
@@ -49,6 +60,20 @@ export function createApi({ config, provider = config.available ? createProvider
     }
     res.end();
     return true;
+  }
+
+  async function structured(req, res) {
+    const { body, messages } = await accept(req);
+    const format = Object.hasOwn(FORMATS, body?.format) ? FORMATS[body.format] : null;
+    if (!format) throw new GatewayError('bad_request', `"format" must be one of ${Object.keys(FORMATS).join(', ')}`, 400);
+    const ac = new AbortController();
+    res.on('close', () => { if (!res.writableEnded) ac.abort(); });
+    try { return json(res, 200, await completeJson(provider, messages, format, { signal: ac.signal })); }
+    catch (e) {
+      const g = toGatewayError(e, ac.signal);
+      if (g.code !== 'cancelled') log.error(`AI ${config.provider}/${config.model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`);
+      throw g;
+    }
   }
 }
 

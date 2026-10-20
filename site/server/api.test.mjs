@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'http';
 import { createApi } from './api.mjs';
-import { GatewayError, loadConfig } from './ai.mjs';
+import { createProvider, GatewayError, loadConfig } from './ai.mjs';
 
 // A provider whose behaviour each test picks through the last message's content.
 const provider = {
@@ -123,5 +123,22 @@ test('unavailable provider returns 503 with the reason', async () => {
   const r = await fetch(`http://127.0.0.1:${s.address().port}/api/ai/sample`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"prompt":"hi"}' });
   assert.equal(r.status, 503);
   assert.match((await r.json()).error.message, /ANTHROPIC_API_KEY/);
+  s.close();
+});
+
+test('structured: a named format returns validated JSON; unknown formats are refused', async () => {
+  const config = { ...loadConfig({ AI_PROVIDER: 'mock' }), ratePerMinute: 1000 };
+  const api = createApi({ config, provider: createProvider(config), log: quiet });
+  const s = http.createServer((req, res) => api(req, res));
+  await new Promise(r => s.listen(0, '127.0.0.1', r));
+  const send = body => fetch(`http://127.0.0.1:${s.address().port}/api/ai/structured`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const ok = await send({ prompt: 'Annotate', format: 'annotations' });
+  assert.equal(ok.status, 200);
+  const j = await ok.json();
+  assert.equal(j.mode, 'native'); assert.deepEqual(Object.keys(j.data).sort(), ['arrows', 'highlights', 'text']);
+  for (const format of ['nope', 'constructor', '__proto__', undefined]) {
+    const bad = await send({ prompt: 'x', format });
+    assert.equal(bad.status, 400, String(format));
+  }
   s.close();
 });

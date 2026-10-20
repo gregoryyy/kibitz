@@ -2,6 +2,7 @@
 // Server-side only. API keys come from process.env (loaded from .env) and never leave this process.
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { exampleFor, providerSchema } from './schema.mjs';
 
 export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'mock'];
 // Small, fast models by default: coaching replies are short and grounded in engine output.
@@ -74,7 +75,8 @@ export function validateMessages(body) {
 
 // A provider exposes chat(messages, opts): an async generator that yields text chunks and
 // returns {truncated, usage: {input, output}} (token counts, 0 when the provider doesn't say).
-//   opts: {model, system, maxTokens, signal}; model and maxTokens default to the configuration.
+//   opts: {model, system, maxTokens, schema, signal}; model and maxTokens default to the configuration.
+//   schema: a format from schema.mjs ({name, schema}); the provider is asked for JSON matching it.
 // complete() below collects a whole reply. `client` can be injected for tests.
 export function createProvider(cfg, /** @type {{ client?: any }} */ { client } = {}) {
   switch (cfg.provider) {
@@ -89,17 +91,18 @@ export function createProvider(cfg, /** @type {{ client?: any }} */ { client } =
   }
 }
 
-/** @typedef {{ model?: string, system?: string, maxTokens?: number, signal?: AbortSignal }} ChatOptions */
+/** @typedef {{ model?: string, system?: string, maxTokens?: number, schema?: { name: string, schema: object }, signal?: AbortSignal }} ChatOptions */
 
 function anthropicProvider(cfg, client) {
   return {
-    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, signal } = {}) {
+    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, signal } = {}) {
+      const output = { ...(cfg.effort ? { effort: cfg.effort } : {}), ...(schema ? { format: { type: 'json_schema', schema: providerSchema(schema.schema) } } : {}) };
       const stream = client.beta.messages.stream({
         model,
         max_tokens: maxTokens,
         messages,
         ...(system ? { system } : {}),
-        ...(cfg.effort ? { output_config: { effort: cfg.effort } } : {}),
+        ...(Object.keys(output).length ? { output_config: output } : {}),
         // On a safety decline, re-run on Anthropic's recommended fallback model instead of failing.
         // Haiku models have no server-side fallback, so the option is left off for them.
         ...(model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }),
@@ -121,11 +124,12 @@ function anthropicProvider(cfg, client) {
 function openAICompatProvider(cfg, client) {
   const tokenParam = cfg.provider === 'openai' ? 'max_completion_tokens' : 'max_tokens';
   return {
-    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, signal } = {}) {
+    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, signal } = {}) {
       const params = {
         model, stream: true, [tokenParam]: maxTokens,
         messages: system ? [{ role: 'system', content: system }, ...messages] : messages,
         ...(cfg.provider === 'mistral' ? {} : { stream_options: { include_usage: true } }),
+        ...(schema ? { response_format: { type: 'json_schema', json_schema: { name: schema.name, schema: providerSchema(schema.schema), strict: true } } } : {}),
       };
       const stream = await client.chat.completions.create(params, { signal });
       let finish = null, usage = null;
@@ -148,8 +152,8 @@ const deltaText = c => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(p
 // Token counts are rough (four characters a token) but deterministic.
 function mockProvider() {
   return {
-    async *chat(messages) {
-      const reply = `Mock coach (AI_PROVIDER=mock). Your message had ${messages.at(-1).content.length} characters; set a real provider in .env for actual coaching.`;
+    async *chat(messages, /** @type {ChatOptions} */ { schema } = {}) {
+      const reply = schema ? JSON.stringify(exampleFor(schema.schema)) : `Mock coach (AI_PROVIDER=mock). Your message had ${messages.at(-1).content.length} characters; set a real provider in .env for actual coaching.`;
       for (const word of reply.split(/(?<= )/)) yield word;
       const chars = messages.reduce((n, m) => n + m.content.length, 0);
       return { truncated: false, usage: { input: Math.ceil(chars / 4), output: Math.ceil(reply.length / 4) } };
