@@ -13,8 +13,8 @@ Both started from the same code. Where the project is heading is in [TODO.md](do
 
 ## Prerequisites
 
-- **Node.js** with npm: current LTS recommended (tested with Node 25). Needed for `claude/` only.
-- **Python 3**: for the local static server, and for the end-to-end test.
+- **Node.js** with npm: current LTS recommended (tested with Node 25). Builds `claude/` and runs the local server behind `just`.
+- **Python 3**: for `npm run serve` and the end-to-end test.
 - A recent desktop or mobile browser with WebAssembly support. Older browsers fall back to the slower asm.js engine.
 
 The pages load ES modules and Web Workers, so they must be served over HTTP. Opening `index.html` straight from disk (`file://`) won't work.
@@ -24,7 +24,7 @@ The pages load ES modules and Web Workers, so they must be served over HTTP. Ope
 With [just](https://github.com/casey/just) installed (`brew install just`), run these from the repo root:
 
 ```bash
-just claude          # install if needed, build, serve claude/ on http://127.0.0.1:8765/_test.html
+just claude          # install if needed, build, serve claude/ on http://127.0.0.1:8765/
 just codex           # serve codex/ on http://127.0.0.1:8766/
 just both            # serve both side by side; Ctrl-C stops both
 just test            # unit check (builds first)
@@ -32,7 +32,7 @@ just e2e codex       # Playwright run against a running variant (claude or codex
 just                 # list all recipes
 ```
 
-Servers bind to `127.0.0.1` only. Override with `CLAUDE_PORT`, `CODEX_PORT` or `KIBITZ_HOST`, e.g. `CODEX_PORT=9000 just codex`. The sections below show the same steps without `just`.
+The recipes use [`scripts/serve.mjs`](scripts/serve.mjs), a small dependency-free Node server that sends UTF-8 charset headers. Servers bind to `127.0.0.1` only. Override with `CLAUDE_PORT`, `CODEX_PORT` or `KIBITZ_HOST`, e.g. `CODEX_PORT=9000 just codex`. The sections below show the same steps without `just`.
 
 ## `claude/` variant
 
@@ -45,7 +45,7 @@ npm run serve        # builds, then serves dist/ on port 8765
 
 Open <http://localhost:8765/_test.html>.
 
-- `dist/index.html` is the page body as published to a Claude artifact; `dist/_test.html` is the same page wrapped in a full HTML document for local use.
+- `dist/index.html` is the page body as published to a Claude artifact; `dist/_test.html` is the same page wrapped in a full HTML document for local use. With `npm run serve` (or any plain static server), open `/_test.html`, not `/`. `index.html` has no `<meta charset>`, so the browser decodes it as Windows-1252 and every `≈`, `…` and `·` comes out garbled.
 - The first build also generates `dist/eco.json` from `data/eco/*.tsv`. Run `npm run build:eco` to rebuild it after changing the opening data.
 - Edit files in `src/`. `dist/` is regenerated on every build and isn't committed.
 

@@ -24,26 +24,28 @@ build: install
 build-eco: install
     npm --prefix claude run build:eco
 
+# claude/dist/index.html is the bare artifact body (no <head>), so "/" serves the full-document _test.html.
+serve_claude := "node scripts/serve.mjs claude/dist --index _test.html --port " + claude_port + " --host " + host
+serve_codex := "node scripts/serve.mjs codex --port " + codex_port + " --host " + host
+
 # Build and serve the claude/ variant
 claude: build
-    @echo "claude → http://{{host}}:{{claude_port}}/_test.html"
-    cd claude/dist && python3 -m http.server {{claude_port}} --bind {{host}}
+    {{serve_claude}}
 
 # Serve the codex/ variant (no build step)
 codex:
-    @echo "codex  → http://{{host}}:{{codex_port}}/"
-    cd codex && python3 -m http.server {{codex_port}} --bind {{host}}
+    {{serve_codex}}
 
 # Serve both variants side by side; Ctrl-C stops both
 both: build
     #!/usr/bin/env bash
     set -euo pipefail
     trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
-    (cd claude/dist && exec python3 -m http.server {{claude_port}} --bind {{host}}) &
-    (cd codex && exec python3 -m http.server {{codex_port}} --bind {{host}}) &
-    echo "claude → http://{{host}}:{{claude_port}}/_test.html"
-    echo "codex  → http://{{host}}:{{codex_port}}/"
-    wait
+    {{serve_claude}} & a=$!
+    {{serve_codex}} & b=$!
+    # Stop as soon as either server exits (e.g. port in use), not only on Ctrl-C.
+    while kill -0 $a 2>/dev/null && kill -0 $b 2>/dev/null; do sleep 1; done
+    exit 1
 
 # Unit check of the knowledge module
 test: build
@@ -54,7 +56,7 @@ e2e variant="claude":
     #!/usr/bin/env bash
     set -euo pipefail
     case "{{variant}}" in
-      claude) url="http://{{host}}:{{claude_port}}/_test.html" ;;
+      claude) url="http://{{host}}:{{claude_port}}/" ;;
       codex)  url="http://{{host}}:{{codex_port}}/" ;;
       *) echo "unknown variant '{{variant}}' (use claude or codex)" >&2; exit 1 ;;
     esac
