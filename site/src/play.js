@@ -83,12 +83,15 @@ export const MIN_UCI_ELO = 1320;
 
 // The weakened mode's knobs for an Elo below 1320: search depth, the chance of playing the
 // engine's best move, and the chance of a random legal move instead of another candidate.
-// Depth steps at each row; the chances are interpolated. scripts/calibrate.mjs measures the result.
+// Depth steps at each row; the chances are interpolated. Tuned with scripts/calibrate.mjs against
+// Stockfish's UCI_Elo 1320 (2026-10-20, 420 games): every level fits within about 100 Elo of its
+// setting, about the measurement's own error. The first table had 1300 playing like 1650.
 export const WEAK_TABLE = [
-  { elo: 600, depth: 1, keep: 0.30, random: 0.28 },
-  { elo: 900, depth: 3, keep: 0.53, random: 0.16 },
-  { elo: 1100, depth: 5, keep: 0.68, random: 0.08 },
-  { elo: 1320, depth: 5, keep: 0.85, random: 0 },
+  { elo: 600, depth: 1, keep: 0.30, random: 0.27 },
+  { elo: 800, depth: 1, keep: 0.47, random: 0.19 },
+  { elo: 1000, depth: 1, keep: 0.555, random: 0.155 },
+  { elo: 1100, depth: 3, keep: 0.52, random: 0.16 },
+  { elo: 1320, depth: 3, keep: 0.70, random: 0.07 },
 ];
 export function weakParams(elo) {
   const t = WEAK_TABLE;

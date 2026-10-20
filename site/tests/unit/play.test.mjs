@@ -114,10 +114,10 @@ test('clock display and Stockfish\'s time budget', () => {
 
 // ---------------------------------------------------------------- Strength
 test('weakened mode: knobs rise with Elo; depth steps at the table rows', () => {
-  assert.deepEqual([600, 899, 900, 1099, 1100, 1319].map(e => weakParams(e).depth), [1, 1, 3, 3, 5, 5]);
+  assert.deepEqual([600, 999, 1000, 1099, 1100, 1319].map(e => weakParams(e).depth), [1, 1, 1, 1, 3, 3]);
   const ds = [500, 600, 700, 900, 1000, 1100, 1200, 1319].map(e => weakParams(e).depth);
   assert.ok(ds.every((d, i) => i === 0 || d >= ds[i - 1]), 'depth never drops as Elo rises');
-  const ks = [600, 800], ks3 = [900, 1000, 1100, 1200, 1319].map(e => weakParams(e).keep); ks.splice(0, 2, ...ks.map(e => weakParams(e).keep));
+  const ks = [600, 800, 1000].map(e => weakParams(e).keep), ks3 = [1100, 1200, 1319].map(e => weakParams(e).keep);
   assert.ok([ks, ks3].every(k => k.every((x, i) => i === 0 || x > k[i - 1])), 'at the same depth, keeps the best move more often as Elo rises');
   assert.ok(weakParams(500).keep === weakParams(600).keep, 'clamped below the table');
 });
@@ -128,7 +128,7 @@ test('opponent search: UCI_Elo from 1320, weakened mode below, MultiPV for style
   assert.equal(opponentSearch(1500, { weight: 1 }).multipv, 4);
   assert.equal(opponentSearch(1500, null, { left: 3_000, inc: 0 }).movetime, 100);
   const w = opponentSearch(MIN_UCI_ELO - 1, null);
-  assert.equal(w.depth, 5); assert.equal(w.multipv, 4); assert.ok(w.setup.includes('setoption name Skill Level value 0'));
+  assert.equal(w.depth, 3); assert.equal(w.multipv, 4); assert.ok(w.setup.includes('setoption name Skill Level value 0'));
 });
 
 test('pickWeak: best line, another candidate, or a random legal move', () => {
