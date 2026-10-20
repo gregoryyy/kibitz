@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { complete, createEmbedder, createProvider, GatewayError, LIMITS, loadConfig, loadEmbeddingConfig, modelFor, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
+import { applyLocalOnly, complete, createEmbedder, createProvider, GatewayError, LIMITS, loadConfig, loadEmbeddingConfig, modelFor, publicStatus, switchProvider, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
 
 const drain = async (gen) => { const out = []; let r; while (!(r = await gen.next()).done) out.push(r.value); return { chunks: out, result: r.value }; };
 const msgs = [{ role: 'user', content: 'Hi' }];
@@ -32,8 +32,10 @@ test('unknown provider is rejected', () => {
 
 test('public status never exposes keys or base URLs', () => {
   const s = publicStatus(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'secret-key', MISTRAL_BASE_URL: 'https://proxy.internal/v1' }));
-  assert.deepEqual(Object.keys(s).sort(), ['available', 'model', 'models', 'provider', 'reason']);
-  assert.doesNotMatch(JSON.stringify(s), /secret-key|proxy\.internal/);
+  assert.deepEqual(Object.keys(s).sort(), ['available', 'localOnly', 'model', 'models', 'provider', 'providers', 'reason']);
+  assert.deepEqual(Object.keys(s.providers[0]).sort(), ['available', 'local', 'model', 'name', 'reason']);
+  const all = loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'secret-key', ANTHROPIC_API_KEY: 'other-secret', OPENAI_BASE_URL: 'https://proxy.internal/v1' });
+  assert.doesNotMatch(JSON.stringify(s) + JSON.stringify(publicStatus(all)), /secret|proxy\.internal/);
 });
 
 test('ollama needs a model and an allowed host (SSRF guard)', () => {
@@ -248,4 +250,29 @@ test('each task can have its own model; unset ones use <PROVIDER>_MODEL', () => 
   assert.throws(() => modelFor(c, 'deep-thought'), { code: 'bad_request' });
   assert.equal(loadConfig({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'k', OPENAI_MODEL_QUICK: 'gpt-6-nano' }).models.quick, 'gpt-6-nano');
   assert.deepEqual(publicStatus(c).models, c.models);
+});
+
+// ---------------------------------------------------------------- switching and local-only (TODO 2.14)
+test('every provider .env sets up can be switched to; others say why not', () => {
+  const c = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', MISTRAL_API_KEY: 'm' });
+  assert.deepEqual(publicStatus(c).providers.map(p => [p.name, p.available]), [['anthropic', true], ['openai', false], ['mistral', true], ['ollama', false]]);
+  const m = switchProvider(c, 'mistral');
+  assert.equal(m.provider, 'mistral'); assert.equal(m.model, 'mistral-small-latest'); assert.equal(m.apiKey, 'm');
+  assert.equal(switchProvider(m, 'anthropic').apiKey, 'k', 'and back');
+  assert.throws(() => switchProvider(c, 'openai'), { code: 'unavailable', message: /OPENAI_API_KEY/ });
+  assert.throws(() => switchProvider(c, 'gemini'), { code: 'bad_request' });
+  assert.throws(() => switchProvider(c, 'mock'), { code: 'bad_request' }, 'mock only when it is the configured provider');
+});
+
+test('local-only: Ollama takes over, cloud providers are refused, or the coach is off', () => {
+  const env = { AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', OLLAMA_MODEL: 'llama' };
+  const c = loadConfig({ ...env, AI_LOCAL_ONLY: '1' });
+  assert.equal(c.provider, 'ollama'); assert.equal(c.available, true);
+  assert.throws(() => switchProvider(c, 'anthropic'), { code: 'forbidden' });
+  const s = publicStatus(c);
+  assert.equal(s.localOnly, true);
+  assert.deepEqual(s.providers.find(p => p.name === 'anthropic'), { name: 'anthropic', model: 'claude-haiku-5-5', local: false, available: false, reason: 'Local-only mode is on' });
+  const none = applyLocalOnly({ ...loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k' }), localOnly: true });
+  assert.equal(none.available, false); assert.match(none.reason, /Ollama isn't set up/);
+  assert.equal(applyLocalOnly({ ...loadConfig({ AI_PROVIDER: 'mock' }), localOnly: true }).provider, 'mock');
 });

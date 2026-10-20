@@ -1,27 +1,34 @@
 // HTTP routes for the AI gateway, mounted by scripts/serve.mjs --api.
 //   GET  /api/ai/status  -> {provider, model, models: {quick, chat, review}, available, reason, usage}
 //                           usage: today's requests, tokens, cost estimate and budget (usage.mjs)
+//   POST /api/ai/config  {provider?, localOnly?} -> status; switches among the providers .env sets up
+//   POST /api/ai/test    {} -> {ok, provider, model, ms, usage}: a tiny request to check the connection
 //   POST bodies may name a "task" (quick | chat | review) to pick that task's model.
 //   POST /api/ai/sample  -> NDJSON stream: {"text":"..."} lines, then {"done":true,"truncated":false,"usage":{"input":n,"output":n}}
 //                           or {"error":{"code":"...","message":"..."}}
 //   POST /api/ai/structured {messages|prompt, format} -> {data, truncated, usage, mode} as JSON;
 //                           format names one of schema.mjs FORMATS, e.g. "annotations"
 import net from 'net';
-import { createProvider, GatewayError, modelFor, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
+import { applyLocalOnly, complete, createProvider, GatewayError, modelFor, publicStatus, rateLimiter, switchProvider, toGatewayError, validateMessages } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageLedger } from './usage.mjs';
 
 const MAX_BODY = 1_000_000;
 const SECURITY_HEADERS = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 
-export function createApi({ config, provider = config.available ? createProvider(config) : null, log = console, ledger = usageLedger({ tokensPerDay: config.tokensPerDay, prices: parsePrices(config.prices) }) }) {
+// The settings UI can switch provider and local-only mode while the server runs (until restart);
+// `makeProvider` builds the new provider's client.
+export function createApi({ config, provider = config.available ? createProvider(config) : null, makeProvider = createProvider, log = console, ledger = usageLedger({ tokensPerDay: config.tokensPerDay, prices: parsePrices(config.prices) }) }) {
   const allow = rateLimiter(config.ratePerMinute);
+  const status = () => ({ ...publicStatus(config), usage: ledger.today() });
   return async function handle(req, res) {
     const { pathname } = new URL(req.url, 'http://x');
     if (!pathname.startsWith('/api/')) return false;
     try {
       checkHost(req);
-      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, { ...publicStatus(config), usage: ledger.today() });
+      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status());
+      if (pathname === '/api/ai/config' && req.method === 'POST') return await setConfig(req, res);
+      if (pathname === '/api/ai/test' && req.method === 'POST') return await testConnection(req, res);
       if (pathname === '/api/ai/sample' && req.method === 'POST') return await sample(req, res);
       if (pathname === '/api/ai/structured' && req.method === 'POST') return await structured(req, res);
       throw new GatewayError('not_found', 'Not found', 404);
@@ -33,10 +40,40 @@ export function createApi({ config, provider = config.available ? createProvider
     return true;
   };
 
-  // Checks shared by every POST: same origin, JSON body, a provider, valid messages, the rate limit.
-  async function accept(req) {
+  // Same origin and a JSON body, for every POST.
+  function checkPost(req) {
     checkOrigin(req);
     if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) throw new GatewayError('bad_request', 'Content-Type must be application/json', 415);
+  }
+
+  async function setConfig(req, res) {
+    checkPost(req);
+    const body = await readJson(req);
+    let next = config;
+    if (typeof body?.localOnly === 'boolean') next = applyLocalOnly({ ...next, localOnly: body.localOnly });
+    if (body?.provider !== undefined) next = switchProvider(next, body.provider);
+    if (next !== config) {
+      config = next; provider = config.available ? makeProvider(config) : null;
+      log.info?.(`AI coach: ${config.available ? `${config.provider} / ${config.model}` : `off (${config.reason})`}${config.localOnly ? ', local only' : ''}`);
+    }
+    return json(res, 200, status());
+  }
+
+  async function testConnection(req, res) {
+    checkPost(req);
+    if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
+    ledger.check();
+    if (!allow()) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
+    const model = modelFor(config, 'quick'), t0 = Date.now();
+    const r = await complete(provider, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256 });
+    ledger.add(model, r.usage);
+    return json(res, 200, { ok: true, provider: config.provider, model, ms: Date.now() - t0, usage: r.usage });
+  }
+
+  // Checks shared by the model requests: same origin, JSON body, a provider, valid messages, the
+  // daily budget and the rate limit.
+  async function accept(req) {
+    checkPost(req);
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
     const body = await readJson(req);
     const messages = validateMessages(body);

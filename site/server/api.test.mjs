@@ -50,7 +50,9 @@ test('status reports provider and availability', async () => {
   const r = await request('/api/ai/status');
   assert.equal(r.status, 200);
   const { usage, ...status } = JSON.parse(r.body);
-  assert.deepEqual(status, { provider: 'mock', model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true, reason: '' });
+  const { providers, ...rest } = status;
+  assert.deepEqual(rest, { provider: 'mock', model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true, reason: '', localOnly: false });
+  assert.deepEqual(providers.map(p => [p.name, p.available, p.local]), [['anthropic', false, false], ['openai', false, false], ['mistral', false, false], ['ollama', false, true], ['mock', true, true]]);
   assert.equal(typeof usage.requests, 'number');
   assert.equal(r.headers['cache-control'], 'no-store');
 });
@@ -172,5 +174,32 @@ test('usage is counted per request and the daily budget is enforced', async () =
   const r = await send();
   assert.equal(r.status, 429);
   assert.equal((await r.json()).error.code, 'budget_exceeded');
+  s.close();
+});
+
+test('settings: switch provider, local-only mode, connection test; all same-origin only', async () => {
+  const made = [];
+  const config = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', OLLAMA_MODEL: 'llama' });
+  const fakeProvider = name => ({ async *chat() { yield 'OK'; return { truncated: false, usage: { input: 5, output: 1 } }; }, name });
+  const api = createApi({ config, provider: fakeProvider('anthropic'), makeProvider: c => { made.push(c.provider); return fakeProvider(c.provider); }, log: quiet });
+  const s = http.createServer((req, res) => api(req, res));
+  await new Promise(r => s.listen(0, '127.0.0.1', r));
+  const base = `http://127.0.0.1:${s.address().port}/api/ai`;
+  const post = (path, body, headers = {}) => fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) });
+
+  const t = await (await post('/test', {})).json();
+  assert.equal(t.ok, true); assert.equal(t.provider, 'anthropic'); assert.equal(typeof t.ms, 'number');
+  let st = await (await post('/config', { provider: 'ollama' })).json();
+  assert.equal(st.provider, 'ollama'); assert.deepEqual(made, ['ollama']);
+  st = await (await post('/config', { provider: 'anthropic' })).json();
+  assert.equal(st.provider, 'anthropic');
+  st = await (await post('/config', { localOnly: true })).json();
+  assert.equal(st.localOnly, true); assert.equal(st.provider, 'ollama');
+  const refused = await post('/config', { provider: 'anthropic' });
+  assert.equal(refused.status, 409); assert.equal((await refused.json()).error.code, 'forbidden');
+  assert.equal((await post('/config', { provider: 'openai' })).status, 409, 'no key');
+  assert.equal((await post('/config', { localOnly: true }, { origin: 'http://evil.example' })).status, 403);
+  assert.equal((await fetch(base + '/config', { method: 'POST', body: '{}' })).status, 415);
+  assert.equal((await (await fetch(base + '/status')).json()).usage.requests, 1, 'the test request counted');
   s.close();
 });

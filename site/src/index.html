@@ -157,6 +157,7 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .choice { display: inline-flex; flex-wrap: wrap; width: fit-content; gap: 1px; background: var(--line); max-width: 100%; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .choice button { flex: 1 0 auto; border: 0; background: var(--surface); padding: 7px 12px; cursor: pointer; font-size: 14px; }
 .choice button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.choice button:disabled { color: var(--muted); background: var(--surface-2); cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
 textarea, input[type="text"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
 textarea { resize: vertical; min-height: 44px; }
@@ -339,6 +340,14 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div class="row" style="flex-direction:column;align-items:stretch;gap:6px"><button class="btn primary" id="coachSend">Ask</button><button class="btn" id="coachStop" hidden>Stop</button></div>
       </div>
       <div class="notice" id="coachOff" hidden>The coach needs an AI provider in this view. Stockfish analysis, flags and review still work.</div>
+      <details class="box" id="coachSettings" hidden><summary>Coach settings</summary>
+        <div class="field"><span class="lbl-sm">AI provider</span><div class="choice" id="optProvider"></div><span class="hint" id="providerHint"></span></div>
+        <dl class="kv" id="coachModels" style="margin-top:10px"></dl>
+        <label class="row" style="gap:8px;margin-top:10px"><input type="checkbox" id="optLocalOnly"> Local only: nothing leaves this machine (Ollama)</label>
+        <div class="row" style="margin-top:10px"><button class="btn small" id="btnTestAi">Test connection</button><span class="hint" id="testAiMsg" role="status"></span></div>
+        <p class="hint" id="coachUsage"></p>
+        <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
+      </details>
     </div>
 
     <div class="pane" data-pane="review" hidden>
@@ -419,15 +428,19 @@ const use = name => (window.claude && typeof window.claude.use === 'function')
   : name === 'sample' ? localSample() : Promise.resolve(null);
 // Outside a Claude artifact, the coach talks to the local AI gateway (scripts/serve.mjs --api),
 // which holds the API keys. Same shape as the artifact's sample(): (prompt | turns, {signal, onText}) -> {text, truncated}.
+let GATEWAY = null; // the local gateway's last status; null inside an artifact or when it can't be reached
 async function localSample() {
   let status;
   try { const r = await fetch('api/ai/status'); status = r.ok ? await r.json() : null; } catch { status = null; }
-  if (!status?.available) {
-    $('#coachOff').textContent = status ? `The coach is off: ${status.reason} Restart the server after changing .env. Stockfish analysis, flags and review still work.`
-      : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
-    return null;
-  }
-  return async (input, { signal, onText, task } = {}) => {
+  GATEWAY = status; renderCoachSettings();
+  if (!status?.available) { coachOffText(status); return null; }
+  return gatewaySample;
+}
+function coachOffText(status) {
+  $('#coachOff').textContent = status ? `The coach is off: ${status.reason}. Change it in the coach settings below, or in .env and restart the server. Stockfish analysis, flags and review still work.`
+    : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
+}
+async function gatewaySample(input, { signal, onText, task } = {}) {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
     let text = '', truncated = false;
     try {
@@ -454,7 +467,6 @@ async function localSample() {
       throw e?.code ? e : { code: 'unavailable' };
     }
     return { text, truncated };
-  };
 }
 // Screen-reader announcements (moves, navigation); the toast above is a status region too.
 function announce(text) { const a = $('#announce'); a.textContent = ''; requestAnimationFrame(() => { a.textContent = text; }); }
@@ -1375,7 +1387,56 @@ function evalGraph() {
 // ---------------------------------------------------------------- Coach (Claude)
 const COACH = { sample: null, ctl: null };
 const chatTurns = [];
-use('sample').then(s => { COACH.sample = s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !s; $('#btnStudyPlan').disabled = !s; renderChips(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; });
+function setCoach(s) { COACH.sample = s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !s; $('#btnStudyPlan').disabled = !s; renderChips(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; }
+use('sample').then(setCoach);
+// Coach settings (local gateway only): provider, models per task, local-only mode, a connection
+// test and today's usage. Keys and models stay in .env; the page only picks among what's set up.
+const PROVIDER_LABEL = { anthropic: 'Claude', openai: 'OpenAI', mistral: 'Mistral', ollama: 'Ollama (local)', mock: 'Mock (offline)' };
+function renderCoachSettings() {
+  const g = GATEWAY;
+  $('#coachSettings').hidden = !g;
+  if (!g) return;
+  $('#optProvider').replaceChildren(...(g.providers || []).map(p => el('button', { 'data-v': p.name, 'aria-pressed': String(p.name === g.provider), disabled: !p.available && p.name !== g.provider, title: p.available ? p.model : p.reason }, PROVIDER_LABEL[p.name] || p.name)));
+  const off = (g.providers || []).filter(p => !p.available && p.name !== g.provider).map(p => `${PROVIDER_LABEL[p.name] || p.name}: ${p.reason}`);
+  $('#providerHint').replaceChildren(...[g.available ? '' : g.reason, ...off].filter(Boolean).map(t => el('div', {}, t)));
+  $('#coachModels').replaceChildren(...(g.models ? [['Quick questions', g.models.quick], ['Chat', g.models.chat], ['Reviews and plans', g.models.review]] : []).flatMap(([k, v]) => [el('dt', {}, k), el('dd', { class: 'mono' }, v)]));
+  $('#optLocalOnly').checked = !!g.localOnly;
+  $('#coachUsage').textContent = usageText(g.usage);
+}
+function usageText(u) {
+  if (!u) return '';
+  const n = x => Number(x || 0).toLocaleString('en');
+  let t = `Today: ${n(u.requests)} request${u.requests === 1 ? '' : 's'}, ${n(u.input)} tokens in, ${n(u.output)} out`;
+  if (typeof u.cost === 'number' && u.input + u.output > 0) t += `, about $${u.cost.toFixed(u.cost < 0.01 ? 4 : 2)}${u.unpricedTokens ? ' (some models have no price in AI_PRICES)' : ''}`;
+  else if (u.input + u.output > 0) t += ' (set AI_PRICES in .env for a cost estimate)';
+  if (u.budget) t += `. Budget left today: ${n(u.left)} of ${n(u.budget)} tokens`;
+  return t + '.';
+}
+async function gatewayPost(path, body) {
+  const r = await fetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => null);
+  if (!r.ok) throw { code: j?.error?.code || 'unavailable', message: j?.error?.message };
+  return j;
+}
+async function refreshGateway() {
+  if (!GATEWAY) return;
+  try { const r = await fetch('api/ai/status'); if (r.ok) { GATEWAY = await r.json(); renderCoachSettings(); } } catch { /* keep the last status */ }
+}
+async function changeGateway(body) {
+  try { GATEWAY = await gatewayPost('config', body); } catch (e) { toast(e.message || coachError(e)); }
+  renderCoachSettings();
+  setCoach(GATEWAY?.available ? gatewaySample : null);
+  if (!GATEWAY?.available) coachOffText(GATEWAY);
+}
+$('#optProvider').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled && b.dataset.v !== GATEWAY?.provider) changeGateway({ provider: b.dataset.v }); });
+$('#optLocalOnly').addEventListener('change', e => changeGateway({ localOnly: e.target.checked }));
+$('#btnTestAi').addEventListener('click', async () => {
+  const msg = $('#testAiMsg'); msg.textContent = 'Testing…';
+  try { const r = await gatewayPost('test', {}); msg.textContent = `Connected: ${PROVIDER_LABEL[r.provider] || r.provider}, ${r.model}, ${r.ms} ms.`; }
+  catch (e) { msg.textContent = 'Failed: ' + (e.message || coachError(e)); }
+  refreshGateway();
+});
+$('#coachSettings').addEventListener('toggle', () => { if ($('#coachSettings').open) refreshGateway(); });
 const QUICK = [
   ['What\'s the plan?', 'What is the main plan for the side to move here, and why?'],
   ['Explain the best move', 'Explain the idea behind Stockfish\'s best move in this position.'],
@@ -1471,6 +1532,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
     if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled'].includes(e?.code)) { COACH.sample = null; $('#coachOff').hidden = false; $('#coachSend').disabled = true; renderChips(); }
   } finally {
     if (COACH.ctl === ctl) { $('#coachStop').hidden = true; $('#coachSend').disabled = !COACH.sample; chat.removeAttribute('aria-busy'); }
+    if ($('#coachSettings').open) refreshGateway(); // today's usage
   }
 }
 function coachError(e) {

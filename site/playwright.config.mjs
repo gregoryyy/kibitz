@@ -21,7 +21,8 @@ export default defineConfig({
   },
   webServer: {
     command: `node scripts/serve.mjs ${DIST} --api --env= --index _test.html --port ${PORT}`,
-    env: { AI_PROVIDER: 'mock', AI_RATE_LIMIT_PER_MINUTE: '1000' },
+    // Mock provider only: keys from the shell are blanked, so no test can reach a real provider.
+    env: { AI_PROVIDER: 'mock', AI_RATE_LIMIT_PER_MINUTE: '1000', ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', AI_LOCAL_ONLY: '' },
     url: `http://127.0.0.1:${PORT}/`,
     reuseExistingServer: false,
   },

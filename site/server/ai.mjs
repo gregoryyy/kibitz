@@ -22,11 +22,38 @@ export class GatewayError extends Error {
   constructor(code, message, status = 502) { super(message); this.code = code; this.status = status; }
 }
 
+// Providers that keep everything on this machine.
+export const LOCAL_PROVIDERS = ['ollama', 'mock'];
+
 // Reads the AI settings from an env object. `available` is false (with a `reason`) when the
-// chosen provider can't be used, so the client can hide the coach and say why.
+// chosen provider can't be used, so the client can hide the coach and say why. `choices` holds
+// every provider's settings (server-side only: they include the keys), so the settings UI can
+// switch between the ones .env sets up; `localOnly` (AI_LOCAL_ONLY) allows only local ones.
 export function loadConfig(env = process.env) {
+  const active = (env.AI_PROVIDER || 'anthropic').trim().toLowerCase();
+  const choices = Object.fromEntries(PROVIDERS.filter(p => p !== 'mock' || active === 'mock').map(p => [p, providerConfig(env, p)]));
+  return applyLocalOnly({ ...providerConfig(env, active), choices, localOnly: /^(1|true|yes|on)$/i.test(env.AI_LOCAL_ONLY || '') });
+}
+
+// In local-only mode a cloud provider is never used: Ollama takes over if it's set up.
+export function applyLocalOnly(cfg) {
+  if (!cfg.localOnly || LOCAL_PROVIDERS.includes(cfg.provider)) return cfg;
+  const ollama = cfg.choices?.ollama;
+  if (ollama?.available) return { ...ollama, choices: cfg.choices, localOnly: true };
+  return { ...cfg, available: false, reason: 'Local-only mode is on, and Ollama isn\'t set up (OLLAMA_MODEL in .env)' };
+}
+
+// Settings with another configured provider active; keys and models still come from .env.
+export function switchProvider(cfg, name) {
+  if (!Object.hasOwn(cfg.choices || {}, name)) throw new GatewayError('bad_request', `Unknown provider "${name}"`, 400);
+  const next = cfg.choices[name];
+  if (cfg.localOnly && !LOCAL_PROVIDERS.includes(name)) throw new GatewayError('forbidden', 'Local-only mode is on: only Ollama can be used', 409);
+  if (!next.available) throw new GatewayError('unavailable', next.reason, 409);
+  return { ...next, choices: cfg.choices, localOnly: cfg.localOnly };
+}
+
+function providerConfig(env, provider) {
   const num = (v, d) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : d; };
-  const provider = (env.AI_PROVIDER || 'anthropic').trim().toLowerCase();
   const cfg = {
     provider, model: '', available: false, reason: '',
     maxTokens: num(env.AI_MAX_OUTPUT_TOKENS, 16000),
@@ -59,7 +86,14 @@ export function loadConfig(env = process.env) {
 }
 
 // What the browser may see about the configuration: never keys or base URLs.
-export const publicStatus = cfg => ({ provider: cfg.provider, model: cfg.model, models: cfg.models || null, available: cfg.available, reason: cfg.reason });
+export const publicStatus = cfg => ({
+  provider: cfg.provider, model: cfg.model, models: cfg.models || null, available: cfg.available, reason: cfg.reason, localOnly: !!cfg.localOnly,
+  providers: Object.values(cfg.choices || {}).map(c => ({
+    name: c.provider, model: c.model, local: LOCAL_PROVIDERS.includes(c.provider),
+    available: c.available && (!cfg.localOnly || LOCAL_PROVIDERS.includes(c.provider)),
+    reason: c.available && cfg.localOnly && !LOCAL_PROVIDERS.includes(c.provider) ? 'Local-only mode is on' : c.reason,
+  })),
+});
 // The model for a request's task ("chat" when none is given); unknown tasks are refused.
 export function modelFor(cfg, task) {
   if (task === undefined || task === null) task = 'chat';
