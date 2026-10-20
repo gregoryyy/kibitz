@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createProvider, GatewayError, LIMITS, loadConfig, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
+import { complete, createEmbedder, createProvider, GatewayError, LIMITS, loadConfig, loadEmbeddingConfig, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
 
 const drain = async (gen) => { const out = []; let r; while (!(r = await gen.next()).done) out.push(r.value); return { chunks: out, result: r.value }; };
 const msgs = [{ role: 'user', content: 'Hi' }];
@@ -89,9 +89,9 @@ test('anthropic: streams text deltas and sends model and effort; no fallbacks fo
   const client = fakeAnthropic([{ type: 'message_start' }, { type: 'content_block_delta', delta: { type: 'thinking_delta', thinking: '...' } }, delta('Play '), delta('Nf3.')], { stop_reason: 'end_turn' });
   const cfg = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k' });
   const ac = new AbortController();
-  const { chunks, result } = await drain(createProvider(cfg, { client }).stream(msgs, { signal: ac.signal }));
+  const { chunks, result } = await drain(createProvider(cfg, { client }).chat(msgs, { signal: ac.signal }));
   assert.deepEqual(chunks, ['Play ', 'Nf3.']);
-  assert.deepEqual(result, { truncated: false });
+  assert.deepEqual(result, { truncated: false, usage: { input: 0, output: 0 } });
   const { params, opts } = client.calls[0];
   assert.equal(params.model, 'claude-haiku-5-5');
   assert.equal(params.max_tokens, 16000);
@@ -103,21 +103,21 @@ test('anthropic: streams text deltas and sends model and effort; no fallbacks fo
 
 test('anthropic: larger models get the server-side refusal fallback', async () => {
   const client = fakeAnthropic([], { stop_reason: 'end_turn' });
-  await drain(createProvider(loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', ANTHROPIC_MODEL: 'claude-sonnet-5-5' }), { client }).stream(msgs));
+  await drain(createProvider(loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', ANTHROPIC_MODEL: 'claude-sonnet-5-5' }), { client }).chat(msgs));
   assert.equal(client.calls[0].params.fallbacks, 'default');
   assert.deepEqual(client.calls[0].params.betas, ['server-side-fallback-2026-07-01']);
 });
 
 test('anthropic: max_tokens means truncated, refusal raises refused', async () => {
   const cfg = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k' });
-  const cut = await drain(createProvider(cfg, { client: fakeAnthropic([delta('a')], { stop_reason: 'max_tokens' }) }).stream(msgs));
+  const cut = await drain(createProvider(cfg, { client: fakeAnthropic([delta('a')], { stop_reason: 'max_tokens' }) }).chat(msgs));
   assert.equal(cut.result.truncated, true);
-  await assert.rejects(drain(createProvider(cfg, { client: fakeAnthropic([], { stop_reason: 'refusal' }) }).stream(msgs)), { code: 'refused' });
+  await assert.rejects(drain(createProvider(cfg, { client: fakeAnthropic([], { stop_reason: 'refusal' }) }).chat(msgs)), { code: 'refused' });
 });
 
 test('anthropic: empty ANTHROPIC_EFFORT omits output_config', async () => {
   const client = fakeAnthropic([], { stop_reason: 'end_turn' });
-  await drain(createProvider(loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', ANTHROPIC_EFFORT: '' }), { client }).stream(msgs));
+  await drain(createProvider(loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', ANTHROPIC_EFFORT: '' }), { client }).chat(msgs));
   assert.equal('output_config' in client.calls[0].params, false);
 });
 
@@ -130,7 +130,7 @@ const chunk = (content, finish_reason = null) => ({ choices: [{ delta: { content
 
 test('openai: streams content and uses max_completion_tokens', async () => {
   const client = fakeOpenAI([chunk('Develop '), chunk('pieces.'), chunk(undefined, 'stop')]);
-  const { chunks, result } = await drain(createProvider(loadConfig({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'k' }), { client }).stream(msgs));
+  const { chunks, result } = await drain(createProvider(loadConfig({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'k' }), { client }).chat(msgs));
   assert.deepEqual(chunks, ['Develop ', 'pieces.']);
   assert.equal(result.truncated, false);
   const p = client.calls[0].params;
@@ -142,7 +142,7 @@ test('openai: streams content and uses max_completion_tokens', async () => {
 
 test('mistral: uses max_tokens and keeps only text parts of array content', async () => {
   const client = fakeOpenAI([chunk([{ type: 'thinking', thinking: [] }, { type: 'text', text: 'Castle.' }]), chunk('', 'length')]);
-  const { chunks, result } = await drain(createProvider(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }), { client }).stream(msgs));
+  const { chunks, result } = await drain(createProvider(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }), { client }).chat(msgs));
   assert.deepEqual(chunks, ['Castle.']);
   assert.equal(result.truncated, true);
   assert.equal(client.calls[0].params.max_tokens, 16000);
@@ -150,11 +150,11 @@ test('mistral: uses max_tokens and keeps only text parts of array content', asyn
 
 test('openai-compatible: content_filter raises refused', async () => {
   const client = fakeOpenAI([chunk('', 'content_filter')]);
-  await assert.rejects(drain(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }), { client }).stream(msgs)), { code: 'refused' });
+  await assert.rejects(drain(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }), { client }).chat(msgs)), { code: 'refused' });
 });
 
 test('mock provider streams a canned reply', async () => {
-  const { chunks, result } = await drain(createProvider(loadConfig({ AI_PROVIDER: 'mock' })).stream(msgs));
+  const { chunks, result } = await drain(createProvider(loadConfig({ AI_PROVIDER: 'mock' })).chat(msgs));
   assert.match(chunks.join(''), /Mock coach/);
   assert.equal(result.truncated, false);
 });
@@ -177,4 +177,64 @@ test('rate limiter allows N per minute, then recovers', () => {
   assert.deepEqual([allow(), allow(), allow()], [true, true, false]);
   t = 60_000;
   assert.equal(allow(), true);
+});
+
+// ---------------------------------------------------------------- chat options and usage (TODO 2.2)
+test('anthropic: system prompt, model and max tokens per call; usage includes cached input', async () => {
+  const client = fakeAnthropic([delta('ok')], { stop_reason: 'end_turn', usage: { input_tokens: 10, cache_read_input_tokens: 90, cache_creation_input_tokens: 5, output_tokens: 7 } });
+  const p = createProvider(loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k' }), { client });
+  const r = await complete(p, msgs, { system: 'Be brief.', model: 'claude-sonnet-5-5', maxTokens: 300 });
+  assert.deepEqual(r, { text: 'ok', truncated: false, usage: { input: 105, output: 7 } });
+  const { params } = client.calls[0];
+  assert.equal(params.system, 'Be brief.'); assert.equal(params.model, 'claude-sonnet-5-5'); assert.equal(params.max_tokens, 300);
+  assert.equal(params.fallbacks, 'default', 'the fallback follows the model actually used');
+});
+
+test('openai-compatible: system message first, usage from the last chunk; Mistral is not sent stream_options', async () => {
+  const usageChunk = { choices: [], usage: { prompt_tokens: 21, completion_tokens: 4 } };
+  const openai = fakeOpenAI([chunk('Hi'), chunk(undefined, 'stop'), usageChunk]);
+  const r = await complete(createProvider(loadConfig({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'k' }), { client: openai }), msgs, { system: 'S' });
+  assert.deepEqual(r.usage, { input: 21, output: 4 });
+  assert.deepEqual(openai.calls[0].params.messages, [{ role: 'system', content: 'S' }, ...msgs]);
+  assert.deepEqual(openai.calls[0].params.stream_options, { include_usage: true });
+  const mistral = fakeOpenAI([chunk('x', 'stop'), usageChunk]);
+  await complete(createProvider(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }), { client: mistral }), msgs);
+  assert.equal('stream_options' in mistral.calls[0].params, false);
+  const quiet = await complete(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }), { client: fakeOpenAI([chunk('x', 'stop')]) }), msgs);
+  assert.deepEqual(quiet.usage, { input: 0, output: 0 }, 'no usage reported: zeros');
+});
+
+test('mock usage is deterministic', async () => {
+  const r = await complete(createProvider(loadConfig({ AI_PROVIDER: 'mock' })), [{ role: 'user', content: 'x'.repeat(40) }]);
+  assert.equal(r.usage.input, 10);
+  assert.ok(r.usage.output > 0);
+});
+
+// ---------------------------------------------------------------- embeddings (TODO 2.2)
+test('embedding config: openai, mistral and ollama with their keys; anthropic is refused', () => {
+  const o = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai', OPENAI_API_KEY: 'k' });
+  assert.equal(o.available, true); assert.equal(o.model, 'text-embedding-3-small');
+  assert.equal(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }).model, 'mistral-embed');
+  assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama' }).reason, /EMBEDDING_MODEL/);
+  assert.equal(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama', EMBEDDING_MODEL: 'nomic-embed-text' }).available, true);
+  assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama', EMBEDDING_MODEL: 'e', OLLAMA_BASE_URL: 'http://169.254.169.254' }).reason, /OLLAMA_ALLOWED_HOSTS/);
+  assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'anthropic' }).reason, /not one of/);
+  assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai' }).reason, /OPENAI_API_KEY/);
+});
+
+test('embed: one plain POST, vectors returned in input order, limits enforced', async () => {
+  const calls = [];
+  const client = { async post(path, opts) { calls.push({ path, opts }); return { data: [{ index: 1, embedding: [0, 1] }, { index: 0, embedding: [1, 0] }] }; } };
+  const e = createEmbedder(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }), { client });
+  assert.deepEqual(await e.embed(['a', 'b']), [[1, 0], [0, 1]]);
+  assert.equal(calls[0].path, '/embeddings');
+  assert.deepEqual(calls[0].opts.body, { model: 'mistral-embed', input: ['a', 'b'] });
+  await assert.rejects(e.embed([]), { code: 'bad_request' });
+  await assert.rejects(e.embed(['x'.repeat(8001)]), { code: 'prompt_too_large' });
+  const short = createEmbedder(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai', OPENAI_API_KEY: 'k' }), { client: { post: async () => ({ data: [] }) } });
+  await assert.rejects(short.embed(['a']), { code: 'provider_error' });
+  assert.throws(() => createEmbedder(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai' })), { code: 'unavailable' });
+  const mock = createEmbedder(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }));
+  const [v1, v2] = await mock.embed(['knight', 'knight']);
+  assert.equal(v1.length, 8); assert.deepEqual(v1, v2);
 });

@@ -6,13 +6,13 @@ import { GatewayError, loadConfig } from './ai.mjs';
 
 // A provider whose behaviour each test picks through the last message's content.
 const provider = {
-  async *stream(messages) {
+  async *chat(messages) {
     const q = messages.at(-1).content;
     if (q === 'fail-early') throw Object.assign(new Error('bad key'), { status: 401 });
     yield 'Hello ';
     if (q === 'fail-late') throw new GatewayError('refused', 'no', 200);
     yield 'there.';
-    return { truncated: q === 'long' };
+    return { truncated: q === 'long', usage: { input: 12, output: 3 } };
   },
 };
 
@@ -54,11 +54,11 @@ test('sample streams NDJSON text then done', async () => {
   const r = await post({ messages: [{ role: 'user', content: 'hi' }] }, { origin: `http://127.0.0.1:${port}` });
   assert.equal(r.status, 200);
   assert.match(r.headers['content-type'], /application\/x-ndjson/);
-  assert.deepEqual(lines(r.body), [{ text: 'Hello ' }, { text: 'there.' }, { done: true, truncated: false }]);
+  assert.deepEqual(lines(r.body), [{ text: 'Hello ' }, { text: 'there.' }, { done: true, truncated: false, usage: { input: 12, output: 3 } }]);
 });
 
 test('sample passes through truncation', async () => {
-  assert.deepEqual(lines((await post({ prompt: 'long' })).body).at(-1), { done: true, truncated: true });
+  assert.deepEqual(lines((await post({ prompt: 'long' })).body).at(-1), { done: true, truncated: true, usage: { input: 12, output: 3 } });
 });
 
 test('provider errors before and after output become error lines', async () => {

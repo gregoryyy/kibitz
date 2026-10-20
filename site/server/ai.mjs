@@ -72,8 +72,10 @@ export function validateMessages(body) {
   return out;
 }
 
-// A provider exposes stream(messages, {signal}): an async generator that yields text chunks
-// and returns {truncated}. `client` can be injected for tests.
+// A provider exposes chat(messages, opts): an async generator that yields text chunks and
+// returns {truncated, usage: {input, output}} (token counts, 0 when the provider doesn't say).
+//   opts: {model, system, maxTokens, signal}; model and maxTokens default to the configuration.
+// complete() below collects a whole reply. `client` can be injected for tests.
 export function createProvider(cfg, /** @type {{ client?: any }} */ { client } = {}) {
   switch (cfg.provider) {
     case 'anthropic':
@@ -87,43 +89,55 @@ export function createProvider(cfg, /** @type {{ client?: any }} */ { client } =
   }
 }
 
+/** @typedef {{ model?: string, system?: string, maxTokens?: number, signal?: AbortSignal }} ChatOptions */
+
 function anthropicProvider(cfg, client) {
   return {
-    async *stream(messages, /** @type {{ signal?: AbortSignal }} */ { signal } = {}) {
+    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, signal } = {}) {
       const stream = client.beta.messages.stream({
-        model: cfg.model,
-        max_tokens: cfg.maxTokens,
+        model,
+        max_tokens: maxTokens,
         messages,
+        ...(system ? { system } : {}),
         ...(cfg.effort ? { output_config: { effort: cfg.effort } } : {}),
         // On a safety decline, re-run on Anthropic's recommended fallback model instead of failing.
         // Haiku models have no server-side fallback, so the option is left off for them.
-        ...(cfg.model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }),
+        ...(model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }),
       }, { signal });
       for await (const ev of stream) {
         if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') yield ev.delta.text;
       }
       const msg = await stream.finalMessage();
       if (msg.stop_reason === 'refusal') throw new GatewayError('refused', 'The model declined to answer', 200);
-      return { truncated: msg.stop_reason === 'max_tokens' };
+      const u = msg.usage || {};
+      return { truncated: msg.stop_reason === 'max_tokens', usage: { input: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0), output: u.output_tokens || 0 } };
     },
   };
 }
 
 // OpenAI, Mistral and Ollama all serve the OpenAI chat-completions protocol.
+// Token usage: OpenAI and Ollama report it in a last chunk when asked (stream_options);
+// Mistral sends it with the final chunk on its own.
 function openAICompatProvider(cfg, client) {
   const tokenParam = cfg.provider === 'openai' ? 'max_completion_tokens' : 'max_tokens';
   return {
-    async *stream(messages, /** @type {{ signal?: AbortSignal }} */ { signal } = {}) {
-      const stream = await client.chat.completions.create({ model: cfg.model, messages, stream: true, [tokenParam]: cfg.maxTokens }, { signal });
-      let finish = null;
+    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, signal } = {}) {
+      const params = {
+        model, stream: true, [tokenParam]: maxTokens,
+        messages: system ? [{ role: 'system', content: system }, ...messages] : messages,
+        ...(cfg.provider === 'mistral' ? {} : { stream_options: { include_usage: true } }),
+      };
+      const stream = await client.chat.completions.create(params, { signal });
+      let finish = null, usage = null;
       for await (const chunk of stream) {
         const choice = chunk.choices?.[0];
         const text = deltaText(choice?.delta?.content);
         if (text) yield text;
         if (choice?.finish_reason) finish = choice.finish_reason;
+        if (chunk.usage) usage = chunk.usage;
       }
       if (finish === 'content_filter') throw new GatewayError('refused', 'The model declined to answer', 200);
-      return { truncated: finish === 'length' };
+      return { truncated: finish === 'length', usage: { input: usage?.prompt_tokens || 0, output: usage?.completion_tokens || 0 } };
     },
   };
 }
@@ -131,12 +145,65 @@ function openAICompatProvider(cfg, client) {
 const deltaText = c => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(p => p?.type === 'text').map(p => p.text).join('') : '';
 
 // Offline stand-in for development and tests (AI_PROVIDER=mock).
+// Token counts are rough (four characters a token) but deterministic.
 function mockProvider() {
   return {
-    async *stream(messages) {
+    async *chat(messages) {
       const reply = `Mock coach (AI_PROVIDER=mock). Your message had ${messages.at(-1).content.length} characters; set a real provider in .env for actual coaching.`;
       for (const word of reply.split(/(?<= )/)) yield word;
-      return { truncated: false };
+      const chars = messages.reduce((n, m) => n + m.content.length, 0);
+      return { truncated: false, usage: { input: Math.ceil(chars / 4), output: Math.ceil(reply.length / 4) } };
+    },
+  };
+}
+
+// The whole reply at once: {text, truncated, usage}.
+export async function complete(provider, messages, opts = {}) {
+  const it = provider.chat(messages, opts);
+  let text = '', r;
+  while (!(r = await it.next()).done) text += r.value;
+  return { text, truncated: !!r.value?.truncated, usage: r.value?.usage || { input: 0, output: 0 } };
+}
+
+// ---------------------------------------------------------------- Embeddings (for RAG, TODO 8.3)
+// Anthropic has no embeddings API, so EMBEDDING_PROVIDER is openai, mistral or ollama. The key,
+// base URL and Ollama host allowlist are the chat provider's settings for that name.
+export const EMBEDDING_PROVIDERS = ['openai', 'mistral', 'ollama', 'mock'];
+const EMBEDDING_DEFAULTS = { openai: 'text-embedding-3-small', mistral: 'mistral-embed', ollama: '' };
+export const EMBED_LIMITS = { texts: 128, chars: 8000 };
+export function loadEmbeddingConfig(env = process.env) {
+  const provider = (env.EMBEDDING_PROVIDER || 'ollama').trim().toLowerCase();
+  const off = reason => ({ provider, model: '', available: false, reason });
+  if (!EMBEDDING_PROVIDERS.includes(provider)) return off(`EMBEDDING_PROVIDER "${provider}" is not one of ${EMBEDDING_PROVIDERS.join(', ')}`);
+  if (provider === 'mock') return { provider, model: 'mock', available: true, reason: '' };
+  const base = /** @type {any} */ (loadConfig({ ...env, AI_PROVIDER: provider, [`${provider.toUpperCase()}_MODEL`]: 'embeddings' }));
+  const model = env.EMBEDDING_MODEL || EMBEDDING_DEFAULTS[provider];
+  if (!model) return off('EMBEDDING_MODEL is empty; for Ollama, set it to an embedding model you have pulled (e.g. nomic-embed-text)');
+  if (!base.available) return off(base.reason);
+  return { provider, model, available: true, reason: '', apiKey: base.apiKey, baseURL: base.baseURL, timeoutMs: base.timeoutMs };
+}
+// embed(texts, {signal}) -> one vector (array of numbers) per text, in order.
+export function createEmbedder(cfg, /** @type {{ client?: any }} */ { client } = {}) {
+  if (!cfg.available) throw new GatewayError('unavailable', cfg.reason || 'No embedding provider configured', 503);
+  const check = texts => {
+    if (!Array.isArray(texts) || !texts.length || texts.some(t => typeof t !== 'string')) throw new GatewayError('bad_request', 'Expected a list of strings', 400);
+    if (texts.length > EMBED_LIMITS.texts || texts.some(t => t.length > EMBED_LIMITS.chars)) throw new GatewayError('prompt_too_large', `At most ${EMBED_LIMITS.texts} texts of ${EMBED_LIMITS.chars} characters`, 413);
+  };
+  if (cfg.provider === 'mock') {
+    // Deterministic 8-dimensional vectors from character codes, for tests.
+    return { async embed(texts) { check(texts); return texts.map(t => Array.from({ length: 8 }, (_, k) => [...t].reduce((a, ch, i) => a + (i % 8 === k ? ch.charCodeAt(0) : 0), 0) / 1000)); } };
+  }
+  const baseURL = cfg.provider === 'ollama' ? cfg.baseURL.replace(/\/+$/, '') + '/v1' : cfg.baseURL;
+  const c = client ?? new OpenAI({ apiKey: cfg.apiKey, baseURL, timeout: cfg.timeoutMs });
+  return {
+    async embed(texts, /** @type {{ signal?: AbortSignal }} */ { signal } = {}) {
+      check(texts);
+      // A plain POST: the SDK's embeddings.create() asks for base64 by default, which the
+      // OpenAI-compatible servers (Mistral, Ollama) may not support.
+      const res = await c.post('/embeddings', { body: { model: cfg.model, input: texts }, signal });
+      const data = [...(res?.data || [])].sort((a, b) => a.index - b.index);
+      if (data.length !== texts.length || data.some(d => !Array.isArray(d.embedding))) throw new GatewayError('provider_error', 'The embedding provider returned an unexpected response', 502);
+      return data.map(d => d.embedding);
     },
   };
 }

@@ -1,6 +1,6 @@
 // HTTP routes for the AI gateway, mounted by scripts/serve.mjs --api.
 //   GET  /api/ai/status  -> {provider, model, available, reason}
-//   POST /api/ai/sample  -> NDJSON stream: {"text":"..."} lines, then {"done":true,"truncated":false}
+//   POST /api/ai/sample  -> NDJSON stream: {"text":"..."} lines, then {"done":true,"truncated":false,"usage":{"input":n,"output":n}}
 //                           or {"error":{"code":"...","message":"..."}}
 import net from 'net';
 import { createProvider, GatewayError, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
@@ -38,10 +38,10 @@ export function createApi({ config, provider = config.available ? createProvider
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
     const write = obj => res.write(JSON.stringify(obj) + '\n');
     try {
-      const it = provider.stream(messages, { signal: ac.signal });
+      const it = provider.chat(messages, { signal: ac.signal });
       let r;
       while (!(r = await it.next()).done) write({ text: r.value });
-      write({ done: true, truncated: !!r.value?.truncated });
+      write({ done: true, truncated: !!r.value?.truncated, usage: r.value?.usage || { input: 0, output: 0 } });
     } catch (e) {
       const g = toGatewayError(e, ac.signal);
       // Log the code and the provider's message, never the prompt.
