@@ -18,7 +18,8 @@ copy(nm('stockfish/bin/stockfish-19-lite-single.wasm'), 'sf.wasm');
 copy(nm('stockfish/bin/stockfish-19-asm.js'), 'sf-asm.js');
 copy(nm('chess.js/dist/esm/chess.js'), 'chess.js');
 copy(nm('@lichess-org/chessground/dist/chessground.min.js'), 'chessground.js');
-copy(path.join(root, 'src/knowledge.js'), 'knowledge.js');
+// The page's own modules (knowledge.js, engine.js, store.js, prompt.js, ...)
+for (const f of fs.readdirSync(path.join(root, 'src'))) if (f.endsWith('.js')) copy(path.join(root, 'src', f), f);
 
 if (!fs.existsSync(path.join(dist, 'eco.json')) || process.argv.includes('--eco')) {
   execFileSync(process.execPath, [path.join(root, 'scripts/build-eco.mjs')], { stdio: 'inherit' });

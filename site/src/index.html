@@ -355,6 +355,9 @@ a.ext { color: var(--accent); font-size: 14px; }
 import { Chess } from './chess.js';
 import { Chessground } from './chessground.js';
 import * as K from './knowledge.js';
+import { Engine, stockfishAttempts } from './engine.js';
+import { createStore, browserStorage } from './store.js';
+import { quote, UNTRUSTED_RULE } from './prompt.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -371,10 +374,9 @@ const el = (tag, attrs = {}, ...kids) => {
 const LEVELS = { 1: 'beginner (under 1200)', 2: 'club player (1200–1800)', 3: 'advanced player (1800–2200)', 4: 'expert (2200+)' };
 const GLYPH = { inaccuracy: '?!', mistake: '?', blunder: '??', best: '', good: '', book: '' };
 const CLS_LABEL = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', best: 'the best move', good: 'a good move', book: 'a book move' };
-const store = {
-  get(k, d) { try { const v = localStorage.getItem('kibitz.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
-  set(k, v) { try { localStorage.setItem('kibitz.' + k, JSON.stringify(v)); } catch {} },
-};
+const store = createStore(browserStorage());
+// Opening names are looked up this deep into a game; positions this early in the ECO table count as book moves.
+const OPENING_PLIES = 40, BOOK_PLIES = 30;
 const use = name => (window.claude && typeof window.claude.use === 'function') ? window.claude.use(name).catch(() => null)
   : name === 'sample' ? localSample() : Promise.resolve(null);
 // Outside a Claude artifact, the coach talks to the local AI gateway (scripts/serve.mjs --api),
@@ -419,78 +421,19 @@ async function localSample() {
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2200); }
 
 // ---------------------------------------------------------------- Engine
-class Engine {
-  constructor(label) { this.label = label; this.queue = []; this.cur = null; this.flavor = '';
-    this.ready = this.boot(); }
-  async boot() {
-    const wasm = new URL('sf.js', location.href).href, asm = new URL('sf-asm.js', location.href).href;
-    const attempts = [
-      ['WASM', () => new Worker(wasm)],
-      ['WASM', async () => { const src = await (await fetch(wasm)).text(); return new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })) + '#' + encodeURIComponent(wasm.replace(/\.js$/, '.wasm'))); }],
-      ['ASM.js', async () => { try { return new Worker(asm); } catch { const src = await (await fetch(asm)).text(); return new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' }))); } }],
-    ];
-    for (const [flavor, make] of attempts) {
-      try { this.w = await this.handshake(await make()); this.flavor = flavor; return true; } catch (e) { /* try next */ }
-    }
-    throw new Error('Stockfish could not start in this browser');
-  }
-  handshake(w) {
-    return new Promise((res, rej) => {
-      const t = setTimeout(() => { w.terminate(); rej(new Error('timeout')); }, 12000);
-      w.onerror = e => { clearTimeout(t); w.terminate(); rej(e); };
-      w.onmessage = e => {
-        const line = String(e.data);
-        if (line.startsWith('id name')) this.name = line.slice(8);
-        if (line === 'uciok') { clearTimeout(t); w.onmessage = ev => this.onLine(String(ev.data)); w.onerror = null; w.postMessage('setoption name Hash value 32'); res(w); }
-      };
-      w.postMessage('uci');
-    });
-  }
-  send(c) { this.w.postMessage(c); }
-  // opts: {depth|movetime, multipv, setup:[], tag, onInfo}
-  go(fen, opts = {}) {
-    return new Promise((resolve, reject) => { this.queue.push({ fen, opts, resolve, reject, lines: [] }); this.pump(); });
-  }
-  cancel(tag) {
-    this.queue = this.queue.filter(j => { if (!tag || j.opts.tag === tag) { j.resolve(null); return false; } return true; });
-    if (this.cur && (!tag || this.cur.opts.tag === tag)) { this.cur.cancelled = true; this.send('stop'); }
-  }
-  async pump() {
-    if (this.cur || !this.queue.length) return;
-    await this.ready;
-    if (this.cur || !this.queue.length) return;
-    const j = this.cur = this.queue.shift();
-    const o = j.opts;
-    this.send(`setoption name MultiPV value ${o.multipv || 1}`);
-    (o.setup || []).forEach(c => this.send(c));
-    this.send('position fen ' + j.fen);
-    this.send(o.movetime ? `go movetime ${o.movetime}` : `go depth ${o.depth || 12}`);
-  }
-  onLine(line) {
-    const j = this.cur; if (!j) return;
-    if (line.startsWith('info') && line.includes(' pv ') && line.includes(' score ')) {
-      const inf = K.parseInfo(line);
-      if (inf.bound) return;
-      const k = (inf.multipv || 1) - 1;
-      j.lines[k] = { score: inf.score, pv: inf.pv, depth: inf.depth };
-      j.depth = Math.max(j.depth || 0, inf.depth);
-      if (k === 0 && j.opts.onInfo && !j.cancelled) j.opts.onInfo(j);
-    } else if (line.startsWith('bestmove')) {
-      const best = line.split(' ')[1];
-      this.cur = null;
-      j.resolve(j.cancelled ? null : { best: best === '(none)' ? null : best, lines: j.lines.filter(Boolean), depth: j.depth || 0 });
-      this.pump();
-    }
-  }
+// Engine class: engine.js. A failed start or a crash rejects every waiting job; show it once.
+function engineDown(err) {
+  if (engineDown.shown) return; engineDown.shown = true;
+  $('#engineDot').className = 'dot err';
+  $('#engineText').textContent = /start/.test(err?.message) ? 'Stockfish failed to start' : 'Stockfish stopped. Reload the page to restart it.';
 }
-const analyst = new Engine('analyst');
-const opponent = new Engine('opponent');
+const analyst = new Engine(stockfishAttempts(), { onFail: engineDown });
+const opponent = new Engine(stockfishAttempts(), { onFail: engineDown });
 analyst.ready.then(() => {
   $('#engineDot').className = 'dot ok';
   $('#engineText').textContent = analyst.name || ('Stockfish · ' + analyst.flavor);
   refreshAnalysis();
-}).catch(() => { $('#engineDot').className = 'dot err'; $('#engineText').textContent = 'Stockfish failed to start'; });
-opponent.ready.catch(() => {});
+}, () => {});
 
 // ---------------------------------------------------------------- State
 const saved = store.get('settings', {});
@@ -499,10 +442,12 @@ const S = {
   help: saved.help || 'flags', level: saved.level || 2, depth: saved.depth || 14, orientation: 'white',
   start: START, nodes: [{ fen: START, ply: 0 }], cursor: 0, over: null, thinking: false, hints: 0,
   gameId: null, meta: null, playing: false, reviewDone: false, summary: '', comments: {},
+  gen: 0, // bumped whenever the game is replaced, so async work started for the old game can tell it's stale
 };
 const ANA = new Map(); // epd -> {depth, lines:[{score(white pov), pv}], best}
 let ECO = {};
-fetch('eco.json').then(r => r.json()).then(j => { ECO = j; renderAll(); }).catch(() => {});
+fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); })
+  .catch(() => toast('Opening names could not be loaded. Everything else still works.'));
 function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, help: S.help, level: S.level, depth: S.depth }); }
 
 function last() { return S.nodes.length - 1; }
@@ -516,10 +461,10 @@ function chessAt(i) {
 }
 function openingAt(i = S.cursor) {
   let op = null;
-  for (let k = 1; k <= i && k <= 40; k++) { const e = ECO[K.epd(S.nodes[k].fen)]; if (e) op = { eco: e[0], name: e[1], ply: k }; }
+  for (let k = 1; k <= i && k <= OPENING_PLIES; k++) { const e = ECO[K.epd(S.nodes[k].fen)]; if (e) op = { eco: e[0], name: e[1], ply: k }; }
   return op;
 }
-function isBook(i) { return i > 0 && i <= 30 && !!ECO[K.epd(S.nodes[i].fen)]; }
+function isBook(i) { return i > 0 && i <= BOOK_PLIES && !!ECO[K.epd(S.nodes[i].fen)]; }
 function anaOf(fen) { return ANA.get(K.epd(fen)); }
 function whiteCp(i) {
   const fen = S.nodes[i].fen;
@@ -608,7 +553,7 @@ function drawShapes() {
   const shapes = [];
   const i = S.cursor, n = S.nodes[i];
   const a = anaOf(n.fen);
-  if (showEngine() && a?.best && !terminalCp(n.fen)) shapes.push({ orig: a.best.slice(0, 2), dest: a.best.slice(2, 4), brush: 'best' });
+  if (showEngine() && a?.best && terminalCp(n.fen) === null) shapes.push({ orig: a.best.slice(0, 2), dest: a.best.slice(2, 4), brush: 'best' });
   const cls = n.cls;
   if (i > 0 && ['inaccuracy', 'mistake', 'blunder'].includes(cls) && flagVisible(i)) {
     const prev = anaOf(S.nodes[i - 1].fen);
@@ -689,22 +634,32 @@ function pickWeak(res, fen) {
   }
   return (pool[Math.floor(Math.random() * pool.length)] || lines[0]).pv[0];
 }
+// Each engine reply gets a token; cancelling (new game, take-back, loading) moves the token on,
+// so a stale reply can't play a move or clear the `thinking` flag of a newer one.
+let replyToken = 0;
+function cancelReply() { replyToken++; S.thinking = false; opponent.cancel(); }
 async function engineReply() {
   if (S.over || !S.playing || S.thinking) return;
-  S.thinking = true; renderPlayers();
   const fen = nodeFen(last());
+  if (turnOf(fen) === S.userColor) return; // e.g. the user took back while the reply was scheduled
+  const token = ++replyToken;
+  S.thinking = true; renderPlayers(); renderControls();
   const t0 = performance.now();
   let res;
   try {
     if (S.elo >= 1320) res = await opponent.go(fen, { movetime: 300 + Math.min(900, S.elo / 3), multipv: 1, setup: ['setoption name Skill Level value 20', 'setoption name UCI_LimitStrength value true', `setoption name UCI_Elo value ${S.elo}`], tag: 'move' });
     else res = await opponent.go(fen, { depth: S.elo < 900 ? 1 : S.elo < 1100 ? 3 : 5, multipv: 4, setup: ['setoption name UCI_LimitStrength value false', 'setoption name Skill Level value 0'], tag: 'move' });
-  } catch { S.thinking = false; return; }
+  } catch {
+    if (token === replyToken) { S.thinking = false; renderAll(); toast('Stockfish isn\'t running, so it can\'t reply. Reload the page to restart it.'); }
+    return;
+  }
   const wait = 450 - (performance.now() - t0);
   if (wait > 0) await new Promise(r => setTimeout(r, wait));
+  if (token !== replyToken) return;
   S.thinking = false;
-  if (!res || S.over || !S.playing || nodeFen(last()) !== fen) { renderPlayers(); return; }
+  if (!res || S.over || !S.playing || nodeFen(last()) !== fen) { renderPlayers(); renderControls(); return; }
   const uci = S.elo >= 1320 ? res.best : pickWeak(res, fen);
-  if (!uci) return;
+  if (!uci) { renderAll(); return; }
   S.cursor = last();
   playMove({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] || 'q' }, { fromEngine: true });
 }
@@ -715,7 +670,9 @@ async function analyse(fen, depth, tag = 'live', onInfo) {
   if (terminalCp(fen) !== null) return null;
   if (have && have.depth >= depth) return have;
   const stm = turnOf(fen);
-  const res = await analyst.go(fen, { depth, multipv: tag === 'review' ? 2 : 3, tag, onInfo: onInfo && (j => onInfo(toWhite(j.lines, stm), j.depth)) });
+  let res;
+  try { res = await analyst.go(fen, { depth, multipv: tag === 'review' ? 2 : 3, tag, onInfo: onInfo && (j => onInfo(toWhite(j.lines, stm), j.depth)) }); }
+  catch { return anaOf(fen) || null; } // engine down: engineDown() has told the user
   if (!res) return anaOf(fen) || null;
   const entry = { depth: res.depth, lines: toWhite(res.lines, stm), best: res.best };
   const prev = anaOf(fen);
@@ -766,7 +723,9 @@ function renderOpening() {
   $('#openingEco').textContent = op ? op.eco : '';
 }
 function renderMoves() {
-  const box = $('#moves'); box.replaceChildren();
+  const box = $('#moves');
+  const hadFocus = box.contains(document.activeElement); // keep keyboard focus on the move list across re-renders
+  box.replaceChildren();
   if (S.nodes.length === 1) { box.append(el('span', { class: 'empty-note' }, S.mode === 'play' ? 'Make your first move on the board, or press Start game for new settings.' : 'Make moves on the board to explore.')); return; }
   for (let i = 1; i < S.nodes.length; i++) {
     const n = S.nodes[i];
@@ -780,6 +739,7 @@ function renderMoves() {
   if (S.over) box.append(el('span', { class: 'result-line' }, S.over.result));
   else if (S.meta?.result && S.meta.result !== '*' && S.mode === 'analysis') box.append(el('span', { class: 'result-line' }, S.meta.result));
   const cur = box.querySelector('.cur'); if (cur) { const top = cur.offsetTop - box.offsetTop; if (top < box.scrollTop || top > box.scrollTop + box.clientHeight - 24) box.scrollTop = top - box.clientHeight / 2; }
+  if (hadFocus) (cur || box.querySelector('button'))?.focus({ preventScroll: true });
 }
 function renderEval(liveScore, liveDepth) {
   const bar = $('#evalbar');
@@ -876,7 +836,7 @@ function newGame({ confirmed = false } = {}) {
     confirmBox('Leave this game? It will be saved to your library as unfinished.', 'Leave and start new', () => { saveCurrentGame({ quiet: true, result: '*' }); newGame({ confirmed: true }); });
     return;
   }
-  analyst.cancel(); opponent.cancel();
+  analyst.cancel(); cancelReply(); S.gen++;
   S.mode = 'play'; S.start = START; S.nodes = [{ fen: START, ply: 0 }]; S.cursor = 0; S.over = null; S.thinking = false; S.hints = 0;
   S.userColor = S.colorPick === 'r' ? (Math.random() < .5 ? 'w' : 'b') : S.colorPick;
   S.orientation = S.userColor === 'w' ? 'white' : 'black';
@@ -887,7 +847,7 @@ function newGame({ confirmed = false } = {}) {
 }
 function takeBack() {
   if (!S.playing || S.thinking) return;
-  opponent.cancel();
+  cancelReply();
   let n = last();
   while (n > 0 && S.nodes[n].color !== S.userColor) n--;
   if (n < 1) return;
@@ -900,14 +860,15 @@ function confirmBox(text, yesLabel, onYes) {
     el('button', { class: 'btn small', onclick: () => slot.replaceChildren() }, 'Cancel')));
 }
 async function hint() {
-  const fen = nodeFen();
+  const fen = nodeFen(), i = S.cursor, gen = S.gen;
   if (terminalCp(fen) !== null) return;
   $('#btnHint').disabled = true;
-  const a = await analyse(fen, S.depth, 'live');
-  $('#btnHint').disabled = false;
-  if (!a?.best) return;
+  const a = await analyse(fen, S.depth, 'hint');
+  renderControls();
+  if (S.gen !== gen || S.cursor !== i || nodeFen() !== fen) return; // the user moved on; don't draw on another position
+  if (!a?.best) { toast('No hint available right now.'); return; }
   S.hints++;
-  hintShape = { i: S.cursor, s: { orig: a.best.slice(0, 2), dest: a.best.slice(2, 4), brush: 'hint' } };
+  hintShape = { i, s: { orig: a.best.slice(0, 2), dest: a.best.slice(2, 4), brush: 'hint' } };
   drawShapes();
   const motifs = K.moveMotifs(Chess, fen, a.best);
   toast(motifs[0] ? `Hint: look for a ${K.TAG_LABELS[motifs[0].tag].toLowerCase()}` : 'Hint: the yellow arrow is Stockfish\'s choice');
@@ -934,7 +895,7 @@ function loadText(txt) {
 }
 function commentsOf(c) { const m = {}; for (const { fen, comment } of c.getComments()) m[K.epd(fen)] = comment; return m; }
 function loadLine(start, sans, meta = null, comments = {}, { gameId = null, cursor = null } = {}) {
-  analyst.cancel(); opponent.cancel();
+  analyst.cancel(); cancelReply(); S.gen++;
   S.mode = 'analysis'; S.playing = false; S.over = null; S.thinking = false; S.start = start; S.meta = meta; S.comments = comments;
   S.gameId = gameId; S.reviewDone = false; S.summary = meta?.summary || '';
   const c = new Chess(start); S.nodes = [{ fen: c.fen(), ply: 0 }];
@@ -979,33 +940,68 @@ function toPGN({ annotate = true, headers = {} } = {}) {
 }
 
 // ---------------------------------------------------------------- Library storage
+const LOCAL_FULL = 'Browser storage is full, so this wasn\'t saved. Delete some games, or export them as PGN first.';
+let libLoaded;
 const Lib = {
   where: 'loading', games: new Map(), books: new Map(), db: null, uid: null, unsub: [],
+  // Writes wait for this, so a save during start-up can't overwrite the stored library with an empty one.
+  ready: new Promise(r => { libLoaded = r; }),
   async init() {
     const [db, user] = await Promise.all([use('db'), use('user')]);
-    let uid = null; try { uid = user ? await user.id() : null; } catch {}
+    let uid = null; try { uid = user ? await user.id() : null; } catch { /* no signed-in user: local library */ }
     if (db && uid) {
       this.db = db; this.uid = uid; this.where = 'cloud';
       const base = db.doc(`data/users/${uid}/kibitz`);
       this.gamesCol = base.collection('games'); this.booksCol = base.collection('books');
-      this.unsub.push(this.gamesCol.onSnapshot(s => { this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => this.fallback()));
+      this.unsub.push(this.gamesCol.onSnapshot(s => { this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => this.fallback({ lost: true })));
       this.unsub.push(this.booksCol.onSnapshot(s => { this.books = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => {}));
+      libLoaded();
     } else this.fallback();
   },
-  fallback() {
+  fallback({ lost = false } = {}) {
+    if (lost) toast('Your account library is unavailable. Saving in this browser until you reload.');
     this.where = 'local'; this.db = null;
     this.games = new Map((store.get('games', [])).map(g => [g.id, g]));
     this.books = new Map((store.get('books', [])).map(b => [b.id, b]));
-    onLibChange();
+    libLoaded(); onLibChange();
   },
-  persistLocal() { store.set('games', [...this.games.values()]); store.set('books', [...this.books.values()]); },
-  async putGame(g) {
-    if (this.where === 'cloud') { try { await this.gamesCol.doc(g.id).set(g); return true; } catch (e) { if (e?.code === 'quota_exceeded') toast('Library is full. Delete some games first.'); else toast('Could not save to your library.'); return false; } }
-    this.games.set(g.id, g); this.persistLocal(); onLibChange(); return true;
+  persistLocal() { return store.set('games', [...this.games.values()]) && store.set('books', [...this.books.values()]); },
+  // Applies a change to the local maps and persists it; on failure the change is undone and reported.
+  localChange(map, apply) {
+    const before = new Map(map); apply();
+    if (this.persistLocal()) { onLibChange(); return true; }
+    map.clear(); before.forEach((v, k) => map.set(k, v));
+    toast(LOCAL_FULL); return false;
   },
-  async delGame(id) { if (this.where === 'cloud') { try { await this.gamesCol.doc(id).delete(); } catch { toast('Could not delete that game.'); } } else { this.games.delete(id); this.persistLocal(); onLibChange(); } },
-  async putBook(b) { if (this.where === 'cloud') { try { await this.booksCol.doc(b.id).set(b); } catch { toast('Could not save that reference.'); } } else { this.books.set(b.id, b); this.persistLocal(); onLibChange(); } },
-  async delBook(id) { if (this.where === 'cloud') { try { await this.booksCol.doc(id).delete(); } catch {} } else { this.books.delete(id); this.persistLocal(); onLibChange(); } },
+  async putGame(g) { return (await this.putGames([g])) === 1; },
+  // Saves several games with one write (local) and one library refresh; returns how many were saved.
+  async putGames(list) {
+    await this.ready;
+    if (this.where === 'cloud') {
+      let n = 0;
+      for (const g of list) {
+        try { await this.gamesCol.doc(g.id).set(g); n++; }
+        catch (e) { toast(e?.code === 'quota_exceeded' ? 'Library is full. Delete some games first.' : 'Could not save to your library.'); break; }
+      }
+      return n;
+    }
+    return this.localChange(this.games, () => list.forEach(g => this.games.set(g.id, g))) ? list.length : 0;
+  },
+  async delGame(id) {
+    await this.ready;
+    if (this.where === 'cloud') { try { await this.gamesCol.doc(id).delete(); } catch { toast('Could not delete that game.'); } }
+    else this.localChange(this.games, () => this.games.delete(id));
+  },
+  async putBook(b) {
+    await this.ready;
+    if (this.where === 'cloud') { try { await this.booksCol.doc(b.id).set(b); return true; } catch { toast('Could not save that reference.'); return false; } }
+    return this.localChange(this.books, () => this.books.set(b.id, b));
+  },
+  async delBook(id) {
+    await this.ready;
+    if (this.where === 'cloud') { try { await this.booksCol.doc(id).delete(); } catch { toast('Could not remove that reference.'); } }
+    else this.localChange(this.books, () => this.books.delete(id));
+  },
 };
 
 // Built-in examples (public-domain games, annotations by Kibitz) so the library and retrieval have something to show.
@@ -1021,15 +1017,26 @@ function gamePositions(g) {
     const c = new Chess(); c.loadPgn(g.pgn);
     const com = commentsOf(c); const h = c.history({ verbose: true });
     const r = new Chess(c.getHeaders().FEN || START); const out = [];
-    h.forEach((m, k) => { r.move(m.san); const f = r.fen(); out.push({ epd: K.epd(f), pawns: K.pawnSignature(f), ply: k + 1, san: m.san, comment: com[K.epd(f)], cls: g.cls?.[k + 1] }); });
+    h.forEach((m, k) => {
+      // Label from the board itself, so games that start from a FEN with Black to move are numbered right.
+      const label = `${r.moveNumber()}${r.turn() === 'w' ? '.' : '…'} ${m.san}`;
+      r.move(m.san); const f = r.fen();
+      out.push({ epd: K.epd(f), pawns: K.pawnSignature(f), ply: k + 1, san: m.san, label, comment: com[K.epd(f)], cls: g.cls?.[k + 1] });
+    });
     return out;
-  } catch { return []; }
+  } catch { return []; } // unreadable PGN: the game just isn't indexed
 }
-const posCache = new Map();
+const posCache = new Map(); // game id -> {updatedAt, positions}; entries for deleted games are dropped
 function allGames() { return [...Lib.games.values(), ...EXAMPLES]; }
 function onLibChange() {
-  const games = allGames().map(g => { if (!posCache.has(g.id + (g.updatedAt || ''))) posCache.set(g.id + (g.updatedAt || ''), gamePositions(g)); return { ...g, positions: posCache.get(g.id + (g.updatedAt || '')) }; });
-  INDEX = K.buildPositionIndex(games);
+  const games = allGames();
+  const ids = new Set(games.map(g => g.id));
+  for (const id of posCache.keys()) if (!ids.has(id)) posCache.delete(id);
+  INDEX = K.buildPositionIndex(games.map(g => {
+    let e = posCache.get(g.id);
+    if (!e || e.updatedAt !== (g.updatedAt || 0)) posCache.set(g.id, e = { updatedAt: g.updatedAt || 0, positions: gamePositions(g) });
+    return { ...g, positions: e.positions };
+  }));
   renderLibrary(); renderReading();
 }
 
@@ -1057,6 +1064,12 @@ async function saveCurrentGame({ quiet = false, result } = {}) {
   const ok = await Lib.putGame(rec);
   if (ok && !quiet) toast(Lib.where === 'cloud' ? 'Saved to your library' : 'Saved in this browser');
 }
+// Saved games store whiteCp(); K.scoreToCp encodes "mate in n" as ±(10000 - 10n). Undo that, so a
+// restored mate shows as a mate instead of being clamped to ±20 pawns.
+function storedScore(cp) {
+  if (Math.abs(cp) < 9000) return { cp };
+  return { mate: Math.sign(cp) * Math.max(1, Math.round((10000 - Math.abs(cp)) / 10)) };
+}
 function openGame(g, ply = null) {
   const go = () => {
     const c = new Chess(); c.loadPgn(g.pgn);
@@ -1064,7 +1077,7 @@ function openGame(g, ply = null) {
     loadLine(h.FEN || START, c.history(), { ...g, title: g.title || h.Event, white: g.white || h.White, black: g.black || h.Black, result: g.result || h.Result }, commentsOf(c), { gameId: g.id, cursor: ply });
     // restore stored analysis so the review shows immediately
     (g.cls || []).forEach((cl, i) => { if (S.nodes[i] && cl) S.nodes[i].cls = cl; });
-    (g.evals || []).forEach((cp, i) => { const n = S.nodes[i]; if (n && cp !== null && cp !== undefined && !anaOf(n.fen)) ANA.set(K.epd(n.fen), { depth: 0, lines: [{ score: { cp }, pv: [] }], best: g.best?.[i] || null }); });
+    (g.evals || []).forEach((cp, i) => { const n = S.nodes[i]; if (n && cp !== null && cp !== undefined && !anaOf(n.fen)) ANA.set(K.epd(n.fen), { depth: 0, lines: [{ score: storedScore(cp), pv: [] }], best: g.best?.[i] || null }); });
     S.reviewDone = !!g.reviewed; S.summary = g.summary || '';
     for (let i = 1; i < S.nodes.length; i++) if (!S.nodes[i].cls) classifyNode(i);
     renderAll(); renderReview(); openTab(g.reviewed ? 'review' : 'game');
@@ -1087,6 +1100,7 @@ function renderLibrary() {
     return [g.white, g.black, g.opening, g.eco, g.result, g.title].join(' ').toLowerCase().includes(q);
   });
   const box = $('#libList'); box.replaceChildren();
+  if (paneHidden('library')) return; // count and location above stay current; the list renders when the tab opens
   if (!mine.length) box.append(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The two examples show how it works.'));
   for (const g of list) {
     const youIdx = g.userColor;
@@ -1119,19 +1133,20 @@ async function downloadPGN(g) {
 function splitPGN(txt) { return txt.replace(/\r/g, '').split(/\n\s*\n(?=\[Event |\[White |\[Site )/).map(s => s.trim()).filter(Boolean); }
 async function importPGN() {
   const parts = splitPGN($('#importText').value);
-  let ok = 0, bad = 0;
+  const recs = []; let bad = 0;
   for (const p of parts) {
     try {
       const c = new Chess(); c.loadPgn(p); const h = c.getHeaders();
       if (!c.history().length) { bad++; continue; }
       const r = new Chess(h.FEN || START); let op = null;
-      c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < 40) op = e; });
-      await Lib.putGame({ id: 'i' + Date.now().toString(36) + ok, kind: 'study', title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() });
-      ok++;
+      c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < OPENING_PLIES) op = e; });
+      recs.push({ id: 'i' + Date.now().toString(36) + recs.length, kind: 'study', title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() });
     } catch { bad++; }
   }
-  $('#importMsg').textContent = ok ? `Added ${ok} game${ok > 1 ? 's' : ''}${bad ? `, skipped ${bad} that couldn't be read` : ''}.` : 'No valid PGN found.';
-  if (ok) $('#importText').value = '';
+  const ok = recs.length ? await Lib.putGames(recs) : 0; // one write and one re-index for the whole batch
+  const skipped = bad ? `, skipped ${bad} that couldn't be read` : '';
+  $('#importMsg').textContent = ok ? `Added ${ok} game${ok > 1 ? 's' : ''}${skipped}.` : recs.length ? 'The games could not be saved.' : 'No valid PGN found.';
+  if (ok === recs.length && ok) $('#importText').value = '';
 }
 
 // ---------------------------------------------------------------- Review
@@ -1150,21 +1165,29 @@ function renderReviewHeader() {
 }
 async function runReview() {
   if (S.nodes.length < 2 || reviewCtl) return;
-  reviewCtl = { stop: false };
+  const ctl = reviewCtl = { stop: false };
   $('#btnReviewStop').hidden = false; renderReviewHeader();
   const bar = $('#reviewProgress'); bar.hidden = false;
   analyst.cancel('live'); liveToken++;
-  const depth = S.depth, N = S.nodes.length;
-  for (let i = 0; i < N; i++) {
-    if (reviewCtl.stop) break;
-    await analyse(S.nodes[i].fen, depth, 'review');
-    if (i > 0) classifyNode(i);
-    bar.firstElementChild.style.width = ((i + 1) / N * 100).toFixed(1) + '%';
-    if (i % 6 === 0) renderMoves();
+  // Snapshot the game: the user can load another game or branch off in analysis while this runs,
+  // and results must never be applied to (or saved for) a different game.
+  const gen = S.gen, fens = S.nodes.map(n => n.fen), depth = S.depth, N = fens.length;
+  const unchanged = i => S.gen === gen && S.nodes[i]?.fen === fens[i];
+  let changed = false;
+  try {
+    for (let i = 0; i < N; i++) {
+      if (ctl.stop) break;
+      await analyse(fens[i], depth, 'review');
+      if (!unchanged(i)) { changed = true; break; }
+      if (i > 0) classifyNode(i);
+      bar.firstElementChild.style.width = ((i + 1) / N * 100).toFixed(1) + '%';
+      if (i % 6 === 0) renderMoves();
+    }
+  } finally {
+    reviewCtl = null; bar.hidden = true; $('#btnReviewStop').hidden = true;
   }
-  const stopped = reviewCtl.stop;
-  reviewCtl = null; bar.hidden = true; $('#btnReviewStop').hidden = true;
-  if (!stopped) { S.reviewDone = true; if (S.gameId || S.mode === 'play') saveCurrentGame({ quiet: true }); }
+  if (changed) { analyst.cancel('review'); toast('Review stopped because the game changed.'); renderReviewHeader(); return; }
+  if (!ctl.stop) { S.reviewDone = true; if (S.gameId || S.mode === 'play') saveCurrentGame({ quiet: true }); }
   renderAll(); renderReview(); refreshAnalysis();
 }
 function keyMoments(limit = 5) {
@@ -1249,7 +1272,7 @@ function contextFor(i) {
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
   const lines = [];
   lines.push(`Player: ${LEVELS[S.level]}${S.mode === 'play' ? `, playing ${S.userColor === 'w' ? 'White' : 'Black'} against Stockfish set to about ${S.elo} Elo` : ', analysing a game'}.`);
-  if (S.meta?.white) lines.push(`Game: ${S.meta.white} vs ${S.meta.black}${S.meta.result ? ' ' + S.meta.result : ''}.`);
+  if (S.meta?.white) lines.push(`Game: ${quote(S.meta.white, 80)} vs ${quote(S.meta.black, 80)}${S.meta.result ? ', result ' + quote(S.meta.result, 10) : ''}.`);
   lines.push(`Moves so far: ${c.pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '').trim() || '(none)'}`);
   lines.push(`Current position (FEN): ${fen}`);
   lines.push(`Board:\n${new Chess(fen).ascii()}`);
@@ -1271,10 +1294,15 @@ function contextFor(i) {
   }
   lines.push(`Position themes detected: ${feats.map(f => `${K.TAG_LABELS[f.tag] || f.tag} (${f.why})`).join('; ') || 'none'}.`);
   const books = K.retrieveLiterature(feats, { level: S.level, limit: 4, userBooks: userBooks() });
-  if (books.length) { lines.push('Retrieved references (recommend only from these):'); books.forEach(r => lines.push(`  - ${r.book.title} by ${r.book.author}${r.where ? ', ' + r.where : ''}: ${r.book.about}`)); }
+  if (books.length) { lines.push('Retrieved references (recommend only from these):'); books.forEach(r => lines.push(`  - ${bookLine(r)}: ${r.book.user ? quote(r.book.about, 200) : r.book.about}`)); }
   const seen = K.similarPositions(INDEX, fen, { excludeGameId: S.gameId, limit: 3 });
-  if (seen.length) { lines.push('Similar positions from the player\'s library:'); seen.forEach(s => lines.push(`  - ${s.g.white} vs ${s.g.black} (${s.g.date || ''}), after move ${Math.ceil(s.p.ply / 2)} ${s.p.san}, ${s.kind}${s.p.comment ? `. Note there: "${s.p.comment}"` : ''}`)); }
+  if (seen.length) { lines.push('Similar positions from the player\'s library:'); seen.forEach(s => lines.push(`  - ${quote(s.g.white, 80)} vs ${quote(s.g.black, 80)} ${quote(s.g.date, 20)}, after ${s.p.label || s.p.san}, ${s.kind}${s.p.comment ? `. Note there: ${quote(s.p.comment)}` : ''}`)); }
   return lines.join('\n');
+}
+// Built-in references are ours; the player's own (title, author, note) are quoted as data.
+function bookLine(r) {
+  const b = r.book;
+  return `${b.user ? quote(b.title, 120) : b.title} by ${b.user ? quote(b.author, 80) : b.author}${r.where ? ', ' + r.where : ''}`;
 }
 const RULES = `You are Kibitz, a chess coach inside a training app. Each message includes the current position, Stockfish 19's analysis and references retrieved for the position.
 Rules:
@@ -1282,26 +1310,30 @@ Rules:
 - Explain the ideas a human can use: threats, plans, piece placement, pawn structure, tactics and the reasoning that finds them. Pitch it to the player's level.
 - Use standard algebraic notation (SAN). Describe evaluations in words ("about a pawn better for White") and give the number in brackets.
 - Recommend reading only from the retrieved references, naming the part when it is given.
-- Be concise: under 170 words unless asked for more. Short paragraphs or at most 4 bullets. No headings.`;
+- Be concise: under 170 words unless asked for more. Short paragraphs or at most 4 bullets. No headings.
+${UNTRUSTED_RULE}`;
 async function askCoach(question, { atNode = null } = {}) {
   if (!COACH.sample) { openTab('coach'); return; }
   openTab('coach');
   if (atNode !== null && atNode !== S.cursor) goTo(atNode);
-  const i = atNode ?? S.cursor;
+  const i = atNode ?? S.cursor, gen = S.gen;
   const fen = S.nodes[i].fen;
-  if (!anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'live');
-  if (i > 0 && !anaOf(S.nodes[i - 1].fen)) await analyse(S.nodes[i - 1].fen, S.depth, 'live');
+  // Own tag, so moving around the board (which cancels 'live' analysis) doesn't starve the coach.
+  if (!anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'coach');
+  if (i > 0 && !anaOf(S.nodes[i - 1].fen)) await analyse(S.nodes[i - 1].fen, S.depth, 'coach');
+  if (S.gen !== gen || S.nodes[i]?.fen !== fen) return; // the game changed while the engine ran
   COACH.ctl?.abort();
   const ctl = COACH.ctl = new AbortController();
   const chat = $('#chat');
   chat.append(el('div', { class: 'msg user' }, question));
   const bubble = el('div', { class: 'msg coach thinking' }, el('span', { class: 'who' }, 'Coach'), 'Thinking…');
   chat.append(bubble); chat.scrollTop = chat.scrollHeight;
+  chat.setAttribute('aria-busy', 'true'); // screen readers announce the finished answer once, not every streamed chunk
   $('#coachStop').hidden = false; $('#coachSend').disabled = true;
-  const history = chatTurns.slice(-8);
-  const turns = [{ role: 'user', content: RULES }, ...history, { role: 'user', content: `${contextFor(i)}\n\nQuestion: ${question}` }];
   const render = text => { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); const body = el('div'); renderRich(body, text, fen); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
   try {
+    const history = chatTurns.slice(-8);
+    const turns = [{ role: 'user', content: RULES }, ...history, { role: 'user', content: `${contextFor(i)}\n\nQuestion: ${question}` }];
     const { text, truncated } = await COACH.sample(turns, { signal: ctl.signal, cache: false, onText: ({ text }) => render(text) });
     render(text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : ''));
     chatTurns.push({ role: 'user', content: `[At ${i ? moveLabel(i) : 'start'}] ${question}` }, { role: 'assistant', content: text });
@@ -1311,7 +1343,7 @@ async function askCoach(question, { atNode = null } = {}) {
     else { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), coachError(e)); }
     if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled'].includes(e?.code)) { COACH.sample = null; $('#coachOff').hidden = false; $('#coachSend').disabled = true; renderChips(); }
   } finally {
-    if (COACH.ctl === ctl) { $('#coachStop').hidden = true; $('#coachSend').disabled = !COACH.sample; }
+    if (COACH.ctl === ctl) { $('#coachStop').hidden = true; $('#coachSend').disabled = !COACH.sample; chat.removeAttribute('aria-busy'); }
   }
 }
 function coachError(e) {
@@ -1363,7 +1395,7 @@ async function writeSummary() {
   const allFeats = new Map();
   [Math.min(16, last()), Math.floor(last() / 2), last(), ...keyMoments(6).map(k => k.i)].forEach(i => K.positionFeatures(new Chess(S.nodes[i].fen), { ply: i, opening: openingAt(i) }).forEach(f => { const o = allFeats.get(f.tag); if (!o || o.weight < f.weight) allFeats.set(f.tag, f); }));
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });
-  const prompt = `${RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${names.w.name}. Black: ${names.b.name}. Result: ${S.over?.result || S.meta?.result || '*'}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${r.book.title} by ${r.book.author}${r.where ? ', ' + r.where : ''}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
+  const prompt = `${RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
   try {
     const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(box, text), cache: false });
     S.summary = text; renderRich(box, text);
@@ -1375,6 +1407,7 @@ async function writeSummary() {
 // ---------------------------------------------------------------- Reading (retrieval)
 function userBooks() { return [...Lib.books.values()].map(b => ({ ...b, user: true, level: S.level, about: b.note || 'Your reference.', where: {} })); }
 function renderReading() {
+  if (paneHidden('reading')) return; // runs on every move otherwise; openTab('reading') renders it
   const fen = nodeFen(); const i = S.cursor; const op = openingAt(i);
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
   const a = anaOf(fen);
@@ -1396,7 +1429,7 @@ function renderReading() {
   const sl = $('#seenList'); sl.replaceChildren();
   if (!seen.length) sl.append(el('p', { class: 'empty-note' }, 'No game in your library reached this position or pawn structure. Your games and imported studies are indexed automatically.'));
   for (const s of seen) sl.append(el('div', { class: 'seen' }, el('span', { class: 'k' }, s.kind), el('button', { class: 'btn small', onclick: () => openGame(s.g, s.p.ply) }, 'Open'),
-    el('div', {}, `${s.g.title ? s.g.title + ' · ' : ''}${s.g.white} – ${s.g.black}, after ${Math.ceil(s.p.ply / 2)}${s.p.ply % 2 ? '.' : '…'} ${s.p.san}`), s.p.comment ? el('q', {}, '“' + s.p.comment + '”') : null));
+    el('div', {}, `${s.g.title ? s.g.title + ' · ' : ''}${s.g.white} – ${s.g.black}, after ${s.p.label || s.p.san}`), s.p.comment ? el('q', {}, '“' + s.p.comment + '”') : null));
   $('#lichessLink').href = 'https://lichess.org/analysis/standard/' + fen.replace(/ /g, '_');
 }
 async function studyPlan() {
@@ -1419,21 +1452,36 @@ function renderRefTags() {
 async function addRef() {
   const title = $('#refTitle').value.trim(); const tags = $$('#refTags .chip.on').map(b => b.dataset.tag);
   if (!title || !tags.length) { $('#refMsg').textContent = 'Add a title and at least one theme.'; return; }
-  await Lib.putBook({ id: 'b' + Date.now().toString(36), title, author: $('#refAuthor').value.trim(), note: $('#refNote').value.trim(), tags, updatedAt: Date.now() });
+  if (!(await Lib.putBook({ id: 'b' + Date.now().toString(36), title, author: $('#refAuthor').value.trim(), note: $('#refNote').value.trim(), tags, updatedAt: Date.now() }))) { $('#refMsg').textContent = 'The reference could not be saved.'; return; }
   $('#refTitle').value = $('#refAuthor').value = $('#refNote').value = ''; renderRefTags();
   $('#refMsg').textContent = 'Added. It will show up when a matching position comes up.';
 }
 
 // ---------------------------------------------------------------- Tabs & wiring
+function paneHidden(name) { return !!$(`.pane[data-pane="${name}"]`)?.hidden; }
 function openTab(name) {
-  $$('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+  $$('.tabs button').forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
   $$('.pane').forEach(p => p.hidden = p.dataset.pane !== name);
   if (name === 'review') renderReview();
   if (name === 'library') renderLibrary();
   if (name === 'reading') renderReading();
-  try { store.set('tab', name); } catch {}
+  store.set('tab', name);
 }
-$$('.tabs button').forEach(b => b.addEventListener('click', () => openTab(b.dataset.tab)));
+// ARIA tabs pattern: tabs point at their panels, and arrow keys / Home / End move between tabs.
+$$('.tabs button').forEach(b => {
+  const pane = $(`.pane[data-pane="${b.dataset.tab}"]`);
+  b.id = 'tab-' + b.dataset.tab; pane.id = 'pane-' + b.dataset.tab;
+  b.setAttribute('aria-controls', pane.id); pane.setAttribute('role', 'tabpanel'); pane.setAttribute('aria-labelledby', b.id);
+  b.addEventListener('click', () => openTab(b.dataset.tab));
+});
+$('.tabs').addEventListener('keydown', e => {
+  const tabs = $$('.tabs button'); const k = tabs.indexOf(document.activeElement);
+  if (k < 0) return;
+  const to = { ArrowRight: (k + 1) % tabs.length, ArrowLeft: (k - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[e.key];
+  if (to === undefined) return;
+  e.preventDefault(); e.stopPropagation(); // not also a move-list arrow key (document handler below)
+  tabs[to].focus(); openTab(tabs[to].dataset.tab);
+});
 function choice(id, val, onPick) {
   const box = $(id);
   const set = v => box.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === String(v))));
@@ -1487,15 +1535,22 @@ document.addEventListener('keydown', e => {
 // ---------------------------------------------------------------- Boot
 function start(data) {
   renderRefTags(); renderChips(); $('#coachSend').disabled = !COACH.sample;
-  if (data?.pgn) {
-    const c = new Chess(); try { c.loadPgn(data.pgn); } catch {}
+  let c = null;
+  if (data?.pgn) { c = new Chess(); try { c.loadPgn(data.pgn); } catch { c = null; toast('The previous game could not be restored, so a new one was started.'); } }
+  if (c) {
     loadLine(c.getHeaders().FEN || START, c.history(), data.meta || null, data.comments || {}, { gameId: data.gameId, cursor: data.cursor });
-    if (data.mode === 'play' && data.playing) { S.mode = 'play'; S.playing = true; S.userColor = data.userColor; S.orientation = data.orientation; renderAll(); }
+    if (data.mode === 'play' && data.playing) {
+      S.mode = 'play'; S.playing = true; S.userColor = data.userColor === 'b' ? 'b' : 'w'; S.orientation = data.orientation === 'black' ? 'black' : 'white';
+      if (data.elo) { S.elo = data.elo; $('#optElo').value = S.elo; eloHint(); }
+      renderAll();
+      // If the snapshot was taken while Stockfish was to move, it must move now or the game is stuck.
+      if (turnOf(nodeFen(last())) !== S.userColor) setTimeout(engineReply, 300);
+    }
   } else newGame({ confirmed: true });
   openTab(store.get('tab', 'game'));
   Lib.init();
 }
 if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA };
-window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation }));
+window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 </script>

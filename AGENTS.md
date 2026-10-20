@@ -23,14 +23,16 @@ Node (current LTS) and WebAssembly. Browser code is plain ES modules with chessg
 
 - Every feature ships with tests: `node:test` for logic, Playwright for UI.
 - Tests use the mock AI provider; live provider tests run only when an env flag is set.
-- `just test` (or `npm test` in `site/`) runs everything, after a build. For the AI gateway, use fake SDK clients or `AI_PROVIDER=mock`; never call a real provider in tests.
-- `just serve`, then `just e2e` for the Playwright run.
+- `just test` (or `npm test` in `site/`) runs the unit tests, after a build. For the AI gateway, use fake SDK clients or `AI_PROVIDER=mock`; never call a real provider in tests.
+- `just e2e` (or `npm run test:e2e` in `site/`) for the Playwright tests in `site/tests/e2e/`. A bug fix comes with a regression test there that fails on the old code.
 
 ## Security
 
 - Before every release, run the OWASP Top 10, OWASP Top 10 for LLM Applications and ASVS checks (TODO 11) and record the results in the release PR.
 - API keys stay on the server, never in the browser, the repo, logs or prompts.
 - Model output, imported PGN and library text are untrusted. Never render them as HTML, and check every move and square with chess.js before showing it.
+- Imported or user-written text (PGN headers and comments, the player's references and notes) goes into prompts only through `quote()` from `site/src/prompt.js`.
+- Async work (engine, coach, review) must check that the game is still the one it started for (`S.gen`, or the position's FEN) before applying results.
 
 ## Chess logic
 

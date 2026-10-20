@@ -21,7 +21,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 0.3 Set up npm workspaces (`client`, `server`, `shared`) and pin Node LTS (`.nvmrc`, `engines`)
 - [ ] 0.4 Decide on typing: JS + JSDoc checked by `tsc --checkJs`, or TypeScript
 - [ ] 0.5 Add linting and formatting (ESLint, Prettier)
-- [ ] 0.6 Set up the test harness: `node:test` for unit tests, `@playwright/test` for e2e (port `claude/tests/e2e.py` to JS)
+- [x] 0.6 Set up the test harness: `node:test` for unit tests, `@playwright/test` for e2e (port `claude/tests/e2e.py` to JS)
 - [ ] 0.7 Turn `knowledge.test.mjs` into real assertions; today it only prints output
 - [ ] 0.8 GitHub Actions on every PR: lint, unit, e2e, build, `npm audit`, CodeQL, secret scanning
 - [ ] 0.9 PR template with a checklist: tests, TODO/DONE updated, security impact
@@ -123,7 +123,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 8.4 Hybrid retrieval: structural similarity, tag overlap and text embeddings, then re-ranking
 - [ ] 8.5 Fuzzy pawn-structure distance
 - [ ] 8.6 Retrieved items go into tutor and chat context with citations; the UI opens the cited game at that position
-- [ ] 8.7 Treat retrieved text as untrusted: delimit it and never follow instructions inside it (imported PGN comments can carry prompt injection) *(added)*
+- [x] 8.7 Treat retrieved text as untrusted: delimit it and never follow instructions inside it (imported PGN comments can carry prompt injection) *(added)*
 - [ ] 8.8 Retrieval eval: labelled query positions with expected references; track precision@k *(added)*
 
 ## 9. Progress and personalization *(added)*
@@ -150,7 +150,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 11.1 Threat model covering the data flows: browser ↔ server ↔ providers, PGN imports, RAG store
 - [ ] 11.2 OWASP Top 10 (current edition): a checklist mapped to the code, with findings tracked as GitHub issues
 - [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item:
-  - [ ] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
+  - [x] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
   - [ ] 11.3.2 LLM02 Sensitive information disclosure: API keys, other users' data
   - [ ] 11.3.3 LLM03 Supply chain: pinned packages and model versions
   - [ ] 11.3.4 LLM04 Data and model poisoning: imported games and annotations in the RAG store

@@ -7,7 +7,7 @@ The app lives in [`site/`](site/): page source, build scripts, opening data, the
 ## Prerequisites
 
 - **Node.js 22 or newer** with npm (tested with Node 25).
-- **Python 3**, only for the end-to-end test.
+- **Google Chrome**, for the end-to-end tests (Playwright drives the installed browser).
 - **[just](https://github.com/casey/just)** (`brew install just`) is optional; every recipe has a plain npm equivalent below.
 - A recent desktop or mobile browser with WebAssembly support. Older browsers fall back to the slower asm.js engine.
 
@@ -24,7 +24,7 @@ On start the server prints `AI coach: <provider> / <model>`, or why the coach is
 
 ```bash
 just test              # unit tests (builds first)
-just e2e               # Playwright run against a server started with `just serve`
+just e2e               # Playwright end-to-end tests (starts its own server with the mock AI provider)
 just build             # build only; `just build-eco` also rebuilds the opening table
 just                   # list all recipes
 ```
@@ -60,23 +60,17 @@ Add `?debug` to the URL to get `window.__kibitz = { S, contextFor, ANA }` in the
 ## Tests
 
 ```bash
-cd site
-npm run build          # the knowledge check needs dist/eco.json
-npm test               # AI gateway: config, providers, validation, HTTP guards (no network calls),
-                       # then the knowledge module: features, motifs, book retrieval
+just test              # or, in site/: npm run build && npm test
+just e2e               # or, in site/: npm run test:e2e
 ```
 
-The knowledge check currently prints its results rather than asserting them. Turning it into real assertions is TODO 0.7.
-
-End-to-end (Playwright, Chromium):
-
-```bash
-pip install playwright && python3 -m playwright install chromium
-just serve             # in one terminal
-just e2e               # in another
-```
-
-The e2e run plays a short game, runs a review, opens the library and checks a phone-width dark-mode layout. It saves screenshots to `site/tests/out/` (git-ignored) and prints any browser console errors. Set `CHROME_PATH` to use a specific Chrome or Chromium binary.
+- **`npm test`** runs the unit tests (`node:test`, no network calls). They cover the AI gateway (config, providers, validation, HTTP guards, security headers) and the page modules (engine queue with a fake worker, storage, prompt quoting). It then runs the knowledge check, which currently prints its results rather than asserting them (TODO 0.7).
+- **`npm run test:e2e`** builds the site and runs Playwright in your installed Google Chrome. It starts its own server on port 8799 with `AI_PROVIDER=mock` and no `.env`, so no keys and no real provider are involved.
+  - The smoke tests play and review a game, use the library, reading and coach tabs, check the security headers and the phone layout.
+  - The regression tests reproduce each bug fixed after the code review.
+  - Every test also fails on uncaught page errors and Content Security Policy violations.
+  - Reports and traces of failed tests go to `site/tests/out/` (git-ignored).
+  - To use Playwright's bundled Chromium instead of Chrome, run `npx playwright install chromium` and set `PW_CHANNEL=chromium`.
 
 ## Licences
 

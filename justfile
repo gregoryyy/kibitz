@@ -31,9 +31,9 @@ serve: build
 test: build
     npm --prefix site test
 
-# End-to-end Playwright run against a server already started with `just serve`
-e2e:
-    KIBITZ_URL="http://{{host}}:{{port}}/" python3 site/tests/e2e.py
+# End-to-end Playwright tests in the installed Chrome; builds, then starts its own server with the mock AI provider
+e2e: install
+    npm --prefix site run test:e2e
 
 # Remove build output
 clean:

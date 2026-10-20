@@ -7,6 +7,63 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-20 — Fixes from the code review: bugs and security
+
+TODO items: 0.6, 8.7, 11.3.1 done; 1.12, 2.1, 10.5 partly.
+
+### Implementation notes
+
+The 2026-10-20 review of `site/src` found 25 issues. Each fixed bug now has a Playwright regression test that fails on the pre-fix page; this was checked by running the tests against a build of the last commit (`E2E_DIST`).
+
+**Bugs fixed:**
+- **Review crashed when the game changed mid-run.** It snapshots the position FENs, stops with a message when the game changes, and resets its UI in `finally`. It never classifies or saves the wrong game.
+- **A failed or crashed engine froze the game.** The Engine moved to `src/engine.js`. A failed start or crash rejects every waiting job, and later jobs fail at once. The engine reply, hint, analysis and coach all recover, and the status shows the failure.
+- **Full browser storage still said "Saved".** `src/store.js` reports failure; library writes are undone and reported.
+- **The engine could play for the user.** This happened after a quick take-back, and a stale reply could also clear a newer reply's `thinking` flag. Replies now check the turn and carry a token.
+- **The coach could use a game the user had left.** It checks the game generation and FEN after its analysis; the prompt is built inside `try`. It also has its own analysis tag, so moving around the board doesn't cancel it.
+- **The hint could draw on the wrong position.** It now checks the position before drawing, and has its own analysis tag.
+- **Restoring a game could lose it or stall it.** A failed PGN restore now says so and starts a new game; the Elo is restored, and if Stockfish was to move, it moves.
+- **Saves during library loading could wipe the local library.** Library writes now wait for loading to finish.
+- **Silent failures:** a failed opening-table load, losing the cloud library, and failed reference saves or deletes are now reported.
+- **Smaller fixes:**
+  - Restored mate scores come back as mates instead of +20.
+  - A draw (0) was treated as "not over".
+  - Move labels for games that start from a FEN with Black to move were wrong.
+  - Named constants for the opening and book ply limits.
+
+**Security fixes:**
+- **Prompt injection (LLM01).** PGN headers and comments, and the player's own references, go into prompts only through `quote()` (`src/prompt.js`). It produces one line in «guillemets», with control characters and inner guillemets removed and the length capped. The coach's rules say quoted text is data.
+- **Static server hardening.**
+  - A hash-based Content Security Policy for HTML: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`.
+  - `Referrer-Policy`, `X-Frame-Options`, `Cross-Origin-Opener-Policy` and `Permissions-Policy` on every response.
+  - Dot-paths such as `/.env` are never served.
+  - Header logic lives in `server/static.mjs`, with tests.
+
+**Performance and accessibility:**
+- PGN import saves in one write and re-indexes once; the position cache is keyed by game and pruned.
+- The Reading and Library panes render only while visible.
+- Tabs follow the ARIA tabs pattern (`tabpanel`, `aria-controls`, arrow keys, Home and End). Focus stays in the move list across re-renders. The chat is marked busy while streaming, so screen readers announce the answer once.
+
+**Tests:**
+- 50 `node:test` unit tests. New ones cover the engine queue with a fake worker, storage, prompt quoting and security headers.
+- 12 Playwright tests in the installed Chrome, replacing `tests/e2e.py`. Every one also fails on uncaught errors and CSP violations.
+
+### Deviations
+
+- **Not fixed:**
+  - Keyboard move entry (TODO 1.11).
+  - PGN comments are still keyed by position, so repeated positions share one comment.
+  - `renderAll` still recomputes more than it needs to (only the hidden panes are skipped).
+  - Most of the inline script is still one module; only the engine, storage and prompt helpers moved out.
+- **`RULES` stays a user turn,** so the page keeps working with the artifact's `sample()`, which has no system role. The quoting carries the protection.
+- **COEP is not sent,** because it would need CORP headers on every resource; it's only needed for multi-threaded Stockfish (TODO 1.3).
+
+### Insights
+
+- **chessground ignores untrusted (synthetic) mouse events** unless `trustAllEvents` is set. UI races are better reproduced with Playwright's fake clock (`page.clock`): it froze the 60 ms before the engine's reply, so the take-back race failed reliably on the old code.
+- **The mock provider made the prompt-injection test cheap:** the test intercepts the request to `/api/ai/sample` and checks exactly what the model would receive.
+- **A file-writing tool turned the escapes ` `/` ` into the literal characters.** Inside a regex literal those are line terminators, which broke parsing. Keep such escapes ASCII and check with `node --check`.
+
 ## 2026-10-20 — One app folder: `site/`
 
 TODO items: 0.2 (decided: merge), 0.11.

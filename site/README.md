@@ -14,7 +14,7 @@ ChatGPT url: https://chatgpt.com/g/g-p-69a21eed60a8819192ac813ccef2b58f-chess/c/
 npm install
 npm run serve            # builds dist/ and serves it with the AI gateway at http://127.0.0.1:8765/
 npm test                 # AI gateway tests, then feature detection + retrieval checks (Node)
-npm run test:e2e         # Playwright browser run (pip install playwright; set CHROME_PATH if needed)
+npm run test:e2e         # Playwright end-to-end tests in the installed Chrome (own server, mock AI provider)
 ```
 
 ## Layout
@@ -31,14 +31,20 @@ src/knowledge.js      Pure functions, no DOM:
                         buildPositionIndex() / similarPositions()   "seen before" search over the library
                         winPct / classify / moveAccuracy             Lichess-style move scoring
                         parseInfo()          UCI info-line parser
+src/engine.js         Engine: Stockfish worker with fallbacks, job queue, cancel by tag; rejects all jobs if it dies
+src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
+src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
 data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position.
 scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
-scripts/serve.mjs     Local static server (UTF-8 charset headers); --api mounts the AI gateway and loads ../.env
+scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env
 server/ai.mjs         AI gateway core: config from env, provider adapters (Anthropic SDK; openai SDK for
                       OpenAI, Mistral, Ollama), validation, error mapping, rate limit, mock provider
 server/api.mjs        GET /api/ai/status, POST /api/ai/sample (NDJSON stream); Host/Origin/size guards
-tests/                knowledge.test.mjs (Node), e2e.py (Playwright); server/*.test.mjs (node:test)
+server/static.mjs     Security headers and the hash-based Content Security Policy for served pages
+tests/unit/           node:test for engine.js, store.js, prompt.js; server/*.test.mjs for the gateway
+tests/e2e/            Playwright: smoke.spec.mjs (main flows), regressions.spec.mjs (one test per fixed bug)
+tests/knowledge.test.mjs  prints features/motifs/books for sample positions (no assertions yet)
 ```
 
 ## How the main pieces work
