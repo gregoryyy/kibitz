@@ -1,0 +1,19 @@
+{
+  "name": "kibitz-chess-coach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chess coach: Stockfish 19 in the browser, Claude as the explainer, games library and position-matched reading.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:eco": "node scripts/build.mjs --eco",
+    "serve": "npm run build && cd dist && python3 -m http.server 8765",
+    "test": "node tests/knowledge.test.mjs",
+    "test:e2e": "python3 tests/e2e.py"
+  },
+  "dependencies": {
+    "@lichess-org/chessground": "10.1.1",
+    "chess.js": "1.4.0",
+    "stockfish": "19.0.1"
+  }
+}

@@ -1,0 +1,78 @@
+# Kibitz Chess Coach
+
+Play Stockfish 19 in the browser, get your mistakes flagged as you play, ask Claude to explain positions, review finished games, keep a games library, and get reading suggestions matched to the position on the board.
+
+Stockfish does all the calculation, locally in a Web Worker. Claude only explains: it receives the engine's lines and is told not to invent variations.
+
+Claude url: https://claude.ai/chat/a529eba0-1588-46b2-ab42-b4f792b1d68d?artifact=9e603ff0-6c50-46b6-a1b1-80ec8e86fa65&org=02556618-dd82-41b1-950b-71fe78412f63
+
+## Quick start
+
+```bash
+npm install
+npm run serve            # builds dist/ and serves it at http://localhost:8765/_test.html
+npm test                 # feature detection + retrieval checks (Node)
+npm run test:e2e         # Playwright browser run (pip install playwright; set CHROME_PATH if needed)
+```
+
+## Layout
+
+```
+src/index.html        The page: CSS, markup and the app module in one file.
+                      Written as an artifact body (no <html>/<head>); the build wraps it for local use.
+                      /*CG_BASE*/ and /*CG_PIECES*/ are replaced with chessground's CSS at build time.
+src/knowledge.js      Pure functions, no DOM:
+                        positionFeatures()   opening family, pawn structures, endgame type, passed pawns…
+                        moveMotifs()         fork, pin, discovered attack, mate, sacrifice, Greek gift…
+                        LITERATURE           book catalog (metadata + theme tags, no book text)
+                        retrieveLiterature() ranks books by theme overlap and player level
+                        buildPositionIndex() / similarPositions()   "seen before" search over the library
+                        winPct / classify / moveAccuracy             Lichess-style move scoring
+                        parseInfo()          UCI info-line parser
+data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position.
+scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
+scripts/build-eco.mjs Opening table builder
+tests/                knowledge.test.mjs (Node), e2e.py (Playwright)
+```
+
+## How the main pieces work
+
+**Engine.** Two Stockfish workers: `opponent` (strength-limited with `UCI_Elo` from 1320 up; below that, Skill Level 0 plus a shallow multi-PV search with random picks) and `analyst` (full strength, MultiPV 3). The `Engine` class queues jobs and cancels by tag (`live`, `review`, `move`). It tries the WASM build, then a blob-URL worker, then the pure asm.js build.
+
+**Scoring.** Evaluations are stored from White's point of view per position (`ANA`, keyed by FEN without move counters). A move is classified by the mover's win-percentage drop: <5 good, <10 inaccuracy, <20 mistake, otherwise blunder. Engine's top choice is "best"; positions in the ECO table within 30 plies are "book".
+
+**Similar positions.** Every library game is replayed and indexed two ways: exact position (transpositions included) and pawn-structure signature (pawns only, from ply 12). Comments in imported PGNs are attached to their positions and passed to the coach. Matching is exact; fuzzy pawn-structure distance and theme-tag ranking are the obvious next steps.
+
+**Coach prompt.** `contextFor(i)` assembles: player level, moves so far, FEN + ASCII board, Stockfish lines in SAN, motifs, last-move rating and the engine's alternative, detected themes, retrieved books, and similar library positions. `RULES` holds the standing instructions.
+
+## Claude platform APIs (artifact runtime)
+
+The page runs as a Claude artifact and uses `window.claude.use(name)`:
+
+| Capability | Used for | Outside the artifact |
+|---|---|---|
+| `sample`    | Coach chat, review summary, study plan | Coach is hidden |
+| `db` + `user` | Library at `data/users/<id>/kibitz/{games,books}` (private per user) | Falls back to `localStorage` |
+| `downloads` | Save .pgn files | Falls back to copying the PGN |
+
+Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; vendored files are published alongside the page (`sf.wasm` as `application/wasm`).
+
+To run it as a standalone app instead, replace the `use('sample')` calls with a small backend that calls the Claude API (Messages API, streaming) and replace `Lib` with your own storage. The prompts and `contextFor()` carry over unchanged.
+
+Open `_test.html?debug` to get `window.__kibitz = { S, contextFor, ANA }` in the console.
+
+## Licences
+
+- Stockfish.js (Stockfish 19): GPL-3.0
+- chessground: GPL-3.0
+- chess.js: BSD-2-Clause
+- Opening names: lichess-org/chess-openings, CC0
+
+Because Stockfish and chessground are GPL-3.0, distributing this app means distributing it under GPL-3.0 terms.
+
+## Ideas queued
+
+- Fuzzy pawn-structure similarity (square-difference distance) and theme-tag ranking in `similarPositions`
+- Model tiers per call: quick tier for chips, default for chat, complex for the review summary
+- Puzzles generated from your own blunders
+- Clock / time controls
