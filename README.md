@@ -1,6 +1,8 @@
 # Kibitz
 
-A browser chess trainer: play against Stockfish 19 (from 600 Elo up, in five playing styles, with or without a clock, from the start, an opening or any position), see your mistakes flagged as you play, review finished games, keep a games library and get reading suggestions that match the position on the board. Stockfish does all the calculation, locally in Web Workers. An AI model (Claude, OpenAI, Mistral or a local Ollama model) only explains the engine's output.
+A neurosymbolic chess trainer: Stockfish plays and measures, a language model explains.
+
+In the browser, play against Stockfish 19 (from 600 Elo up, in five playing styles, with or without a clock, from the start, an opening or any position), see your mistakes flagged as you play, review finished games, keep a games library and get reading suggestions that match the position on the board. Stockfish does all the calculation, locally in Web Workers. An AI model (Claude, OpenAI, Mistral or a local Ollama model) only explains the engine's output.
 
 The app lives in [`site/`](site/): page source, build scripts, opening data, the local server with its AI gateway, and tests. Design notes are in [site/README.md](site/README.md). Where the project is heading is in [TODO.md](docs/TODO.md), progress is logged in [DONE.md](docs/DONE.md), and the working rules for coding agents and contributors are in [AGENTS.md](AGENTS.md).
 

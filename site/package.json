@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Chess coach: Stockfish 19 in the browser, an AI provider (Claude, OpenAI, Mistral or Ollama) as the explainer, games library and position-matched reading.",
+  "description": "Neurosymbolic chess coach: Stockfish 19 in the browser plays and measures, an AI provider (Claude, OpenAI, Mistral or Ollama) explains; games library and position-matched reading.",
   "license": "GPL-3.0-or-later",
   "engines": {
     "node": ">=24"
