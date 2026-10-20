@@ -2,6 +2,7 @@
 //   dist/index.html   page body as published to a Claude artifact (no <html>/<head>; the host wraps it)
 //   dist/_test.html   same page wrapped in a full document, for local testing
 //   dist/*.js|wasm    vendored libraries + the knowledge module, served next to the page
+//   dist/LICENSE.txt, dist/THIRD_PARTY_NOTICES.md
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -20,6 +21,9 @@ copy(nm('chess.js/dist/esm/chess.js'), 'chess.js');
 copy(nm('@lichess-org/chessground/dist/chessground.min.js'), 'chessground.js');
 // The page's own modules (knowledge.js, engine.js, store.js, prompt.js, ...)
 for (const f of fs.readdirSync(path.join(root, 'src'))) if (f.endsWith('.js')) copy(path.join(root, 'src', f), f);
+// Licence texts ship with the page (GPL-3.0; chess.js's BSD notice is in the notices file)
+copy(path.join(root, '../LICENSE'), 'LICENSE.txt');
+copy(path.join(root, '../THIRD_PARTY_NOTICES.md'), 'THIRD_PARTY_NOTICES.md');
 
 if (!fs.existsSync(path.join(dist, 'eco.json')) || process.argv.includes('--eco')) {
   execFileSync(process.execPath, [path.join(root, 'scripts/build-eco.mjs')], { stdio: 'inherit' });

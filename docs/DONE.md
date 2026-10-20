@@ -7,6 +7,44 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-20 — Foundation: tooling, CI, licence
+
+TODO items: 0.3, 0.4, 0.5, 0.7, 0.8, 0.9, 0.10. Milestone 0 is complete.
+
+### Implementation notes
+
+- **Node:** `.nvmrc` pins Node 24, the current LTS; `engines` asks for `>=24`. CI reads `.nvmrc`.
+- **Types (0.4):** JS with JSDoc, checked by `tsc --checkJs` (TypeScript 7) through `site/tsconfig.json` and `npm run typecheck`. It covers `src/*.js`, `server/` and `scripts/`, not tests. Non-strict for now. Seven findings were fixed with inline JSDoc types; all were inference gaps (destructured options with `= {}` defaults, a mixed-type rules table), not bugs.
+- **Lint (0.5):** ESLint 10 with the recommended rules, in `site/eslint.config.mjs`. `eslint-plugin-html` lints the module script inside `index.html`, which holds most of the page's code. Four findings were fixed: two unused variables and a needless escape in `knowledge.js`, plus an intended control-character regex in `prompt.js`, now marked with a reasoned disable comment. `npm run check` runs lint and types, and so does `just check`.
+- **Knowledge tests (0.7):** `tests/knowledge.test.mjs` printed results; `tests/unit/knowledge.test.mjs` now asserts them in 14 tests covering EPD and pawn signatures, material, opening families, features for the Najdorf, IQP, Carlsbad, Lucena and opposite-bishop positions, book retrieval (ranking, chapter pointers, the user's own books), motifs (mate, back-rank, Greek gift, fork, pin, sacrifice, quiet moves, bad input), similar positions (exact, then structure), and the engine maths. The tests pass the opening name directly, so they no longer need `dist/eco.json`. Unit tests: 72.
+- **CI (0.8):** `.github/workflows/ci.yml` runs on every PR and on `main`, in three jobs:
+  - lint, types, build, unit tests and `npm audit --audit-level=high`;
+  - the Playwright tests in Playwright's Chromium, uploading traces on failure;
+  - gitleaks over the full history.
+
+  `codeql.yml` runs CodeQL (JavaScript and Actions, `security-extended`) on PRs, on `main` and weekly. Every action is pinned to a commit SHA, picked from releases at least two weeks old, and the workflow token is read-only.
+- **PR template (0.9):** `.github/pull_request_template.md` asks for the TODO number and has three checklists: tests, TODO/DONE and dependency licences, and the security rules from AGENTS.md.
+- **Licence (0.10):** `LICENSE` holds the GPL-3.0 text, and `package.json` says `GPL-3.0-or-later`. `THIRD_PARTY_NOTICES.md` lists the following, with chess.js's BSD notice in full:
+  - what ships in `dist/`: Stockfish.js, chessground, the cburnett pieces, chess.js and the Lichess opening data;
+  - what the page loads: Google Fonts;
+  - what the server uses: the Anthropic and OpenAI SDKs.
+
+  The build copies both into `dist/` (`LICENSE.txt` so it is served as text).
+- **`.editorconfig`** matches the existing style: UTF-8, LF, 2 spaces, tabs in the ECO data.
+
+### Deviations
+
+- **No npm workspaces (0.3).** Splitting `site/` into `client`, `server` and `shared` would move every file and the build paths, for no gain yet: the server doesn't import `knowledge.js`, and when it needs to, a relative import works. One project keeps one lockfile and one install. Revisit when the server needs its own deployable package (TODO 12).
+- **No Prettier (0.5).** The code is written densely on purpose: one-line guards and short bodies on one line. Prettier at 120 columns turned the 2,136 lines in `src/` into 5,142 and touched nearly every line. ESLint checks correctness; `.editorconfig` covers whitespace.
+- **CodeQL is skipped while the repo is private.** Code scanning on private repos needs GitHub Advanced Security. The job has `if: !github.event.repository.private`, so it starts working once the repo is public. Secret scanning uses gitleaks instead of GitHub's own, for the same reason; gitleaks-action is free for personal accounts.
+- **E2E in CI uses Playwright's Chromium**, set with `PW_CHANNEL=chromium`. Locally the tests still use the installed Chrome.
+
+### Insights
+
+- **Most of the code sits outside `tsc`'s reach.** The inline module script in `index.html` holds most of the logic and isn't type-checked, only linted. Moving logic out into `src/*.js` modules, as was done for `engine.js`, `store.js`, `prompt.js` and `style.js`, brings it under both checks and unit tests.
+- **Before the CI secret scan, the history was checked for key-like strings** (`sk-ant-…`, `sk-…`, `*_API_KEY=<value>`) and `.env` was confirmed never committed. Nothing was found.
+- **Pinning actions to SHAs** blocks a moved tag from changing CI, the usual supply-chain hole in GitHub Actions. Updates need a bump: Dependabot for actions comes with TODO 11.5.
+
 ## 2026-10-20 — Stockfish playing style
 
 TODO items: 1.13 (added).

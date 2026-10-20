@@ -1,0 +1,17 @@
+{
+  // Type-check the JavaScript (JSDoc types); nothing is emitted. index.html's inline script is not covered.
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "target": "es2024",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["es2024", "dom", "dom.iterable", "webworker.importscripts"],
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.js", "server/**/*.mjs", "scripts/**/*.mjs"],
+  "exclude": ["**/*.test.mjs"]
+}

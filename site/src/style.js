@@ -40,7 +40,7 @@ export function aggressionScore(Chess, fen, uci) {
 // `anchor` is the move Stockfish would play (default: the best line). With an Elo limit that is a
 // deliberately weaker move, and the window is measured from it, so style changes how Stockfish
 // plays but not how strong it is. Balanced, or an anchor without a line, returns the anchor.
-export function pickStyled(Chess, fen, lines, style, { anchor } = {}) {
+export function pickStyled(Chess, fen, lines, style, /** @type {{ anchor?: string }} */ { anchor } = {}) {
   const cands = (lines || []).filter(l => l?.pv?.length && l.score);
   const base = anchor ? cands.find(l => l.pv[0] === anchor) : cands[0];
   if (!base) return anchor ?? null;

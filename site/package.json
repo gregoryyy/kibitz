@@ -4,15 +4,19 @@
   "private": true,
   "type": "module",
   "description": "Chess coach: Stockfish 19 in the browser, an AI provider (Claude, OpenAI, Mistral or Ollama) as the explainer, games library and position-matched reading.",
+  "license": "GPL-3.0-or-later",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:eco": "node scripts/build.mjs --eco",
     "serve": "npm run build && node scripts/serve.mjs dist --api --env ../.env --index _test.html --port 8765",
-    "test": "node --test \"server/**/*.test.mjs\" \"tests/unit/*.test.mjs\" && node tests/knowledge.test.mjs",
-    "test:e2e": "npm run build && playwright test"
+    "test": "node --test \"server/**/*.test.mjs\" \"tests/unit/*.test.mjs\"",
+    "test:e2e": "npm run build && playwright test",
+    "lint": "eslint .",
+    "typecheck": "tsc -p .",
+    "check": "npm run lint && npm run typecheck"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.135.0",
@@ -22,6 +26,12 @@
     "stockfish": "19.0.1"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1"
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.13.0",
+    "eslint-plugin-html": "8.2.1",
+    "globals": "17.13.0",
+    "typescript": "7.0.2"
   }
 }

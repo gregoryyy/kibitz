@@ -74,7 +74,7 @@ export function validateMessages(body) {
 
 // A provider exposes stream(messages, {signal}): an async generator that yields text chunks
 // and returns {truncated}. `client` can be injected for tests.
-export function createProvider(cfg, { client } = {}) {
+export function createProvider(cfg, /** @type {{ client?: any }} */ { client } = {}) {
   switch (cfg.provider) {
     case 'anthropic':
       return anthropicProvider(cfg, client ?? new Anthropic({ apiKey: cfg.apiKey, baseURL: cfg.baseURL, timeout: cfg.timeoutMs }));
@@ -89,7 +89,7 @@ export function createProvider(cfg, { client } = {}) {
 
 function anthropicProvider(cfg, client) {
   return {
-    async *stream(messages, { signal } = {}) {
+    async *stream(messages, /** @type {{ signal?: AbortSignal }} */ { signal } = {}) {
       const stream = client.beta.messages.stream({
         model: cfg.model,
         max_tokens: cfg.maxTokens,
@@ -113,7 +113,7 @@ function anthropicProvider(cfg, client) {
 function openAICompatProvider(cfg, client) {
   const tokenParam = cfg.provider === 'openai' ? 'max_completion_tokens' : 'max_tokens';
   return {
-    async *stream(messages, { signal } = {}) {
+    async *stream(messages, /** @type {{ signal?: AbortSignal }} */ { signal } = {}) {
       const stream = await client.chat.completions.create({ model: cfg.model, messages, stream: true, [tokenParam]: cfg.maxTokens }, { signal });
       let finish = null;
       for await (const chunk of stream) {

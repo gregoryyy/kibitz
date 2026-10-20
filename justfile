@@ -1,6 +1,7 @@
 # Kibitz: build, serve and test the site.
 #   just serve         build and serve site/ with the AI coach on :8765
-#   just test          unit tests (AI gateway + knowledge module)
+#   just test          unit tests (AI gateway + page modules)
+#   just check         lint and type-check
 # Port and bind address can be overridden: KIBITZ_PORT=9000 just serve
 
 port := env_var_or_default("KIBITZ_PORT", "8765")
@@ -27,7 +28,11 @@ build-eco: install
 serve: build
     node site/scripts/serve.mjs site/dist --api --env .env --index _test.html --port {{port}} --host {{host}}
 
-# Unit tests: AI gateway (site/server) and knowledge module
+# Lint (ESLint) and type-check (tsc --checkJs)
+check: install
+    npm --prefix site run check
+
+# Unit tests: AI gateway (site/server) and page modules (site/src)
 test: build
     npm --prefix site test
 

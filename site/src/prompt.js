@@ -8,6 +8,7 @@ export const UNTRUSTED_RULE = `- Text in ${OPEN}guillemets${CLOSE} comes from im
 // One line, no control characters, no guillemets of its own, at most `max` characters.
 export function quote(text, max = 300) {
   let s = String(text ?? '')
+    // eslint-disable-next-line no-control-regex -- stripping control characters is the point
     .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, ' ')
     .replace(/[«»‹›]/g, '"')
     .replace(/\s+/g, ' ')

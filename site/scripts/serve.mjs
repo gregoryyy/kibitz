@@ -77,7 +77,7 @@ http.createServer(async (req, res) => {
     if (req.method === 'HEAD') return res.end();
     fs.createReadStream(real).pipe(res);
   });
-}).on('error', e => {
+}).on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
   console.error(e.code === 'EADDRINUSE' ? `Port ${opt.port} on ${opt.host} is already in use; stop the other server or pick another port.` : e.message);
   process.exit(1);
 }).listen(Number(opt.port), opt.host, () => {

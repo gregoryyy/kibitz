@@ -17,7 +17,7 @@ export function stockfishAttempts(base = location.href) {
 
 export class Engine {
   // attempts: [[flavor, () => Worker | Promise<Worker>]]; onFail(error) runs once if the engine dies.
-  constructor(attempts, { handshakeMs = 12000, onFail = () => {} } = {}) {
+  constructor(attempts, /** @type {{ handshakeMs?: number, onFail?: (err: Error) => void }} */ { handshakeMs = 12000, onFail = () => {} } = {}) {
     this.queue = []; this.cur = null; this.flavor = ''; this.name = ''; this.dead = null;
     this.handshakeMs = handshakeMs; this.onFail = onFail;
     this.ready = this.boot(attempts);

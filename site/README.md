@@ -43,9 +43,10 @@ server/ai.mjs         AI gateway core: config from env, provider adapters (Anthr
                       OpenAI, Mistral, Ollama), validation, error mapping, rate limit, mock provider
 server/api.mjs        GET /api/ai/status, POST /api/ai/sample (NDJSON stream); Host/Origin/size guards
 server/static.mjs     Security headers and the hash-based Content Security Policy for served pages
-tests/unit/           node:test for engine.js, store.js, prompt.js, style.js; server/*.test.mjs for the gateway
+tests/unit/           node:test for engine.js, store.js, prompt.js, style.js, knowledge.js; server/*.test.mjs for the gateway
 tests/e2e/            Playwright: smoke (main flows), regressions (one test per fixed bug), preferences (Elo, style)
-tests/knowledge.test.mjs  prints features/motifs/books for sample positions (no assertions yet)
+eslint.config.mjs     ESLint (recommended rules; eslint-plugin-html lints the script in index.html)
+tsconfig.json         tsc --checkJs over src/, server/, scripts/ (JSDoc types, no emit)
 ```
 
 ## How the main pieces work
@@ -76,12 +77,12 @@ Open `_test.html?debug` to get `window.__kibitz = { S, contextFor, ANA }` in the
 
 ## Licences
 
+GPL-3.0-or-later; see [LICENSE](../LICENSE) and [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md). The build copies both into `dist/`.
+
 - Stockfish.js (Stockfish 19): GPL-3.0
-- chessground: GPL-3.0
+- chessground: GPL-3.0-or-later
 - chess.js: BSD-2-Clause
 - Opening names: lichess-org/chess-openings, CC0
-
-Because Stockfish and chessground are GPL-3.0, distributing this app means distributing it under GPL-3.0 terms.
 
 ## Ideas queued
 

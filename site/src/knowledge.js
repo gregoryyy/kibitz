@@ -103,6 +103,7 @@ export const LITERATURE = [
 ];
 
 // --- Opening family from ECO name ---------------------------------------
+/** @type {[RegExp, string][]} */
 const FAMILY_RULES = [
   [/^Sicilian/, 'sicilian'], [/^French/, 'french'], [/^Caro-Kann/, 'caro-kann'],
   [/^(Pirc|Modern Defense)/, 'pirc-modern'], [/^Scandinavian/, 'scandinavian'], [/^Alekhine/, 'alekhine'],
@@ -126,7 +127,7 @@ const VAL = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
 export function epd(fen) { return fen.split(' ').slice(0, 4).join(' '); }
 export function pawnSignature(fen) {
   // Placement of pawns only: a structure fingerprint for "similar positions".
-  return fen.split(' ')[0].replace(/[^pP\/\d]/g, '1').replace(/1+/g, m => String(m.length))
+  return fen.split(' ')[0].replace(/[^pP/\d]/g, '1').replace(/1+/g, m => String(m.length))
     .split('/').map(r => r.replace(/\d+/g, d => String([...d].reduce((a, c) => a + +c, 0)))).join('/');
 }
 function pieces(chess) {
@@ -172,7 +173,7 @@ export function positionFeatures(chess, ctx = {}) {
 
   const W = pawnMap(ps, 'w'), B = pawnMap(ps, 'b');
   // Isolated queen pawn
-  for (const [c, M, other] of [['w', W, 'White'], ['b', B, 'Black']]) {
+  for (const [, M, other] of [['w', W, 'White'], ['b', B, 'Black']]) {
     if (M.d && !M.c && !M.e && phase !== 'endgame') add('iqp', 4, `${other} has an isolated d-pawn`);
     if (M.c && M.d && !M.b && !M.e && phase !== 'endgame') add('hanging-pawns', 4, `${other} has hanging c- and d-pawns`);
     for (const f of Object.keys(M)) {
@@ -279,7 +280,6 @@ function attacksFrom(c, from, to) {
 function detectPin(c, side) {
   const king = pieces(c).find(p => p.type === 'k' && p.color === side);
   if (!king) return false;
-  const enemy = side === 'w' ? 'b' : 'w';
   const [kf, kr] = [FILES.indexOf(king.square[0]), +king.square[1]];
   const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
   for (const [df, dr] of dirs) {
@@ -328,7 +328,7 @@ export function buildPositionIndex(games) {
   }
   return { byEpd, byPawns };
 }
-export function similarPositions(index, fen, { excludeGameId, limit = 6 } = {}) {
+export function similarPositions(index, fen, /** @type {{ excludeGameId?: any, limit?: number }} */ { excludeGameId, limit = 6 } = {}) {
   const e = epd(fen), s = pawnSignature(fen);
   const exact = (index.byEpd.get(e) || []).filter(x => x.g.id !== excludeGameId);
   const seen = new Set(exact.map(x => x.g.id));

@@ -6,7 +6,7 @@ The app lives in [`site/`](site/): page source, build scripts, opening data, the
 
 ## Prerequisites
 
-- **Node.js 22 or newer** with npm (tested with Node 25).
+- **Node.js 24 LTS or newer** with npm (`.nvmrc` pins 24; tested with Node 25).
 - **Google Chrome**, for the end-to-end tests (Playwright drives the installed browser).
 - **[just](https://github.com/casey/just)** (`brew install just`) is optional; every recipe has a plain npm equivalent below.
 - A recent desktop or mobile browser with WebAssembly support. Older browsers fall back to the slower asm.js engine.
@@ -24,6 +24,7 @@ On start the server prints `AI coach: <provider> / <model>`, or why the coach is
 
 ```bash
 just test              # unit tests (builds first)
+just check             # ESLint and the type check (tsc --checkJs)
 just e2e               # Playwright end-to-end tests (starts its own server with the mock AI provider)
 just build             # build only; `just build-eco` also rebuilds the opening table
 just                   # list all recipes
@@ -60,18 +61,21 @@ Add `?debug` to the URL to get `window.__kibitz = { S, contextFor, ANA }` in the
 ## Tests
 
 ```bash
+just check             # or, in site/: npm run check
 just test              # or, in site/: npm run build && npm test
 just e2e               # or, in site/: npm run test:e2e
 ```
 
-- **`npm test`** runs the unit tests (`node:test`, no network calls). They cover the AI gateway (config, providers, validation, HTTP guards, security headers) and the page modules (engine queue with a fake worker, storage, prompt quoting). It then runs the knowledge check, which currently prints its results rather than asserting them (TODO 0.7).
+- **`npm test`** runs the unit tests (`node:test`, no network calls). They cover the AI gateway (config, providers, validation, HTTP guards, security headers) and the page modules (engine queue with a fake worker, storage, prompt quoting, playing style, and the knowledge module's features, motifs, retrieval and scoring).
 - **`npm run test:e2e`** builds the site and runs Playwright in your installed Google Chrome. It starts its own server on port 8799 with `AI_PROVIDER=mock` and no `.env`, so no keys and no real provider are involved.
   - The smoke tests play and review a game, use the library, reading and coach tabs, check the security headers and the phone layout.
   - The regression tests reproduce each bug fixed after the code review.
   - Every test also fails on uncaught page errors and Content Security Policy violations.
   - Reports and traces of failed tests go to `site/tests/out/` (git-ignored).
+- **`npm run check`** runs ESLint (including the script inside `index.html`) and `tsc --checkJs` over `src/`, `server/` and `scripts/`.
+- **CI** (`.github/workflows/`) runs all of the above on every PR, plus `npm audit`, a gitleaks secret scan and, once the repo is public, CodeQL.
   - To use Playwright's bundled Chromium instead of Chrome, run `npx playwright install chromium` and set `PW_CHANNEL=chromium`.
 
-## Licences
+## Licence
 
-Stockfish and chessground are GPL-3.0, so distributing this app means distributing it under GPL-3.0 terms. chess.js is BSD-2-Clause, and the opening names come from [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0).
+Kibitz is GPL-3.0-or-later ([LICENSE](LICENSE)), as Stockfish and chessground require. The third-party components and their licences are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); chess.js is BSD-2-Clause, and the opening names come from [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0).
