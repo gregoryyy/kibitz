@@ -1,0 +1,8 @@
+{
+  "provider": "openai",
+  "case": "bad key",
+  "source": "hand-written from the documented format; replace with scripts/record-ai-fixtures.mjs once the provider is set up",
+  "status": 401,
+  "contentType": "application/json",
+  "body": "{\"error\":{\"message\":\"Incorrect API key provided.\",\"type\":\"invalid_request_error\",\"code\":\"invalid_api_key\"}}"
+}

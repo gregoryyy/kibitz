@@ -1,0 +1,9 @@
+{
+  "provider": "ollama",
+  "case": "json via instructions",
+  "model": "llama",
+  "source": "hand-written from the documented format; replace with scripts/record-ai-fixtures.mjs once the provider is set up",
+  "status": 200,
+  "contentType": "text/event-stream; charset=utf-8",
+  "body": "data: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"llama\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"llama\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Here are the annotations: \"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"llama\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"{\\\"text\\\":\\\"Nf3 attacks e5; 2...Nc6 defends it.\\\",\\\"arrows\\\":[{\\\"from\\\":\\\"f3\\\",\\\"to\\\":\\\"e5\\\",\\\"kind\\\":\\\"threat\\\"},{\\\"from\\\":\\\"b8\\\",\\\"to\\\":\\\"c6\\\",\\\"kind\\\":\\\"best\\\"}],\\\"highlights\\\":[{\\\"square\\\":\\\"e5\\\",\\\"kind\\\":\\\"target\\\"}]}\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"llama\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"llama\",\"choices\":[],\"usage\":{\"prompt_tokens\":610,\"completion_tokens\":80,\"total_tokens\":690}}\n\ndata: [DONE]\n\n"
+}

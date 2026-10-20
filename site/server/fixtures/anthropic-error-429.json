@@ -1,0 +1,8 @@
+{
+  "provider": "anthropic",
+  "case": "rate limited",
+  "source": "hand-written from the documented format; replace with scripts/record-ai-fixtures.mjs once the provider is set up",
+  "status": 429,
+  "contentType": "application/json",
+  "body": "{\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"Number of request tokens has exceeded your per-minute rate limit\"}}"
+}
