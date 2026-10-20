@@ -5,7 +5,7 @@ node_modules/
 dist/
 
 # Test output
-tests/out/
+**/tests/out/
 coverage/
 .nyc_output/
 

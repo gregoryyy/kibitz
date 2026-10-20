@@ -4,10 +4,10 @@ Kibitz is a browser chess trainer. Stockfish (WASM) calculates; an AI provider (
 
 ## Layout
 
-- `claude/`: npm project; `src/` builds into `dist/`. Design notes are in `claude/README.md`.
-- `codex/`: prebuilt bundle with no build step; serve the folder as is.
-
-Any agent may work in either folder.
+Everything for the app is in `site/`, a single npm project. Design notes are in `site/README.md`.
+- `site/src/`: the page (`index.html`, written as a Claude artifact body) and `knowledge.js`. These build into `site/dist/`; never edit `dist/`.
+- `site/server/`: the AI gateway. `site/scripts/serve.mjs --api` mounts it and loads `.env` from the repo root.
+- `site/tests/`, `site/server/*.test.mjs`: tests.
 
 ## Stack
 
@@ -23,9 +23,8 @@ Node (current LTS) and WebAssembly. Browser code is plain ES modules with chessg
 
 - Every feature ships with tests: `node:test` for logic, Playwright for UI.
 - Tests use the mock AI provider; live provider tests run only when an env flag is set.
-- `claude/`: `npm test`, plus `npm run test:e2e` against `npm run serve`.
-- AI gateway (`server/`): `npm test` at the repo root. Use fake SDK clients or `AI_PROVIDER=mock`; never call a real provider in tests.
-- `codex/`: `just codex`, then `just e2e codex`.
+- `just test` (or `npm test` in `site/`) runs everything, after a build. For the AI gateway, use fake SDK clients or `AI_PROVIDER=mock`; never call a real provider in tests.
+- `just serve`, then `just e2e` for the Playwright run.
 
 ## Security
 

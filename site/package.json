@@ -1,0 +1,22 @@
+{
+  "name": "kibitz-chess-coach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chess coach: Stockfish 19 in the browser, an AI provider (Claude, OpenAI, Mistral or Ollama) as the explainer, games library and position-matched reading.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:eco": "node scripts/build.mjs --eco",
+    "serve": "npm run build && node scripts/serve.mjs dist --api --env ../.env --index _test.html --port 8765",
+    "test": "node --test \"server/**/*.test.mjs\" && node tests/knowledge.test.mjs",
+    "test:e2e": "python3 tests/e2e.py"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.135.0",
+    "@lichess-org/chessground": "10.1.1",
+    "chess.js": "1.4.0",
+    "openai": "7.39.0",
+    "stockfish": "19.0.1"
+  }
+}

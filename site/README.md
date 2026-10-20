@@ -6,12 +6,14 @@ Stockfish does all the calculation, locally in a Web Worker. Claude only explain
 
 Claude url: https://claude.ai/chat/a529eba0-1588-46b2-ab42-b4f792b1d68d?artifact=9e603ff0-6c50-46b6-a1b1-80ec8e86fa65&org=02556618-dd82-41b1-950b-71fe78412f63
 
+ChatGPT url: https://chatgpt.com/g/g-p-69a21eed60a8819192ac813ccef2b58f-chess/c/6ad712be-e674-83ed-afa7-fda0dfc3a14e
+
 ## Quick start
 
 ```bash
 npm install
-npm run serve            # builds dist/ and serves it at http://localhost:8765/_test.html
-npm test                 # feature detection + retrieval checks (Node)
+npm run serve            # builds dist/ and serves it with the AI gateway at http://127.0.0.1:8765/
+npm test                 # AI gateway tests, then feature detection + retrieval checks (Node)
 npm run test:e2e         # Playwright browser run (pip install playwright; set CHROME_PATH if needed)
 ```
 
@@ -32,7 +34,11 @@ src/knowledge.js      Pure functions, no DOM:
 data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position.
 scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
-tests/                knowledge.test.mjs (Node), e2e.py (Playwright)
+scripts/serve.mjs     Local static server (UTF-8 charset headers); --api mounts the AI gateway and loads ../.env
+server/ai.mjs         AI gateway core: config from env, provider adapters (Anthropic SDK; openai SDK for
+                      OpenAI, Mistral, Ollama), validation, error mapping, rate limit, mock provider
+server/api.mjs        GET /api/ai/status, POST /api/ai/sample (NDJSON stream); Host/Origin/size guards
+tests/                knowledge.test.mjs (Node), e2e.py (Playwright); server/*.test.mjs (node:test)
 ```
 
 ## How the main pieces work
@@ -51,13 +57,13 @@ The page runs as a Claude artifact and uses `window.claude.use(name)`:
 
 | Capability | Used for | Outside the artifact |
 |---|---|---|
-| `sample`    | Coach chat, review summary, study plan | Coach is hidden |
+| `sample`    | Coach chat, review summary, study plan | Local AI gateway (`server/`); coach hidden if it's unavailable |
 | `db` + `user` | Library at `data/users/<id>/kibitz/{games,books}` (private per user) | Falls back to `localStorage` |
 | `downloads` | Save .pgn files | Falls back to copying the PGN |
 
 Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; vendored files are published alongside the page (`sf.wasm` as `application/wasm`).
 
-To run it as a standalone app instead, replace the `use('sample')` calls with a small backend that calls the Claude API (Messages API, streaming) and replace `Lib` with your own storage. The prompts and `contextFor()` carry over unchanged.
+Outside an artifact, `use('sample')` returns `localSample()`, a function with the same signature that streams from the local AI gateway (`/api/ai/sample`). The prompts and `contextFor()` are unchanged. The library still falls back to `localStorage`; a server-side store is planned (TODO 7.6).
 
 Open `_test.html?debug` to get `window.__kibitz = { S, contextFor, ANA }` in the console.
 

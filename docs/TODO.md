@@ -17,7 +17,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 ## 0. Foundation and process
 
 - [ ] 0.1 Create the GitHub repo, push `main`, and protect it (PRs required, CI must pass, no force pushes)
-- [ ] 0.2 Decide the target layout: evolve `claude/` and `codex/` in parallel, or merge them into one app folder. Record the decision in DONE.md.
+- [x] 0.2 Decide the target layout: evolve `claude/` and `codex/` in parallel, or merge them into one app folder. Record the decision in DONE.md. (Merged into `site/`.)
 - [ ] 0.3 Set up npm workspaces (`client`, `server`, `shared`) and pin Node LTS (`.nvmrc`, `engines`)
 - [ ] 0.4 Decide on typing: JS + JSDoc checked by `tsc --checkJs`, or TypeScript
 - [ ] 0.5 Add linting and formatting (ESLint, Prettier)
@@ -26,7 +26,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 0.8 GitHub Actions on every PR: lint, unit, e2e, build, `npm audit`, CodeQL, secret scanning
 - [ ] 0.9 PR template with a checklist: tests, TODO/DONE updated, security impact
 - [ ] 0.10 Licensing: GPL-3.0 (required by Stockfish and chessground), `LICENSE` file, third-party notices
-- [ ] 0.11 Fix `.gitignore`: `tests/out/` only matches at the repo root; use `**/tests/out/`
+- [x] 0.11 Fix `.gitignore`: `tests/out/` only matches at the repo root; use `**/tests/out/`
 
 ## 1. Play against the engine
 

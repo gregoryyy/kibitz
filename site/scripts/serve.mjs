@@ -3,7 +3,7 @@
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file;
 // that part needs the root npm dependencies.
 // Text responses carry an explicit charset=utf-8; without it, a page that lacks
-// <meta charset> (such as claude/dist/index.html, the bare artifact body) is
+// <meta charset> (such as site/dist/index.html, the bare artifact body) is
 // decoded as Windows-1252 and every non-ASCII character comes out garbled.
 import http from 'http';
 import fs from 'fs';
