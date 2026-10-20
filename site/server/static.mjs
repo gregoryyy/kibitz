@@ -7,6 +7,10 @@ export const BASE_HEADERS = {
   'Referrer-Policy': 'no-referrer',
   'X-Frame-Options': 'DENY',
   'Cross-Origin-Opener-Policy': 'same-origin',
+  // With COOP, makes the page cross-origin isolated, so the multi-threaded Stockfish can use
+  // SharedArrayBuffer. Cross-origin resources must opt in (Google Fonts sends CORP: cross-origin).
+  'Cross-Origin-Embedder-Policy': 'require-corp',
+  'Cross-Origin-Resource-Policy': 'same-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
 };
 

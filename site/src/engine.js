@@ -3,12 +3,15 @@
 // and later jobs fail immediately, so callers can reset their UI.
 import { parseInfo } from './knowledge.js';
 
-// Ways to start Stockfish, best first: WASM worker, the same script via a blob URL
-// (for hosts that block worker URLs), then the slower pure-JS asm.js build.
-export function stockfishAttempts(base = location.href) {
-  const wasm = new URL('sf.js', base).href, asm = new URL('sf-asm.js', base).href;
+// Ways to start Stockfish, best first: the multi-threaded WASM build when the page is
+// cross-origin isolated (SharedArrayBuffer needs it), the single-threaded WASM worker, the same
+// script via a blob URL (for hosts that block worker URLs), then the slower pure-JS asm.js build.
+// Each attempt is [flavor, make, threads].
+export function stockfishAttempts(base = location.href, { threads = 1, isolated = globalThis.crossOriginIsolated === true && typeof SharedArrayBuffer === 'function' } = {}) {
+  const wasm = new URL('sf.js', base).href, asm = new URL('sf-asm.js', base).href, mt = new URL('sf-mt.js', base).href;
   const blobWorker = (src, hash = '') => new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })) + hash);
   return [
+    ...(isolated ? [['WASM', () => new Worker(mt), threads]] : []),
     ['WASM', () => new Worker(wasm)],
     ['WASM', async () => blobWorker(await (await fetch(wasm)).text(), '#' + encodeURIComponent(wasm.replace(/\.js$/, '.wasm')))],
     ['ASM.js', async () => { try { return new Worker(asm); } catch { return blobWorker(await (await fetch(asm)).text()); } }],
@@ -18,14 +21,18 @@ export function stockfishAttempts(base = location.href) {
 export class Engine {
   // attempts: [[flavor, () => Worker | Promise<Worker>]]; onFail(error) runs once if the engine dies.
   constructor(attempts, /** @type {{ handshakeMs?: number, onFail?: (err: Error) => void }} */ { handshakeMs = 12000, onFail = () => {} } = {}) {
-    this.queue = []; this.cur = null; this.flavor = ''; this.name = ''; this.dead = null;
+    this.queue = []; this.cur = null; this.flavor = ''; this.name = ''; this.threads = 1; this.dead = null;
     this.handshakeMs = handshakeMs; this.onFail = onFail;
     this.ready = this.boot(attempts);
     this.ready.catch(e => this.fail(e));
   }
   async boot(attempts) {
-    for (const [flavor, make] of attempts) {
-      try { this.w = await this.handshake(await make()); this.flavor = flavor; return true; } catch { /* try the next way */ }
+    for (const [flavor, make, threads = 1] of attempts) {
+      try {
+        this.w = await this.handshake(await make()); this.flavor = flavor; this.threads = threads;
+        if (threads > 1) this.send(`setoption name Threads value ${threads}`);
+        return true;
+      } catch { /* try the next way */ }
     }
     throw new Error('Stockfish could not start in this browser');
   }
@@ -58,7 +65,9 @@ export class Engine {
     this.onFail(err);
   }
   send(c) { this.w.postMessage(c); }
-  // opts: {depth|movetime, multipv, setup:[], tag, onInfo}. Resolves null when cancelled.
+  // opts: {depth|movetime, maxMs, multipv, setup:[], tag, onInfo}. Resolves null when cancelled.
+  // maxMs caps a depth search in time: with MultiPV, some positions (a mate in one with losing
+  // alternatives) make the search explode, and more threads make it worse.
   go(fen, opts = {}) {
     if (this.dead) return Promise.reject(this.dead);
     return new Promise((resolve, reject) => { this.queue.push({ fen, opts, resolve, reject, lines: [] }); this.pump(); });
@@ -76,7 +85,7 @@ export class Engine {
     this.send(`setoption name MultiPV value ${o.multipv || 1}`);
     (o.setup || []).forEach(c => this.send(c));
     this.send('position fen ' + j.fen);
-    this.send(o.movetime ? `go movetime ${o.movetime}` : `go depth ${o.depth || 12}`);
+    this.send(o.movetime ? `go movetime ${o.movetime}` : `go depth ${o.depth || 12}${o.maxMs ? ` movetime ${o.maxMs}` : ''}`);
   }
   onLine(line) {
     const j = this.cur; if (!j) return;

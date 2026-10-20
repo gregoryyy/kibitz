@@ -18,6 +18,9 @@ const copy = (from, to) => fs.copyFileSync(from, path.join(dist, to));
 copy(nm('stockfish/bin/stockfish-19-lite-single.js'), 'sf.js');
 copy(nm('stockfish/bin/stockfish-19-lite-single.wasm'), 'sf.wasm');
 copy(nm('stockfish/bin/stockfish-19-asm.js'), 'sf-asm.js');
+// Multi-threaded build, used when the page is cross-origin isolated (the server sends COOP and COEP)
+copy(nm('stockfish/bin/stockfish-19-lite.js'), 'sf-mt.js');
+copy(nm('stockfish/bin/stockfish-19-lite.wasm'), 'sf-mt.wasm');
 copy(nm('chess.js/dist/esm/chess.js'), 'chess.js');
 copy(nm('@lichess-org/chessground/dist/chessground.min.js'), 'chessground.js');
 // The page's own modules (knowledge.js, engine.js, store.js, prompt.js, ...)

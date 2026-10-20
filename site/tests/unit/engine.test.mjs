@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Engine } from '../../src/engine.js';
+import { Engine, stockfishAttempts } from '../../src/engine.js';
 
 // Speaks just enough UCI: answers the handshake, and answers `go` with one info line and a bestmove.
 class FakeWorker {
@@ -96,4 +96,39 @@ test('a crash mid-search rejects the running and queued jobs, and later jobs fai
   await assert.rejects(withTimeout(e.go(START)), /stopped unexpectedly/);
   assert.match(failed.message, /stopped unexpectedly/);
   assert.equal(w.terminated, true);
+});
+
+test('cross-origin isolated: the multi-threaded build comes first and gets its threads', async () => {
+  const made = [];
+  globalThis.Worker = class { constructor(url) { made.push(url); } };
+  try {
+    const base = 'http://127.0.0.1/app/';
+    const iso = stockfishAttempts(base, { threads: 3, isolated: true });
+    assert.deepEqual(iso.map(a => a[2] || 1), [3, 1, 1, 1]);
+    iso[0][1](); iso[1][1]();
+    assert.deepEqual(made, [base + 'sf-mt.js', base + 'sf.js']);
+    assert.equal(stockfishAttempts(base, { threads: 3, isolated: false }).length, 3, 'no multi-threaded attempt without isolation');
+  } finally { delete globalThis.Worker; }
+
+  const w = new FakeWorker();
+  const e = new Engine([['WASM', () => w, 3]]);
+  await e.ready;
+  assert.equal(e.threads, 3);
+  assert.ok(w.sent.includes('setoption name Threads value 3'));
+});
+
+test('if the multi-threaded build fails, the single-threaded one takes over with one thread', async () => {
+  const single = new FakeWorker();
+  const e = new Engine([['WASM', () => { throw new Error('no SharedArrayBuffer'); }, 4], ['WASM', () => single]]);
+  await e.ready;
+  assert.equal(e.threads, 1);
+  assert.ok(!single.sent.some(c => c.startsWith('setoption name Threads')));
+});
+
+test('a depth search can be capped in time', async () => {
+  const w = new FakeWorker();
+  const e = new Engine([['WASM', () => w]]);
+  await e.go(START, { depth: 16, maxMs: 5000 });
+  await e.go(START, { movetime: 300, maxMs: 5000 });
+  assert.deepEqual(w.sent.filter(c => c.startsWith('go')), ['go depth 16 movetime 5000', 'go movetime 300']);
 });

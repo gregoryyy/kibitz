@@ -34,7 +34,7 @@ test('take-back right after a move: Stockfish does not play for the user', async
 });
 
 test('an engine that cannot start does not freeze the game', async ({ page }) => {
-  await page.route(/\/sf(-asm)?\.js$/, r => r.abort());
+  await page.route(/\/sf(-mt|-asm)?\.js$/, r => r.abort());
   await page.goto('/?debug');
   await expect(page.locator('#engineText')).toHaveText('Stockfish failed to start');
   await move(page, 'e2', 'e4');

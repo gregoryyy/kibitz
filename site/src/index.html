@@ -465,11 +465,14 @@ function engineDown(err) {
   $('#engineDot').className = 'dot err';
   $('#engineText').textContent = /start/.test(err?.message) ? 'Stockfish failed to start' : 'Stockfish stopped. Reload the page to restart it.';
 }
-const analyst = new Engine(stockfishAttempts(), { onFail: engineDown });
+// When the page is cross-origin isolated, the analyst gets the spare cores. The opponent keeps
+// one thread, so its strength matches the calibration (scripts/calibrate.mjs).
+const THREADS = Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 2) - 1));
+const analyst = new Engine(stockfishAttempts(location.href, { threads: THREADS }), { onFail: engineDown });
 const opponent = new Engine(stockfishAttempts(), { onFail: engineDown });
 analyst.ready.then(() => {
   $('#engineDot').className = 'dot ok';
-  $('#engineText').textContent = analyst.name || ('Stockfish · ' + analyst.flavor);
+  $('#engineText').textContent = (analyst.name || ('Stockfish · ' + analyst.flavor)) + (analyst.threads > 1 ? ` · ${analyst.threads} threads` : '');
   refreshAnalysis();
 }, () => {});
 
@@ -725,16 +728,19 @@ async function engineReply() {
 }
 
 // ---------------------------------------------------------------- Analysis
+// A depth search stops after this long anyway; the entry then remembers the depth it was asked
+// for (capDepth), so the same position isn't searched again and again.
+const ANALYSIS_CAP_MS = 5000;
 async function analyse(fen, depth, tag = 'live', onInfo) {
   const have = anaOf(fen);
   if (terminalCp(fen) !== null) return null;
-  if (have && have.depth >= depth) return have;
+  if (have && (have.depth >= depth || have.capDepth >= depth)) return have;
   const stm = turnOf(fen);
   let res;
-  try { res = await analyst.go(fen, { depth, multipv: tag === 'review' ? 2 : 3, tag, onInfo: onInfo && (j => onInfo(toWhite(j.lines, stm), j.depth)) }); }
+  try { res = await analyst.go(fen, { depth, maxMs: ANALYSIS_CAP_MS, multipv: tag === 'review' ? 2 : 3, tag, onInfo: onInfo && (j => onInfo(toWhite(j.lines, stm), j.depth)) }); }
   catch { return anaOf(fen) || null; } // engine down: engineDown() has told the user
   if (!res) return anaOf(fen) || null;
-  const entry = { depth: res.depth, lines: toWhite(res.lines, stm), best: res.best };
+  const entry = { depth: res.depth, lines: toWhite(res.lines, stm), best: res.best, capDepth: res.depth < depth ? depth : 0 };
   const prev = anaOf(fen);
   if (!prev || prev.depth <= entry.depth) ANA.set(K.epd(fen), entry);
   return anaOf(fen);

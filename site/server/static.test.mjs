@@ -30,3 +30,9 @@ test('base headers deny framing and sniffing', () => {
   assert.equal(BASE_HEADERS['X-Frame-Options'], 'DENY');
   assert.equal(BASE_HEADERS['X-Content-Type-Options'], 'nosniff');
 });
+
+test('every response makes the page cross-origin isolated (COOP + COEP), for the multi-threaded engine', () => {
+  assert.equal(BASE_HEADERS['Cross-Origin-Opener-Policy'], 'same-origin');
+  assert.equal(BASE_HEADERS['Cross-Origin-Embedder-Policy'], 'require-corp');
+  assert.equal(BASE_HEADERS['Cross-Origin-Resource-Policy'], 'same-origin');
+});
