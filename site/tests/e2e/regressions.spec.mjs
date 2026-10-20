@@ -113,3 +113,18 @@ test('tabs: arrow keys switch tabs without stepping through the moves', async ({
   await expect(page.locator('#pane-coach')).toHaveAttribute('role', 'tabpanel');
   expect((await S(page)).cursor).toBe(before);
 });
+
+test('eval bar: narrow, and White\'s part sits on White\'s side when the board is flipped', async ({ page }) => {
+  await open(page);
+  const box = async () => {
+    const [bar, w] = await Promise.all(['#evalbar', '#evalW'].map(s => page.locator(s).boundingBox()));
+    return { width: bar.width, top: Math.round(w.y - bar.y), bottom: Math.round(bar.y + bar.height - (w.y + w.height)) };
+  };
+  expect((await box()).width).toBeLessThanOrEqual(10);
+  // At the start the bar is at 50%, so the white part touches exactly one end.
+  await expect.poll(async () => (await box()).bottom).toBeLessThanOrEqual(1);
+  await page.locator('#btnFlip').click();
+  await expect.poll(async () => (await box()).top).toBeLessThanOrEqual(1);
+  await page.locator('#btnFlip').click();
+  await expect.poll(async () => (await box()).bottom).toBeLessThanOrEqual(1);
+});

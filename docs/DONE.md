@@ -7,6 +7,22 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-20 — Eval bar: narrower, and it turns with the board
+
+TODO items: none (a fix from use; the bar came with the prototype, 1.5).
+
+### Implementation notes
+
+- The bar is 8px wide instead of 30px (`.boardwrap` in `site/src/index.html`).
+- With the board flipped, White's part grows from the top, so it's always on White's side. `syncBoard()` sets the `flipped` class from `S.orientation`, the same place the orientation goes to chessground, so every way of turning the board (the flip button, starting a game as Black, loading a game) updates the bar.
+- Regression test in `tests/e2e/regressions.spec.mjs`: the bar is at most 10px wide, and at 50% the white part touches the bottom end, then the top end after a flip, then the bottom again. Both checks fail on the old code.
+
+### Deviations
+
+- The score label inside the bar is gone: a number doesn't fit in 8px. The score stays in the bar's tooltip and in the Coach tab's context line ("eval +0.3 d14").
+
+---
+
 ## 2026-10-20 — AI provider layer: interface, structured output, models, limits, settings, contract tests
 
 TODO items: 2.2, 2.7, 2.10, 2.14 done; 2.11 and 2.15 partly.
