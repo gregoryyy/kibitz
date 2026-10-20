@@ -7,6 +7,81 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-20 — Milestone 1: play against the engine
+
+TODO items: 1.3, 1.4 (partly), 1.6, 1.7, 1.8, 1.9, 1.11, 1.12; 6.8 added.
+
+### Implementation notes
+
+- **`site/src/play.js`** holds the playing rules as pure functions, unit-tested in Node:
+  - `gameEnd`: checkmate, stalemate, threefold repetition, insufficient material, fifty-move rule.
+  - `timeoutEnd`: a timeout loses, unless the other side has no mating material.
+  - Clocks.
+  - The opponent's search settings, and `pickWeak` for the weakened mode below 1320.
+  - `acceptsDraw`.
+  - `checkStart` and `fixCastling` for start positions.
+
+  The inline code they replace in `index.html` is gone.
+- **Clock (1.6):** time controls 3+2, 5+3, 10+5, 15+10 and 30+20, with Fischer increment.
+  - White's first move isn't timed: it starts Black's clock.
+  - Every move stores both clocks, so a take-back restores them.
+  - Stockfish thinks within its own time: a thirtieth of what's left plus three quarters of the increment, never more than untimed.
+  - A 100 ms tick checks for flag fall. The PGN gets `TimeControl`, and `Termination "time forfeit"` after a timeout.
+- **Draw offers (1.7):** an "Offer draw" button. Stockfish evaluates the position at depth 12–16 and accepts if it is at least a pawn worse, or after move 30 when the evaluation is within 0.3. After a refusal the next offer has to wait 5 moves.
+- **Start positions (1.8):** the Game tab has "Start from", with three options:
+  - the standard position;
+  - an opening, searched by name or ECO code in `openings.json`, which the build writes from the Lichess data (3,865 lines, 366 KB, loaded only when needed);
+  - a FEN, checked before the game starts and explained when it fails: invalid, side not to move in check, game already over.
+
+  The opening's moves are set up as the first moves of the game; take-backs and draw offers count from there. Stockfish moves first if it is to move.
+- **NAGs (1.9):** chess.js parses NAGs but doesn't expose them, so `site/src/pgn.js` reads them from the movetext.
+  - It reads both suffixes (`!?`) and `$n`, and skips variations, comments, escape lines and headers.
+  - The move list shows the glyphs when there is no engine verdict for the move.
+  - Export writes `$n`, including the engine's verdicts (`$6`, `$2`, `$4`) when annotating; it used to append `?!` to the SAN.
+- **Keyboard and screen readers (1.11):**
+  - A move box under the board takes SAN, loose SAN (`nf3`, `Bf7` for `Bxf7+`, `0-0`) and coordinates (`e2e4`, `e7e8q`). Ambiguous or illegal input is explained, never guessed.
+  - Every move is announced in a polite live region ("You played knight f3.", "Stockfish played e takes d5, check."), and so is navigation through the moves.
+- **Tests (1.12):**
+  - Rule edge cases: threefold with changed castling rights, the fifty-move boundary, insufficient material, en passant timing, castling through check, under-promotion.
+  - Playwright: a full game from a position played by typed moves to checkmate, then saved and reviewed; the clock with a faked timer, ending in a loss on time; draw offers declined and accepted; opening and FEN starts; a NAG round trip.
+- **Multi-threaded Stockfish (1.3):**
+  - Every response now sends `Cross-Origin-Embedder-Policy: require-corp`, plus `Cross-Origin-Resource-Policy: same-origin` for our own files. Together with COOP, this makes the page cross-origin isolated.
+  - When it is isolated, the analyst runs the lite multi-threaded build (`sf-mt.js`/`.wasm`, 1.7 MB) with up to 4 threads (cores − 1), and the engine status shows the thread count.
+  - The opponent stays on one thread, so its strength matches the calibration.
+  - Without isolation (e.g. an artifact host that drops COEP), or if the threaded build fails, the single-threaded build starts as before.
+- **Analysis searches are capped at 5 s** (`go depth N movetime 5000`). A capped entry remembers the depth it was asked for (`capDepth`), so the position isn't searched again on every visit.
+- **Calibration (1.4, partly):** `site/scripts/calibrate.mjs` plays a round robin between the weakened levels below 1320 and Stockfish's UCI_Elo 1320 anchor.
+  - It runs the lite single-threaded engine in child processes and uses the page's own search settings (`opponentSearch`, `pickWeak`).
+  - Openings and colours alternate, the random numbers are seeded, and games over 300 plies count as draws.
+  - It fits ratings by maximum likelihood with the anchor fixed. Three runs of 360–420 games took 11–13 minutes each on 6 cores.
+
+  | Setting | Run 1 (old table) | Run 3 (new table) |
+  |---|---|---|
+  | 600 | 469 | 557 |
+  | 800 | 773 | 874 |
+  | 1000 | 1298 | 977 |
+  | 1100 | – | 1201 |
+  | 1200 | 1536 | 1141 |
+  | 1300 | 1655 | 1369 |
+
+  The new table in `play.js` uses search depth 1 up to 1100 and depth 3 above, never 5. It was interpolated from runs 1 and 2.
+
+### Deviations
+
+- **1.4 stays open.** Below 1320 the levels are now aligned with Stockfish's UCI_Elo scale. That scale is calibrated against engine rating lists, not human ratings, and the 1320+ levels run at our short think times with the lite network. Tying the slider to human ratings needs results from real players, e.g. from the weakness tracking in 9.2.
+- **1.8:** starting from a curriculum position moved to 6.8, because there is no curriculum yet. `newGame` already starts from any FEN or move list.
+- **Draw offers only go one way:** Stockfish never offers a draw itself.
+- **Timeout draws use a simplified rule:** a lone king, or a king and one minor piece against a lone king, can't mate. FIDE asks whether any legal sequence mates, which is rarely different in practice.
+- **No `[%clk]` comments in the PGN**, only the `TimeControl` tag.
+
+### Insights
+
+- **Search depth dominates the weakened mode.** Depth 1 → 3 → 5 changed strength by hundreds of Elo, far more than the "keep the best move" chance. The old table's depth 5 from 1100 up made 1300 stronger than 1320. Calibrate whenever these knobs change: the script takes about 12 minutes.
+- **The calibration's noise is about ±70 Elo per level** at 120 games. 1100 came out above 1200 in run 3, although 1200 searches at the same depth and keeps the best move more often. More games would narrow this; the ordering is right in expectation.
+- **MultiPV can explode in won positions.** On a mate in one whose alternatives lose, MultiPV 3 at depth 16 took 8 s single-threaded and over 30 s with 4 threads; with MultiPV 1 it takes 0.3 s. The time cap bounds it. On normal positions, 4 threads reach depth 16 about 30–45% faster.
+- **chess.js keeps castling rights without a rook** and then generates O-O-O in `4k3/8/8/8/8/8/8/4K2R w KQkq`. Every pasted FEN now goes through `fixCastling`.
+- **chess.js parses NAGs but drops them**, so `pgn.js` re-reads the movetext. Its ply count is tested against chess.js's history so the two can't drift apart.
+
 ## 2026-10-20 — Foundation: tooling, CI, licence
 
 TODO items: 0.3, 0.4, 0.5, 0.7, 0.8, 0.9, 0.10. Milestone 0 is complete.

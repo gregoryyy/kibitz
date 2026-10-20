@@ -32,8 +32,8 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 - [x] 1.1 Board UI: legal moves, promotion, flip, coordinates *(prototype)*
 - [x] 1.2 Stockfish 19 WASM worker with blob-URL and asm.js fallbacks *(prototype)*; `site/src/engine.js`, unit-tested
-- [ ] 1.3 Multi-threaded Stockfish when cross-origin isolated (server sends COOP/COEP headers), with a single-threaded fallback
-- [ ] 1.4 Strength levels: `UCI_Elo` from 1320 up, a weakened mode below that *(prototype)*; calibrate them against real ratings. Remaining: the calibration.
+- [x] 1.3 Multi-threaded Stockfish when cross-origin isolated (server sends COOP/COEP headers), with a single-threaded fallback
+- [ ] 1.4 Strength levels: `UCI_Elo` from 1320 up, a weakened mode below that *(prototype)*; calibrate them against real ratings. The weakened mode is calibrated against Stockfish's UCI_Elo scale (`scripts/calibrate.mjs`). Remaining: checking the scale against human ratings, which needs players' results (see 9.2).
 - [x] 1.5 Separate analyst engine (full strength, MultiPV) *(prototype)*
 - [x] 1.6 Time controls and clock *(added)*
 - [x] 1.7 Takeback, hint, resign *(prototype)*; draw offers; every game-end rule (threefold repetition, 50-move rule, insufficient material)
@@ -46,7 +46,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 ## 2. AI provider layer
 
-- [x] 2.1 Node server: static hosting, JSON API, security headers (CSP, COOP/COEP, HSTS). COEP comes with 1.3, HSTS once hosted over HTTPS (12.2).
+- [x] 2.1 Node server: static hosting, JSON API, security headers (CSP, COOP/COEP, HSTS). HSTS comes once hosted over HTTPS (12.2).
 - [ ] 2.2 Provider interface: `chat(messages, {stream, schema, maxTokens, signal})` and `embed(texts)`
 - [x] 2.3 OpenAI adapter
 - [x] 2.4 Mistral adapter

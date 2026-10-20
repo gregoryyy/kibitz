@@ -31,7 +31,8 @@ src/knowledge.js      Pure functions, no DOM:
                         buildPositionIndex() / similarPositions()   "seen before" search over the library
                         winPct / classify / moveAccuracy             Lichess-style move scoring
                         parseInfo()          UCI info-line parser
-src/engine.js         Engine: Stockfish worker with fallbacks, job queue, cancel by tag; rejects all jobs if it dies
+src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded when cross-origin isolated), job queue,
+                      cancel by tag, time-capped depth searches; rejects all jobs if it dies
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
 src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
@@ -48,7 +49,7 @@ scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles)
 server/ai.mjs         AI gateway core: config from env, provider adapters (Anthropic SDK; openai SDK for
                       OpenAI, Mistral, Ollama), validation, error mapping, rate limit, mock provider
 server/api.mjs        GET /api/ai/status, POST /api/ai/sample (NDJSON stream); Host/Origin/size guards
-server/static.mjs     Security headers and the hash-based Content Security Policy for served pages
+server/static.mjs     Security headers (incl. COOP/COEP for cross-origin isolation) and the hash-based CSP for served pages
 tests/unit/           node:test for engine.js, store.js, prompt.js, style.js, knowledge.js; server/*.test.mjs for the gateway
 tests/e2e/            Playwright: smoke (main flows), regressions (one test per fixed bug), preferences (Elo, style),
                       play (full game, typed moves, clock, draw offers, start positions, NAGs)
