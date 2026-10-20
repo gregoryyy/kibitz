@@ -47,20 +47,20 @@ Status: `[ ]` open, `[x]` done. Tags:
 ## 2. AI provider layer
 
 - [x] 2.1 Node server: static hosting, JSON API, security headers (CSP, COOP/COEP, HSTS). HSTS comes once hosted over HTTPS (12.2).
-- [ ] 2.2 Provider interface: `chat(messages, {stream, schema, maxTokens, signal})` and `embed(texts)`
+- [x] 2.2 Provider interface: `chat(messages, {stream, schema, maxTokens, signal})` and `embed(texts)`
 - [x] 2.3 OpenAI adapter
 - [x] 2.4 Mistral adapter
 - [x] 2.5 Claude adapter (Anthropic Messages API)
 - [x] 2.6 Ollama adapter (local models, so nothing leaves the machine)
-- [ ] 2.7 Structured output for board annotations on every provider (JSON schema or tool calling, plus fallback parsing)
+- [x] 2.7 Structured output for board annotations on every provider (JSON schema or tool calling, plus fallback parsing)
 - [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
 - [ ] 2.9 Key management: keys come from server env or an encrypted per-user store, and never reach the browser, logs or prompts. Remaining: the per-user store (depends on 10.1); env keys are done.
-- [ ] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
-- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Remaining: per-user limits (today one limit per server), token budgets beyond max output tokens, cost display.
+- [x] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
+- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Remaining: per-user limits and budgets (they need accounts, 10.1); the daily token budget, usage and cost estimate are per server.
 - [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
 - [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
-- [ ] 2.14 Settings UI: provider, model, connection test, local-only mode
-- [ ] 2.15 Contract tests per adapter against recorded responses; live smoke tests run only when an env flag is set
+- [x] 2.14 Settings UI: provider, model, connection test, local-only mode
+- [ ] 2.15 Contract tests per adapter against recorded responses; live smoke tests run only when an env flag is set. Remaining: recorded fixtures for OpenAI, Mistral and Ollama (hand-written from the documented format until their keys work; Claude's are recorded).
 
 ## 3. Tutor commentary
 
@@ -161,7 +161,7 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [ ] 11.3.7 LLM07 System prompt leakage: no secrets in prompts
   - [ ] 11.3.8 LLM08 Vector and embedding weaknesses: users' data kept separate in the RAG store
   - [ ] 11.3.9 LLM09 Misinformation: every chess claim checked against the engine
-  - [ ] 11.3.10 LLM10 Unbounded consumption: rate limits and token budgets. Remaining: token budgets; the gateway has a rate limit, max output tokens and size limits.
+  - [ ] 11.3.10 LLM10 Unbounded consumption: rate limits and token budgets. Remaining: per-user limits (10.1); the gateway has a rate limit, a daily token budget, max output tokens and size limits.
 - [ ] 11.4 OWASP ASVS: pick a level (L1 for a local app, L2 if hosted with accounts), keep a verification checklist, automate checks where possible
 - [ ] 11.5 Automated scans: Dependabot, CodeQL, secret scanning, OWASP ZAP baseline against staging, CSP check
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings

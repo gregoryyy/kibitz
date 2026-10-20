@@ -7,6 +7,58 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-20 — AI provider layer: interface, structured output, models, limits, settings, contract tests
+
+TODO items: 2.2, 2.7, 2.10, 2.14 done; 2.11 and 2.15 partly.
+
+### Implementation notes
+
+- **Provider interface (2.2):** every provider has `chat(messages, {model, system, maxTokens, schema, signal})`, an async generator of text chunks.
+  - It returns `{truncated, usage}`. Anthropic's usage includes cached input; OpenAI and Ollama are asked for a usage chunk (`stream_options`); Mistral sends one unasked.
+  - `complete()` collects a whole reply.
+  - `embed(texts)` covers OpenAI, Mistral and Ollama, configured by `EMBEDDING_PROVIDER` and `EMBEDDING_MODEL` with that provider's key and Ollama host allowlist. It sends one plain POST to `/embeddings` and keeps the vectors in input order. The default models are text-embedding-3-small and mistral-embed; Ollama needs one set.
+- **Structured output (2.7):** `POST /api/ai/structured {messages, format}` takes a named format (only `annotations` so far) and returns `{data, truncated, usage, mode}`.
+  - The annotation schema has a short text, up to 8 arrows (from, to, kind) and up to 16 highlighted squares.
+  - Anthropic gets `output_config.format` (json_schema). OpenAI, Mistral and Ollama get `response_format` (json_schema, strict).
+  - Keywords that strict modes reject (lengths, patterns, item counts) are left out of what the provider sees and enforced by our own validator (`server/schema.mjs`).
+  - If the provider rejects the format (400/422) or the reply doesn't validate, the request is retried once with the schema in the instructions, and the JSON is parsed out of the text (code fences, surrounding prose).
+- **Models per task (2.10):** `quick` (the quick-question chips), `chat` (typed questions, flags) and `review` (game summary, study plan).
+  - `<PROVIDER>_MODEL_QUICK` and `_MODEL_REVIEW` fall back to `<PROVIDER>_MODEL`.
+  - The page names the task in each request. Unknown tasks are refused, and the artifact host's `sample()` doesn't get the option.
+- **Limits (2.11):** `server/usage.mjs` counts requests and tokens per day.
+  - `AI_TOKEN_BUDGET_PER_DAY` refuses requests with `budget_exceeded` (429) once it's used up.
+  - `AI_PRICES` gives per-model prices for a cost estimate. Models without a price are counted in tokens only, and a day with no priced model shows no cost rather than $0.
+  - The status endpoint reports today's usage.
+- **Settings (2.14):** a "Coach settings" panel in the Coach tab, shown only with the local gateway.
+  - You can switch among the providers `.env` sets up; unavailable ones are disabled and say why.
+  - It shows the model per task.
+  - Local-only mode is enforced on the server: only Ollama or the mock, with Ollama taking over if it's set up. `AI_LOCAL_ONLY` makes it the default.
+  - "Test connection" sends a 256-token request and reports provider, model and time.
+  - It shows today's usage.
+  - `POST /api/ai/config` and `/api/ai/test` have the same origin, host and content-type checks as the other routes. Changes last until the server restarts.
+- **Contract tests (2.15):** the real Anthropic and OpenAI SDK clients get a `fetch` that replays `server/fixtures/*.json`, so the tests cover the SSE wire format, the SDKs' parsing and our adapters together. They check the requests we send too.
+  - `scripts/record-ai-fixtures.mjs <provider>` records real responses: two small requests per provider, keeping only status, content type and body. Headers are dropped because they carry account ids; the request isn't kept because it carries the key.
+  - The Claude chat and annotation fixtures are recorded: 73 and 943 tokens on claude-haiku-5-5.
+  - OpenAI, Mistral, Ollama and the error responses are hand-written from the documented format, and marked so in the file.
+  - `server/live.test.mjs` runs a chat and an annotation request per provider, only with `KIBITZ_LIVE_AI=1` (`npm run test:live`).
+- The Playwright server now blanks the provider keys it inherits from the shell, so no test can reach a real provider. One key in the shell environment was visible to the test server before this; no test used it.
+
+### Deviations
+
+- **No `stream` flag on `chat()`:** it always streams, and `complete()` collects the reply when a caller wants it whole.
+- **Structured output uses JSON-schema output, not tool calling**, on every provider. It's the same mechanism everywhere, and no tool is involved.
+- **Formats are named on the server.** The page can't send its own schema, which keeps model output bounded to what the server validates.
+- **No built-in price list.** Prices change and I couldn't verify current ones, so cost needs `AI_PRICES`.
+- **Usage, the budget and settings changes live in memory** and reset when the server restarts.
+- **2.11 per-user limits and 2.9's per-user key store** wait for accounts (10.1).
+- **2.15 stays open** until OpenAI, Mistral and Ollama fixtures are recorded.
+
+### Insights
+
+- **Claude's structured output accepts the stripped annotation schema natively.** The recorded reply validated first time, so the fallback is for the OpenAI-compatible servers whose models can't do JSON schema.
+- **Strict JSON-schema modes reject some constraints.** Two layers keep it portable: what the provider sees, and what we enforce.
+- **Replaying at the `fetch` level catches more than fake clients.** It covers the SDKs' own stream parsing and error classes; the fake-client unit tests stay for edge cases that are hard to record.
+
 ## 2026-10-20 — Milestone 1: play against the engine
 
 TODO items: 1.3, 1.4 (partly), 1.6, 1.7, 1.8, 1.9, 1.11, 1.12; 6.8 added.

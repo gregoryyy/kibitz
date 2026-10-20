@@ -45,12 +45,19 @@ data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.
 scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
+scripts/record-ai-fixtures.mjs  Records real provider responses for the contract tests (uses .env keys)
 scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env
-server/ai.mjs         AI gateway core: config from env, provider adapters (Anthropic SDK; openai SDK for
-                      OpenAI, Mistral, Ollama), validation, error mapping, rate limit, mock provider
-server/api.mjs        GET /api/ai/status, POST /api/ai/sample (NDJSON stream); Host/Origin/size guards
+server/ai.mjs         AI gateway core: config from env (every provider, models per task, local-only), provider
+                      adapters with chat() (Anthropic SDK; openai SDK for OpenAI, Mistral, Ollama), embed(),
+                      validation, error mapping, rate limit, mock provider
+server/schema.mjs     Structured replies: the annotation format, a JSON Schema validator, fallback parsing
+server/usage.mjs      Tokens per day, the daily token budget, cost estimate from AI_PRICES
+server/api.mjs        GET /api/ai/status; POST /api/ai/sample (NDJSON stream), /structured, /config, /test;
+                      Host/Origin/size guards
+server/fixtures/      Provider responses for the contract tests (recorded, or hand-written where marked)
 server/static.mjs     Security headers (incl. COOP/COEP for cross-origin isolation) and the hash-based CSP for served pages
-tests/unit/           node:test for engine.js, store.js, prompt.js, style.js, knowledge.js; server/*.test.mjs for the gateway
+tests/unit/           node:test for the page modules; server/*.test.mjs for the gateway, incl. contract tests
+                      (SDKs replaying server/fixtures) and live tests (only with KIBITZ_LIVE_AI=1)
 tests/e2e/            Playwright: smoke (main flows), regressions (one test per fixed bug), preferences (Elo, style),
                       play (full game, typed moves, clock, draw offers, start positions, NAGs)
 eslint.config.mjs     ESLint (recommended rules; eslint-plugin-html lints the script in index.html)

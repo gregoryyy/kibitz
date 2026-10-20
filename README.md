@@ -54,7 +54,16 @@ The coach chat, game-review summary and study plan need a language model. Withou
 
 `.env` is git-ignored and read once at startup, so restart the server after changing it. The defaults are small, fast models (`claude-haiku-5-5`, `gpt-6-luna`, `mistral-small-latest`). `AI_PROVIDER=mock` gives canned replies without any API calls, which is handy for UI work.
 
-The gateway only accepts requests from its own page: other websites, and attackers using a look-alike host name to get the browser to treat their page as local, are refused. It also limits requests per minute (`AI_RATE_LIMIT_PER_MINUTE`).
+The gateway only accepts requests from its own page: other websites, and attackers using a look-alike host name to get the browser to treat their page as local, are refused. It also limits requests per minute (`AI_RATE_LIMIT_PER_MINUTE`) and, optionally, tokens per day (`AI_TOKEN_BUDGET_PER_DAY`).
+
+**Coach settings** (in the Coach tab, when running locally):
+- Switch between the providers your `.env` sets up.
+- See the model each task uses (`<PROVIDER>_MODEL_QUICK`, `_MODEL_REVIEW`).
+- Turn on local-only mode, so only Ollama is used (`AI_LOCAL_ONLY` makes it the default).
+- Test the connection.
+- See today's requests and tokens, with a cost estimate if you set `AI_PRICES`.
+
+Changes there last until the server restarts; keys never reach the page.
 
 Add `?debug` to the URL to get `window.__kibitz = { S, contextFor, ANA }` in the browser console.
 
@@ -72,6 +81,7 @@ just e2e               # or, in site/: npm run test:e2e
   - The regression tests reproduce each bug fixed after the code review.
   - Every test also fails on uncaught page errors and Content Security Policy violations.
   - Reports and traces of failed tests go to `site/tests/out/` (git-ignored).
+- **Live tests** (`KIBITZ_LIVE_AI=1 npm run test:live` in `site/`) send a few small requests to the providers in `.env`; they never run otherwise. `node scripts/record-ai-fixtures.mjs <provider>` records fresh responses for the contract tests.
 - **`npm run check`** runs ESLint (including the script inside `index.html`) and `tsc --checkJs` over `src/`, `server/` and `scripts/`.
 - **CI** (`.github/workflows/`) runs all of the above on every PR, plus `npm audit`, a gitleaks secret scan and, once the repo is public, CodeQL.
   - To use Playwright's bundled Chromium instead of Chrome, run `npx playwright install chromium` and set `PW_CHANNEL=chromium`.
