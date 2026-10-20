@@ -363,6 +363,7 @@ import { Engine, stockfishAttempts } from './engine.js';
 import { createStore, browserStorage } from './store.js';
 import { quote, UNTRUSTED_RULE } from './prompt.js';
 import { STYLES, styleOf, pickStyled } from './style.js';
+import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO } from './play.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -609,13 +610,8 @@ function playMove(m, { fromEngine = false } = {}) {
 }
 function checkGameOver(c) {
   if (S.mode !== 'play' || !S.playing) return;
-  let res = null, reason = '';
-  if (c.isCheckmate()) { res = c.turn() === 'w' ? '0-1' : '1-0'; reason = 'checkmate'; }
-  else if (c.isStalemate()) { res = '1/2-1/2'; reason = 'stalemate'; }
-  else if (c.isThreefoldRepetition()) { res = '1/2-1/2'; reason = 'threefold repetition'; }
-  else if (c.isInsufficientMaterial()) { res = '1/2-1/2'; reason = 'insufficient material'; }
-  else if (c.isDrawByFiftyMoves()) { res = '1/2-1/2'; reason = 'fifty-move rule'; }
-  if (res) endGame(res, reason);
+  const end = gameEnd(c);
+  if (end) endGame(end.result, end.reason);
 }
 function endGame(result, reason) {
   S.over = { result, reason }; S.playing = false;
@@ -627,18 +623,7 @@ function endGame(result, reason) {
 }
 
 // ---------------------------------------------------------------- Opponent
-function pickWeak(res, fen) {
-  const lines = res.lines.filter(l => l.pv?.length);
-  if (!lines.length) return res.best;
-  const keep = 0.3 + 0.55 * (S.elo - 600) / 720;
-  if (Math.random() < keep) return lines[0].pv[0];
-  const pool = lines.slice(1);
-  if (Math.random() < (1320 - S.elo) / 2600) {
-    const c = new Chess(fen); const all = c.moves({ verbose: true });
-    const m = all[Math.floor(Math.random() * all.length)]; return m.from + m.to + (m.promotion || '');
-  }
-  return (pool[Math.floor(Math.random() * pool.length)] || lines[0]).pv[0];
-}
+// Search settings, the weakened mode below 1320 and the rules: play.js.
 // Each engine reply gets a token; cancelling (new game, take-back, loading) moves the token on,
 // so a stale reply can't play a move or clear the `thinking` flag of a newer one.
 let replyToken = 0;
@@ -653,8 +638,7 @@ async function engineReply() {
   const t0 = performance.now();
   let res;
   try {
-    if (S.elo >= 1320) res = await opponent.go(fen, { movetime: 300 + Math.min(900, S.elo / 3), multipv: style.weight ? 4 : 1, setup: ['setoption name Skill Level value 20', 'setoption name UCI_LimitStrength value true', `setoption name UCI_Elo value ${S.elo}`], tag: 'move' });
-    else res = await opponent.go(fen, { depth: S.elo < 900 ? 1 : S.elo < 1100 ? 3 : 5, multipv: 4, setup: ['setoption name UCI_LimitStrength value false', 'setoption name Skill Level value 0'], tag: 'move' });
+    res = await opponent.go(fen, { ...opponentSearch(S.elo, style), tag: 'move' });
   } catch {
     if (token === replyToken) { S.thinking = false; renderAll(); toast('Stockfish isn\'t running, so it can\'t reply. Reload the page to restart it.'); }
     return;
@@ -666,7 +650,7 @@ async function engineReply() {
   if (!res || S.over || !S.playing || nodeFen(last()) !== fen) { renderPlayers(); renderControls(); return; }
   // Strength first (Stockfish's Elo limit, or pickWeak below 1320), then style within that
   // move's evaluation window, so the style changes how Stockfish plays, not how well.
-  let uci = S.elo >= 1320 ? res.best : pickWeak(res, fen);
+  let uci = S.elo >= MIN_UCI_ELO ? res.best : pickWeak(Chess, fen, res, S.elo);
   if (uci && style.weight) uci = pickStyled(Chess, fen, res.lines, style, { anchor: uci });
   if (!uci) { renderAll(); return; }
   S.cursor = last();
