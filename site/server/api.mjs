@@ -1,11 +1,12 @@
 // HTTP routes for the AI gateway, mounted by scripts/serve.mjs --api.
-//   GET  /api/ai/status  -> {provider, model, available, reason}
+//   GET  /api/ai/status  -> {provider, model, models: {quick, chat, review}, available, reason}
+//   POST bodies may name a "task" (quick | chat | review) to pick that task's model.
 //   POST /api/ai/sample  -> NDJSON stream: {"text":"..."} lines, then {"done":true,"truncated":false,"usage":{"input":n,"output":n}}
 //                           or {"error":{"code":"...","message":"..."}}
 //   POST /api/ai/structured {messages|prompt, format} -> {data, truncated, usage, mode} as JSON;
 //                           format names one of schema.mjs FORMATS, e.g. "annotations"
 import net from 'net';
-import { createProvider, GatewayError, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
+import { createProvider, GatewayError, modelFor, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 
 const MAX_BODY = 1_000_000;
@@ -37,41 +38,42 @@ export function createApi({ config, provider = config.available ? createProvider
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
     const body = await readJson(req);
     const messages = validateMessages(body);
+    const model = modelFor(config, body?.task);
     if (!allow()) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
-    return { body, messages };
+    return { body, messages, model };
   }
 
   async function sample(req, res) {
-    const { messages } = await accept(req);
+    const { messages, model } = await accept(req);
 
     res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', ...SECURITY_HEADERS });
     const ac = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
     const write = obj => res.write(JSON.stringify(obj) + '\n');
     try {
-      const it = provider.chat(messages, { signal: ac.signal });
+      const it = provider.chat(messages, { model, signal: ac.signal });
       let r;
       while (!(r = await it.next()).done) write({ text: r.value });
       write({ done: true, truncated: !!r.value?.truncated, usage: r.value?.usage || { input: 0, output: 0 } });
     } catch (e) {
       const g = toGatewayError(e, ac.signal);
       // Log the code and the provider's message, never the prompt.
-      if (g.code !== 'cancelled') { log.error(`AI ${config.provider}/${config.model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`); write({ error: { code: g.code, message: g.message } }); }
+      if (g.code !== 'cancelled') { log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`); write({ error: { code: g.code, message: g.message } }); }
     }
     res.end();
     return true;
   }
 
   async function structured(req, res) {
-    const { body, messages } = await accept(req);
+    const { body, messages, model } = await accept(req);
     const format = Object.hasOwn(FORMATS, body?.format) ? FORMATS[body.format] : null;
     if (!format) throw new GatewayError('bad_request', `"format" must be one of ${Object.keys(FORMATS).join(', ')}`, 400);
     const ac = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
-    try { return json(res, 200, await completeJson(provider, messages, format, { signal: ac.signal })); }
+    try { return json(res, 200, await completeJson(provider, messages, format, { model, signal: ac.signal })); }
     catch (e) {
       const g = toGatewayError(e, ac.signal);
-      if (g.code !== 'cancelled') log.error(`AI ${config.provider}/${config.model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`);
+      if (g.code !== 'cancelled') log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`);
       throw g;
     }
   }

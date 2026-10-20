@@ -412,7 +412,10 @@ const CLS_LABEL = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 
 const store = createStore(browserStorage());
 // Opening names are looked up this deep into a game; positions this early in the ECO table count as book moves.
 const OPENING_PLIES = 40, BOOK_PLIES = 30;
-const use = name => (window.claude && typeof window.claude.use === 'function') ? window.claude.use(name).catch(() => null)
+// sample(input, {task, ...}): the task (quick | chat | review) picks the gateway's model for it; the
+// artifact host's sample() doesn't know tasks, so it isn't passed on there.
+const use = name => (window.claude && typeof window.claude.use === 'function')
+  ? window.claude.use(name).then(s => name === 'sample' && typeof s === 'function' ? (input, { task, ...opts } = {}) => s(input, opts) : s).catch(() => null)
   : name === 'sample' ? localSample() : Promise.resolve(null);
 // Outside a Claude artifact, the coach talks to the local AI gateway (scripts/serve.mjs --api),
 // which holds the API keys. Same shape as the artifact's sample(): (prompt | turns, {signal, onText}) -> {text, truncated}.
@@ -424,11 +427,11 @@ async function localSample() {
       : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
     return null;
   }
-  return async (input, { signal, onText } = {}) => {
+  return async (input, { signal, onText, task } = {}) => {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
     let text = '', truncated = false;
     try {
-      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }), signal });
+      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages, task }), signal });
       if (!res.ok) throw { code: (await res.json().catch(() => null))?.error?.code || 'unavailable' };
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buf = '';
@@ -1382,7 +1385,7 @@ const QUICK = [
 ];
 function renderChips() {
   const box = $('#coachChips'); box.replaceChildren();
-  for (const [l, q] of QUICK) box.append(el('button', { class: 'chip', disabled: !COACH.sample, onclick: () => askCoach(q) }, l));
+  for (const [l, q] of QUICK) box.append(el('button', { class: 'chip', disabled: !COACH.sample, onclick: () => askCoach(q, { task: 'quick' }) }, l));
 }
 function renderCoachCtx() {
   const i = S.cursor; const fen = nodeFen(); const a = anaOf(fen);
@@ -1436,7 +1439,7 @@ Rules:
 - Recommend reading only from the retrieved references, naming the part when it is given.
 - Be concise: under 170 words unless asked for more. Short paragraphs or at most 4 bullets. No headings.
 ${UNTRUSTED_RULE}`;
-async function askCoach(question, { atNode = null } = {}) {
+async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   if (!COACH.sample) { openTab('coach'); return; }
   openTab('coach');
   if (atNode !== null && atNode !== S.cursor) goTo(atNode);
@@ -1458,7 +1461,7 @@ async function askCoach(question, { atNode = null } = {}) {
   try {
     const history = chatTurns.slice(-8);
     const turns = [{ role: 'user', content: RULES }, ...history, { role: 'user', content: `${contextFor(i)}\n\nQuestion: ${question}` }];
-    const { text, truncated } = await COACH.sample(turns, { signal: ctl.signal, cache: false, onText: ({ text }) => render(text) });
+    const { text, truncated } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task, onText: ({ text }) => render(text) });
     render(text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : ''));
     chatTurns.push({ role: 'user', content: `[At ${i ? moveLabel(i) : 'start'}] ${question}` }, { role: 'assistant', content: text });
   } catch (e) {
@@ -1521,7 +1524,7 @@ async function writeSummary() {
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });
   const prompt = `${RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
   try {
-    const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(box, text), cache: false });
+    const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(box, text), cache: false, task: 'review' });
     S.summary = text; renderRich(box, text);
     if (S.gameId) saveCurrentGame({ quiet: true });
   } catch (e) { box.replaceChildren(e?.text ? e.text : coachError(e)); }
@@ -1563,7 +1566,7 @@ async function studyPlan() {
   const target = box.firstElementChild;
   try {
     const prompt = `${RULES}\n\n${contextFor(S.cursor)}\n\nTask: Suggest a short study plan (3 steps) built around the themes of this position. For each step name the theme, what to look for in the player's own games, and one reference from the retrieved list with the part to read. Under 200 words.`;
-    const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(target, text), cache: { gcTime: 600000 } });
+    const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(target, text), cache: { gcTime: 600000 }, task: 'review' });
     renderRich(target, text);
   } catch (e) { target.replaceChildren(coachError(e)); }
   finally { btn.disabled = !COACH.sample; }

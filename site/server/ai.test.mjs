@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { complete, createEmbedder, createProvider, GatewayError, LIMITS, loadConfig, loadEmbeddingConfig, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
+import { complete, createEmbedder, createProvider, GatewayError, LIMITS, loadConfig, loadEmbeddingConfig, modelFor, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
 
 const drain = async (gen) => { const out = []; let r; while (!(r = await gen.next()).done) out.push(r.value); return { chunks: out, result: r.value }; };
 const msgs = [{ role: 'user', content: 'Hi' }];
@@ -32,7 +32,7 @@ test('unknown provider is rejected', () => {
 
 test('public status never exposes keys or base URLs', () => {
   const s = publicStatus(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'secret-key', MISTRAL_BASE_URL: 'https://proxy.internal/v1' }));
-  assert.deepEqual(Object.keys(s).sort(), ['available', 'model', 'provider', 'reason']);
+  assert.deepEqual(Object.keys(s).sort(), ['available', 'model', 'models', 'provider', 'reason']);
   assert.doesNotMatch(JSON.stringify(s), /secret-key|proxy\.internal/);
 });
 
@@ -237,4 +237,15 @@ test('embed: one plain POST, vectors returned in input order, limits enforced', 
   const mock = createEmbedder(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }));
   const [v1, v2] = await mock.embed(['knight', 'knight']);
   assert.equal(v1.length, 8); assert.deepEqual(v1, v2);
+});
+
+// ---------------------------------------------------------------- model per task (TODO 2.10)
+test('each task can have its own model; unset ones use <PROVIDER>_MODEL', () => {
+  const c = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', ANTHROPIC_MODEL_REVIEW: 'claude-sonnet-5-5' });
+  assert.deepEqual(c.models, { quick: 'claude-haiku-5-5', chat: 'claude-haiku-5-5', review: 'claude-sonnet-5-5' });
+  assert.equal(modelFor(c, 'review'), 'claude-sonnet-5-5');
+  assert.equal(modelFor(c, undefined), 'claude-haiku-5-5');
+  assert.throws(() => modelFor(c, 'deep-thought'), { code: 'bad_request' });
+  assert.equal(loadConfig({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'k', OPENAI_MODEL_QUICK: 'gpt-6-nano' }).models.quick, 'gpt-6-nano');
+  assert.deepEqual(publicStatus(c).models, c.models);
 });

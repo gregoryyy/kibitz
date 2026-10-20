@@ -13,6 +13,10 @@ const DEFAULTS = {
   ollama: { model: '', baseURL: 'http://127.0.0.1:11434' },
 };
 export const LIMITS = { messages: 40, chars: 200_000 };
+// What a request is for; each can have its own model (<PROVIDER>_MODEL_QUICK, _MODEL_REVIEW;
+// chat uses <PROVIDER>_MODEL). quick: the quick-question chips; chat: typed questions; review:
+// the game summary and study plan.
+export const TASKS = ['quick', 'chat', 'review'];
 
 export class GatewayError extends Error {
   constructor(code, message, status = 502) { super(message); this.code = code; this.status = status; }
@@ -31,12 +35,13 @@ export function loadConfig(env = process.env) {
   };
   const off = reason => ({ ...cfg, reason });
   if (!PROVIDERS.includes(provider)) return off(`AI_PROVIDER "${provider}" is not one of ${PROVIDERS.join(', ')}`);
-  if (provider === 'mock') return { ...cfg, model: 'mock', available: true };
+  if (provider === 'mock') return { ...cfg, model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true };
 
   const P = provider.toUpperCase();
   cfg.model = env[`${P}_MODEL`] || DEFAULTS[provider].model;
   cfg.baseURL = env[`${P}_BASE_URL`] || DEFAULTS[provider].baseURL;
   if (!cfg.model) return off(provider === 'ollama' ? 'OLLAMA_MODEL is empty; set it to a model from `ollama list`' : `${P}_MODEL is empty`);
+  cfg.models = { quick: env[`${P}_MODEL_QUICK`] || cfg.model, chat: cfg.model, review: env[`${P}_MODEL_REVIEW`] || cfg.model };
   if (provider === 'anthropic') cfg.effort = env.ANTHROPIC_EFFORT ?? 'medium';
   if (provider === 'ollama') {
     // SSRF guard: the server only talks to Ollama hosts that are explicitly allowed.
@@ -52,7 +57,13 @@ export function loadConfig(env = process.env) {
 }
 
 // What the browser may see about the configuration: never keys or base URLs.
-export const publicStatus = cfg => ({ provider: cfg.provider, model: cfg.model, available: cfg.available, reason: cfg.reason });
+export const publicStatus = cfg => ({ provider: cfg.provider, model: cfg.model, models: cfg.models || null, available: cfg.available, reason: cfg.reason });
+// The model for a request's task ("chat" when none is given); unknown tasks are refused.
+export function modelFor(cfg, task) {
+  if (task === undefined || task === null) task = 'chat';
+  if (!TASKS.includes(task)) throw new GatewayError('bad_request', `"task" must be one of ${TASKS.join(', ')}`, 400);
+  return cfg.models?.[task] || cfg.model;
+}
 
 // Accepts {prompt: string} or {messages: [{role: 'user'|'assistant', content: string}]}.
 // The client can't send system messages, so it can't replace server-side instructions.

@@ -5,8 +5,10 @@ import { createApi } from './api.mjs';
 import { createProvider, GatewayError, loadConfig } from './ai.mjs';
 
 // A provider whose behaviour each test picks through the last message's content.
+const seenModels = [];
 const provider = {
-  async *chat(messages) {
+  async *chat(messages, opts = {}) {
+    seenModels.push(opts.model);
     const q = messages.at(-1).content;
     if (q === 'fail-early') throw Object.assign(new Error('bad key'), { status: 401 });
     yield 'Hello ';
@@ -46,7 +48,7 @@ const lines = body => body.trim().split('\n').map(l => JSON.parse(l));
 test('status reports provider and availability', async () => {
   const r = await request('/api/ai/status');
   assert.equal(r.status, 200);
-  assert.deepEqual(JSON.parse(r.body), { provider: 'mock', model: 'mock', available: true, reason: '' });
+  assert.deepEqual(JSON.parse(r.body), { provider: 'mock', model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true, reason: '' });
   assert.equal(r.headers['cache-control'], 'no-store');
 });
 
@@ -141,4 +143,14 @@ test('structured: a named format returns validated JSON; unknown formats are ref
     assert.equal(bad.status, 400, String(format));
   }
   s.close();
+});
+
+test('the request\'s task picks the model; an unknown task is refused', async () => {
+  const before = seenModels.length;
+  await post({ prompt: 'hi', task: 'review' });
+  await post({ prompt: 'hi' });
+  assert.deepEqual(seenModels.slice(before), ['mock', 'mock']);
+  const r = await post({ prompt: 'hi', task: 'deep-thought' });
+  assert.equal(r.status, 400);
+  assert.match(JSON.parse(r.body).error.message, /task/);
 });
