@@ -582,7 +582,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <textarea id="coachInput" rows="2" placeholder="Ask about this position, your last move, or a plan"></textarea>
         <div class="row" style="flex-direction:column;align-items:stretch;gap:6px"><button class="btn primary" id="coachSend">Ask</button><button class="btn" id="coachStop" hidden>Stop</button></div>
       </div>
-      <div class="notice" id="coachOff" hidden>The coach needs Claude access in this view. Stockfish analysis, flags and review still work.</div>
+      <div class="notice" id="coachOff" hidden>The coach needs an AI provider in this view. Stockfish analysis, flags and review still work.</div>
     </div>
 
     <div class="pane" data-pane="review" hidden>
@@ -649,7 +649,47 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem('kibitz.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem('kibitz.' + k, JSON.stringify(v)); } catch {} },
 };
-const use = name => (window.claude && typeof window.claude.use === 'function') ? window.claude.use(name).catch(() => null) : Promise.resolve(null);
+const use = name => (window.claude && typeof window.claude.use === 'function') ? window.claude.use(name).catch(() => null)
+  : name === 'sample' ? localSample() : Promise.resolve(null);
+// Outside a Claude artifact, the coach talks to the local AI gateway (scripts/serve.mjs --api),
+// which holds the API keys. Same shape as the artifact's sample(): (prompt | turns, {signal, onText}) -> {text, truncated}.
+async function localSample() {
+  let status;
+  try { const r = await fetch('api/ai/status'); status = r.ok ? await r.json() : null; } catch { status = null; }
+  if (!status?.available) {
+    $('#coachOff').textContent = status ? `The coach is off: ${status.reason} Restart the server after changing .env. Stockfish analysis, flags and review still work.`
+      : 'The coach needs the local AI gateway: start the app with `just codex` and set a provider in .env. Stockfish analysis, flags and review still work.';
+    return null;
+  }
+  return async (input, { signal, onText } = {}) => {
+    const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
+    let text = '', truncated = false;
+    try {
+      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }), signal });
+      if (!res.ok) throw { code: (await res.json().catch(() => null))?.error?.code || 'unavailable' };
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += value;
+        let nl;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl); buf = buf.slice(nl + 1);
+          if (!line) continue;
+          const m = JSON.parse(line);
+          if (m.error) throw { code: m.error.code };
+          if (m.text) { text += m.text; onText?.({ text }); }
+          if (m.done) truncated = !!m.truncated;
+        }
+      }
+    } catch (e) {
+      if (signal?.aborted) throw { code: 'cancelled' };
+      throw e?.code ? e : { code: 'unavailable' };
+    }
+    return { text, truncated };
+  };
+}
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2200); }
 
 // ---------------------------------------------------------------- Engine
@@ -1549,7 +1589,7 @@ async function askCoach(question, { atNode = null } = {}) {
   }
 }
 function coachError(e) {
-  const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.' };
+  const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.' };
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
 // Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.

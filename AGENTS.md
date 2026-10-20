@@ -24,7 +24,8 @@ Node (current LTS) and WebAssembly. Browser code is plain ES modules with chessg
 - Every feature ships with tests: `node:test` for logic, Playwright for UI.
 - Tests use the mock AI provider; live provider tests run only when an env flag is set.
 - `claude/`: `npm test`, plus `npm run test:e2e` against `npm run serve`.
-- `codex/`: `python3 -m http.server 8766`, then `KIBITZ_URL=http://localhost:8766/ python3 claude/tests/e2e.py`.
+- AI gateway (`server/`): `npm test` at the repo root. Use fake SDK clients or `AI_PROVIDER=mock`; never call a real provider in tests.
+- `codex/`: `just codex`, then `just e2e codex`.
 
 ## Security
 

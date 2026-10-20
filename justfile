@@ -12,8 +12,9 @@ host := env_var_or_default("KIBITZ_HOST", "127.0.0.1")
 default:
     @just --list
 
-# Install claude/ dependencies (skipped if already installed)
+# Install dependencies: AI gateway (root) and claude/ (each skipped if already installed)
 install:
+    @[ -d node_modules ] || npm ci
     @[ -d claude/node_modules ] || npm --prefix claude ci
 
 # Build claude/ into claude/dist
@@ -25,15 +26,17 @@ build-eco: install
     npm --prefix claude run build:eco
 
 # claude/dist/index.html is the bare artifact body (no <head>), so "/" serves the full-document _test.html.
+# --api mounts the AI gateway, configured from .env (see .env.example). Only codex/ calls it so far,
+# so the claude/ server doesn't load the keys.
 serve_claude := "node scripts/serve.mjs claude/dist --index _test.html --port " + claude_port + " --host " + host
-serve_codex := "node scripts/serve.mjs codex --port " + codex_port + " --host " + host
+serve_codex := "node scripts/serve.mjs codex --api --port " + codex_port + " --host " + host
 
 # Build and serve the claude/ variant
 claude: build
     {{serve_claude}}
 
-# Serve the codex/ variant (no build step)
-codex:
+# Serve the codex/ variant with the AI coach (no build step)
+codex: install
     {{serve_codex}}
 
 # Serve both variants side by side; Ctrl-C stops both
@@ -47,8 +50,9 @@ both: build
     while kill -0 $a 2>/dev/null && kill -0 $b 2>/dev/null; do sleep 1; done
     exit 1
 
-# Unit check of the knowledge module
+# Unit tests: AI gateway (server/) and the knowledge module (claude/)
 test: build
+    npm test
     npm --prefix claude test
 
 # End-to-end run against a variant whose server is already running: just e2e claude|codex

@@ -1,5 +1,7 @@
 // Minimal static server for local development, no dependencies.
-//   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html]
+//   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
+// --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file;
+// that part needs the root npm dependencies.
 // Text responses carry an explicit charset=utf-8; without it, a page that lacks
 // <meta charset> (such as claude/dist/index.html, the bare artifact body) is
 // decoded as Windows-1252 and every non-ASCII character comes out garbled.
@@ -14,10 +16,22 @@ const { values: opt, positionals } = parseArgs({
     port: { type: 'string', default: '8765' },
     host: { type: 'string', default: '127.0.0.1' },
     index: { type: 'string', default: 'index.html' },
+    api: { type: 'boolean', default: false },
+    env: { type: 'string', default: '.env' },
   },
 });
-if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE]'); process.exit(2); }
+if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]]'); process.exit(2); }
 const root = fs.realpathSync(positionals[0]);
+
+let api = null, apiStatus = '';
+if (opt.api) {
+  try { process.loadEnvFile(opt.env); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  const { loadConfig } = await import('../server/ai.mjs');
+  const { createApi } = await import('../server/api.mjs');
+  const config = loadConfig();
+  api = createApi({ config });
+  apiStatus = config.available ? `AI coach: ${config.provider} / ${config.model}` : `AI coach off: ${config.reason}`;
+}
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -35,7 +49,9 @@ const TYPES = {
 
 const send = (res, code, msg) => { res.writeHead(code, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end(msg + '\n'); };
 
-http.createServer((req, res) => {
+http.createServer(async (req, res) => {
+  res.on('finish', () => console.log(res.statusCode, req.method, req.url));
+  if (api && await api(req, res)) return;
   if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
   let rel;
   try { rel = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return send(res, 400, 'Bad request'); }
@@ -56,10 +72,10 @@ http.createServer((req, res) => {
     if (req.method === 'HEAD') return res.end();
     fs.createReadStream(real).pipe(res);
   });
-  res.on('finish', () => console.log(res.statusCode, req.method, req.url));
 }).on('error', e => {
   console.error(e.code === 'EADDRINUSE' ? `Port ${opt.port} on ${opt.host} is already in use; stop the other server or pick another port.` : e.message);
   process.exit(1);
 }).listen(Number(opt.port), opt.host, () => {
   console.log(`Serving ${path.relative(process.cwd(), root) || '.'} at http://${opt.host}:${opt.port}/`);
+  if (apiStatus) console.log(apiStatus);
 });

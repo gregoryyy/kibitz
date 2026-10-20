@@ -47,17 +47,17 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 - [ ] 2.1 Node server: static hosting, JSON API, security headers (CSP, COOP/COEP, HSTS)
 - [ ] 2.2 Provider interface: `chat(messages, {stream, schema, maxTokens, signal})` and `embed(texts)`
-- [ ] 2.3 OpenAI adapter
-- [ ] 2.4 Mistral adapter
-- [ ] 2.5 Claude adapter (Anthropic Messages API)
-- [ ] 2.6 Ollama adapter (local models, so nothing leaves the machine)
+- [x] 2.3 OpenAI adapter
+- [x] 2.4 Mistral adapter
+- [x] 2.5 Claude adapter (Anthropic Messages API)
+- [x] 2.6 Ollama adapter (local models, so nothing leaves the machine)
 - [ ] 2.7 Structured output for board annotations on every provider (JSON schema or tool calling, plus fallback parsing)
-- [ ] 2.8 Stream replies to the browser over SSE, with cancellation
+- [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
 - [ ] 2.9 Key management: keys come from server env or an encrypted per-user store, and never reach the browser, logs or prompts
 - [ ] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
 - [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*
-- [ ] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
-- [ ] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
+- [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
+- [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
 - [ ] 2.14 Settings UI: provider, model, connection test, local-only mode
 - [ ] 2.15 Contract tests per adapter against recorded responses; live smoke tests run only when an env flag is set
 

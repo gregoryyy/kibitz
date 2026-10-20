@@ -25,9 +25,9 @@ With [just](https://github.com/casey/just) installed (`brew install just`), run 
 
 ```bash
 just claude          # install if needed, build, serve claude/ on http://127.0.0.1:8765/
-just codex           # serve codex/ on http://127.0.0.1:8766/
+just codex           # serve codex/ with the AI coach on http://127.0.0.1:8766/ (see "AI coach")
 just both            # serve both side by side; Ctrl-C stops both
-just test            # unit check (builds first)
+just test            # unit tests: AI gateway and knowledge module (builds first)
 just e2e codex       # Playwright run against a running variant (claude or codex)
 just                 # list all recipes
 ```
@@ -54,11 +54,11 @@ Open <http://localhost:8765/_test.html>.
 No install or build step; serve the folder directly:
 
 ```bash
-cd codex
-python3 -m http.server 8766
+npm install                                        # once: SDKs for the AI gateway
+node scripts/serve.mjs codex --api --port 8766     # or: just codex
 ```
 
-Open <http://localhost:8766/>.
+Open <http://localhost:8766/>. Any static server works too (e.g. `cd codex && python3 -m http.server 8766`), but then there is no AI gateway and the coach stays off.
 
 The vendored engine and libraries (`sf.js`, `sf.wasm`, `sf-asm.js`, `chess.js`, `chessground.js`) and the opening table (`eco.json`) are checked in alongside the page.
 
@@ -66,15 +66,28 @@ Ports 8765 and 8766 are only a convention, so both variants can run at the same 
 
 ## AI coach
 
-The coach chat, game-review summary and study plan currently run only when the page is published as a Claude artifact, which provides the model through `window.claude`. When run locally, both variants still give you the full engine features: play, hints, move ratings, analysis, review, library and reading suggestions. The coach panel is hidden. The [TODO.md](docs/TODO.md) plan replaces this with a Node server that talks to OpenAI, Mistral, Claude or a local Ollama model.
+The coach chat, game-review summary and study plan need a language model. Without one, both variants still give you the full engine features: play, hints, move ratings, analysis, review, library and reading suggestions.
 
-Its settings are in `.env`. Copy the template with `cp .env.example .env` and fill in the keys for the providers you use. `.env` is git-ignored, and nothing reads it yet; the Node server will load it once it exists.
+- **Published as a Claude artifact:** the page uses the model the artifact provides through `window.claude`.
+- **`codex/` run locally with `just codex`:** the page talks to a local AI gateway (`server/`, mounted by `scripts/serve.mjs --api`). The gateway calls Claude, OpenAI, Mistral or a local Ollama model, and keeps the API keys on the server.
+- **`claude/` run locally:** no coach yet; the gateway isn't wired into its page.
+
+To set up the gateway:
+
+```bash
+cp .env.example .env   # then set AI_PROVIDER and that provider's key and model
+just codex             # prints "AI coach: <provider> / <model>", or why the coach is off
+```
+
+`.env` is git-ignored and read once at startup, so restart the server after changing it. `AI_PROVIDER=mock` gives canned replies without any API calls, which is handy for UI work. The gateway only accepts requests from its own page: other websites, and attackers using a look-alike host name to get the browser to treat their page as local, are refused. It also limits requests per minute (`AI_RATE_LIMIT_PER_MINUTE`).
 
 Add `?debug` to the URL to get `window.__kibitz = { S, contextFor, ANA }` in the browser console.
 
 ## Tests
 
 ```bash
+npm test             # AI gateway (server/): config, providers, validation, HTTP guards; no network calls
+
 cd claude
 npm run build        # the unit check needs dist/eco.json
 npm test             # knowledge module: features, motifs, book retrieval
