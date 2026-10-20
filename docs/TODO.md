@@ -101,6 +101,13 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 5.3 Repertoire builder: the user picks lines for White and for Black
 - [ ] 5.4 Repertoire drill with spaced repetition *(added)*
 - [ ] 5.5 Opening explanations: ideas, typical plans, resulting pawn structures
+- [ ] 5.6 Opening variations at the board: which opening this is, and the named continuations from here *(added)*
+  - [ ] 5.6.1 Panel with the current line's name and ECO code, and each next move that leads to a named variation, with that variation's name. Built from the Lichess lines already in `openings.json`; how often each move is played comes with the explorer (5.2)
+  - [ ] 5.6.2 Hovering a move shows it on the board; clicking plays it in analysis, or as the next move in a game
+  - [ ] 5.6.3 Matched by position, not move order, so transpositions find the right name
+  - [ ] 5.6.4 During a game the panel follows the live-help setting (off: hidden until the game ends), so it doesn't hint at moves
+  - [ ] 5.6.5 Chat: the coach gets the opening and its continuations in the context, and a quick question "About this opening". Questions like "what's the idea of 6. Bg5?" are answered from the engine's lines, and from the opening explanations once 5.5 exists
+  - [ ] 5.6.6 Tests: continuations for known positions, transpositions, hidden during play, the context sent to the coach
 
 ## 6. Tactics and strategy curriculum
 
