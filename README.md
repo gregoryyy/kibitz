@@ -68,6 +68,8 @@ Ports 8765 and 8766 are only a convention, so both variants can run at the same 
 
 The coach chat, game-review summary and study plan currently run only when the page is published as a Claude artifact, which provides the model through `window.claude`. When run locally, both variants still give you the full engine features: play, hints, move ratings, analysis, review, library and reading suggestions. The coach panel is hidden. The [TODO.md](docs/TODO.md) plan replaces this with a Node server that talks to OpenAI, Mistral, Claude or a local Ollama model.
 
+Its settings are in `.env`. Copy the template with `cp .env.example .env` and fill in the keys for the providers you use. `.env` is git-ignored, and nothing reads it yet; the Node server will load it once it exists.
+
 Add `?debug` to the URL to get `window.__kibitz = { S, contextFor, ANA }` in the browser console.
 
 ## Tests

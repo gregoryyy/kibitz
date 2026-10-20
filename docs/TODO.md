@@ -119,7 +119,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 - [ ] 8.1 Position index: exact EPD and pawn-structure signature *(prototype)*, plus material signature and piece-placement features
 - [ ] 8.2 Pattern tags per position and move, from the motif and theme detectors *(prototype)*
-- [ ] 8.3 Text index for annotations and lesson text; embeddings from the selected provider or locally through Ollama
+- [ ] 8.3 Text index for annotations and lesson text; embeddings from a separately configured provider (OpenAI, Mistral or Ollama; Anthropic has no embeddings API)
 - [ ] 8.4 Hybrid retrieval: structural similarity, tag overlap and text embeddings, then re-ranking
 - [ ] 8.5 Fuzzy pawn-structure distance
 - [ ] 8.6 Retrieved items go into tutor and chat context with citations; the UI opens the cited game at that position
