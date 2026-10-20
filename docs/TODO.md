@@ -87,6 +87,12 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 4.5 "What if": the user tries a move on a scratch board, the engine evaluates it, the tutor explains
 - [ ] 4.6 Chat context: current position, game so far, selected aspects, recent tutor comments
 - [ ] 4.7 Tests: schema validation, rendering e2e, malformed and hostile model output
+- [ ] 4.8 Free conversation with the coach, about any game or position, not only the one on the board *(added)*
+  - [ ] 4.8.1 Open questions (plans, openings, general chess) without a position; answers stay grounded in the engine whenever a position is involved
+  - [ ] 4.8.2 Load from the chat: the player names a game ("the Opera Game", "my last loss with Black") or pastes a FEN or PGN, and the coach puts it on the board in analysis mode
+  - [ ] 4.8.3 Coach tools: search the library (7.5), load a game at a given move, load a position, load an opening line. Every load is checked with chess.js, and leaving a game in progress needs the player's confirmation; the tools only load, never change or delete anything (11.3.6). Builds on tool calling (2.7)
+  - [ ] 4.8.4 After a load, the engine analyses the position before the coach explains it, and the chat keeps track of which game and move each answer refers to
+  - [ ] 4.8.5 Tests: tool calls with the mock provider, invalid or hostile load requests, confirmation before leaving a game
 
 ## 5. Opening library
 
