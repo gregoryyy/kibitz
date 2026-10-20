@@ -142,3 +142,32 @@ export function acceptsDraw(cp, ply) {
   if (cp <= DRAW_RULES.worseCp) return true;
   return ply >= DRAW_RULES.equalAfterPly && Math.abs(cp) <= DRAW_RULES.equalCp;
 }
+
+// ---------------------------------------------------------------- Start positions
+// Drops castling rights whose king or rook isn't on its home square. chess.js keeps them and
+// would then allow castling without a rook (e.g. "4k3/8/8/8/8/8/8/4K2R w KQkq - 0 1": O-O-O).
+export function fixCastling(fen) {
+  const f = String(fen).trim().split(/\s+/);
+  if (f.length < 2) return fen;
+  const rows = f[0].split('/').map(r => r.replace(/\d/g, d => '.'.repeat(+d)));
+  const at = sq => rows[8 - +sq[1]]?.['abcdefgh'.indexOf(sq[0])];
+  const need = { K: ['e1', 'K', 'h1', 'R'], Q: ['e1', 'K', 'a1', 'R'], k: ['e8', 'k', 'h8', 'r'], q: ['e8', 'k', 'a8', 'r'] };
+  const rights = [...(f[2] || '-')].filter(r => need[r] && at(need[r][0]) === need[r][1] && at(need[r][2]) === need[r][3]).join('');
+  f[2] = rights || '-';
+  return f.join(' ');
+}
+
+// Checks a FEN to start a game from: valid for chess.js, the side not to move not in check, and
+// the game not already over. Returns {fen} (normalised) or {error}.
+export function checkStart(Chess, fen) {
+  let c;
+  try { c = new Chess(fixCastling(String(fen ?? '').trim())); } catch { return { error: 'That isn\'t a valid FEN.' }; }
+  const f = c.fen().split(' ');
+  if (c.board().flat().filter(p => p?.type === 'k').length !== 2) return { error: 'Each side needs exactly one king.' };
+  if (c.board().flat().some((p, i) => p?.type === 'p' && (i < 8 || i >= 56))) return { error: 'Pawns can\'t stand on the first or last rank.' };
+  try {
+    if (new Chess([f[0], f[1] === 'w' ? 'b' : 'w', '-', '-', '0', '1'].join(' ')).inCheck()) return { error: 'The side that isn\'t to move is in check.' };
+  } catch { return { error: 'That isn\'t a valid FEN.' }; }
+  if (gameEnd(c)) return { error: 'The game is already over in that position.' };
+  return { fen: c.fen() };
+}

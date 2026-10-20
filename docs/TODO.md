@@ -35,13 +35,13 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 1.3 Multi-threaded Stockfish when cross-origin isolated (server sends COOP/COEP headers), with a single-threaded fallback
 - [ ] 1.4 Strength levels: `UCI_Elo` from 1320 up, a weakened mode below that *(prototype)*; calibrate them against real ratings. Remaining: the calibration.
 - [x] 1.5 Separate analyst engine (full strength, MultiPV) *(prototype)*
-- [ ] 1.6 Time controls and clock *(added)*
-- [ ] 1.7 Takeback, hint, resign *(prototype)*; draw offers; every game-end rule (threefold repetition, 50-move rule, insufficient material). Remaining: draw offers; the game-end rules are in place.
-- [ ] 1.8 Start from a FEN, an opening, or a curriculum position
-- [ ] 1.9 PGN import and export with comments and NAGs *(prototype)*. Remaining: NAGs (export writes ?!/?/?? glyphs, import ignores NAGs).
+- [x] 1.6 Time controls and clock *(added)*
+- [x] 1.7 Takeback, hint, resign *(prototype)*; draw offers; every game-end rule (threefold repetition, 50-move rule, insufficient material)
+- [x] 1.8 Start from a FEN, an opening, or a curriculum position. FEN and opening done; curriculum positions moved to 6.8, since the curriculum doesn't exist yet.
+- [x] 1.9 PGN import and export with comments and NAGs *(prototype)*
 - [x] 1.10 Post-game review: eval graph, move classes, accuracy *(prototype)*
-- [ ] 1.11 Keyboard move entry and screen-reader move announcements *(added)*
-- [ ] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game. Remaining: rule edge cases; the fake-worker tests and the play/resign/review e2e test exist.
+- [x] 1.11 Keyboard move entry and screen-reader move announcements *(added)*
+- [x] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game
 - [x] 1.13 Playing style for Stockfish (Solid, Balanced, Active, Aggressive, Reckless), saved with the Elo setting *(added)*
 
 ## 2. AI provider layer
@@ -105,6 +105,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 6.5 Puzzle source: Lichess puzzle database (CC0), already tagged by theme
 - [ ] 6.6 Lesson player: explanation, worked positions, exercises with tutor hints
 - [ ] 6.7 Progress per lesson and per theme
+- [ ] 6.8 Play a lesson position out against Stockfish (the game start from 1.8 takes a FEN or moves)
 
 ## 7. Reference library: games and problems
 

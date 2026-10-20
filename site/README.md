@@ -35,16 +35,23 @@ src/engine.js         Engine: Stockfish worker with fallbacks, job queue, cancel
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
 src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
-data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position.
+src/play.js           Game-end rules, timeouts, clocks, the opponent's search, the weakened mode below 1320
+                      Elo (calibrated), draw offers, start-position checks
+src/pgn.js            NAGs: reads them from PGN movetext (chess.js drops them), glyphs for display
+src/notation.js       Typed moves (SAN or coordinates) and moves in words for screen readers
+data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position,
+                      and dist/openings.json (every named line with its moves, for "start from an opening").
 scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
+scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
 scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env
 server/ai.mjs         AI gateway core: config from env, provider adapters (Anthropic SDK; openai SDK for
                       OpenAI, Mistral, Ollama), validation, error mapping, rate limit, mock provider
 server/api.mjs        GET /api/ai/status, POST /api/ai/sample (NDJSON stream); Host/Origin/size guards
 server/static.mjs     Security headers and the hash-based Content Security Policy for served pages
 tests/unit/           node:test for engine.js, store.js, prompt.js, style.js, knowledge.js; server/*.test.mjs for the gateway
-tests/e2e/            Playwright: smoke (main flows), regressions (one test per fixed bug), preferences (Elo, style)
+tests/e2e/            Playwright: smoke (main flows), regressions (one test per fixed bug), preferences (Elo, style),
+                      play (full game, typed moves, clock, draw offers, start positions, NAGs)
 eslint.config.mjs     ESLint (recommended rules; eslint-plugin-html lints the script in index.html)
 tsconfig.json         tsc --checkJs over src/, server/, scripts/ (JSDoc types, no emit)
 ```
@@ -69,7 +76,7 @@ The page runs as a Claude artifact and uses `window.claude.use(name)`:
 | `db` + `user` | Library at `data/users/<id>/kibitz/{games,books}` (private per user) | Falls back to `localStorage` |
 | `downloads` | Save .pgn files | Falls back to copying the PGN |
 
-Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; vendored files are published alongside the page (`sf.wasm` as `application/wasm`).
+Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; vendored files are published alongside the page (`sf.wasm` as `application/wasm`), and so are `eco.json` and `openings.json`.
 
 Outside an artifact, `use('sample')` returns `localSample()`, a function with the same signature that streams from the local AI gateway (`/api/ai/sample`). The prompts and `contextFor()` are unchanged. The library still falls back to `localStorage`; a server-side store is planned (TODO 7.6).
 

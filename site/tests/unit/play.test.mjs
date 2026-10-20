@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
 import {
   gameEnd, cannotMate, timeoutEnd, newClock, pressClock, stopClock, timeLeft, fmtClock, moveBudget, timeControlOf, pgnTimeControl,
-  weakParams, opponentSearch, pickWeak, acceptsDraw, MIN_UCI_ELO,
+  weakParams, opponentSearch, pickWeak, acceptsDraw, MIN_UCI_ELO, checkStart, fixCastling,
 } from '../../src/play.js';
 
 const play = (fen, ...moves) => { const c = new Chess(fen); for (const m of moves) c.move(m); return c; };
@@ -115,8 +115,10 @@ test('clock display and Stockfish\'s time budget', () => {
 // ---------------------------------------------------------------- Strength
 test('weakened mode: knobs rise with Elo; depth steps at the table rows', () => {
   assert.deepEqual([600, 899, 900, 1099, 1100, 1319].map(e => weakParams(e).depth), [1, 1, 3, 3, 5, 5]);
-  const ks = [600, 800, 1000, 1200, 1319].map(e => weakParams(e).keep);
-  assert.ok(ks.every((k, i) => i === 0 || k > ks[i - 1]), 'keeps the best move more often as Elo rises');
+  const ds = [500, 600, 700, 900, 1000, 1100, 1200, 1319].map(e => weakParams(e).depth);
+  assert.ok(ds.every((d, i) => i === 0 || d >= ds[i - 1]), 'depth never drops as Elo rises');
+  const ks = [600, 800], ks3 = [900, 1000, 1100, 1200, 1319].map(e => weakParams(e).keep); ks.splice(0, 2, ...ks.map(e => weakParams(e).keep));
+  assert.ok([ks, ks3].every(k => k.every((x, i) => i === 0 || x > k[i - 1])), 'at the same depth, keeps the best move more often as Elo rises');
   assert.ok(weakParams(500).keep === weakParams(600).keep, 'clamped below the table');
 });
 
@@ -147,4 +149,20 @@ test('draw offers: accepted when Stockfish is worse, or dead equal late in the g
   assert.equal(acceptsDraw(10, 80), true);
   assert.equal(acceptsDraw(60, 80), false, 'Stockfish is better');
   assert.equal(acceptsDraw(null, 80), false);
+});
+
+// ---------------------------------------------------------------- Start positions (TODO 1.8)
+test('start positions: valid FENs pass (normalised), broken or finished ones are explained', () => {
+  assert.deepEqual(checkStart(Chess, ' 4k3/8/8/8/8/8/8/4K2R w K - 0 1 '), { fen: '4k3/8/8/8/8/8/8/4K2R w K - 0 1' });
+  assert.match(checkStart(Chess, 'nonsense').error, /valid FEN/);
+  assert.match(checkStart(Chess, 'k7/1Q6/8/8/8/8/8/K7 w - - 0 1').error, /isn't to move is in check/);
+  assert.match(checkStart(Chess, 'k7/1Q6/1K6/8/8/8/8/8 b - - 0 1').error, /already over/);
+  assert.match(checkStart(Chess, 'k7/8/8/8/8/8/8/7K w - - 0 1').error, /already over/, 'bare kings');
+});
+
+test('castling rights without the king or rook on its square are dropped', () => {
+  assert.equal(fixCastling('4k3/8/8/8/8/8/8/4K2R w KQkq - 0 1'), '4k3/8/8/8/8/8/8/4K2R w K - 0 1');
+  assert.equal(fixCastling('r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1'), 'r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1');
+  assert.equal(fixCastling('r3k2r/8/8/8/8/8/8/R2K3R w KQkq - 0 1'), 'r3k2r/8/8/8/8/8/8/R2K3R w kq - 0 1', 'white king moved');
+  assert.ok(!new Chess(checkStart(Chess, '4k3/8/8/8/8/8/8/4K2R w KQkq - 0 1').fen).moves().includes('O-O-O'), 'no castling without a rook');
 });

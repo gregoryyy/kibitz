@@ -2,6 +2,7 @@
 //   dist/index.html   page body as published to a Claude artifact (no <html>/<head>; the host wraps it)
 //   dist/_test.html   same page wrapped in a full document, for local testing
 //   dist/*.js|wasm    vendored libraries + the knowledge module, served next to the page
+//   dist/eco.json     opening names by position; dist/openings.json every named line with its moves
 //   dist/LICENSE.txt, dist/THIRD_PARTY_NOTICES.md
 import fs from 'fs';
 import path from 'path';
@@ -25,7 +26,7 @@ for (const f of fs.readdirSync(path.join(root, 'src'))) if (f.endsWith('.js')) c
 copy(path.join(root, '../LICENSE'), 'LICENSE.txt');
 copy(path.join(root, '../THIRD_PARTY_NOTICES.md'), 'THIRD_PARTY_NOTICES.md');
 
-if (!fs.existsSync(path.join(dist, 'eco.json')) || process.argv.includes('--eco')) {
+if (!fs.existsSync(path.join(dist, 'eco.json')) || !fs.existsSync(path.join(dist, 'openings.json')) || process.argv.includes('--eco')) {
   execFileSync(process.execPath, [path.join(root, 'scripts/build-eco.mjs')], { stdio: 'inherit' });
 }
 
