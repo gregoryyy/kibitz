@@ -1474,7 +1474,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   }
 }
 function coachError(e) {
-  const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.' };
+  const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.' };
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
 // Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.

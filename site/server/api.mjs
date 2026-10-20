@@ -1,5 +1,6 @@
 // HTTP routes for the AI gateway, mounted by scripts/serve.mjs --api.
-//   GET  /api/ai/status  -> {provider, model, models: {quick, chat, review}, available, reason}
+//   GET  /api/ai/status  -> {provider, model, models: {quick, chat, review}, available, reason, usage}
+//                           usage: today's requests, tokens, cost estimate and budget (usage.mjs)
 //   POST bodies may name a "task" (quick | chat | review) to pick that task's model.
 //   POST /api/ai/sample  -> NDJSON stream: {"text":"..."} lines, then {"done":true,"truncated":false,"usage":{"input":n,"output":n}}
 //                           or {"error":{"code":"...","message":"..."}}
@@ -8,18 +9,19 @@
 import net from 'net';
 import { createProvider, GatewayError, modelFor, publicStatus, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
+import { parsePrices, usageLedger } from './usage.mjs';
 
 const MAX_BODY = 1_000_000;
 const SECURITY_HEADERS = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 
-export function createApi({ config, provider = config.available ? createProvider(config) : null, log = console }) {
+export function createApi({ config, provider = config.available ? createProvider(config) : null, log = console, ledger = usageLedger({ tokensPerDay: config.tokensPerDay, prices: parsePrices(config.prices) }) }) {
   const allow = rateLimiter(config.ratePerMinute);
   return async function handle(req, res) {
     const { pathname } = new URL(req.url, 'http://x');
     if (!pathname.startsWith('/api/')) return false;
     try {
       checkHost(req);
-      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, publicStatus(config));
+      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, { ...publicStatus(config), usage: ledger.today() });
       if (pathname === '/api/ai/sample' && req.method === 'POST') return await sample(req, res);
       if (pathname === '/api/ai/structured' && req.method === 'POST') return await structured(req, res);
       throw new GatewayError('not_found', 'Not found', 404);
@@ -39,6 +41,7 @@ export function createApi({ config, provider = config.available ? createProvider
     const body = await readJson(req);
     const messages = validateMessages(body);
     const model = modelFor(config, body?.task);
+    ledger.check();
     if (!allow()) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
     return { body, messages, model };
   }
@@ -54,6 +57,7 @@ export function createApi({ config, provider = config.available ? createProvider
       const it = provider.chat(messages, { model, signal: ac.signal });
       let r;
       while (!(r = await it.next()).done) write({ text: r.value });
+      ledger.add(model, r.value?.usage);
       write({ done: true, truncated: !!r.value?.truncated, usage: r.value?.usage || { input: 0, output: 0 } });
     } catch (e) {
       const g = toGatewayError(e, ac.signal);
@@ -70,7 +74,11 @@ export function createApi({ config, provider = config.available ? createProvider
     if (!format) throw new GatewayError('bad_request', `"format" must be one of ${Object.keys(FORMATS).join(', ')}`, 400);
     const ac = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
-    try { return json(res, 200, await completeJson(provider, messages, format, { model, signal: ac.signal })); }
+    try {
+      const out = await completeJson(provider, messages, format, { model, signal: ac.signal });
+      ledger.add(model, out.usage);
+      return json(res, 200, out);
+    }
     catch (e) {
       const g = toGatewayError(e, ac.signal);
       if (g.code !== 'cancelled') log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`);

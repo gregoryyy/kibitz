@@ -32,6 +32,8 @@ export function loadConfig(env = process.env) {
     maxTokens: num(env.AI_MAX_OUTPUT_TOKENS, 16000),
     timeoutMs: num(env.AI_TIMEOUT_MS, 60000),
     ratePerMinute: num(env.AI_RATE_LIMIT_PER_MINUTE, 20),
+    tokensPerDay: num(env.AI_TOKEN_BUDGET_PER_DAY, 0), // 0: no budget
+    prices: env.AI_PRICES || '',
   };
   const off = reason => ({ ...cfg, reason });
   if (!PROVIDERS.includes(provider)) return off(`AI_PROVIDER "${provider}" is not one of ${PROVIDERS.join(', ')}`);
