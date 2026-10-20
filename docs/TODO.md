@@ -42,6 +42,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 1.10 Post-game review: eval graph, move classes, accuracy *(prototype)*
 - [ ] 1.11 Keyboard move entry and screen-reader move announcements *(added)*
 - [ ] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game. Remaining: rule edge cases; the fake-worker tests and the play/resign/review e2e test exist.
+- [x] 1.13 Playing style for Stockfish (Solid, Balanced, Active, Aggressive, Reckless), saved with the Elo setting *(added)*
 
 ## 2. AI provider layer
 

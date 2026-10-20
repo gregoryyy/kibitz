@@ -142,9 +142,9 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .lbl-sm { font-size: 13px; color: var(--muted); font-weight: 500; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.choice { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.choice button { border: 0; background: var(--surface); padding: 7px 12px; cursor: pointer; font-size: 14px; border-right: 1px solid var(--line); }
-.choice button:last-child { border-right: 0; }
+/* Dividers are 1px gaps over the line colour, so they stay right when the buttons wrap on a phone. */
+.choice { display: inline-flex; flex-wrap: wrap; width: fit-content; gap: 1px; background: var(--line); max-width: 100%; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.choice button { flex: 1 0 auto; border: 0; background: var(--surface); padding: 7px 12px; cursor: pointer; font-size: 14px; }
 .choice button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
 textarea, input[type="text"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
@@ -282,6 +282,10 @@ a.ext { color: var(--accent); font-size: 14px; }
         <input type="range" id="optElo" min="600" max="2800" step="50" value="1400">
         <span class="hint" id="eloHint"></span>
       </div>
+      <div class="field"><span class="lbl-sm">Stockfish style</span>
+        <div class="choice" id="optStyle"></div>
+        <span class="hint" id="styleHint"></span>
+      </div>
       <div class="field"><span class="lbl-sm">Live help while you play</span>
         <div class="choice" id="optHelp"><button data-v="off" aria-pressed="false">Off</button><button data-v="flags" aria-pressed="true">Flag mistakes</button><button data-v="full" aria-pressed="false">Full engine</button></div>
         <span class="hint" id="helpHint"></span>
@@ -358,6 +362,7 @@ import * as K from './knowledge.js';
 import { Engine, stockfishAttempts } from './engine.js';
 import { createStore, browserStorage } from './store.js';
 import { quote, UNTRUSTED_RULE } from './prompt.js';
+import { STYLES, styleOf, pickStyled } from './style.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -438,7 +443,7 @@ analyst.ready.then(() => {
 // ---------------------------------------------------------------- State
 const saved = store.get('settings', {});
 const S = {
-  mode: 'play', userColor: saved.userColor || 'w', colorPick: saved.colorPick || 'w', elo: saved.elo || 1400,
+  mode: 'play', userColor: saved.userColor || 'w', colorPick: saved.colorPick || 'w', elo: saved.elo || 1400, style: styleOf(saved.style).id,
   help: saved.help || 'flags', level: saved.level || 2, depth: saved.depth || 14, orientation: 'white',
   start: START, nodes: [{ fen: START, ply: 0 }], cursor: 0, over: null, thinking: false, hints: 0,
   gameId: null, meta: null, playing: false, reviewDone: false, summary: '', comments: {},
@@ -448,7 +453,7 @@ const ANA = new Map(); // epd -> {depth, lines:[{score(white pov), pv}], best}
 let ECO = {};
 fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); })
   .catch(() => toast('Opening names could not be loaded. Everything else still works.'));
-function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, help: S.help, level: S.level, depth: S.depth }); }
+function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth }); }
 
 function last() { return S.nodes.length - 1; }
 function nodeFen(i = S.cursor) { return S.nodes[i].fen; }
@@ -643,11 +648,12 @@ async function engineReply() {
   const fen = nodeFen(last());
   if (turnOf(fen) === S.userColor) return; // e.g. the user took back while the reply was scheduled
   const token = ++replyToken;
+  const style = styleOf(S.style); // a style other than Balanced needs candidate lines to choose from
   S.thinking = true; renderPlayers(); renderControls();
   const t0 = performance.now();
   let res;
   try {
-    if (S.elo >= 1320) res = await opponent.go(fen, { movetime: 300 + Math.min(900, S.elo / 3), multipv: 1, setup: ['setoption name Skill Level value 20', 'setoption name UCI_LimitStrength value true', `setoption name UCI_Elo value ${S.elo}`], tag: 'move' });
+    if (S.elo >= 1320) res = await opponent.go(fen, { movetime: 300 + Math.min(900, S.elo / 3), multipv: style.weight ? 4 : 1, setup: ['setoption name Skill Level value 20', 'setoption name UCI_LimitStrength value true', `setoption name UCI_Elo value ${S.elo}`], tag: 'move' });
     else res = await opponent.go(fen, { depth: S.elo < 900 ? 1 : S.elo < 1100 ? 3 : 5, multipv: 4, setup: ['setoption name UCI_LimitStrength value false', 'setoption name Skill Level value 0'], tag: 'move' });
   } catch {
     if (token === replyToken) { S.thinking = false; renderAll(); toast('Stockfish isn\'t running, so it can\'t reply. Reload the page to restart it.'); }
@@ -658,7 +664,10 @@ async function engineReply() {
   if (token !== replyToken) return;
   S.thinking = false;
   if (!res || S.over || !S.playing || nodeFen(last()) !== fen) { renderPlayers(); renderControls(); return; }
-  const uci = S.elo >= 1320 ? res.best : pickWeak(res, fen);
+  // Strength first (Stockfish's Elo limit, or pickWeak below 1320), then style within that
+  // move's evaluation window, so the style changes how Stockfish plays, not how well.
+  let uci = S.elo >= 1320 ? res.best : pickWeak(res, fen);
+  if (uci && style.weight) uci = pickStyled(Chess, fen, res.lines, style, { anchor: uci });
   if (!uci) { renderAll(); return; }
   S.cursor = last();
   playMove({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] || 'q' }, { fromEngine: true });
@@ -783,7 +792,8 @@ function playerNames() {
   if (S.meta && S.mode === 'analysis' && S.meta.white) return { w: { name: S.meta.white, meta: '' }, b: { name: S.meta.black, meta: '' } };
   if (S.mode === 'analysis') return { w: { name: 'White', meta: '' }, b: { name: 'Black', meta: '' } };
   const you = { name: 'You', meta: LEVELS[S.level].split(' (')[0] };
-  const sf = { name: 'Stockfish', meta: `≈${S.elo}` };
+  const style = styleOf(S.style);
+  const sf = { name: 'Stockfish', meta: `≈${S.elo}${style.weight ? ' · ' + style.label.toLowerCase() : ''}` };
   return S.userColor === 'w' ? { w: you, b: sf } : { w: sf, b: you };
 }
 function renderControls() {
@@ -1049,6 +1059,7 @@ function currentRecord(extra = {}) {
     id: S.gameId || ('g' + Date.now().toString(36)), kind: S.meta?.kind || (S.mode === 'play' || S.meta?.played ? 'played' : 'study'), played: S.meta?.played ?? (S.mode === 'play'),
     title: S.meta?.title || '', white: S.meta?.white || names.w.name, black: S.meta?.black || names.b.name,
     userColor: S.meta?.userColor || (S.mode === 'play' ? S.userColor : null), elo: S.meta?.elo || (S.mode === 'play' ? S.elo : null),
+    style: S.meta?.style || (S.mode === 'play' ? S.style : null),
     result, reason: S.over?.reason || S.meta?.reason || '', date: S.meta?.date || new Date().toISOString().slice(0, 10),
     eco: op?.eco || '', opening: op?.name || '', plies: last(), pgn: toPGN({ annotate: false }),
     cls: S.nodes.map(n => n.cls || null), evals: S.nodes.map((_, i) => whiteCp(i)), best: S.nodes.map(n => anaOf(n.fen)?.best || null),
@@ -1271,7 +1282,7 @@ function contextFor(i) {
   const a = anaOf(fen); const op = openingAt(i);
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
   const lines = [];
-  lines.push(`Player: ${LEVELS[S.level]}${S.mode === 'play' ? `, playing ${S.userColor === 'w' ? 'White' : 'Black'} against Stockfish set to about ${S.elo} Elo` : ', analysing a game'}.`);
+  lines.push(`Player: ${LEVELS[S.level]}${S.mode === 'play' ? `, playing ${S.userColor === 'w' ? 'White' : 'Black'} against Stockfish set to about ${S.elo} Elo, ${styleOf(S.style).label.toLowerCase()} style` : ', analysing a game'}.`);
   if (S.meta?.white) lines.push(`Game: ${quote(S.meta.white, 80)} vs ${quote(S.meta.black, 80)}${S.meta.result ? ', result ' + quote(S.meta.result, 10) : ''}.`);
   lines.push(`Moves so far: ${c.pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '').trim() || '(none)'}`);
   lines.push(`Current position (FEN): ${fen}`);
@@ -1496,6 +1507,11 @@ function eloHint() {
   $('#eloLabel').textContent = S.elo;
   $('#eloHint').textContent = S.elo < 1000 ? 'Beginner: plays loose moves and misses tactics.' : S.elo < 1320 ? 'Casual club strength: makes occasional oversights.' : S.elo < 1800 ? 'Solid club player.' : S.elo < 2300 ? 'Strong club to expert level.' : 'Master strength and above.';
 }
+$('#optStyle').append(...STYLES.map(s => el('button', { 'data-v': s.id, 'aria-pressed': 'false', title: s.hint }, s.label)));
+choice('#optStyle', S.style, v => { S.style = styleOf(v).id; saveSettings(); styleHint(); renderPlayers(); });
+function setStyleChoice(v) { $$('#optStyle button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); }
+function styleHint() { $('#styleHint').textContent = styleOf(S.style).hint + ' Applies from Stockfish\'s next move.'; }
+styleHint();
 function helpHint() { $('#helpHint').textContent = { off: 'No engine help until the game ends. The review is still there afterwards.', flags: 'Your inaccuracies, mistakes and blunders are flagged as you play. The evaluation stays hidden.', full: 'Evaluation bar and Stockfish\'s best move are shown at every move.' }[S.help]; }
 $('#optElo').value = S.elo; eloHint(); helpHint();
 $('#optElo').addEventListener('input', e => { S.elo = +e.target.value; eloHint(); renderPlayers(); });
@@ -1542,6 +1558,7 @@ function start(data) {
     if (data.mode === 'play' && data.playing) {
       S.mode = 'play'; S.playing = true; S.userColor = data.userColor === 'b' ? 'b' : 'w'; S.orientation = data.orientation === 'black' ? 'black' : 'white';
       if (data.elo) { S.elo = data.elo; $('#optElo').value = S.elo; eloHint(); }
+      if (data.style) { S.style = styleOf(data.style).id; setStyleChoice(S.style); styleHint(); }
       renderAll();
       // If the snapshot was taken while Stockfish was to move, it must move now or the game is stuck.
       if (turnOf(nodeFen(last())) !== S.userColor) setTimeout(engineReply, 300);
@@ -1551,6 +1568,6 @@ function start(data) {
   Lib.init();
 }
 if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA };
-window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo }));
+window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo, style: S.style }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 </script>

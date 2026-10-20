@@ -34,6 +34,7 @@ src/knowledge.js      Pure functions, no DOM:
 src/engine.js         Engine: Stockfish worker with fallbacks, job queue, cancel by tag; rejects all jobs if it dies
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
+src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
 data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position.
 scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
@@ -42,8 +43,8 @@ server/ai.mjs         AI gateway core: config from env, provider adapters (Anthr
                       OpenAI, Mistral, Ollama), validation, error mapping, rate limit, mock provider
 server/api.mjs        GET /api/ai/status, POST /api/ai/sample (NDJSON stream); Host/Origin/size guards
 server/static.mjs     Security headers and the hash-based Content Security Policy for served pages
-tests/unit/           node:test for engine.js, store.js, prompt.js; server/*.test.mjs for the gateway
-tests/e2e/            Playwright: smoke.spec.mjs (main flows), regressions.spec.mjs (one test per fixed bug)
+tests/unit/           node:test for engine.js, store.js, prompt.js, style.js; server/*.test.mjs for the gateway
+tests/e2e/            Playwright: smoke (main flows), regressions (one test per fixed bug), preferences (Elo, style)
 tests/knowledge.test.mjs  prints features/motifs/books for sample positions (no assertions yet)
 ```
 
