@@ -256,6 +256,8 @@ export default {
   'Leave the current game? It will be saved as unfinished.': 'Die laufende Partie verlassen? Sie wird als unvollendet gespeichert.',
   'Switch to analysis? The game will be saved as unfinished.': 'Zur Analyse wechseln? Die Partie wird als unvollendet gespeichert.',
   'Switch': 'Wechseln',
+  'Switching the language reloads the page. The game in progress is saved to your library as unfinished.': 'Ein Sprachwechsel lädt die Seite neu. Die laufende Partie wird als unvollendet in deiner Bibliothek gespeichert.',
+  'The AI provider rejected the request: {r}': 'Der KI-Anbieter hat die Anfrage abgelehnt: {r}',
   'Cancel': 'Abbrechen',
   'Open game': 'Partie öffnen',
   'Resign this game?': 'Diese Partie aufgeben?',

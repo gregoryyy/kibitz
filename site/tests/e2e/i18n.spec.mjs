@@ -52,3 +52,18 @@ test('German: the switch translates the page, the coach is asked for German, and
   await expect(page.locator('#engineDot')).toHaveClass(/ok/);
   await expect(page.locator('[data-tab="game"]')).toHaveText('Game');
 });
+
+test('switching the language in a running game asks first and keeps the game in the library', async ({ page }) => {
+  await open(page);
+  await page.locator('#btnNewGame').click();
+  await page.locator('#moveInput').fill('e4'); await page.locator('#moveInput').press('Enter');
+  await expect(page.locator('#moves button')).toHaveCount(2, { timeout: 30_000 });
+  await page.locator('#optLang').selectOption('de');
+  await expect(page.locator('#optLang')).toHaveValue('en'); // nothing happens before the answer
+  await expect(page.locator('#confirmSlot')).toContainText('reloads the page');
+  await page.locator('#confirmSlot button', { hasText: 'Switch' }).click();
+  await expect(page.locator('[data-tab="game"]')).toHaveText('Partie');
+  await page.locator('[data-tab="library"]').click();
+  await page.locator('#libFilter button[data-v="played"]').click();
+  await expect(page.locator('#libList')).toContainText('Du – Stockfish');
+});

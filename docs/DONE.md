@@ -25,7 +25,9 @@ TODO items: 10.8.1 (10.8 started).
 
   Elements marked `data-raw` keep their attributes too, such as an opening name as a title. Text built from translated parts with numbers in German format (the token counts) is marked the same way.
 - **The coach:** the prompts stay in English, which every model follows best, and a rule asks for the answer in German, using "du" and English move letters (`coachRules`). Comments are cached per language. The few moves an answer still writes with German letters (Sf3, Dxd5) become SAN before they're checked and shown (`germanSanToSan`), and so do moves typed that way. Game references in German answers link too ("die Opernpartie", "Morphy gegen den Herzog").
-- **The switch:** a select in the header. The choice is saved and the page reloads; the game is restored from storage. Without a saved choice, the browser's language decides.
+- **The switch:** a select in the header. The choice is saved and the page reloads. Without a saved choice, the browser's language decides.
+  - Inside the Claude artifact, the host's snapshot brings the game back.
+  - The local app can't resume a running game yet (new TODO 1.15). So the switch asks first, and saves the game in progress to the library as unfinished.
 - **Tests:**
   - unit `i18n.test`:
     - the translator, German move letters and German speech;

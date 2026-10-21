@@ -536,7 +536,15 @@ if (LANG !== 'en' || DEBUG) {
 {
   const sel = $('#optLang');
   for (const [id, name] of Object.entries(LANGS)) sel.append(el('option', { value: id, selected: id === LANG }, name));
-  sel.addEventListener('change', () => { store.set('lang', sel.value); location.reload(); });
+  // The page reloads in the new language. Inside the artifact the host's snapshot brings the game
+  // back; the local app can't resume a running game yet (TODO 1.15), so it goes to the library first.
+  const switchTo = lang => { store.set('lang', lang); location.reload(); };
+  sel.addEventListener('change', () => {
+    const lang = sel.value;
+    if (!S.playing || S.nodes.length < 2 || window.claude?.hot) return switchTo(lang);
+    sel.value = LANG;
+    confirmBox('Switching the language reloads the page. The game in progress is saved to your library as unfinished.', 'Switch', async () => { await saveCurrentGame({ quiet: true, result: '*' }); switchTo(lang); });
+  });
 }
 // Opening names are looked up this deep into a game; positions this early in the ECO table count as book moves.
 const OPENING_PLIES = 40, BOOK_PLIES = 30;
