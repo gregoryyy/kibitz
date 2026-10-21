@@ -132,3 +132,27 @@ test('a depth search can be capped in time', async () => {
   await e.go(START, { movetime: 300, maxMs: 5000 });
   assert.deepEqual(w.sent.filter(c => c.startsWith('go')), ['go depth 16 movetime 5000', 'go movetime 300']);
 });
+
+test('limitThreads applies between searches, only to a multi-threaded build, and can be lifted', async () => {
+  const w = new FakeWorker();
+  const e = new Engine([['WASM-MT', () => w, 4]]);
+  await e.go(START, { depth: 5 });
+  const threadCmds = () => w.sent.filter(c => c.startsWith('setoption name Threads'));
+  assert.deepEqual(threadCmds(), ['setoption name Threads value 4']);
+  e.limitThreads(2);
+  await e.go(START, { depth: 5 });
+  e.limitThreads(1);
+  await e.go(START, { depth: 5 });
+  await e.go(START, { depth: 5 }); // unchanged: not sent again
+  e.limitThreads(null);
+  await e.go(START, { depth: 5 });
+  assert.deepEqual(threadCmds(), ['setoption name Threads value 4', 'setoption name Threads value 2', 'setoption name Threads value 1', 'setoption name Threads value 4']);
+  const goAt = w.sent.lastIndexOf('go depth 5'), setAt = w.sent.lastIndexOf('setoption name Threads value 4');
+  assert.ok(setAt < goAt, 'set before the search starts');
+
+  const single = new FakeWorker();
+  const s = new Engine([['WASM', () => single]]);
+  s.limitThreads(1);
+  await s.go(START, { depth: 5 });
+  assert.equal(single.sent.filter(c => c.startsWith('setoption name Threads')).length, 0);
+});

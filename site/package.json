@@ -22,6 +22,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.135.0",
     "@lichess-org/chessground": "10.1.1",
+    "@wllama/wllama": "3.8.1",
     "chess.js": "1.4.0",
     "openai": "7.39.0",
     "stockfish": "19.0.1"

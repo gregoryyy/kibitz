@@ -36,6 +36,7 @@ src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded wh
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
 src/tutor.js          Coach comments: aspects and their prompts, what the coach sees mid-game, the check of its moves, the cache
+src/browser-llm.js    The in-browser model (wllama): loads on consent, streams answers, one request at a time, unloads when idle
 src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
 src/play.js           Game-end rules, timeouts, clocks, the opponent's search, the weakened mode below 1320
                       Elo (calibrated), draw offers, start-position checks
@@ -46,13 +47,16 @@ data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.
 scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
+scripts/fetch-model.mjs  Downloads the in-browser model into models/ once and checks its SHA-256 (just offline)
 scripts/record-ai-fixtures.mjs  Records real provider responses for the contract tests (uses .env keys)
-scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env
+scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env;
+                      --models serves the in-browser model's weights; --offline drops Google Fonts and other hosts
 server/ai.mjs         AI gateway core: config from env (every provider, models per task, local-only), provider
                       adapters with chat() (Anthropic SDK; openai SDK for OpenAI, Mistral, Ollama), embed(),
-                      validation, error mapping, rate limit, mock provider
+                      validation, error mapping, rate limit, mock provider; "browser" (the in-browser model) as a local provider
 server/schema.mjs     Structured replies: the annotation format, a JSON Schema validator, fallback parsing
 server/usage.mjs      Tokens per day, the daily token budget, cost estimate from AI_PRICES
+server/models.mjs     Catalog of in-browser models (pinned by size and SHA-256), the download check, which files may be served
 server/api.mjs        GET /api/ai/status; POST /api/ai/sample (NDJSON stream), /structured, /config, /test;
                       Host/Origin/size guards
 server/fixtures/      Provider responses for the contract tests (recorded, or hand-written where marked)

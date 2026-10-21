@@ -1,8 +1,12 @@
 // Minimal static server for local development, no dependencies.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
+//                          [--models DIR [--model ID]] [--offline]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); that part needs the npm dependencies. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
+// --models serves the in-browser model (server/models.mjs) from DIR under /models/, once
+// scripts/fetch-model.mjs has downloaded and checked it, and tells the gateway about it.
+// --offline serves the page without Google Fonts and with a CSP that allows no other host.
 // Text responses carry an explicit charset=utf-8; without it, a page that lacks
 // <meta charset> (such as site/dist/index.html, the bare artifact body) is
 // decoded as Windows-1252 and every non-ASCII character comes out garbled.
@@ -10,7 +14,8 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { parseArgs } from 'util';
-import { BASE_HEADERS, cspFor, isHiddenPath } from '../server/static.mjs';
+import { BASE_HEADERS, cspFor, isHiddenPath, offlineHtml } from '../server/static.mjs';
+import { modelEnv, servableModel } from '../server/models.mjs';
 
 const { values: opt, positionals } = parseArgs({
   allowPositionals: true,
@@ -20,14 +25,22 @@ const { values: opt, positionals } = parseArgs({
     index: { type: 'string', default: 'index.html' },
     api: { type: 'boolean', default: false },
     env: { type: 'string', default: '.env' },
+    models: { type: 'string', default: '' },
+    model: { type: 'string', default: '' },
+    offline: { type: 'boolean', default: false },
   },
 });
-if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]]'); process.exit(2); }
+if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline]'); process.exit(2); }
 const root = fs.realpathSync(positionals[0]);
 
+const modelsDir = opt.models ? path.resolve(opt.models) : '';
 let api = null, apiStatus = '';
 if (opt.api) {
   if (opt.env) try { process.loadEnvFile(opt.env); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+  if (modelsDir) {
+    const { env, reason } = modelEnv(modelsDir, opt.model || process.env.BROWSER_MODEL);
+    Object.assign(process.env, env, reason ? { BROWSER_MODEL_REASON: reason } : {});
+  }
   const { loadConfig } = await import('../server/ai.mjs');
   const { createApi } = await import('../server/api.mjs');
   const config = loadConfig();
@@ -51,6 +64,19 @@ const TYPES = {
 
 const send = (res, code, msg) => { res.writeHead(code, { ...BASE_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' }); res.end(msg + '\n'); };
 
+// The in-browser model's weights: catalog files only, from --models, never a listing. The ETag
+// lets wllama's browser cache tell whether its copy is still current.
+function sendModel(req, res, name) {
+  if (!modelsDir || !servableModel(name)) return send(res, 404, 'Not found');
+  const file = path.join(modelsDir, name);
+  fs.stat(file, (err, st) => {
+    if (err || !st.isFile()) return send(res, 404, 'Not found');
+    res.writeHead(200, { ...BASE_HEADERS, 'Content-Type': 'application/octet-stream', 'Content-Length': st.size, 'Cache-Control': 'no-cache', ETag: `"${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}"` });
+    if (req.method === 'HEAD') return res.end();
+    fs.createReadStream(file).pipe(res);
+  });
+}
+
 http.createServer(async (req, res) => {
   res.on('finish', () => console.log(res.statusCode, req.method, req.url));
   if (api && await api(req, res)) return;
@@ -59,6 +85,7 @@ http.createServer(async (req, res) => {
   try { rel = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return send(res, 400, 'Bad request'); }
   if (rel.endsWith('/')) rel += opt.index;
   if (isHiddenPath(rel)) return send(res, 404, 'Not found');
+  if (rel.startsWith('/models/')) return sendModel(req, res, rel.slice('/models/'.length));
   const file = path.join(root, rel);
   // Refuse anything that resolves outside root, including through symlinks.
   let real;
@@ -69,8 +96,9 @@ http.createServer(async (req, res) => {
     const ext = path.extname(real).toLowerCase();
     const headers = { ...BASE_HEADERS, 'Content-Type': TYPES[ext] || 'application/octet-stream', 'Content-Length': st.size, 'Cache-Control': 'no-cache' };
     if (ext === '.html') {
-      const body = fs.readFileSync(real);
-      res.writeHead(200, { ...headers, 'Content-Security-Policy': cspFor(body.toString('utf8')) });
+      const html = opt.offline ? offlineHtml(fs.readFileSync(real, 'utf8')) : fs.readFileSync(real, 'utf8');
+      const body = Buffer.from(html, 'utf8');
+      res.writeHead(200, { ...headers, 'Content-Length': body.length, 'Content-Security-Policy': cspFor(html, { offline: opt.offline }) });
       return res.end(req.method === 'HEAD' ? undefined : body);
     }
     res.writeHead(200, headers);
@@ -83,4 +111,5 @@ http.createServer(async (req, res) => {
 }).listen(Number(opt.port), opt.host, () => {
   console.log(`Serving ${path.relative(process.cwd(), root) || '.'} at http://${opt.host}:${opt.port}/`);
   if (apiStatus) console.log(apiStatus);
+  if (opt.offline) console.log('Offline: the page loads nothing from other hosts');
 });
