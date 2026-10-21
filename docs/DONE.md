@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Fix: a rejected request says why; no key fragments in the log
+
+TODO items: fix for 2.x (the AI gateway's errors).
+
+### Implementation notes
+
+- **The bug:** with Ollama and a model pulled by an older Ollama (`deepseek-R1:latest`), the coach said "The coach couldn't answer just now", and Test connection said "Failed: The AI provider returned an error". Ollama's own reason, `"deepseek-R1:latest" does not support chat`, was dropped: every status the gateway didn't know (here 400) became the generic `provider_error`.
+- **The fix:**
+  - A rejected request (400) becomes `provider_rejected`, with the provider's reason in the message: "The AI provider rejected the request: …". The page shows that message in the chat and in Test connection.
+  - `providerReason()` gives the provider's words as one short line, and replaces anything that looks like a key (`sk-…`, even masked) with "[key]".
+  - The gateway's error log now uses it too. Before, a wrong OpenAI key put "sk-proj-***…sU5G" into the server log, against the rule that keys stay out of logs.
+- **Tests:**
+  - unit `ai.test`: a 400 with a reason maps to `provider_rejected` with that reason, and to `provider_error` without one; key fragments are cut and the length is capped.
+  - e2e `coach.spec`: a rejected request shows its reason in the chat.
+
+### Insights
+
+- **The same model fails differently depending on the request.** Ollama answers the old model with 404 "not found" through the SDK's streaming request, but with 400 "does not support chat" through a plain one. Both now say what's wrong. The cure is `ollama pull deepseek-r1` again, or another model from `ollama list`.
+
+---
+
 ## 2026-10-21 — Answers: wrong moves underlined, game references linked to the game
 
 TODO items: 4.12.5, 4.12.6.
