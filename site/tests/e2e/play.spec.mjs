@@ -126,3 +126,32 @@ test('NAGs from an imported PGN show in the move list and survive export', async
   await loadPgn(page, pgn); // round trip
   await expect(page.locator('#moves button', { hasText: 'Nc6' })).toHaveText('Nc6?');
 });
+
+// Is the position on the board analysed? (Then the old tooltip would have shown its score.)
+const analysed = page => page.evaluate(() => { const { S, ANA } = window.__kibitz; return ANA.has(S.nodes[S.cursor].fen.split(' ').slice(0, 4).join(' ')); });
+
+test('help "Eval + mistakes": the bar shows the position after your move and holds it through Stockfish\'s reply', async ({ page }) => {
+  await open(page);
+  await page.locator('#optHelp button[data-v="eval"]').click();
+  await expect(page.locator('#helpHint')).toContainText('holds while Stockfish replies');
+  await page.locator('#btnNewGame').click();
+  await expect(page.locator('#evalbar')).toHaveClass(/hidden-eval/); // no move of yours yet
+  await typeMove(page, 'e4');
+  await expect(page.locator('#moves button')).toHaveCount(2);
+  await expect.poll(() => analysed(page), { timeout: 30_000 }).toBe(true);
+  await expect(page.locator('#evalbar')).not.toHaveClass(/hidden-eval/);
+  await expect(page.locator('#evalbar')).toHaveAttribute('title', /^Stockfish after your move 1\. e4: [+−]?\d/);
+  await expect(page.locator('#evalW')).not.toHaveAttribute('style', 'height: 50%;');
+  await expect(page.locator('svg .best, [data-brush="best"]')).toHaveCount(0); // no best-move arrow
+});
+
+test('with the evaluation hidden, its tooltip has no score either', async ({ page }) => {
+  await open(page);
+  await page.locator('#optHelp button[data-v="flags"]').click();
+  await page.locator('#btnNewGame').click();
+  await typeMove(page, 'e4');
+  await expect(page.locator('#moves button')).toHaveCount(2);
+  await expect.poll(() => analysed(page), { timeout: 30_000 }).toBe(true);
+  await expect(page.locator('#evalbar')).toHaveClass(/hidden-eval/);
+  await expect(page.locator('#evalbar')).toHaveAttribute('title', 'Engine evaluation: hidden while you play');
+});

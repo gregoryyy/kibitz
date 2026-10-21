@@ -347,7 +347,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <span class="hint" id="clockHint"></span>
       </div>
       <div class="field"><span class="lbl-sm">Live help while you play</span>
-        <div class="choice" id="optHelp"><button data-v="off" aria-pressed="false">Off</button><button data-v="flags" aria-pressed="true">Flag mistakes</button><button data-v="full" aria-pressed="false">Full engine</button></div>
+        <div class="choice" id="optHelp"><button data-v="off" aria-pressed="false">Off</button><button data-v="flags" aria-pressed="true">Flag mistakes</button><button data-v="eval" aria-pressed="false">Eval + mistakes</button><button data-v="full" aria-pressed="false">Full engine</button></div>
         <span class="hint" id="helpHint"></span>
       </div>
       <div class="field"><span class="lbl-sm">Your level (sets the coach's language and reading list)</span>
@@ -874,16 +874,30 @@ function renderMoves() {
   const cur = box.querySelector('.cur'); if (cur) { const top = cur.offsetTop - box.offsetTop; if (top < box.scrollTop || top > box.scrollTop + box.clientHeight - 24) box.scrollTop = top - box.clientHeight / 2; }
   if (hadFocus) (cur || box.querySelector('button'))?.focus({ preventScroll: true });
 }
+// The player's latest move at or before the cursor, for help 'eval' (0: none yet).
+function lastOwnMove() {
+  for (let i = S.cursor; i > 0; i--) if (S.nodes[i].color === S.userColor) return i;
+  return 0;
+}
 function renderEval(liveScore, liveDepth) {
   const bar = $('#evalbar');
-  bar.classList.toggle('hidden-eval', !showEngine());
-  const fen = nodeFen();
-  let cp = terminalCp(fen), score = null;
-  if (cp === null) { score = liveScore || anaOf(fen)?.lines[0]?.score; if (score) cp = K.scoreToCp(score); }
+  // Help 'eval' shows the position after the player's last move and holds it through Stockfish's
+  // reply: a jump there would tell the player that a tactic is waiting.
+  const i = showEngine() ? S.cursor : S.help === 'eval' ? lastOwnMove() : 0;
+  const shown = showEngine() || i > 0;
+  bar.classList.toggle('hidden-eval', !shown);
+  const fen = S.nodes[i].fen;
+  let cp = shown ? terminalCp(fen) : null, score = null;
+  if (shown && cp === null) { score = (i === S.cursor && liveScore) || anaOf(fen)?.lines[0]?.score; if (score) cp = K.scoreToCp(score); }
   const wp = cp === null ? 50 : K.winPct(cp);
   $('#evalW').style.height = wp.toFixed(1) + '%';
-  // Too narrow for a number: the score is in the tooltip and the coach's context line.
-  bar.title = score ? `Stockfish: ${fmtScore(score)}${liveDepth ? ' (depth ' + liveDepth + ')' : ''}` : 'Engine evaluation';
+  // Too narrow for a number: the score is in the tooltip and the coach's context line. While the
+  // evaluation is hidden, so is the tooltip's score.
+  const depth = i === S.cursor && liveDepth ? ' (depth ' + liveDepth + ')' : '';
+  bar.title = !shown ? 'Engine evaluation: hidden while you play'
+    : !score ? 'Engine evaluation'
+    : showEngine() ? `Stockfish: ${fmtScore(score)}${depth}`
+    : `Stockfish after your move ${moveLabel(i)}: ${fmtScore(score)}${depth}`;
 }
 function renderPlayers() {
   const fen = nodeFen(); const turn = turnOf(fen);
@@ -1924,7 +1938,7 @@ choice('#optStyle', S.style, v => { S.style = styleOf(v).id; saveSettings(); sty
 function setStyleChoice(v) { $$('#optStyle button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); }
 function styleHint() { $('#styleHint').textContent = styleOf(S.style).hint + ' Applies from Stockfish\'s next move.'; }
 styleHint();
-function helpHint() { $('#helpHint').textContent = { off: 'No engine help until the game ends. The review is still there afterwards.', flags: 'Your inaccuracies, mistakes and blunders are flagged as you play. The evaluation stays hidden.', full: 'Evaluation bar and Stockfish\'s best move are shown at every move.' }[S.help]; }
+function helpHint() { $('#helpHint').textContent = { off: 'No engine help until the game ends. The review is still there afterwards.', flags: 'Your inaccuracies, mistakes and blunders are flagged as you play. The evaluation stays hidden.', eval: 'Your mistakes are flagged, and the evaluation bar shows the position after your move. It holds while Stockfish replies, and the best move stays hidden.', full: 'Evaluation bar and Stockfish\'s best move are shown at every move.' }[S.help]; }
 $('#optElo').value = S.elo; eloHint(); helpHint();
 $('#optElo').addEventListener('input', e => { S.elo = +e.target.value; eloHint(); renderPlayers(); });
 $('#optElo').addEventListener('change', saveSettings);

@@ -23,6 +23,7 @@ test('aspects: known ids in standard order, defaults when none are left', () => 
 test('engine view: everything outside a running game; mid-game it follows the help setting', () => {
   assert.equal(engineView({ mode: 'analysis', playing: false, over: null, help: 'off' }), 'all');
   assert.equal(engineView({ mode: 'play', playing: true, over: { result: '1-0' }, help: 'off' }), 'all');
+  assert.equal(engineView({ mode: 'play', playing: true, over: null, help: 'eval' }), 'past'); // the bar after your move tells the coach nothing new
   assert.equal(engineView({ mode: 'play', playing: true, over: null, help: 'full' }), 'all');
   assert.equal(engineView({ mode: 'play', playing: true, over: null, help: 'flags' }), 'past');
   assert.equal(engineView({ mode: 'play', playing: true, over: null, help: 'off' }), 'none');

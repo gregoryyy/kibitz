@@ -26,7 +26,7 @@ Kibitz is a neurosymbolic chess coach. Two very different kinds of system work t
 This split is also the user experience:
 
 - **The numbers come from the engine.** Evaluations, best moves, mistakes and the review are Stockfish's, shown directly: the eval bar, the flags, the review graph. The coach adds the "why".
-- **Help is a dial.** In a running game, the player decides how much the engine may reveal (help Off, Flag mistakes, Full). The coach's view follows that setting, so asking it can't spoil the game (section 3.1).
+- **Help is a dial.** In a running game, the player decides how much the engine may reveal (help Off, Flag mistakes, Eval + mistakes, Full). The coach's view follows that setting, so asking it can't spoil the game (section 3.1).
 - **Trust is visible.** Moves the coach names are highlighted when they're backed by Stockfish's lines or the game, greyed when they're legal but unchecked, and struck through when they're wrong.
 - **The coach is optional.** Without any language model, play, analysis, flags, review, library and reading suggestions all still work.
 
@@ -87,7 +87,7 @@ What the model sees is assembled on purpose, not dumped in.
   - stay short.
 - **Context that follows the game state.** `engineView()` decides what the model may see during a game:
   - **everything,** when the game is over, in analysis, or with help Full;
-  - **only how the player's own moves rated,** with help Flag mistakes;
+  - **only how the player's own moves rated,** with help Flag mistakes or Eval + mistakes;
   - **no engine data at all,** with help Off.
 
   This is enforced where the context is built, not by asking the model to keep a secret.

@@ -38,7 +38,7 @@ export function normaliseAspects(ids) {
 // current position that would tell the player what to play. 'none': no engine data at all.
 export function engineView({ mode, playing, over, help }) {
   if (mode !== 'play' || !playing || over) return 'all';
-  return help === 'full' ? 'all' : help === 'flags' ? 'past' : 'none';
+  return help === 'full' ? 'all' : help === 'flags' || help === 'eval' ? 'past' : 'none';
 }
 
 // The aspects that can be used under `view`; aspects that need the engine's view of the current

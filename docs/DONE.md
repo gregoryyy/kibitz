@@ -7,6 +7,31 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Help level "Eval + mistakes"; the hidden eval bar no longer leaks its score
+
+TODO items: 1.14 (added).
+
+### Implementation notes
+
+- **A fourth help level.** The order is now Off, Flag mistakes, **Eval + mistakes** (`help: 'eval'`), Full engine.
+  - Mistakes are flagged, as with Flag mistakes.
+  - The eval bar shows the position after the player's last move (`lastOwnMove()`). Its tooltip reads "Stockfish after your move 1. e4: +0.3".
+  - The best-move arrow stays hidden.
+  - `engineView` maps the level to `'past'`, so the coach sees what it sees with Flag mistakes.
+- **The bar holds through Stockfish's reply.** It shows the position after your move until you move again, and live analysis of later positions is ignored. If it followed the board, a sudden jump after the reply would tell you the engine had blundered and a tactic was waiting.
+- **Fix:** while the evaluation was hidden, the bar's tooltip still showed the score ("Stockfish: +0.29"). It now reads "Engine evaluation: hidden while you play".
+- **Tests:**
+  - e2e in `play.spec`: the bar is hidden before your first move, then shows "after your move 1. e4" once Stockfish has replied, with no best-move arrow.
+  - e2e regression: the hidden bar's tooltip has no score.
+  - Unit test in `tutor.test`: `engineView` with `'eval'`.
+  - Both e2e tests fail on the previous build; the tooltip test receives "Stockfish: +0.29".
+
+### Insights
+
+- **Hiding has to cover every surface.** The bar's height was hidden, but its tooltip, added when the bar got too narrow for a number, still showed the score.
+
+---
+
 ## 2026-10-21 — Flipbook: the Opera Game, explained by Claude; the chat knows the review
 
 TODO items: none (docs). It adds to 4.6, the chat's context: the review's findings go into it.
