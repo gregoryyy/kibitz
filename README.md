@@ -59,7 +59,7 @@ The coach chat, game-review summary and study plan need a language model. Withou
 
 `.env` is git-ignored and read once at startup, so restart the server after changing it. The defaults are small, fast models (`claude-haiku-5-5`, `gpt-6-luna`, `mistral-small-latest`). `AI_PROVIDER=mock` gives canned replies without any API calls, which is handy for UI work.
 
-The gateway only accepts requests from its own page: other websites, and attackers using a look-alike host name to get the browser to treat their page as local, are refused. It also limits requests per minute (`AI_RATE_LIMIT_PER_MINUTE`) and, optionally, tokens per day (`AI_TOKEN_BUDGET_PER_DAY`).
+The gateway only accepts requests from its own page: other websites, and attackers using a look-alike host name to get the browser to treat their page as local, are refused. It also limits requests per minute (`AI_RATE_LIMIT_PER_MINUTE`) and, optionally, tokens per day for the whole server (`AI_TOKEN_BUDGET_PER_DAY`), and tokens or dollars per user and day on paid models (`AI_TOKEN_BUDGET_PER_USER_PER_DAY`, `AI_COST_BUDGET_PER_USER_PER_DAY`). Each answer shows its tokens and cost, and the dialogue shows what you have used today; costs need prices in `AI_PRICES`.
 
 **Coach settings** (in the Coach tab, when running locally):
 - Switch between the providers your `.env` sets up.
