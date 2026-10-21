@@ -4,7 +4,7 @@ Stockfish plays and measures; a language model explains.
 
 In the browser, play against Stockfish 19 (from 600 Elo up, in five playing styles, with or without a clock, from the start, an opening or any position), see your mistakes flagged as you play, review finished games, keep a games library and get reading suggestions that match the position on the board. Stockfish does all the calculation, locally in Web Workers. An AI model (Claude, OpenAI, Mistral or a local Ollama model) only explains the engine's output.
 
-The app lives in [`site/`](site/): page source, build scripts, opening data, the local server with its AI gateway, and tests. The architecture and its ideas are explained in [ARCH.md](docs/ARCH.md), and design notes are in [site/README.md](site/README.md). Where the project is heading is in [TODO.md](docs/TODO.md), progress is logged in [DONE.md](docs/DONE.md), and the working rules for coding agents and contributors are in [AGENTS.md](AGENTS.md).
+The app lives in [`site/`](site/): page source, build scripts, opening data, the local server with its AI gateway, and tests. Design notes are in [site/README.md](site/README.md). Where the project is heading is in [TODO.md](docs/TODO.md), progress is logged in [DONE.md](docs/DONE.md), and the working rules for coding agents and contributors are in [AGENTS.md](AGENTS.md).
 
 ## Prerequisites
 
@@ -48,6 +48,8 @@ npm run serve          # builds, then serves dist/ with the AI gateway on port 8
 - Plain static servers (e.g. `python3 -m http.server`) work for the engine features, but they have no AI gateway, and they send no charset. Open `/_test.html` with them, not `/`: `index.html` has no `<meta charset>`, so the browser decodes it as Windows-1252 and every `≈`, `…` and `·` comes out garbled.
 
 ## AI coach
+
+How the engine and the language model work together, and the AI patterns behind it, is explained in [ARCH.md](docs/ARCH.md).
 
 The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library and reading suggestions.
 
