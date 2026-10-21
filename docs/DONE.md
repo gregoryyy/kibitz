@@ -25,6 +25,19 @@ TODO items: fix for 2.x (the AI gateway's errors).
 ### Insights
 
 - **The same model fails differently depending on the request.** Ollama answers the old model with 404 "not found" through the SDK's streaming request, but with 400 "does not support chat" through a plain one. Both now say what's wrong. The cure is `ollama pull deepseek-r1` again, or another model from `ollama list`.
+## 2026-10-21 — Fix: the coach's context line with "Eval + mistakes"
+
+TODO items: fix for 1.14.
+
+### Implementation notes
+
+- **The bug:** with the help level "Eval + mistakes", the eval bar showed the position after the player's move, but the context line above the chat said "eval hidden while you play". The line only knew two cases, the engine shown or not, and so contradicted the setting.
+- **The fix:** one function, `evalNode()`, now decides which position's evaluation the player may see, for both the bar and the line. With "Eval + mistakes" the line says "eval after your first move" until the first move, and then something like "eval after your move 1. e4: +0.30 d14". With Off and Flag mistakes it still says the evaluation is hidden.
+- **Test:** an e2e regression test in `play.spec` covers the line before and after the first move, and after switching to Flag mistakes.
+
+### Insights
+
+- **The bar and the text should be computed by the same function.** 1.14 added the new level to the bar's logic but not to the line that describes the bar.
 
 ---
 
