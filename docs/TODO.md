@@ -44,6 +44,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game
 - [x] 1.13 Playing style for Stockfish (Solid, Balanced, Active, Aggressive, Reckless), saved with the Elo setting *(added)*
 - [x] 1.14 Help level "Eval + mistakes": mistakes are flagged, and the eval bar shows the position after the player's move, holding it through Stockfish's reply. The best move stays hidden, and the coach sees what it sees with Flag mistakes *(added)*
+- [x] 1.15 Keep the game in progress across reloads in the local app *(added)*. Inside the Claude artifact the host's snapshot (`window.claude.hot`) restores it; the local app (`just serve`) kept nothing. The same snapshot (PGN, cursor, mode, colour, orientation, Elo and style, start ply, clock times) now goes to `localStorage` after every change and when the page goes away, and comes back at boot
 
 ## 2. AI provider layer
 
