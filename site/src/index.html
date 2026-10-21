@@ -410,7 +410,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div class="row"><h2 style="margin-right:auto">Games library</h2><span class="hint" id="libWhere"></span></div>
       <div class="row">
         <input type="text" id="libSearch" placeholder="Search player, opening, result" style="flex:1;min-width:160px">
-        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button></div>
+        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button></div>
       </div>
       <div id="libList" class="lib-list"></div>
       <details class="box"><summary>Import PGN (games or annotated studies)</summary>
@@ -426,6 +426,8 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div id="bookList" class="lib-list"></div>
       <h3>Seen before in your library</h3>
       <div id="seenList" class="lib-list"></div>
+      <h3>Classic games on these themes</h3>
+      <div id="classicList" class="lib-list"></div>
       <div class="row"><button class="btn" id="btnStudyPlan">Ask the coach for a study plan</button></div>
       <div id="studyPlan"></div>
       <details class="box"><summary>Add your own book, course or notes</summary>
@@ -452,6 +454,7 @@ import { createBrowserModel, cpuThreads } from './browser-llm.js';
 import { COACH_RULES, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './tutor.js';
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
+import { classicGames, retrieveClassics } from './classics.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
 import { sanToSpeech, parseMoveInput } from './notation.js';
@@ -1225,12 +1228,8 @@ const Lib = {
 };
 
 // Built-in examples (public-domain games, annotations by Kibitz) so the library and retrieval have something to show.
-const EXAMPLES = [
-  { id: 'ex-opera', kind: 'example', title: 'The Opera Game', white: 'Paul Morphy', black: 'Duke Karl / Count Isouard', date: '1858', result: '1-0',
-    pgn: `[White "Paul Morphy"]\n[Black "Duke Karl / Count Isouard"]\n[Result "1-0"]\n\n1. e4 e5 2. Nf3 d6 3. d4 Bg4 {Pinning the knight, but Black soon has to give up the bishop pair.} 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 {Development with a threat: Qxf7 mate is in the air.} Nf6 7. Qb3 {A double attack on f7 and b7.} Qe7 8. Nc3 c6 9. Bg5 {Every White piece is developed; Black's kingside pieces are still at home.} b5 10. Nxb5 {Morphy sacrifices to keep the lines open against the uncastled king.} cxb5 11. Bxb5+ Nbd7 12. O-O-O {The rook joins the attack on the pinned knight on d7.} Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ {A queen sacrifice that deflects the knight from d7.} Nxb8 17. Rd8# 1-0` },
-  { id: 'ex-immortal', kind: 'example', title: 'The Immortal Game', white: 'Adolf Anderssen', black: 'Lionel Kieseritzky', date: '1851', result: '1-0',
-    pgn: `[White "Adolf Anderssen"]\n[Black "Lionel Kieseritzky"]\n[Result "1-0"]\n\n1. e4 e5 2. f4 {The King's Gambit: a pawn for rapid development and the f-file.} exf4 3. Bc4 Qh4+ 4. Kf1 b5 5. Bxb5 Nf6 6. Nf3 Qh6 7. d3 Nh5 8. Nh4 Qg5 9. Nf5 c6 10. g4 Nf6 11. Rg1 {Giving up the bishop to gain time against the black queen.} cxb5 12. h4 Qg6 13. h5 Qg5 14. Qf3 Ng8 15. Bxf4 Qf6 16. Nc3 Bc5 17. Nd5 Qxb2 18. Bd6 {White ignores both rooks: development and the attack on the king matter more than material.} Bxg1 19. e5 Qxa1+ 20. Ke2 Na6 21. Nxg7+ Kd8 22. Qf6+ {A final queen sacrifice: the knight on g8 must take and the bishop mates.} Nxf6 23. Be7# 1-0` },
-];
+// The built-in classics (classics.js, TODO 7.3): in the library, the position index and the reading list.
+const EXAMPLES = classicGames();
 let INDEX = K.buildPositionIndex([]);
 function gamePositions(g) {
   try {
@@ -1314,7 +1313,9 @@ function renderLibrary() {
   $('#libWhere').textContent = Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
   const mine = [...Lib.games.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   $('#libCount').textContent = mine.length ? String(mine.length) : '';
-  const list = [...mine, ...EXAMPLES].filter(g => {
+  // The classics (classics.js) under their own filter; in "All" only while the library is empty or a search is on.
+  const pool = filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !q ? [] : EXAMPLES)];
+  const list = pool.filter(g => {
     if (filt === 'played' && g.kind !== 'played') return false;
     if (filt === 'study' && g.kind === 'played') return false;
     if (!q) return true;
@@ -1322,7 +1323,7 @@ function renderLibrary() {
   });
   const box = $('#libList'); box.replaceChildren();
   if (paneHidden('library')) return; // count and location above stay current; the list renders when the tab opens
-  if (!mine.length) box.append(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The two examples show how it works.'));
+  if (!mine.length) box.append(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
   for (const g of list) {
     const youIdx = g.userColor;
     const acc = youIdx && g.accuracy?.[youIdx] != null ? `${Math.round(g.accuracy[youIdx])}% accuracy` : '';
@@ -1669,6 +1670,8 @@ function contextFor(i, { view = 'all' } = {}) {
   if (notes.length) lines.push(`Keep in mind (from the board): ${notes.join('; ')}.`);
   const books = K.retrieveLiterature(feats, { level: S.level, limit: 4, userBooks: userBooks() });
   if (books.length) { lines.push('Retrieved references (recommend only from these):'); books.forEach(r => lines.push(`  - ${bookLine(r)}: ${r.book.user ? quote(r.book.about, 200) : r.book.about}`)); }
+  const classics = retrieveClassics([...feats, ...(a?.best ? K.moveMotifs(Chess, fen, a.best) : [])], { exclude: S.gameId, limit: 2 });
+  if (classics.length) { lines.push('Classic games on these themes (from the built-in collection):'); classics.forEach(r => lines.push(`  - ${r.game.title}: ${r.game.white} vs ${r.game.black}, ${r.game.event} ${r.game.date}. ${r.game.about} Themes: ${r.hits.map(h => K.TAG_LABELS[h.tag]).join(', ')}.`)); }
   const seen = K.similarPositions(INDEX, fen, { excludeGameId: S.gameId, limit: 3 });
   if (seen.length) { lines.push('Similar positions from the player\'s library:'); seen.forEach(s => lines.push(`  - ${quote(s.g.white, 80)} vs ${quote(s.g.black, 80)} ${quote(s.g.date, 20)}, after ${s.p.label || s.p.san}, ${s.kind}${s.p.comment ? `. Note there: ${quote(s.p.comment)}` : ''}`)); }
   return lines.join('\n');
@@ -1977,6 +1980,15 @@ function renderReading() {
   if (!seen.length) sl.append(el('p', { class: 'empty-note' }, 'No game in your library reached this position or pawn structure. Your games and imported studies are indexed automatically.'));
   for (const s of seen) sl.append(el('div', { class: 'seen' }, el('span', { class: 'k' }, s.kind), el('button', { class: 'btn small', onclick: () => openGame(s.g, s.p.ply) }, 'Open'),
     el('div', {}, `${s.g.title ? s.g.title + ' · ' : ''}${s.g.white} – ${s.g.black}, after ${s.p.label || s.p.san}`), s.p.comment ? el('q', {}, '“' + s.p.comment + '”') : null));
+  const cl = $('#classicList'); cl.replaceChildren();
+  const classics = retrieveClassics(feats, { exclude: S.gameId, limit: 3 });
+  if (!classics.length) cl.append(el('p', { class: 'empty-note' }, 'No classic game in the collection matches these themes.'));
+  for (const r of classics) {
+    const g = EXAMPLES.find(x => x.id === r.game.id);
+    cl.append(el('div', { class: 'seen' }, el('span', { class: 'k' }, r.hits.map(h => K.TAG_LABELS[h.tag] || h.tag).slice(0, 3).join(' · ')),
+      el('button', { class: 'btn small', onclick: () => openGame(g, r.game.moment) }, 'Open'),
+      el('div', {}, `${r.game.title} · ${r.game.white} – ${r.game.black}, ${r.game.event} ${r.game.date}`), el('q', {}, r.game.about)));
+  }
   $('#lichessLink').href = 'https://lichess.org/analysis/standard/' + fen.replace(/ /g, '_');
 }
 async function studyPlan() {

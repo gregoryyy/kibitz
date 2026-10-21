@@ -7,6 +7,36 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Classic games for the coach: a first collection, retrieved by theme
+
+TODO items: 3.2.5 (and 3.2); started 7.3 and 7.4.
+
+### Implementation notes
+
+- **The collection.** `classics.js` is pure data and retrieval, like `knowledge.js`. It holds:
+  - nine games: the Opera, Immortal and Evergreen games, the Game of the Century, Réti–Tartakower, Légal's mate, Lasker–Thomas, Rotlewi–Rubinstein and Steinitz–von Bardeleben;
+  - four studies: Réti's king march, Saavedra, Lucena and Philidor.
+
+  Each has tags from the `TAG_LABELS` vocabulary, a one-line lesson, the ply of its key moment, and comments we wrote ourselves. The two games that were hard-coded as library examples are now the first two entries.
+- **Retrieval** (`retrieveClassics`) scores each game by the weights of the position's features that match its tags, so the opening family and the motifs in the best move count most. This complements `similarPositions`, which only finds the same position or pawn structure, and which a classic rarely shares with the player's game.
+- **Where it shows:**
+  - The coach's context lists up to two classics on the position's themes. The "Similar games" aspect now asks about them too.
+  - The Reading tab gains "Classic games on these themes", with an Open button that loads the game at its key moment.
+  - The library gets a Classics filter. "All" shows the player's own games, and the classics only while the library is empty or during a search, so 13 built-in entries don't bury the player's games.
+- **Tests:**
+  - unit `classics.test`: every score loads in chess.js with every move legal; games ending in "#" are really mate, and the mated side lost; key moments lie within the game; tags are known; the famous finishes are in place; retrieval ranks by theme.
+  - e2e `modes.spec`: a Caro-Kann finds Réti–Tartakower in the Reading tab, which opens at 9. Qd8+; the coach's context lists classics; the library filters work. The smoke and regression tests now expect 13 built-in games in an empty library.
+
+### Deviations
+
+- **The scores were written from memory.** chess.js can prove every move legal and every final mate real, but not that a game was played exactly so. The collection is small and limited to the most-published games. A larger one needs sources and licences per item (7.1).
+
+### Insights
+
+- **Position matching rarely finds a classic.** An exact position or pawn structure is a strong signal, but too rare to catch most games; tags by theme and opening family find a classic for most positions.
+
+---
+
 ## 2026-10-21 — Explanation modes: commentary, challenges, interesting moves
 
 TODO items: 3.9 (3.9.1–3.9.5).

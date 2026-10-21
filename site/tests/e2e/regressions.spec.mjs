@@ -57,7 +57,7 @@ test('full browser storage: saving says so instead of "Saved"', async ({ page })
   await page.locator('#btnSaveCurrent').click();
   await expect(page.locator('#toast')).toContainText('Browser storage is full');
   await expect(page.locator('#libCount')).toHaveText('');
-  await expect(page.locator('#libList .game')).toHaveCount(2); // just the built-in examples
+  await expect(page.locator('#libList .game')).toHaveCount(13); // just the built-in classics
 });
 
 test('prompt injection: imported PGN text reaches the coach only as one-line quoted data', async ({ page }) => {

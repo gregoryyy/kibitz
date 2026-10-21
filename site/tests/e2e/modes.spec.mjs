@@ -65,3 +65,24 @@ test('challenge mode: stepping through a game, the coach asks instead of explain
   await expect(page.locator('#chat .msg.challenge').last()).toContainText('Challenge at 9. Bg5', { timeout: 30_000 });
   await expect(page.locator('#chat .msg.coach:not(.challenge)')).toHaveCount(0); // no explanation until answered
 });
+
+test('classic games: on the position\'s themes in the reading list and the coach\'s context; their own library filter', async ({ page }) => {
+  const bodies = [];
+  page.on('request', r => { if (r.url().endsWith('/api/ai/sample')) bodies.push(JSON.stringify(JSON.parse(r.postData()).messages)); });
+  await open(page);
+  await loadPgn(page, '1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 *'); // a Caro-Kann
+  await page.locator('[data-tab="reading"]').click();
+  await expect(page.locator('#classicList')).toContainText('Réti\'s queen sacrifice · Richard Réti – Savielly Tartakower, Vienna 1910');
+  await page.locator('#classicList .seen', { hasText: 'Réti\'s queen sacrifice' }).getByRole('button', { name: 'Open' }).click();
+  await expect(page.locator('#moves button')).toHaveCount(21);
+  await expect(page.locator('#moves button.cur')).toContainText('Qd8+'); // at the key moment
+  await page.locator('#coachChips .chip').first().click();
+  await expect.poll(() => bodies.length).toBeGreaterThan(0);
+  expect(bodies.at(-1)).toContain('Classic games on these themes (from the built-in collection)');
+  // With a game of the player's own, "All" shows it; the classics move under their filter.
+  await page.locator('[data-tab="library"]').click();
+  await page.locator('#btnSaveCurrent').click();
+  await expect(page.locator('#libList .game')).toHaveCount(1);
+  await page.locator('#libFilter button[data-v="classics"]').click();
+  await expect(page.locator('#libList .game')).toHaveCount(13);
+});

@@ -79,12 +79,12 @@ Status: `[ ]` open, `[x]` done. Tags:
 ## 3. Tutor commentary
 
 - [x] 3.1 Grounding pipeline: engine lines in SAN, move class, motifs, position features and retrieved references go into the prompt context *(prototype: `contextFor`)*
-- [ ] 3.2 Aspect picker:
+- [x] 3.2 Aspect picker:
   - [x] 3.2.1 Last move: what it did, its rating, the engine's alternative
   - [x] 3.2.2 Future moves and opportunities: threats, plans, candidate moves
   - [x] 3.2.3 Things to keep in mind: weaknesses, king safety, loose pieces
   - [x] 3.2.4 Habits of strong players: blunder check, candidate moves, prophylaxis
-  - [ ] 3.2.5 Relevant classic games, taken from the reference library through RAG. Partly: the "Similar games" aspect uses similar positions from the player's library. Remaining: the classic games collection (7.3)
+  - [x] 3.2.5 Relevant classic games, taken from the reference library through RAG. The "Similar games" aspect uses similar positions from the player's library and the classic games that match the position's themes (`classics.js retrieveClassics`), which the Reading tab lists too
 - [x] 3.3 A prompt template per aspect, with shared rules: don't invent variations, back every claim with an engine line
 - [x] 3.4 Validate the output: check every move, square and line against chess.js and the engine's lines, then drop or flag the ones that can't be verified *(added)*. Flagged, not dropped (see DONE.md)
 - [x] 3.5 Adapt to the player's level *(prototype)*
@@ -172,8 +172,8 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 - [ ] 7.1 Data model: games, positions, problems, annotations, plus source and licence for each item
 - [ ] 7.2 PGN import with deduplication *(prototype)*. Remaining: deduplication.
-- [ ] 7.3 Classic games collection: public game scores only, no copyrighted annotations
-- [ ] 7.4 Problems and studies collection
+- [ ] 7.3 Classic games collection: public game scores only, no copyrighted annotations. Started: 9 games and 4 studies in `classics.js`, tagged by theme, with our own notes, every score checked with chess.js; in the library under Classics. Remaining: a larger collection with source and licence per item (7.1)
+- [ ] 7.4 Problems and studies collection. Started: four classic studies (Réti, Saavedra, Lucena, Philidor) in `classics.js`
 - [ ] 7.5 Search by player, opening, year, result, theme
 - [ ] 7.6 Storage: SQLite on the server, IndexedDB cache in the browser
 - [x] 7.7 The user's own games *(prototype)*
