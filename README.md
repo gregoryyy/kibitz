@@ -29,6 +29,7 @@ just test              # unit tests (builds first)
 just check             # ESLint and the type check (tsc --checkJs)
 just e2e               # Playwright end-to-end tests (starts its own server with the mock AI provider)
 just build             # build only; `just build-eco` also rebuilds the opening table
+just pdfs              # a PDF next to every Markdown document (needs pandoc and Chrome); `just pdf FILE` for one
 just                   # list all recipes
 ```
 

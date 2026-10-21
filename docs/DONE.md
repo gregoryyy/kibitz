@@ -40,6 +40,31 @@ TODO items: none (tooling for the docs, modelled on the demo flipbooks of the Or
 - Screenshots of the viewport cut off the move list and flags under the board, so the runner takes whole pages.
 - The toast lasts 2.2 s. A step that triggers one waits for it to fade before its screenshot, so it doesn't cover the controls.
 - The tour's selectors (`#coachChips`, `#chat`, `#coachInput`, the tabs) work with both layouts, the chat in the Coach tab and the dialogue beside the board (4.9.2). The tour produced all 15 steps on each.
+## 2026-10-21 — PDFs of the Markdown documents
+
+TODO items: none (tooling for the docs, adapted from the OrgFab repo's `just pdf` and `just pdfs`).
+
+### Implementation notes
+
+- `just pdf FILE` turns one Markdown file into an A4 PDF next to it, keeping the full name (`docs/ARCH.md` → `docs/ARCH.md.pdf`):
+  - pandoc writes a standalone HTML page, with images embedded and math as MathML;
+  - headless Chrome prints that page to PDF.
+- `just pdfs [PATHS]` does it for every Markdown file that git tracks or would track. It skips `CLAUDE.md`, which only points at AGENTS.md, and `.github/`.
+- The typography is in `docs/pdf/style.css`: a serif body, sans headings and tables, Menlo for code. Task lists (TODO.md) get checkboxes. Screenshots scale to the column, and in print to the page height.
+- Documents with ```` ```mermaid ```` blocks (ARCH.md) also get `docs/pdf/mermaid.html`. pandoc downloads Mermaid 11.4.1 from jsDelivr and embeds it, and Chrome draws the diagrams before printing.
+- Builds are incremental. `.pdfstamps/` keeps a hash of the source and build inputs, and of the PDF produced, so unchanged files are skipped. A second `just pdfs` skipped all 9 documents.
+- `*.md.pdf` and `.pdfstamps/` are ignored by git.
+- `CHROME=/path/to/chrome` picks another browser; the default is the macOS Chrome.
+
+### Deviations
+
+- The OrgFab version also renders its own specification languages (L3, L4) and their syntax highlighting. Kibitz has neither, so that part is left out. Mermaid support is new.
+- Input is GitHub-flavoured Markdown (`-f gfm+tex_math_dollars`), so task lists and tables come out as on GitHub.
+
+### Insights
+
+- pandoc writes a Mermaid block as `<pre class="mermaid"><code>…</code></pre>`. Mermaid reads the `<pre>`'s markup, so the script first replaces it with its plain text.
+- Building a document with diagrams needs the network once per build, for the Mermaid download. Without diagrams, building needs no network.
 
 ---
 
