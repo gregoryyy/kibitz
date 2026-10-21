@@ -7,6 +7,37 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — The dialogue beside the board
+
+TODO items: 4.9.2 done; 4.9.3 partly.
+
+### Implementation notes
+
+- **The dialogue moved out of the Coach tab** to the top of the right-hand column. It holds:
+  - the context line;
+  - the in-browser model box;
+  - the chat;
+  - the Comment button with the quick chips;
+  - the input.
+
+  It is visible whichever tab is open. On wide screens it is exactly as tall as the board column from its top to the "You" row: a `ResizeObserver` on the board sets `--board-h`. On a phone it comes after the board and the move list, at most 75% of the screen high.
+- **The tab panels below fold away** with a toggle at the start of the tab bar. The choice is remembered, and clicking any tab opens them again. The toggle is not a tab: the tab code now selects `[role="tab"]`, and the toggle's `aria-controls` lists the panels.
+- **The Coach tab keeps the coach's settings:** the aspects, when to comment by itself, the provider.
+- **What the dialogue replaces:** the comment box under the board and the dot on the Coach tab (from the tutor work) are gone. Automatic comments appear in the dialogue, which is always in view. Asking the coach no longer switches tabs.
+- **Tests:**
+  - `layout.spec` (3): beside the board and level with it across tabs and window sizes; folding, remembered over a reload, any tab reopens; the phone layout without sideways scrolling.
+  - The tutor test now finds automatic comments in the dialogue.
+
+### Deviations
+
+- **No drawer on phones.** The dialogue simply follows the board. A drawer would cover the board, which is what the player is looking at.
+
+### Insights
+
+- **Tests that click below the fold need the board scrolled back into view.** The Game panel now sits under the dialogue, so tests that pick an option there scroll the page. chessground forgets its cached board position on the scroll event, which only fires on the next frame. A click right after scrolling went to the old coordinates and was lost: flaky, 2 of 3 runs. `move()` in the fixtures now scrolls the board into view and waits two frames. People can't click within a frame, so the page itself is fine.
+
+---
+
 ## 2026-10-21 — Offline mode: a small model in the browser
 
 TODO items: 2.16.0, 2.16.1, 2.16.3–2.16.6 done; 2.16.2 partly (model choice with the eval set, 3.8).
