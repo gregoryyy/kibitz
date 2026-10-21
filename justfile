@@ -3,6 +3,7 @@
 #   just offline       the same, with a small model running in the browser: nothing leaves this machine
 #   just test          unit tests (AI gateway + page modules)
 #   just check         lint and type-check
+#   just flipbook      render docs/flipbook/, a happy path through the app in screenshots
 # Port and bind address can be overridden: KIBITZ_PORT=9000 just serve
 
 port := env_var_or_default("KIBITZ_PORT", "8765")
@@ -50,6 +51,12 @@ test: build
 # End-to-end Playwright tests in the installed Chrome; builds, then starts its own server with the mock AI provider
 e2e: install
     npm --prefix site run test:e2e
+
+# Each step of site/flipbook/tour.mjs is played in a headless Chrome and captured into docs/flipbook/.
+# The coach uses the provider in .env, as `just serve` does (a few requests); `just flipbook mock` needs no keys.
+# Render docs/flipbook/: a happy path through the app, one screenshot per step
+flipbook ai="env": build
+    node site/scripts/flipbook.mjs --ai {{ai}}
 
 # Remove build output
 clean:
