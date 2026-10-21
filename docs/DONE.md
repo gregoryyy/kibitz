@@ -7,6 +7,46 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Flipbook: the Opera Game, explained by Claude; the chat knows the review
+
+TODO items: none (docs). It adds to 4.6, the chat's context: the review's findings go into it.
+
+### Implementation notes
+
+- **The tour** (`site/flipbook/tour.mjs`) is now one story: Morphy's Opera Game, in 11 steps.
+  1. The coach explains the plan after 9. Bg5.
+  2. It proposes its own move for Black, and compares it honestly with the engine's lines.
+  3. It explains the 10. Nxb5 sacrifice, then why taking the knight still loses.
+  4. The review shows the evaluation graph and the turning points.
+  5. The coach reads the graph, explains the 9… b5 turning point, and writes the summary and a study plan.
+  6. You play 10. Nxb5 yourself against Stockfish, and the coach comments.
+- **The runner** (`site/scripts/flipbook.mjs`):
+  - New acts: `ply`, `askBy`, `capture`, `hover` and `move … comment`.
+  - The README quotes every answer under its screenshot, with wrong moves struck through, and counts the moves the engine backs, the legal moves it doesn't list, and the wrong ones.
+  - `--ai anthropic` (or another provider) picks the provider, with its key from `.env`. Model variables set in the shell take precedence over `.env`. The README names the model for each task.
+- **Rendering:** with Claude Opus 5.5 for every task: `ANTHROPIC_MODEL=claude-opus-5-5 ANTHROPIC_MODEL_QUICK=claude-opus-5-5 ANTHROPIC_MODEL_REVIEW=claude-opus-5-5 just flipbook anthropic`. One run takes about 3 minutes and 11 requests.
+- **The chat knows the review.** After a review, `contextFor()` adds `reviewFacts()`:
+  - the accuracies and counts;
+  - the evaluation after every move (what the player sees as the graph);
+  - the turning points, with the better move and its line.
+
+  `turningPoints()` is shared with the summary prompt.
+- **The answer check** knows the same facts. `checkAnswer` takes `extra` lines in SAN, and after a review `checkFor` passes the turning points' better lines and counts the game's moves to the end.
+
+### Deviations
+
+- The flipbook is no longer a tour of every tab. The settings, the phone layout and dark mode are left out, so that it can show what the model adds.
+
+### Insights
+
+- **The first render exposed a gap.** Asked to read the evaluation graph, Claude answered that it couldn't, because the chat never received the review's findings. Only the summary prompt had them.
+- **Then the check went wrong.** Once the findings were in the chat's context, the check struck through correct moves: the turning points' better lines (from other positions), and game moves after the position on the board. Context and check have to grow together.
+- **The model matters.** With `claude-haiku-5-5`, the default, the answers were thinner and sometimes misleading ("Black's queen is gone" for a queen trade). With Opus, the coach proposed 9… h6 as its own idea, found the catch itself (the queen on f6 no longer guards b7), and said it couldn't evaluate the move. The check marked its untested line "Bxf6 Qxf6" as not one of the engine's.
+- **What the coach sees in a game matters too.** With help on "Flag mistakes", the comment on 10. Nxb5 said it "won a pawn": true from what the coach was shown, but misleading. The last step uses "Full engine".
+- **Comments stream without the Stop button,** so the runner also waits until the answer's text stops changing.
+
+---
+
 ## 2026-10-21 — Flipbook: a happy path through the app in screenshots
 
 TODO items: none (tooling for the docs, modelled on the demo flipbooks of the OrgFab workbench).
