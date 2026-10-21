@@ -275,6 +275,14 @@ export function createEmbedder(cfg, /** @type {{ client?: any }} */ { client } =
   };
 }
 
+// The provider's own words for an error, safe to show and log: anything that looks like a key
+// (sk-..., even masked) is cut, and it's one short line. The SDKs put the provider's message in
+// e.error.message; e.message adds the status in front.
+export function providerReason(e) {
+  const m = e?.error?.message || e?.error?.error?.message || e?.message || '';
+  return String(m).replace(/\b(?:sk|pk|key|api[-_]?key)[-_][\w*.-]+/gi, '[key]').replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
 // Maps SDK and network errors to the codes the page understands (see coachError in index.html).
 export function toGatewayError(e, signal) {
   if (e instanceof GatewayError) return e;
@@ -288,6 +296,9 @@ export function toGatewayError(e, signal) {
     case 401: case 403: return new GatewayError('auth_failed', 'The AI provider refused the request; check the API key and that your plan includes the model', 502);
     case 404: return new GatewayError('model_not_found', 'The AI provider does not know this model', 502);
     case 413: return new GatewayError('prompt_too_large', 'The request is too large for the model', 413);
+    // A request the provider rejected: its reason says what to fix, e.g. Ollama's
+    // "\"deepseek-R1:latest\" does not support chat" for a model pulled by an older Ollama.
+    case 400: { const why = providerReason(e); if (why) return new GatewayError('provider_rejected', `The AI provider rejected the request: ${why}`, 502); }
   }
   return new GatewayError('provider_error', 'The AI provider returned an error', 502);
 }

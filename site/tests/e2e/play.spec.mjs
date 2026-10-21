@@ -145,6 +145,19 @@ test('help "Eval + mistakes": the bar shows the position after your move and hol
   await expect(page.locator('svg .best, [data-brush="best"]')).toHaveCount(0); // no best-move arrow
 });
 
+test('help "Eval + mistakes": the coach\'s context line says what the eval bar shows, not that it is hidden', async ({ page }) => {
+  await open(page);
+  await page.locator('#optHelp button[data-v="eval"]').click();
+  await page.locator('#btnNewGame').click();
+  await expect(page.locator('#coachCtx')).toContainText('eval after your first move');
+  await typeMove(page, 'e4');
+  await expect(page.locator('#moves button')).toHaveCount(2);
+  await expect(page.locator('#coachCtx')).toContainText(/eval after your move 1\. e4: [+−]?\d/, { timeout: 30_000 });
+  await expect(page.locator('#coachCtx')).not.toContainText('hidden');
+  await page.locator('#optHelp button[data-v="flags"]').click();
+  await expect(page.locator('#coachCtx')).toContainText('eval hidden while you play');
+});
+
 test('with the evaluation hidden, its tooltip has no score either', async ({ page }) => {
   await open(page);
   await page.locator('#optHelp button[data-v="flags"]').click();
