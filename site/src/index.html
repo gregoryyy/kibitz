@@ -910,11 +910,13 @@ function lastOwnMove() {
   for (let i = S.cursor; i > 0; i--) if (S.nodes[i].color === S.userColor) return i;
   return 0;
 }
+// The node whose evaluation the player may see (0: none). Help 'eval' shows the position after the
+// player's last move and holds it through Stockfish's reply: a jump there would tell the player
+// that a tactic is waiting.
+function evalNode() { return showEngine() ? S.cursor : S.help === 'eval' ? lastOwnMove() : 0; }
 function renderEval(liveScore, liveDepth) {
   const bar = $('#evalbar');
-  // Help 'eval' shows the position after the player's last move and holds it through Stockfish's
-  // reply: a jump there would tell the player that a tactic is waiting.
-  const i = showEngine() ? S.cursor : S.help === 'eval' ? lastOwnMove() : 0;
+  const i = evalNode();
   const shown = showEngine() || i > 0;
   bar.classList.toggle('hidden-eval', !shown);
   const fen = S.nodes[i].fen;
@@ -1630,10 +1632,15 @@ function renderChips() {
   box.append(el('button', { class: 'chip', id: 'btnChallenge', title: 'The coach asks, you answer; the engine checks', onclick: () => startChallenge(S.cursor) }, 'Challenge me'));
 }
 function renderCoachCtx() {
-  const i = S.cursor; const fen = nodeFen(); const a = anaOf(fen);
+  const i = S.cursor; const fen = nodeFen();
   const turn = turnOf(fen) === 'w' ? 'White' : 'Black';
-  const ev = terminalCp(fen) !== null ? 'game over' : a ? `${fmtScore(a.lines[0]?.score)} d${a.depth || '–'}` : 'analysing…';
-  $('#coachCtx').textContent = `Looking at ${i ? 'after ' + moveLabel(i) : 'the start'} · ${turn} to move · ${showEngine() ? 'eval ' + ev : 'eval hidden while you play'} · coach sees ${{ all: 'the engine\'s analysis', past: 'how your moves rated', none: 'no engine data' }[engineView(S)]}`;
+  const evOf = f => { const x = anaOf(f); return terminalCp(f) !== null ? 'game over' : x ? `${fmtScore(x.lines[0]?.score)} d${x.depth || '–'}` : 'analysing…'; };
+  // What the eval bar shows, in words: the help setting decides, as in renderEval.
+  const j = evalNode();
+  const ev = showEngine() ? 'eval ' + evOf(fen)
+    : S.help !== 'eval' ? 'eval hidden while you play'
+    : j ? `eval after your move ${moveLabel(j)}: ${evOf(S.nodes[j].fen)}` : 'eval after your first move';
+  $('#coachCtx').textContent = `Looking at ${i ? 'after ' + moveLabel(i) : 'the start'} · ${turn} to move · ${ev} · coach sees ${{ all: 'the engine\'s analysis', past: 'how your moves rated', none: 'no engine data' }[engineView(S)]}`;
 }
 // The coach's context for node i. view (tutor.js engineView): 'all' gives everything; 'past'
 // (mid-game, help "flag mistakes") leaves out the engine's view of the current position and rates
