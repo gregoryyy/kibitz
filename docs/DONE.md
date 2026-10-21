@@ -7,6 +7,66 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Tutor commentary: aspects, templates, checked answers, when to comment, cache
+
+TODO items: 3.2.1–3.2.4, 3.3, 3.4, 3.6, 3.7 done; 3.2.5 partly.
+
+### Implementation notes
+
+- **`site/src/tutor.js`** (new, pure, unit-tested) holds the tutor logic. The page only wires it up.
+- **Aspects and templates (3.2, 3.3):**
+  - The five aspects are Last move, What's next, Keep in mind, Good habits and Similar games. Each has its own instruction.
+  - `commentRequest()` asks for them in a fixed order, under a word limit.
+  - `COACH_RULES`, the shared rules that used to be the page's `RULES`, now also say that every move or line must come from the engine lines or the game, and that unbacked moves are marked for the player.
+  - The Coach tab has an aspect picker and a "Comment on this position" button. The choice is saved with the other settings.
+- **"Keep in mind" data:** `safetyNotes()` lists, straight from the board:
+  - pieces attacked and not defended;
+  - pieces attacked by something cheaper;
+  - loose pieces (no defender);
+  - castled kings with fewer than two shield pawns.
+
+  These go into every coach context as "Keep in mind (from the board)".
+- **No spoilers mid-game (3.6):** `engineView()` decides what the coach may see.
+  - **'all':** analysis, a finished game, or help "Full".
+  - **'past'** (help "Flag mistakes"): how the player's own moves rated and what was better then, but not Stockfish's view of the current position.
+  - **'none'** (help "Off"): no engine data at all.
+
+  `contextFor(i, { view })` follows it, for every coach request, including typed questions. The aspects that need the engine's view of the position (What's next) are left out mid-game, and the picker says so.
+- **When to comment (3.6):** the choices are "Only when asked" (the default), "After my mistakes" and "After every move".
+  - `shouldComment()` allows comments only on the player's own moves, which are marked `byUser` when played on the board. Loaded games are never commented on by themselves. With help Off, the coach never comments by itself.
+  - Each move is commented on at most once.
+  - An automatic comment shows under the board, as well as in the chat, and the Coach tab gets a dot.
+- **Checked answers (3.4):** `checkAnswer()` sorts every move-like token:
+  - **in Stockfish's lines:** for this position or the one before;
+  - **a game move;**
+  - **legal but unchecked:** legal here or one move earlier, but in no engine line;
+  - **invalid:** none of these;
+  - **a square:** "the knight on f3" names a square, not a move.
+
+  It also checks two kinds of claims:
+  - Moves separated only by spaces and move numbers are read as a line. That line must be a contiguous run of an engine line or of the game, or the moves after the matching part are invalid.
+  - "Bishop on b5"-style claims are checked against the board now and one move before.
+
+  The chat and the comments strike through invalid moves, grey out unchecked ones (a tooltip gives the reason), and add a note when something is wrong.
+- **Cache (3.7):** `commentKey()` combines the EPD, the move that led to the position, the aspects, the engine view, the level and the model. A 100-entry LRU keeps the comments in local storage, so they survive a reload. A repeat shows "(saved)" and costs nothing. Comments use the quick model.
+- **Tests:**
+  - 15 unit tests: aspects, views, templates, when to comment, safety notes, the answer check (including sentence breaks and squares), the cache.
+  - 4 Playwright tests: the picker and the cache across a reload; a faked answer with an illegal move and a wrong piece claim; automatic comments without spoilers; silence with help Off.
+
+### Deviations
+
+- **Flagged, not dropped (3.4).** Removing text from an answer would change what it says. Marking it and telling the player keeps the coach honest, and the player can still read the rest.
+- **The review summary isn't checked.** It talks about many positions at once, so a check against one position's lines would mark correct moves. It still gets the shared rules.
+- **3.2.5 uses the player's library.** The classic games collection (7.3) doesn't exist yet. The Similar games aspect uses the similar positions already retrieved from the player's library and the built-in examples.
+- **No threat search.** "What's next" uses the engine's top lines and the motif detectors. A separate null-move search for threats is part of the engine tools (4.11).
+
+### Insights
+
+- **A full stop looks like a move number.** The first version read "Start with e4. Qh5 wins" as the line 1. e4 Qh5 and flagged it. Only whitespace and real move numbers ("2.", "12...") join moves into a line now.
+- **The checker needs the same tokens as the renderer.** Bare squares stay in its output with status "square", so the page can match each mark to the move it renders, in order.
+
+---
+
 ## 2026-10-21 — CI: secret scan permissions
 
 TODO items: 0.8 (fix).

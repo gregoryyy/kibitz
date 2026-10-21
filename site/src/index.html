@@ -175,6 +175,14 @@ textarea { resize: vertical; min-height: 44px; }
 .msg .who { display: block; font: 600 11px var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 4px; }
 .msg.thinking { color: var(--muted); font-style: italic; }
 .san { font-family: var(--font-mono); font-weight: 600; color: var(--accent); border-bottom: 1px dotted currentColor; cursor: default; }
+.san.unchecked { color: var(--muted); }
+.san.invalid { color: var(--blunder); text-decoration: line-through; border-bottom: 0; }
+.check-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 6px; }
+.coach-note { margin-top: 10px; padding: 10px 13px; border-radius: var(--r); background: var(--surface-2); border: 1px solid var(--line); font-size: 14.5px; }
+.coach-note .who { display: flex; justify-content: space-between; gap: 8px; font: 600 11px var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 4px; }
+.coach-note p { margin: 0 0 8px; } .coach-note p:last-child { margin-bottom: 0; }
+.coach-note .x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+.tabs button.has-new::after { content: ''; display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--accent); vertical-align: middle; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip { border: 1px solid var(--line); background: var(--surface); padding: 5px 10px; border-radius: 999px; font-size: 13px; cursor: pointer; }
 .chip:hover { border-color: var(--accent); color: var(--accent); }
@@ -274,6 +282,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     </div>
     <div id="confirmSlot"></div>
     <div id="flagSlot"></div>
+    <div id="coachNote" aria-live="polite"></div>
     <div class="sheet">
       <div class="sheet-head"><span class="op" id="openingName">Starting position</span><span class="eco" id="openingEco"></span></div>
       <div class="moves" id="moves" aria-label="Moves"></div>
@@ -332,6 +341,13 @@ a.ext { color: var(--accent); font-size: 14px; }
 
     <div class="pane" data-pane="coach" hidden>
       <div class="ctxline" id="coachCtx">Position: start</div>
+      <div class="field"><span class="lbl-sm" id="aspectLbl">Comment on</span>
+        <div class="chips" id="aspectPicker" role="group" aria-labelledby="aspectLbl"></div>
+        <div class="row" style="margin-top:6px"><button class="btn small primary" id="btnComment">Comment on this position</button><span class="hint" id="aspectHint" role="status"></span></div>
+      </div>
+      <div class="field"><span class="lbl-sm">The coach comments by itself</span>
+        <div class="choice" id="optCommentWhen"><button data-v="request" aria-pressed="true">Only when asked</button><button data-v="mistakes" aria-pressed="false">After my mistakes</button><button data-v="every" aria-pressed="false">After every move</button></div>
+      </div>
       <div class="chips" id="coachChips"></div>
       <div class="chat" id="chat" aria-live="polite"></div>
       <div class="composer">
@@ -396,7 +412,8 @@ import { Chessground } from './chessground.js';
 import * as K from './knowledge.js';
 import { Engine, stockfishAttempts } from './engine.js';
 import { createStore, browserStorage } from './store.js';
-import { quote, UNTRUSTED_RULE } from './prompt.js';
+import { quote } from './prompt.js';
+import { COACH_RULES, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, SAN_RE, commentKey, lruCache } from './tutor.js';
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
@@ -502,12 +519,17 @@ const S = {
   startPly: 0, // moves set up before play (an opening); take-backs stop there
   drawBlock: 0, drawPending: false, // no new draw offer before this ply, after a declined one
   startPick: { kind: ['opening', 'fen'].includes(saved.startKind) ? saved.startKind : 'standard', opening: saved.startOpening || null, fen: saved.startFen || '' },
+  aspects: normaliseAspects(saved.aspects), // what a coach comment covers (tutor.js)
+  commentWhen: COMMENT_WHEN.some(w => w.id === saved.commentWhen) ? saved.commentWhen : 'request',
 };
 const ANA = new Map(); // epd -> {depth, lines:[{score(white pov), pv}], best}
+// Tutor comments (TODO 3.2-3.7): LRU cache of comment texts (kept across reloads), the moves already
+// commented on by themselves, and the last automatic comment shown under the board.
+const TUTOR = { cache: lruCache(100, store.get('tutorCache', [])), ctl: null, seen: new WeakSet(), note: null };
 let ECO = {};
 fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); })
   .catch(() => toast('Opening names could not be loaded. Everything else still works.'));
-function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth, tc: S.tc, startKind: S.startPick.kind, startOpening: S.startPick.opening, startFen: S.startPick.fen }); }
+function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth, tc: S.tc, startKind: S.startPick.kind, startOpening: S.startPick.opening, startFen: S.startPick.fen, aspects: S.aspects, commentWhen: S.commentWhen }); }
 
 function last() { return S.nodes.length - 1; }
 function nodeFen(i = S.cursor) { return S.nodes[i].fen; }
@@ -656,7 +678,7 @@ function playMove(m, { fromEngine = false } = {}) {
   const timed = S.mode === 'play' && S.playing && !!S.clock, now = performance.now();
   if (timed && S.clock.turn === mv.color && timeLeft(S.clock, mv.color, now) <= 0) { flagFall(mv.color); return false; } // too late
   if (i < last()) { S.nodes.length = i + 1; S.reviewDone = false; } // branching in analysis
-  S.nodes.push({ fen: c.fen(), san: mv.san, uci: mv.from + mv.to + (mv.promotion || ''), color: mv.color, ply: S.nodes.length, from: mv.from, to: mv.to });
+  S.nodes.push({ fen: c.fen(), san: mv.san, uci: mv.from + mv.to + (mv.promotion || ''), color: mv.color, ply: S.nodes.length, from: mv.from, to: mv.to, byUser: !fromEngine });
   S.cursor = last();
   // The first move starts the other side's clock; later moves switch it and add the increment.
   if (timed) { S.clock = pressClock(S.clock, now, mv.color === 'w' ? 'b' : 'w'); S.nodes[S.cursor].clk = { w: S.clock.w, b: S.clock.b }; }
@@ -784,11 +806,11 @@ async function analyseFor(i) {
   const depth = S.depth;
   if (i > 0) await analyse(S.nodes[i - 1].fen, depth, 'live');
   if (token !== liveToken) return;
-  if (i > 1) { classifyNode(i - 1); renderMoves(); showFlag(); }
+  if (i > 1) { classifyNode(i - 1); renderMoves(); showFlag(); autoComment(i - 1); }
   await analyse(S.nodes[i].fen, depth, 'live', (lines, d) => { if (token === liveToken && S.cursor === i) renderEval(lines[0]?.score, d); });
   if (token !== liveToken) return;
   classifyNode(i);
-  renderMoves(); renderEval(); drawShapes(); showFlag(); renderCoachCtx(); renderReading();
+  renderMoves(); renderEval(); drawShapes(); showFlag(); renderCoachCtx(); renderReading(); autoComment(i);
 }
 function refreshAnalysis() { analyseFor(S.cursor); }
 
@@ -798,7 +820,7 @@ function updateGraphCursor() {
   const N = S.nodes.length, W = 600; const x = 8 + (W - 16) * (N <= 1 ? 0 : S.cursor / (N - 1));
   g._cur.setAttribute('x1', x); g._cur.setAttribute('x2', x);
 }
-function renderAll() { updateGraphCursor(); syncBoard(); renderMoves(); renderPlayers(); renderEval(); renderControls(); showFlag(); renderOpening(); renderCoachCtx(); renderReading(); renderReviewHeader(); }
+function renderAll() { updateGraphCursor(); syncBoard(); renderMoves(); renderPlayers(); renderEval(); renderControls(); showFlag(); renderOpening(); renderCoachCtx(); renderReading(); renderReviewHeader(); renderAspectPicker(); renderCoachNote(); }
 function renderOpening() {
   const op = openingAt(S.cursor) || openingAt(last());
   $('#openingName').textContent = op ? op.name : (S.meta?.title || (S.start === START ? 'Starting position' : 'Custom position'));
@@ -1385,7 +1407,7 @@ function evalGraph() {
 // ---------------------------------------------------------------- Coach (Claude)
 const COACH = { sample: null, ctl: null };
 const chatTurns = [];
-function setCoach(s) { COACH.sample = s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !s; $('#btnStudyPlan').disabled = !s; renderChips(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; }
+function setCoach(s) { COACH.sample = s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !s; $('#btnStudyPlan').disabled = !s; renderChips(); renderAspectPicker(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; }
 use('sample').then(setCoach);
 // Coach settings (local gateway only): provider, models per task, local-only mode, a connection
 // test and today's usage. Keys and models stay in .env; the page only picks among what's set up.
@@ -1450,11 +1472,14 @@ function renderCoachCtx() {
   const i = S.cursor; const fen = nodeFen(); const a = anaOf(fen);
   const turn = turnOf(fen) === 'w' ? 'White' : 'Black';
   const ev = terminalCp(fen) !== null ? 'game over' : a ? `${fmtScore(a.lines[0]?.score)} d${a.depth || '–'}` : 'analysing…';
-  $('#coachCtx').textContent = `Looking at ${i ? 'after ' + moveLabel(i) : 'the start'} · ${turn} to move · ${showEngine() ? 'eval ' + ev : 'eval hidden while you play'}`;
+  $('#coachCtx').textContent = `Looking at ${i ? 'after ' + moveLabel(i) : 'the start'} · ${turn} to move · ${showEngine() ? 'eval ' + ev : 'eval hidden while you play'} · coach sees ${{ all: 'the engine\'s analysis', past: 'how your moves rated', none: 'no engine data' }[engineView(S)]}`;
 }
-function contextFor(i) {
+// The coach's context for node i. view (tutor.js engineView): 'all' gives everything; 'past'
+// (mid-game, help "flag mistakes") leaves out the engine's view of the current position and rates
+// only the player's own moves; 'none' (mid-game, help off) leaves out all engine data (TODO 3.6).
+function contextFor(i, { view = 'all' } = {}) {
   const n = S.nodes[i]; const fen = n.fen; const c = chessAt(i);
-  const a = anaOf(fen); const op = openingAt(i);
+  const a = view === 'all' ? anaOf(fen) : null; const op = openingAt(i);
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
   const lines = [];
   lines.push(`Player: ${LEVELS[S.level]}${S.mode === 'play' ? `, playing ${S.userColor === 'w' ? 'White' : 'Black'} against Stockfish set to about ${S.elo} Elo, ${styleOf(S.style).label.toLowerCase()} style` : ', analysing a game'}.`);
@@ -1466,6 +1491,9 @@ function contextFor(i) {
   if (op) lines.push(`Opening: ${op.eco} ${op.name}.`);
   const term = terminalCp(fen);
   if (term !== null) lines.push(`The game is over in this position (${new Chess(fen).isCheckmate() ? 'checkmate' : 'draw'}).`);
+  else if (view !== 'all') lines.push(view === 'past'
+    ? 'The game is in progress and the player has engine help set to flag mistakes only: you see how the player\'s own moves were rated, but not Stockfish\'s view of the current position.'
+    : 'The game is in progress and the player has engine help off: you have no engine data. Talk about ideas, not concrete moves for the player.');
   else if (a) {
     lines.push(`Stockfish 19 (depth ${a.depth}) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):`);
     a.lines.slice(0, 3).forEach((l, k) => lines.push(`  ${k + 1}. ${fmtScore(l.score)}  ${pvToSan(fen, l.pv, 8)}`));
@@ -1474,11 +1502,15 @@ function contextFor(i) {
   } else lines.push('Engine analysis is still running for this position.');
   if (i > 0) {
     const pf = S.nodes[i - 1].fen; const pa = anaOf(pf);
-    lines.push(`Last move: ${moveLabel(i)}${n.cls ? `, rated ${n.cls} by the engine (win chance for the mover ${n.wpB?.toFixed(0)}% → ${n.wpA?.toFixed(0)}%)` : ''}.`);
-    if (pa?.best && pa.best !== n.uci) lines.push(`Engine preferred ${uciToSan(pf, pa.best)} instead: ${fmtScore(pa.lines[0]?.score)} ${pvToSan(pf, pa.lines[0]?.pv, 6)}`);
-    if (a?.best && ['mistake', 'blunder'].includes(n.cls)) { const m = K.moveMotifs(Chess, fen, a.best); if (m.length) lines.push(`Why it hurts: the reply ${uciToSan(fen, a.best)} — ${m.map(x => x.why).join('; ')}.`); }
+    const rated = view === 'all' || (view === 'past' && n.color === S.userColor);
+    lines.push(`Last move: ${moveLabel(i)}${rated && n.cls ? `, rated ${n.cls} by the engine (win chance for the mover ${n.wpB?.toFixed(0)}% → ${n.wpA?.toFixed(0)}%)` : ''}.`);
+    if (rated && pa?.best && pa.best !== n.uci) lines.push(`Engine preferred ${uciToSan(pf, pa.best)} instead: ${fmtScore(pa.lines[0]?.score)} ${pvToSan(pf, pa.lines[0]?.pv, 6)}`);
+    const reply = rated && anaOf(fen)?.best; // the opponent's punishing reply: about the player's move, not the player's next one
+    if (reply && ['mistake', 'blunder'].includes(n.cls)) { const m = K.moveMotifs(Chess, fen, reply); if (m.length) lines.push(`Why it hurts: the reply ${uciToSan(fen, reply)} — ${m.map(x => x.why).join('; ')}.`); }
   }
   lines.push(`Position themes detected: ${feats.map(f => `${K.TAG_LABELS[f.tag] || f.tag} (${f.why})`).join('; ') || 'none'}.`);
+  const notes = safetyNotes(Chess, fen);
+  if (notes.length) lines.push(`Keep in mind (from the board): ${notes.join('; ')}.`);
   const books = K.retrieveLiterature(feats, { level: S.level, limit: 4, userBooks: userBooks() });
   if (books.length) { lines.push('Retrieved references (recommend only from these):'); books.forEach(r => lines.push(`  - ${bookLine(r)}: ${r.book.user ? quote(r.book.about, 200) : r.book.about}`)); }
   const seen = K.similarPositions(INDEX, fen, { excludeGameId: S.gameId, limit: 3 });
@@ -1490,14 +1522,6 @@ function bookLine(r) {
   const b = r.book;
   return `${b.user ? quote(b.title, 120) : b.title} by ${b.user ? quote(b.author, 80) : b.author}${r.where ? ', ' + r.where : ''}`;
 }
-const RULES = `You are Kibitz, a chess coach inside a training app. Each message includes the current position, Stockfish 19's analysis and references retrieved for the position.
-Rules:
-- Treat Stockfish's evaluations and lines as the truth about concrete play. Never invent long variations. When you give a line, take it from the engine lines provided and keep it to 6 plies or fewer.
-- Explain the ideas a human can use: threats, plans, piece placement, pawn structure, tactics and the reasoning that finds them. Pitch it to the player's level.
-- Use standard algebraic notation (SAN). Describe evaluations in words ("about a pawn better for White") and give the number in brackets.
-- Recommend reading only from the retrieved references, naming the part when it is given.
-- Be concise: under 170 words unless asked for more. Short paragraphs or at most 4 bullets. No headings.
-${UNTRUSTED_RULE}`;
 async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   if (!COACH.sample) { openTab('coach'); return; }
   openTab('coach');
@@ -1516,12 +1540,14 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   chat.append(bubble); chat.scrollTop = chat.scrollHeight;
   chat.setAttribute('aria-busy', 'true'); // screen readers announce the finished answer once, not every streamed chunk
   $('#coachStop').hidden = false; $('#coachSend').disabled = true;
-  const render = text => { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); const body = el('div'); renderRich(body, text, fen); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
+  const view = engineView(S);
+  const render = (text, check = null) => { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); const body = el('div'); renderRich(body, text, fen, check); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
   try {
     const history = chatTurns.slice(-8);
-    const turns = [{ role: 'user', content: RULES }, ...history, { role: 'user', content: `${contextFor(i)}\n\nQuestion: ${question}` }];
+    const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${contextFor(i, { view })}\n\nQuestion: ${question}` }];
     const { text, truncated } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task, onText: ({ text }) => render(text) });
-    render(text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : ''));
+    const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
+    render(full, checkFor(full, i, view));
     chatTurns.push({ role: 'user', content: `[At ${i ? moveLabel(i) : 'start'}] ${question}` }, { role: 'assistant', content: text });
   } catch (e) {
     if (e?.text) render(e.text);
@@ -1533,37 +1559,130 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
     if ($('#coachSettings').open) refreshGateway(); // today's usage
   }
 }
+// ---------------------------------------------------------------- Tutor comments (TODO 3.2-3.7)
+// A comment covers the chosen aspects of a position. Cached by position, move, aspects, what the
+// coach could see, level and model; the cache survives reloads.
+function renderAspectPicker() {
+  const view = engineView(S); const { dropped } = aspectsFor(S.aspects, view);
+  $('#aspectPicker').replaceChildren(...ASPECTS.map(a => el('button', {
+    class: 'chip' + (S.aspects.includes(a.id) ? ' on' : ''), 'aria-pressed': String(S.aspects.includes(a.id)), 'data-v': a.id,
+    onclick: () => { const on = S.aspects.includes(a.id); S.aspects = normaliseAspects(on ? S.aspects.filter(x => x !== a.id) : [...S.aspects, a.id]); saveSettings(); renderAspectPicker(); },
+  }, a.label)));
+  $('#aspectHint').textContent = dropped.length ? `${dropped.map(id => ASPECTS.find(a => a.id === id).label).join(', ')}: left out while you play, unless engine help is Full.` : '';
+  $('#btnComment').disabled = !COACH.sample;
+}
+// Comments on node i: in the chat, and for automatic comments also under the board.
+async function commentOn(i, { auto = false } = {}) {
+  if (!COACH.sample) { if (!auto) openTab('coach'); return; }
+  if (!auto) openTab('coach');
+  const n = S.nodes[i]; const fen = n.fen, gen = S.gen;
+  const view = engineView(S); const { use } = aspectsFor(S.aspects, view);
+  if (view !== 'none') {
+    if (!anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'coach');
+    if (i > 0 && !anaOf(S.nodes[i - 1].fen)) await analyse(S.nodes[i - 1].fen, S.depth, 'coach');
+  }
+  if (S.gen !== gen || S.nodes[i] !== n) return; // the game changed while the engine ran
+  const where = i ? moveLabel(i) : 'the start';
+  const head = `Coach on ${where}: ${use.map(id => ASPECTS.find(a => a.id === id).label).join(' · ')}`;
+  const chat = $('#chat');
+  const bubble = el('div', { class: 'msg coach thinking' }, el('span', { class: 'who' }, head), 'Thinking…');
+  chat.append(bubble); chat.scrollTop = chat.scrollHeight;
+  const render = (text, check = null) => {
+    bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, head));
+    const body = el('div'); renderRich(body, text, fen, check); bubble.append(body); chat.scrollTop = chat.scrollHeight;
+  };
+  const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact' });
+  let text = TUTOR.cache.get(key);
+  const cached = text !== undefined;
+  if (!cached) {
+    TUTOR.ctl?.abort();
+    const ctl = TUTOR.ctl = new AbortController();
+    try {
+      const turns = [{ role: 'user', content: COACH_RULES }, { role: 'user', content: `${contextFor(i, { view })}\n\n${commentRequest(use, { view })}` }];
+      ({ text } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task: 'quick', onText: ({ text }) => render(text) }));
+    } catch (e) {
+      if (e?.code === 'cancelled') bubble.remove();
+      else { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, head), coachError(e)); }
+      return;
+    } finally { if (TUTOR.ctl === ctl) TUTOR.ctl = null; }
+    if (S.gen !== gen || S.nodes[i] !== n) { bubble.remove(); return; }
+    TUTOR.cache.set(key, text); store.set('tutorCache', TUTOR.cache.entries());
+  }
+  const check = checkFor(text, i, view);
+  render(text, check);
+  if (cached) bubble.querySelector('.who').append(' (saved)');
+  chatTurns.push({ role: 'user', content: `[At ${where}] Comment on: ${use.join(', ')}` }, { role: 'assistant', content: text });
+  if (auto) {
+    TUTOR.note = { gen, n, head, text, fen, check };
+    renderCoachNote();
+    if (paneHidden('coach')) $('[data-tab="coach"]').classList.add('has-new');
+  }
+}
+// After the player's move is classified: comment if the setting asks for it (once per move).
+function autoComment(i) {
+  const n = S.nodes[i];
+  if (!n || i < 1 || TUTOR.seen.has(n) || !COACH.sample) return;
+  if (!shouldComment({ when: S.commentWhen, view: engineView(S), cls: n.cls, byPlayer: !!n.byUser })) return;
+  TUTOR.seen.add(n);
+  commentOn(i, { auto: true });
+}
+// The last automatic comment, under the board, while that move is still in the game.
+function renderCoachNote() {
+  const box = $('#coachNote'); const note = TUTOR.note;
+  if (!note || note.gen !== S.gen || !S.nodes.includes(note.n)) { box.replaceChildren(); return; }
+  const body = el('div'); renderRich(body, note.text, note.fen, note.check);
+  box.replaceChildren(el('div', { class: 'coach-note' },
+    el('div', { class: 'who' }, el('span', {}, note.head), el('button', { class: 'x', 'aria-label': 'Hide the coach\'s comment', onclick: () => { TUTOR.note = null; renderCoachNote(); } }, '×')),
+    body));
+}
 function coachError(e) {
   const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.' };
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
+// The answer's moves and piece claims checked against chess.js and the engine lines the coach saw
+// for node i (tutor.js checkAnswer, TODO 3.4).
+function checkFor(text, i, view) {
+  const fen = S.nodes[i].fen, prevFen = i > 0 ? S.nodes[i - 1].fen : null;
+  const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv);
+  return checkAnswer(Chess, text, {
+    fen, prevFen,
+    lines: view === 'all' ? pvs(fen) : [],
+    prevLines: prevFen && view !== 'none' ? pvs(prevFen) : [],
+    game: S.nodes.slice(1, i + 1).map(n => n.san),
+  });
+}
 // Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.
-function renderRich(box, text, fen = nodeFen()) {
+// With `check`, moves that aren't backed by the engine are marked, and a note says how many.
+function renderRich(box, text, fen = nodeFen(), check = null) {
   box.replaceChildren();
+  const marks = check ? check.moves.slice() : null; // in text order, one per SAN_RE match
   const blocks = text.replace(/\r/g, '').split(/\n{2,}/);
   for (const b of blocks) {
     const lines = b.split('\n');
     if (lines.every(l => /^\s*([-*•]|\d+\.)\s+/.test(l) || !l.trim())) {
-      const ul = el('ul'); lines.filter(l => l.trim()).forEach(l => ul.append(inline(el('li'), l.replace(/^\s*([-*•]|\d+\.)\s+/, ''), fen))); box.append(ul);
-    } else box.append(inline(el('p'), b.replace(/^#+\s*/gm, ''), fen));
+      const ul = el('ul'); lines.filter(l => l.trim()).forEach(l => ul.append(inline(el('li'), l.replace(/^\s*([-*•]|\d+\.)\s+/, ''), fen, marks))); box.append(ul);
+    } else box.append(inline(el('p'), b.replace(/^#+\s*/gm, ''), fen, marks));
   }
+  if (check?.problems) box.append(el('p', { class: 'check-note' }, `${check.problems === 1 ? 'One claim' : check.problems + ' claims'} in this answer ${check.problems === 1 ? 'doesn\'t' : 'don\'t'} match the board or Stockfish's lines (marked). Trust the engine over the coach here.`));
 }
-const SAN_RE = /\b(O-O-O|O-O|[KQRBN][a-h]?[1-8]?x?[a-h][1-8]|[a-h]x[a-h][1-8](?:=[QRBN])?|[a-h][1-8](?:=[QRBN])?)[+#]?/g;
-function inline(node, text, fen) {
+function inline(node, text, fen, marks) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   for (const p of parts) {
-    if (/^\*\*[^*]+\*\*$/.test(p)) { const b = el('strong'); addSan(b, p.slice(2, -2), fen); node.append(b); }
-    else addSan(node, p, fen);
+    if (/^\*\*[^*]+\*\*$/.test(p)) { const b = el('strong'); addSan(b, p.slice(2, -2), fen, marks); node.append(b); }
+    else addSan(node, p, fen, marks);
   }
   return node;
 }
-function addSan(node, text, fen) {
+function addSan(node, text, fen, marks = null) {
   let lastIdx = 0; let m; SAN_RE.lastIndex = 0;
   const legal = new Map(new Chess(fen).moves({ verbose: true }).map(mv => [mv.san.replace(/[+#]/, ''), mv]));
   while ((m = SAN_RE.exec(text))) {
     if (m.index > lastIdx) node.append(text.slice(lastIdx, m.index));
+    const mark = marks?.[0]?.san === m[0] ? marks.shift() : null;
+    if (mark?.status === 'square') { node.append(m[0]); lastIdx = m.index + m[0].length; continue; }
     const mv = legal.get(m[1]);
-    const span = el('span', { class: 'san', title: mv ? 'Hover to see it on the board' : '' }, m[0]);
+    const flag = mark?.status === 'invalid' ? ' invalid' : mark?.status === 'legal' ? ' unchecked' : '';
+    const span = el('span', { class: 'san' + flag, title: mark?.why || (mv ? 'Hover to see it on the board' : '') }, m[0]);
     if (mv) { span.addEventListener('mouseenter', () => { if (nodeFen() === fen) { sanShape = { orig: mv.from, dest: mv.to, brush: 'san' }; drawShapes(); } }); span.addEventListener('mouseleave', () => { sanShape = null; drawShapes(); }); }
     node.append(span); lastIdx = m.index + m[0].length;
   }
@@ -1582,7 +1701,7 @@ async function writeSummary() {
   const allFeats = new Map();
   [Math.min(16, last()), Math.floor(last() / 2), last(), ...keyMoments(6).map(k => k.i)].forEach(i => K.positionFeatures(new Chess(S.nodes[i].fen), { ply: i, opening: openingAt(i) }).forEach(f => { const o = allFeats.get(f.tag); if (!o || o.weight < f.weight) allFeats.set(f.tag, f); }));
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });
-  const prompt = `${RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
+  const prompt = `${COACH_RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
   try {
     const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(box, text), cache: false, task: 'review' });
     S.summary = text; renderRich(box, text);
@@ -1625,7 +1744,7 @@ async function studyPlan() {
   btn.disabled = true; box.replaceChildren(el('div', { class: 'summary' }, el('span', { class: 'empty-note' }, 'Thinking…')));
   const target = box.firstElementChild;
   try {
-    const prompt = `${RULES}\n\n${contextFor(S.cursor)}\n\nTask: Suggest a short study plan (3 steps) built around the themes of this position. For each step name the theme, what to look for in the player's own games, and one reference from the retrieved list with the part to read. Under 200 words.`;
+    const prompt = `${COACH_RULES}\n\n${contextFor(S.cursor)}\n\nTask: Suggest a short study plan (3 steps) built around the themes of this position. For each step name the theme, what to look for in the player's own games, and one reference from the retrieved list with the part to read. Under 200 words.`;
     const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(target, text), cache: { gcTime: 600000 }, task: 'review' });
     renderRich(target, text);
   } catch (e) { target.replaceChildren(coachError(e)); }
@@ -1649,6 +1768,7 @@ function paneHidden(name) { return !!$(`.pane[data-pane="${name}"]`)?.hidden; }
 function openTab(name) {
   $$('.tabs button').forEach(b => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
   $$('.pane').forEach(p => p.hidden = p.dataset.pane !== name);
+  if (name === 'coach') $('[data-tab="coach"]').classList.remove('has-new');
   if (name === 'review') renderReview();
   if (name === 'library') renderLibrary();
   if (name === 'reading') renderReading();
@@ -1677,6 +1797,8 @@ function choice(id, val, onPick) {
 }
 choice('#optColor', S.colorPick, v => { S.colorPick = v; saveSettings(); });
 choice('#optHelp', S.help, v => { S.help = v; saveSettings(); helpHint(); renderAll(); });
+choice('#optCommentWhen', S.commentWhen, v => { S.commentWhen = v; saveSettings(); });
+$('#btnComment').addEventListener('click', () => commentOn(S.cursor));
 choice('#optLevel', S.level, v => { S.level = +v; saveSettings(); renderAll(); renderPlayers(); });
 choice('#libFilter', 'all', () => renderLibrary());
 function eloHint() {
