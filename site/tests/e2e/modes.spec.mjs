@@ -86,3 +86,29 @@ test('classic games: on the position\'s themes in the reading list and the coach
   await page.locator('#libFilter button[data-v="classics"]').click();
   await expect(page.locator('#libList .game')).toHaveCount(13);
 });
+
+test('game references in an answer: hovering shows the classic\'s key position, clicking opens the game there', async ({ page }) => {
+  await page.route('**/api/ai/sample', r => r.fulfill({
+    status: 200, contentType: 'application/x-ndjson',
+    body: [{ text: 'Develop first, as Morphy did in the Opera Game. Philidor Defence players know this.' }, { done: true, truncated: false }].map(l => JSON.stringify(l)).join('\n') + '\n',
+  }));
+  await open(page);
+  await page.locator('[data-tab="coach"]').click();
+  await page.locator('#coachInput').fill('Any model game?');
+  await page.locator('#coachSend').click();
+  const answer = page.locator('#chat .msg.coach').last();
+  const ref = answer.locator('.game-ref');
+  await expect(ref).toHaveCount(1); // the Philidor Defence is an opening, not a game
+  await expect(ref).toHaveText('the Opera Game');
+  const start = await page.evaluate(() => /** @type {any} */ (window).__kibitz.S.nodes.length);
+  await ref.hover();
+  await expect(page.locator('#boardPreview')).toBeVisible();
+  await expect(page.locator('#boardPreview')).toHaveText('The Opera Game, after 10. Nxb5');
+  await expect(page.locator('.board-outer')).toHaveClass(/previewing/);
+  expect(await page.evaluate(() => /** @type {any} */ (window).__kibitz.S.nodes.length)).toBe(start); // the game is untouched
+  await page.locator('#coachInput').hover();
+  await expect(page.locator('#boardPreview')).toBeHidden();
+  await expect(page.locator('.board-outer')).not.toHaveClass(/previewing/);
+  await ref.click();
+  await expect.poll(() => page.evaluate(() => { const { S } = /** @type {any} */ (window).__kibitz; return `${S.gameId} ${S.cursor} ${S.nodes[S.cursor].san}`; })).toBe('ex-opera 19 Nxb5');
+});

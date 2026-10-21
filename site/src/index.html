@@ -190,7 +190,11 @@ textarea { resize: vertical; min-height: 44px; }
 .msg.thinking { color: var(--muted); font-style: italic; }
 .san { font-family: var(--font-mono); font-weight: 600; color: var(--accent); border-bottom: 1px dotted currentColor; cursor: default; }
 .san.unchecked { color: var(--muted); }
-.san.invalid { color: var(--blunder); text-decoration: line-through; border-bottom: 0; }
+.san.invalid { color: var(--blunder); border-bottom: 2px solid currentColor; }
+.game-ref { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.game-ref:hover, .game-ref:focus-visible { text-decoration-thickness: 2px; }
+.board-preview { position: absolute; left: 6px; right: 6px; bottom: 6px; z-index: 15; padding: 4px 8px; border-radius: 4px; font-size: 13px; text-align: center; background: rgb(10 12 25 / .72); color: #fff; pointer-events: none; }
+.board-outer.previewing #board { outline: 2px dashed var(--accent); outline-offset: 2px; }
 .model-box progress { display: block; width: 100%; margin-top: 6px; accent-color: var(--accent); }
 .check-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 6px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -280,7 +284,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <div class="player" id="playerTop"></div>
     <div class="boardwrap">
       <div class="evalbar" id="evalbar" title="Engine evaluation"><div class="w" id="evalW" style="height:50%"></div><div class="mid"></div></div>
-      <div class="board-outer"><div id="board" class="cg-wrap"></div><div id="promo" class="promo" hidden></div></div>
+      <div class="board-outer"><div id="board" class="cg-wrap"></div><div id="boardPreview" class="board-preview" hidden></div><div id="promo" class="promo" hidden></div></div>
     </div>
     <div class="player" id="playerBottom"></div>
     <div class="controls">
@@ -454,7 +458,7 @@ import { createBrowserModel, cpuThreads } from './browser-llm.js';
 import { COACH_RULES, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './tutor.js';
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
-import { classicGames, retrieveClassics } from './classics.js';
+import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
 import { sanToSpeech, parseMoveInput } from './notation.js';
@@ -669,7 +673,9 @@ function canMove() {
   if (S.mode === 'analysis') return true;
   return S.playing && S.cursor === last() && turnOf(nodeFen()) === S.userColor && !S.thinking;
 }
+let previewing = false; // a game reference's position is on the board (previewPosition)
 function syncBoard() {
+  if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
   const fen = nodeFen(); const n = S.nodes[S.cursor]; const c = new Chess(fen);
   const turn = turnOf(fen) === 'w' ? 'white' : 'black';
   const mov = canMove();
@@ -1896,11 +1902,39 @@ function renderRich(box, text, fen = nodeFen(), check = null) {
 function inline(node, text, fen, marks) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   for (const p of parts) {
-    if (/^\*\*[^*]+\*\*$/.test(p)) { const b = el('strong'); addSan(b, p.slice(2, -2), fen, marks); node.append(b); }
-    else addSan(node, p, fen, marks);
+    if (/^\*\*[^*]+\*\*$/.test(p)) { const b = el('strong'); addRefs(b, p.slice(2, -2), fen, marks); node.append(b); }
+    else addRefs(node, p, fen, marks);
   }
   return node;
 }
+// Names of classic games in the text become links: hovering (or focusing) shows the game's key
+// position on the board, clicking opens the game there. Only names from the built-in collection
+// match, so the target is always our own game record, never a link out of the page.
+function addRefs(node, text, fen, marks) {
+  let at = 0;
+  for (const r of findGameRefs(text)) {
+    const g = EXAMPLES.find(x => x.id === r.id);
+    if (!g) continue;
+    if (r.index > at) addSan(node, text.slice(at, r.index), fen, marks);
+    const kp = keyPosition(Chess, r.id);
+    const b = el('button', { type: 'button', class: 'game-ref', title: `${g.title} (${g.white} – ${g.black}, ${g.date}): hover to see it after ${kp.label}, click to open the game`, onclick: () => { endPreview(); openGame(g, g.moment); } }, text.slice(r.index, r.index + r.length));
+    const show = () => previewPosition(kp, `${g.title}, after ${kp.label}`);
+    b.addEventListener('mouseenter', show); b.addEventListener('focus', show);
+    b.addEventListener('mouseleave', endPreview); b.addEventListener('blur', endPreview);
+    node.append(b); at = r.index + r.length;
+  }
+  if (at < text.length) addSan(node, text.slice(at), fen, marks);
+}
+// A position shown on the board for a moment (a game reference under the pointer); the game itself
+// is untouched, and anything that redraws the board (syncBoard) ends the preview.
+function previewPosition(p, caption) {
+  previewing = true;
+  cg.set({ fen: p.fen, lastMove: p.lastMove || undefined, check: false, movable: { color: undefined, dests: new Map() } });
+  cg.setAutoShapes([]);
+  $('.board-outer').classList.add('previewing');
+  const cap = $('#boardPreview'); cap.textContent = caption; cap.hidden = false;
+}
+function endPreview() { if (previewing) syncBoard(); }
 function addSan(node, text, fen, marks = null) {
   let lastIdx = 0; let m; SAN_RE.lastIndex = 0;
   const legal = new Map(new Chess(fen).moves({ verbose: true }).map(mv => [mv.san.replace(/[+#]/, ''), mv]));

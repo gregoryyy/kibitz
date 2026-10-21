@@ -42,7 +42,7 @@ test('aspect picker: the comment covers the chosen aspects in order; a repeat co
   expect(bodies).toHaveLength(1);
 });
 
-test('an answer\'s moves and piece claims are checked: an illegal move is struck through and counted', async ({ page }) => {
+test('an answer\'s moves and piece claims are checked: an illegal move is underlined in red and counted', async ({ page }) => {
   await page.route('**/api/ai/sample', r => r.fulfill({
     status: 200, contentType: 'application/x-ndjson',
     body: [{ text: 'Start with e4. Qh5 wins at once, and the knight on f3 is strong.' }, { done: true, truncated: false }].map(l => JSON.stringify(l)).join('\n') + '\n',
@@ -54,6 +54,11 @@ test('an answer\'s moves and piece claims are checked: an illegal move is struck
   const answer = page.locator('#chat .msg.coach').last();
   await expect(answer.locator('.san.invalid')).toHaveText('Qh5');
   await expect(answer.locator('.san.invalid')).toHaveAttribute('title', /Not a legal move/);
+  // Underlined, not struck through, so the move stays readable (and red).
+  const style = await answer.locator('.san.invalid').evaluate(e => { const c = getComputedStyle(e); return { line: c.textDecorationLine, border: c.borderBottomStyle, color: c.color, blunder: getComputedStyle(document.documentElement).getPropertyValue('--blunder') }; });
+  expect(style.line).toBe('none');
+  expect(style.border).toBe('solid');
+  expect(style.blunder.trim()).not.toBe('');
   await expect(answer.locator('.san', { hasText: 'e4' })).not.toHaveClass(/invalid/);
   await expect(answer.locator('.san', { hasText: 'f3' })).toHaveCount(0); // "on f3" is a square, not a move
   await expect(answer.locator('.check-note')).toContainText('2 claims in this answer don\'t match');
