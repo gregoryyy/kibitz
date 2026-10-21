@@ -7,6 +7,20 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — CI: secret scan permissions
+
+TODO items: 0.8 (fix).
+
+### Implementation notes
+
+- The first CI run (PR #11) failed the secret scan with a 403 before scanning anything. On a pull request, gitleaks-action lists the PR's commits through the GitHub API, and the workflow token was limited to `contents: read`. The `secrets` job now also has `pull-requests: read`, and PR comments are off (`GITLEAKS_ENABLE_COMMENTS: false`), so the token stays read-only. A finding still fails the job.
+
+### Insights
+
+- CI ran only on the PR into `main`. The stacked PRs #2–#10 (based on feature branches) never created a workflow run.
+
+---
+
 ## 2026-10-20 — Eval bar: narrower, and it turns with the board
 
 TODO items: none (a fix from use; the bar came with the prototype, 1.5).
