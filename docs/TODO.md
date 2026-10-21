@@ -91,12 +91,12 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 3.6 When to comment: after every move, only after mistakes, or on request; no spoilers mid-game unless help is on
 - [x] 3.7 Cache comments by (EPD, aspect, level, model)
 - [ ] 3.8 Tutor eval set: reference positions with the key points a good comment should hit; scored by engine checks plus an LLM judge, run per provider *(added)*
-- [ ] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*
-  - [ ] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked
-  - [ ] 3.9.2 Continuous commentary: a short comment on every move by either side, like a broadcast commentator. Uses the quick model, is cached per position (3.7), and keeps to the spoiler rules from 3.6 during a game
-  - [ ] 3.9.3 Challenges: the coach asks instead of explaining ("What does Black threaten?", "Find the best move", "Nf3 or Bg5?", "Which square is weak?"). The player's answer is checked against the engine and the motif detectors before the coach reveals anything, and results count toward progress per theme (6.7, 9.2)
-  - [ ] 3.9.4 Interesting moves, not only the best: the analyst's MultiPV count and a centipawn window become settings. From the moves inside the window, the coach picks the ones worth showing (a different plan, a sacrifice, a quiet move, a trap for the opponent) instead of always the engine's first line. Each pick shows its engine rank and evaluation
-  - [ ] 3.9.5 Tests: each mode with the mock provider, challenge answers checked against fixed engine lines, the move picker on reference positions
+- [x] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*. In the Coach tab as "How the coach works": Only when asked, After my mistakes, After my moves, Commentary on every move, Challenge me
+  - [x] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked
+  - [x] 3.9.2 Continuous commentary: a short comment on every move by either side, like a broadcast commentator. Uses the quick model, is cached per position (3.7), and keeps to the spoiler rules from 3.6 during a game
+  - [x] 3.9.3 Challenges: the coach asks instead of explaining ("What does Black threaten?", "Find the best move", "Nf3 or Bg5?", "Which square is weak?"). The player's answer is checked against the engine and the motif detectors before the coach reveals anything, and results count toward progress per theme (6.7, 9.2). Done: best move, the better of two, and the threat (the position with the other side to move); results per theme are kept in the browser and shown in the Coach tab, for 6.7 and 9.2 to build on
+  - [x] 3.9.4 Interesting moves, not only the best: the analyst's MultiPV count and a centipawn window become settings. From the moves inside the window, the coach picks the ones worth showing (a different plan, a sacrifice, a quiet move, a trap for the opponent) instead of always the engine's first line. Each pick shows its engine rank and evaluation
+  - [x] 3.9.5 Tests: each mode with the mock provider, challenge answers checked against fixed engine lines, the move picker on reference positions
 
 ## 4. Chat and board annotations
 

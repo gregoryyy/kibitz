@@ -65,15 +65,24 @@ export function commentRequest(aspects, { view = 'all', words = 150 } = {}) {
 // --- When to comment by itself (3.6) -----------------------------------
 // when: 'request' (never by itself), 'mistakes' (after the player's inaccuracies, mistakes and
 // blunders) or 'every' (after each of the player's moves). Never while engine help is off.
+// The explanation modes (3.9): the coach speaks on request (3.9.1), after the player's mistakes or
+// moves, on every move by either side like a broadcast commentator (3.9.2), or asks questions
+// instead of explaining (3.9.3, challenges, which the page runs itself; never a comment).
 export const COMMENT_WHEN = [
   { id: 'request', label: 'Only when asked' },
   { id: 'mistakes', label: 'After my mistakes' },
-  { id: 'every', label: 'After every move' },
+  { id: 'every', label: 'After my moves' },
+  { id: 'commentary', label: 'Commentary on every move' },
+  { id: 'challenge', label: 'Challenge me' },
 ];
 const MISTAKES = new Set(['inaccuracy', 'mistake', 'blunder']);
+// cls: the move's class once it's analysed. Commentary covers both sides' moves, and during a
+// game the comment still only gets the view the help setting allows (engineView).
 export function shouldComment({ when, view, cls, byPlayer }) {
-  if (!byPlayer || view === 'none') return false;
-  if (when === 'every') return !!cls;
+  if (view === 'none' || !cls) return false;
+  if (when === 'commentary') return true;
+  if (!byPlayer) return false;
+  if (when === 'every') return true;
   if (when === 'mistakes') return MISTAKES.has(cls);
   return false;
 }

@@ -58,6 +58,16 @@ test('when to comment by itself: the player\'s moves only, never with help off',
   assert.equal(at('mistakes', 'blunder', { view: 'past' }), true);
 });
 
+test('commentary covers every move by either side; challenges never comment', () => {
+  const at = (when, cls, extra = {}) => shouldComment({ when, view: 'all', cls, byPlayer: false, ...extra });
+  assert.equal(at('commentary', 'good'), true, 'the engine\'s or the game\'s moves too');
+  assert.equal(at('commentary', 'book'), true);
+  assert.equal(at('commentary', undefined), false, 'not before the move is classified');
+  assert.equal(at('commentary', 'good', { view: 'past' }), true, 'in a game, within the help setting');
+  assert.equal(at('commentary', 'good', { view: 'none' }), false, 'engine help off');
+  assert.equal(at('challenge', 'blunder', { byPlayer: true }), false);
+});
+
 test('safety notes: hanging, cheaply attacked and loose pieces, thin king shelter', () => {
   assert.ok(safetyNotes(Chess, ITALIAN).includes('White\'s bishop on c4 is loose (no defender)'));
   assert.deepEqual(safetyNotes(Chess, '4k3/8/8/3n4/8/8/8/3RK3 w - - 0 1'), ['Black\'s knight on d5 is attacked and not defended']);
