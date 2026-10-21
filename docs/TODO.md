@@ -44,6 +44,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game
 - [x] 1.13 Playing style for Stockfish (Solid, Balanced, Active, Aggressive, Reckless), saved with the Elo setting *(added)*
 - [x] 1.14 Help level "Eval + mistakes": mistakes are flagged, and the eval bar shows the position after the player's move, holding it through Stockfish's reply. The best move stays hidden, and the coach sees what it sees with Flag mistakes *(added)*
+- [ ] 1.15 Keep the game in progress across reloads in the local app *(added)*. Inside the Claude artifact the host's snapshot (`window.claude.hot`) restores it; the local app (`just serve`) starts a new game on every reload, and a language switch (10.8) has to save the running game to the library first. Write the same snapshot (PGN, cursor, mode, colour, orientation, Elo and style, start ply, clock times) to `localStorage` under one key on every move and setting change, and restore it at boot when there's no host. Clear it when the game ends or is left, so a finished game doesn't come back. The clock doesn't run while the page is closed. If two tabs are open, the last one to move wins. A failed write (storage full) says so, as saving to the library does. Tests: a reload in the middle of a game, with and without a clock, and with Stockfish to move
 
 ## 2. AI provider layer
 
@@ -209,6 +210,10 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 10.6 Mobile layout and dark mode *(prototype)*
 - [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the coach works offline with Ollama or the in-browser model (2.16)
 - [ ] 10.8 Internationalization
+  - [x] 10.8.1 A language switch in the header, English and German: the page in German, the coach's answers in German, German move letters read (Sf3), screen-reader moves in German
+  - [ ] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
+  - [ ] 10.8.3 Opening names in German (eco.json is English), and the classic games' PGN comments
+  - [ ] 10.8.4 The tutor eval set in German: the same positions with German key points, run against each provider
 
 ## 11. Security testing (before every release)
 

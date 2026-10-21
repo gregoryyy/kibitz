@@ -25,6 +25,50 @@ TODO items: fix for 2.x (the AI gateway's errors).
 ### Insights
 
 - **The same model fails differently depending on the request.** Ollama answers the old model with 404 "not found" through the SDK's streaming request, but with 400 "does not support chat" through a plain one. Both now say what's wrong. The cure is `ollama pull deepseek-r1` again, or another model from `ollama list`.
+## 2026-10-21 — Languages: English and German
+
+TODO items: 10.8.1 (10.8 started).
+
+### Implementation notes
+
+- **The approach:** English stays the source, and a language is a dictionary from English text to its translation (`site/src/i18n.js`, `i18n-de.js`).
+  - The page translates what it shows as it appears: the markup once at load, then every text node and every title, placeholder and aria-label added later, through a MutationObserver.
+  - Code that builds text needed almost no change, and neither did the pure modules (`knowledge.js`, `tutor.js`, `modes.js`) whose sentences the page shows.
+- **Templates:** a key is exact text or a template with `{placeholders}` ("{n} moves ready. …"). The parts are translated again, so sentences built from smaller pieces come out whole. Two extensions cover German grammar:
+  - `{p|the *}` looks the part up inside a phrase, so "the knight" becomes "den Springer" and "knight move" becomes "Springerzug";
+  - keys starting with "@" only translate parts, never whole text, so a loose connector like "{a} and {b}" can't half-translate an unknown sentence.
+- **What stays as it is:** text inside `translate="no"`, which covers:
+  - the board, the coach's answers (already German) and PGN comments;
+  - player names, book titles and authors, opening names (eco.json is English), and model ids.
+
+  Elements marked `data-raw` keep their attributes too, such as an opening name as a title. Text built from translated parts with numbers in German format (the token counts) is marked the same way.
+- **The coach:** the prompts stay in English, which every model follows best, and a rule asks for the answer in German, using "du" and English move letters (`coachRules`). Comments are cached per language. The few moves an answer still writes with German letters (Sf3, Dxd5) become SAN before they're checked and shown (`germanSanToSan`), and so do moves typed that way. Game references in German answers link too ("die Opernpartie", "Morphy gegen den Herzog").
+- **The switch:** a select in the header. The choice is saved and the page reloads. Without a saved choice, the browser's language decides.
+  - Inside the Claude artifact, the host's snapshot brings the game back.
+  - The local app can't resume a running game yet (new TODO 1.15). So the switch asks first, and saves the game in progress to the library as unfinished.
+- **Tests:**
+  - unit `i18n.test`:
+    - the translator, German move letters and German speech;
+    - the dictionary covers every text and attribute in the markup and every label the modules show;
+    - each template's placeholders match its key;
+    - the coach rule and the cache key.
+  - e2e `i18n.spec`:
+    - the switch, and a German move typed;
+    - the coach asked for German, its German letters read as moves, a German game name linked;
+    - every tab with a loaded game: with `?debug`, the page records each text it showed without a translation, and that list must be empty;
+    - and back to English.
+
+### Deviations
+
+- **Moves keep the English letters,** as on Lichess, rather than K, D, T, L, S. German letters are read, not shown. Showing them, or figurines, as a setting is 10.8.2.
+- **Opening names and the classics' PGN comments stay English** (10.8.3), as do book titles, which are published names.
+- **The tutor eval set is English only** (10.8.4).
+
+### Insights
+
+- **Translating in the DOM beats rewriting every string.** The page builds its text in about 200 places, many of them sentences put together from module output. Matching the finished text against templates kept those places unchanged and made German a single file to review.
+- **A debug list of untranslated text is the test.** Crawling the page in English with `?debug` gave the complete inventory to translate. The same list in German, empty, is the e2e check, and it found everything the first dictionary missed: titles echoed back by the observer, nodes replaced in the same tick, and opening names used as titles.
+- **Grammar needs a little more than templates.** German case ("den Springer") and compounds ("Läuferzug") are handled by phrase lookups. Sentences joined with "; " are translated part by part.
 ## 2026-10-21 — Fix: the coach's context line with "Eval + mistakes"
 
 TODO items: fix for 1.14.
