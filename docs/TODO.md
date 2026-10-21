@@ -61,6 +61,18 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
 - [x] 2.14 Settings UI: provider, model, connection test, local-only mode
 - [ ] 2.15 Contract tests per adapter against recorded responses; live smoke tests run only when an env flag is set. Remaining: recorded fixtures for OpenAI, Mistral and Ollama (hand-written from the documented format until their keys work; Claude's are recorded).
+- [ ] 2.16 Offline mode with an in-browser model: a small model runs in the page, so the coach works with no network, no key and no provider *(added)*
+  - [ ] 2.16.0 `just offline`, a recipe of its own: on first run it downloads the chosen model's weights into `site/models/` (gitignored, checksums verified); then it builds and serves the app with local-only mode on and the in-browser model as the provider. In this mode nothing leaves the machine: the weights come from our own server and the CSP allows `connect-src 'self'` only
+  - [ ] 2.16.1 Runtime:
+    - WebLLM on WebGPU first: fast, with an OpenAI-style API and JSON-schema output
+    - wllama when there's no WebGPU: llama.cpp in WebAssembly, multi-threaded under the COOP/COEP headers we already send
+    - Chrome's built-in model (Prompt API) as an optional extra where it exists
+    - Licences fit GPL-3.0 (Apache-2.0, MIT)
+  - [ ] 2.16.2 Model: a small open model under Apache-2.0 or MIT, chosen with the tutor eval set (3.8). It only puts into words what the engine and the detectors found, which is what makes a small model usable. The weights download on first use, only after the player agrees, with the size shown. They're cached in the browser and always come from our own server (2.16.0), never from a CDN
+  - [ ] 2.16.3 It runs in a Worker behind a page-side provider with the same interface as the gateway's (`chat()`, JSON formats, usage), so the coach code doesn't depend on where the model runs. The coach settings list it as "In browser", and local-only mode (2.14) counts it as local
+  - [ ] 2.16.4 Resources: on the CPU it competes with Stockfish for threads, so the analyst gets fewer threads while the model is generating. Free memory is checked before loading, and the model is unloaded when idle
+  - [ ] 2.16.5 Routing per task (2.10): quick comments run in the browser, and chat and reviews go to the gateway when one is set up
+  - [ ] 2.16.6 Tests: the page-side provider against a fake runtime in the Worker, and a live smoke test with a real model only when an env flag is set
 
 ## 3. Tutor commentary
 
@@ -77,6 +89,12 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 3.6 When to comment: after every move, only after mistakes, or on request; no spoilers mid-game unless help is on
 - [ ] 3.7 Cache comments by (EPD, aspect, level, model)
 - [ ] 3.8 Tutor eval set: reference positions with the key points a good comment should hit; scored by engine checks plus an LLM judge, run per provider *(added)*
+- [ ] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*
+  - [ ] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked
+  - [ ] 3.9.2 Continuous commentary: a short comment on every move by either side, like a broadcast commentator. Uses the quick model, is cached per position (3.7), and keeps to the spoiler rules from 3.6 during a game
+  - [ ] 3.9.3 Challenges: the coach asks instead of explaining ("What does Black threaten?", "Find the best move", "Nf3 or Bg5?", "Which square is weak?"). The player's answer is checked against the engine and the motif detectors before the coach reveals anything, and results count toward progress per theme (6.7, 9.2)
+  - [ ] 3.9.4 Interesting moves, not only the best: the analyst's MultiPV count and a centipawn window become settings. From the moves inside the window, the coach picks the ones worth showing (a different plan, a sacrifice, a quiet move, a trap for the opponent) instead of always the engine's first line. Each pick shows its engine rank and evaluation
+  - [ ] 3.9.5 Tests: each mode with the mock provider, challenge answers checked against fixed engine lines, the move picker on reference positions
 
 ## 4. Chat and board annotations
 
@@ -87,6 +105,35 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 4.5 "What if": the user tries a move on a scratch board, the engine evaluates it, the tutor explains
 - [ ] 4.6 Chat context: current position, game so far, selected aspects, recent tutor comments
 - [ ] 4.7 Tests: schema validation, rendering e2e, malformed and hostile model output
+- [ ] 4.8 Free conversation with the coach, about any game or position, not only the one on the board *(added)*
+  - [ ] 4.8.1 Open questions (plans, openings, general chess) without a position; answers stay grounded in the engine whenever a position is involved
+  - [ ] 4.8.2 Load from the chat: the player names a game ("the Opera Game", "my last loss with Black") or pastes a FEN or PGN, and the coach puts it on the board in analysis mode
+  - [ ] 4.8.3 Coach tools: search the library (7.5), load a game at a given move, load a position, load an opening line. Every load is checked with chess.js, and leaving a game in progress needs the player's confirmation; the tools only load, never change or delete anything (11.3.6). Builds on tool calling (2.7)
+  - [ ] 4.8.4 After a load, the engine analyses the position before the coach explains it, and the chat keeps track of which game and move each answer refers to
+  - [ ] 4.8.5 Tests: tool calls with the mock provider, invalid or hostile load requests, confirmation before leaving a game
+- [ ] 4.9 One chat outside the tabs: the chat stays visible whichever tab is open (play, analysis, review, openings, lessons), instead of living inside the Coach tab *(added)*
+  - [ ] 4.9.1 The chat follows the context. By default the coach talks about the active tab's game and position. A message that names something else ("this opening", "my last game", a FEN) switches the context, which shows as a chip above the input that the player can change. Each answer stays tied to the game and move it was about
+  - [ ] 4.9.2 Layout: a side panel on wide screens and a drawer on mobile (10.6), collapsible, with the history kept across tab switches
+  - [ ] 4.9.3 Tests: e2e for the chat across tabs, switching context by tab and by message, the mobile drawer
+- [ ] 4.10 Board control from the chat: the chat can make moves and set up pieces *(added)*
+  - [ ] 4.10.1 Moves: "play e4", "take back two moves", "go to move 15", "show me Nxf7 and what follows". Plain move text goes through the typed-move parser (`parseMoveInput`) without calling the model. In a game, the chat moves only for the player and follows the clock and help settings; elsewhere it plays in analysis, on a variation that leaves the game untouched (4.3)
+  - [ ] 4.10.2 Setup: "put a white knight on f5", "remove the queens", "set up a Lucena position", "White to move". This edits a scratch board in analysis mode, never a game in progress. The result must be a legal position (`checkStart`, `fixCastling`) before it's shown, with the side to move and castling rights stated
+  - [ ] 4.10.3 Coach tools for both (with 4.8.3): `move`, `goto`, `setup` taking pieces and squares, `undo`. Every call is checked with chess.js, every board change can be undone in one step, and none of them touches saved games or the library
+  - [ ] 4.10.4 After each change the engine re-analyses, and the coach's next answer is about the new position (async results checked against the FEN)
+  - [ ] 4.10.5 Tests: moves and setups through the mock provider, illegal or hostile requests (impossible positions, moves for the engine's side, setup during a game), undo
+- [ ] 4.11 Engine tools for the coach: the model asks, and Stockfish and the motif detectors answer *(added)*
+  - [ ] 4.11.1 Tools:
+    - `analyse(fen, depth, lines)`: the top lines in SAN, with evaluations
+    - `try_move(fen, move)`: does this move work, and what refutes it (`go searchmoves`)
+    - `threats(fen)`: what the opponent would play if it were their move (side to move flipped; not when in check)
+    - `compare(fen, moves)`
+    - `find_mate(fen, n)`
+    - `find_motifs(fen, line)`: `moveMotifs` on every move of a line
+  - [ ] 4.11.2 Pattern search over lines: the detectors run over every move of the top lines, and a motif counts only when the engine's evaluation confirms it pays off within a few moves. A large gap between the first and second line flags an "only move". The detectors grow to cover the themes in 6.2
+  - [ ] 4.11.3 Tool calling in the gateway for every provider: Claude tool use, and function calling for OpenAI, Mistral and Ollama. One mechanism also serves the load tools (4.8.3) and the board tools (4.10.3); today the gateway uses JSON-schema output instead (2.7). Models without tools fall back to a standard analysis run up front, which the model only explains
+  - [ ] 4.11.4 Where the engine runs: in the page, with the gateway handing each tool call to the page and waiting for the result, or on the server, where the npm Stockfish build also runs in Node. Decide on latency, cost and hosted load (10.1). Each answer gets a cap on tool calls and engine time
+  - [ ] 4.11.5 Tool arguments are untrusted: FENs and moves are checked with chess.js, and depth, time and line count are capped. Every line the model quotes must come from a tool result (3.4). The tool results are kept with the answer, so the chat can show the evidence
+  - [ ] 4.11.6 Tests: tool loops with the mock provider and a fake engine; hostile arguments (illegal FEN, huge depth, a tool loop that doesn't end); contract fixtures for tool calls per provider
 
 ## 5. Opening library
 
@@ -95,6 +142,13 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 5.3 Repertoire builder: the user picks lines for White and for Black
 - [ ] 5.4 Repertoire drill with spaced repetition *(added)*
 - [ ] 5.5 Opening explanations: ideas, typical plans, resulting pawn structures
+- [ ] 5.6 Opening variations at the board: which opening this is, and the named continuations from here *(added)*
+  - [ ] 5.6.1 Panel with the current line's name and ECO code, and each next move that leads to a named variation, with that variation's name. Built from the Lichess lines already in `openings.json`; how often each move is played comes with the explorer (5.2)
+  - [ ] 5.6.2 Hovering a move shows it on the board; clicking plays it in analysis, or as the next move in a game
+  - [ ] 5.6.3 Matched by position, not move order, so transpositions find the right name
+  - [ ] 5.6.4 During a game the panel follows the live-help setting (off: hidden until the game ends), so it doesn't hint at moves
+  - [ ] 5.6.5 Chat: the coach gets the opening and its continuations in the context, and a quick question "About this opening". Questions like "what's the idea of 6. Bg5?" are answered from the engine's lines, and from the opening explanations once 5.5 exists
+  - [ ] 5.6.6 Tests: continuations for known positions, transpositions, hidden during play, the context sent to the coach
 
 ## 6. Tactics and strategy curriculum
 
@@ -144,7 +198,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 10.4 Privacy notice: what goes to which AI provider, with opt-in per provider
 - [ ] 10.5 Accessibility: keyboard play, colour-blind-safe arrows, reduced motion
 - [x] 10.6 Mobile layout and dark mode *(prototype)*
-- [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the tutor needs a provider or Ollama
+- [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the coach works offline with Ollama or the in-browser model (2.16)
 - [ ] 10.8 Internationalization
 
 ## 11. Security testing (before every release)
