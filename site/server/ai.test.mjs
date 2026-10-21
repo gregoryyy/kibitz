@@ -32,7 +32,7 @@ test('unknown provider is rejected', () => {
 
 test('public status never exposes keys or base URLs', () => {
   const s = publicStatus(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'secret-key', MISTRAL_BASE_URL: 'https://proxy.internal/v1' }));
-  assert.deepEqual(Object.keys(s).sort(), ['available', 'localOnly', 'model', 'models', 'provider', 'providers', 'reason']);
+  assert.deepEqual(Object.keys(s).sort(), ['available', 'browser', 'localOnly', 'model', 'models', 'provider', 'providers', 'reason']);
   assert.deepEqual(Object.keys(s.providers[0]).sort(), ['available', 'local', 'model', 'name', 'reason']);
   const all = loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'secret-key', ANTHROPIC_API_KEY: 'other-secret', OPENAI_BASE_URL: 'https://proxy.internal/v1' });
   assert.doesNotMatch(JSON.stringify(s) + JSON.stringify(publicStatus(all)), /secret|proxy\.internal/);
@@ -255,7 +255,7 @@ test('each task can have its own model; unset ones use <PROVIDER>_MODEL', () => 
 // ---------------------------------------------------------------- switching and local-only (TODO 2.14)
 test('every provider .env sets up can be switched to; others say why not', () => {
   const c = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', MISTRAL_API_KEY: 'm' });
-  assert.deepEqual(publicStatus(c).providers.map(p => [p.name, p.available]), [['anthropic', true], ['openai', false], ['mistral', true], ['ollama', false]]);
+  assert.deepEqual(publicStatus(c).providers.map(p => [p.name, p.available]), [['anthropic', true], ['openai', false], ['mistral', true], ['ollama', false], ['browser', false]]);
   const m = switchProvider(c, 'mistral');
   assert.equal(m.provider, 'mistral'); assert.equal(m.model, 'mistral-small-latest'); assert.equal(m.apiKey, 'm');
   assert.equal(switchProvider(m, 'anthropic').apiKey, 'k', 'and back');
@@ -273,6 +273,25 @@ test('local-only: Ollama takes over, cloud providers are refused, or the coach i
   assert.equal(s.localOnly, true);
   assert.deepEqual(s.providers.find(p => p.name === 'anthropic'), { name: 'anthropic', model: 'claude-haiku-5-5', local: false, available: false, reason: 'Local-only mode is on' });
   const none = applyLocalOnly({ ...loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k' }), localOnly: true });
-  assert.equal(none.available, false); assert.match(none.reason, /Ollama isn't set up/);
+  assert.equal(none.available, false); assert.match(none.reason, /neither Ollama .* nor the in-browser model/);
   assert.equal(applyLocalOnly({ ...loadConfig({ AI_PROVIDER: 'mock' }), localOnly: true }).provider, 'mock');
+});
+
+test('in-browser model: available once serve.mjs has found the checked file; local; the server never runs it', async () => {
+  const off = loadConfig({ AI_PROVIDER: 'browser' });
+  assert.equal(off.available, false); assert.match(off.reason, /just offline/);
+  assert.equal(loadConfig({ AI_PROVIDER: 'browser', BROWSER_MODEL_REASON: 'not checked yet' }).reason, 'not checked yet');
+  const env = { AI_PROVIDER: 'browser', BROWSER_MODEL_URL: 'models/m.gguf', BROWSER_MODEL_NAME: 'Tiny', BROWSER_MODEL_BYTES: '1234' };
+  const on = loadConfig(env);
+  assert.equal(on.available, true); assert.equal(on.model, 'Tiny');
+  assert.deepEqual(on.models, { quick: 'Tiny', chat: 'Tiny', review: 'Tiny' });
+  const s = publicStatus(on);
+  assert.deepEqual(s.browser, { url: 'models/m.gguf', name: 'Tiny', bytes: 1234 });
+  assert.deepEqual(s.providers.find(p => p.name === 'browser'), { name: 'browser', model: 'Tiny', local: true, available: true, reason: '' });
+  await assert.rejects(complete(createProvider(on), [{ role: 'user', content: 'hi' }]), { code: 'in_browser', status: 409 });
+  // Local-only falls back to it when there's no Ollama, and allows switching to it.
+  const cloud = loadConfig({ ...env, AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', AI_LOCAL_ONLY: '1' });
+  assert.equal(cloud.provider, 'browser');
+  assert.equal(switchProvider(loadConfig({ ...env, AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k' }), 'browser').provider, 'browser');
+  assert.equal(publicStatus(loadConfig({ AI_PROVIDER: 'mock' })).browser, null);
 });

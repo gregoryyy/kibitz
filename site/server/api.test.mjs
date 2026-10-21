@@ -51,8 +51,8 @@ test('status reports provider and availability', async () => {
   assert.equal(r.status, 200);
   const { usage, ...status } = JSON.parse(r.body);
   const { providers, ...rest } = status;
-  assert.deepEqual(rest, { provider: 'mock', model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true, reason: '', localOnly: false });
-  assert.deepEqual(providers.map(p => [p.name, p.available, p.local]), [['anthropic', false, false], ['openai', false, false], ['mistral', false, false], ['ollama', false, true], ['mock', true, true]]);
+  assert.deepEqual(rest, { provider: 'mock', model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true, reason: '', localOnly: false, browser: null });
+  assert.deepEqual(providers.map(p => [p.name, p.available, p.local]), [['anthropic', false, false], ['openai', false, false], ['mistral', false, false], ['ollama', false, true], ['browser', false, true], ['mock', true, true]]);
   assert.equal(typeof usage.requests, 'number');
   assert.equal(r.headers['cache-control'], 'no-store');
 });

@@ -4,7 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { exampleFor, providerSchema } from './schema.mjs';
 
-export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'mock'];
+export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock'];
 // Small, fast models by default: coaching replies are short and grounded in engine output.
 const DEFAULTS = {
   anthropic: { model: 'claude-haiku-5-5' },
@@ -22,8 +22,9 @@ export class GatewayError extends Error {
   constructor(code, message, status = 502) { super(message); this.code = code; this.status = status; }
 }
 
-// Providers that keep everything on this machine.
-export const LOCAL_PROVIDERS = ['ollama', 'mock'];
+// Providers that keep everything on this machine. "browser" is the in-browser model (TODO 2.16):
+// the page runs it itself; the gateway only tells the page where its weights are.
+export const LOCAL_PROVIDERS = ['ollama', 'browser', 'mock'];
 
 // Reads the AI settings from an env object. `available` is false (with a `reason`) when the
 // chosen provider can't be used, so the client can hide the coach and say why. `choices` holds
@@ -35,19 +36,20 @@ export function loadConfig(env = process.env) {
   return applyLocalOnly({ ...providerConfig(env, active), choices, localOnly: /^(1|true|yes|on)$/i.test(env.AI_LOCAL_ONLY || '') });
 }
 
-// In local-only mode a cloud provider is never used: Ollama takes over if it's set up.
+// In local-only mode a cloud provider is never used: Ollama takes over if it's set up, else the
+// in-browser model.
 export function applyLocalOnly(cfg) {
   if (!cfg.localOnly || LOCAL_PROVIDERS.includes(cfg.provider)) return cfg;
-  const ollama = cfg.choices?.ollama;
-  if (ollama?.available) return { ...ollama, choices: cfg.choices, localOnly: true };
-  return { ...cfg, available: false, reason: 'Local-only mode is on, and Ollama isn\'t set up (OLLAMA_MODEL in .env)' };
+  const local = [cfg.choices?.ollama, cfg.choices?.browser].find(c => c?.available);
+  if (local) return { ...local, choices: cfg.choices, localOnly: true };
+  return { ...cfg, available: false, reason: 'Local-only mode is on, and neither Ollama (OLLAMA_MODEL in .env) nor the in-browser model (`just offline`) is set up' };
 }
 
 // Settings with another configured provider active; keys and models still come from .env.
 export function switchProvider(cfg, name) {
   if (!Object.hasOwn(cfg.choices || {}, name)) throw new GatewayError('bad_request', `Unknown provider "${name}"`, 400);
   const next = cfg.choices[name];
-  if (cfg.localOnly && !LOCAL_PROVIDERS.includes(name)) throw new GatewayError('forbidden', 'Local-only mode is on: only Ollama can be used', 409);
+  if (cfg.localOnly && !LOCAL_PROVIDERS.includes(name)) throw new GatewayError('forbidden', 'Local-only mode is on: only Ollama or the in-browser model can be used', 409);
   if (!next.available) throw new GatewayError('unavailable', next.reason, 409);
   return { ...next, choices: cfg.choices, localOnly: cfg.localOnly };
 }
@@ -65,6 +67,12 @@ function providerConfig(env, provider) {
   const off = reason => ({ ...cfg, reason });
   if (!PROVIDERS.includes(provider)) return off(`AI_PROVIDER "${provider}" is not one of ${PROVIDERS.join(', ')}`);
   if (provider === 'mock') return { ...cfg, model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true };
+  if (provider === 'browser') {
+    // Set by scripts/serve.mjs --models once the model file is downloaded and checked.
+    const url = env.BROWSER_MODEL_URL || '', name = env.BROWSER_MODEL_NAME || 'In-browser model';
+    if (!url) return off(env.BROWSER_MODEL_REASON || 'No in-browser model yet: run `just offline` once to download it');
+    return { ...cfg, model: name, models: { quick: name, chat: name, review: name }, available: true, browser: { url, name, bytes: num(env.BROWSER_MODEL_BYTES, 0) } };
+  }
 
   const P = provider.toUpperCase();
   cfg.model = env[`${P}_MODEL`] || DEFAULTS[provider].model;
@@ -88,6 +96,8 @@ function providerConfig(env, provider) {
 // What the browser may see about the configuration: never keys or base URLs.
 export const publicStatus = cfg => ({
   provider: cfg.provider, model: cfg.model, models: cfg.models || null, available: cfg.available, reason: cfg.reason, localOnly: !!cfg.localOnly,
+  // Where the page finds the in-browser model's weights (a path on this server), when there is one.
+  browser: cfg.choices?.browser?.available ? cfg.choices.browser.browser : null,
   providers: Object.values(cfg.choices || {}).map(c => ({
     name: c.provider, model: c.model, local: LOCAL_PROVIDERS.includes(c.provider),
     available: c.available && (!cfg.localOnly || LOCAL_PROVIDERS.includes(c.provider)),
@@ -134,6 +144,10 @@ export function createProvider(cfg, /** @type {{ client?: any }} */ { client } =
       return openAICompatProvider(cfg, client ?? new OpenAI({ apiKey: cfg.apiKey, baseURL, timeout: cfg.timeoutMs }));
     }
     case 'mock': return mockProvider();
+    case 'browser': return {
+      // eslint-disable-next-line require-yield -- never yields: the page runs this model itself
+      async *chat() { throw new GatewayError('in_browser', 'The in-browser model runs in the page, not on the server', 409); },
+    };
     default: throw new GatewayError('unavailable', `Unknown provider ${cfg.provider}`, 503);
   }
 }

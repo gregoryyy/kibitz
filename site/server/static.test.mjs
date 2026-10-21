@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'crypto';
-import { cspFor, isHiddenPath, BASE_HEADERS } from './static.mjs';
+import { cspFor, isHiddenPath, BASE_HEADERS, offlineHtml } from './static.mjs';
 
 const sha = s => `'sha256-${crypto.createHash('sha256').update(s, 'utf8').digest('base64')}'`;
 
@@ -35,4 +35,17 @@ test('every response makes the page cross-origin isolated (COOP + COEP), for the
   assert.equal(BASE_HEADERS['Cross-Origin-Opener-Policy'], 'same-origin');
   assert.equal(BASE_HEADERS['Cross-Origin-Embedder-Policy'], 'require-corp');
   assert.equal(BASE_HEADERS['Cross-Origin-Resource-Policy'], 'same-origin');
+});
+
+test('offline: the CSP allows no other host, and the page loses its Google Fonts links', () => {
+  const page = '<title>K</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=X&display=swap">\n<link rel="icon" href="icon.svg">\n<p>hi</p>';
+  const off = offlineHtml(page);
+  assert.doesNotMatch(off, /fonts\.g/);
+  assert.match(off, /<link rel="icon" href="icon.svg">/);
+  assert.match(off, /<p>hi<\/p>/);
+  const csp = cspFor(off, { offline: true });
+  assert.doesNotMatch(csp, /https:/);
+  assert.match(csp, /font-src 'self'(;|$)/);
+  assert.match(csp, /connect-src 'self'/);
+  assert.match(cspFor(page), /https:\/\/fonts\.gstatic\.com/, 'online keeps the fonts');
 });

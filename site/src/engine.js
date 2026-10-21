@@ -29,7 +29,7 @@ export class Engine {
   async boot(attempts) {
     for (const [flavor, make, threads = 1] of attempts) {
       try {
-        this.w = await this.handshake(await make()); this.flavor = flavor; this.threads = threads;
+        this.w = await this.handshake(await make()); this.flavor = flavor; this.threads = threads; this.applied = threads;
         if (threads > 1) this.send(`setoption name Threads value ${threads}`);
         return true;
       } catch { /* try the next way */ }
@@ -72,6 +72,9 @@ export class Engine {
     if (this.dead) return Promise.reject(this.dead);
     return new Promise((resolve, reject) => { this.queue.push({ fen, opts, resolve, reject, lines: [] }); this.pump(); });
   }
+  // At most n threads for the next searches (null: all it started with), e.g. while the in-browser
+  // model needs the CPU. Applied between searches, never during one. Single-threaded builds ignore it.
+  limitThreads(n) { this.limit = n; }
   cancel(tag) {
     this.queue = this.queue.filter(j => { if (!tag || j.opts.tag === tag) { j.resolve(null); return false; } return true; });
     if (this.cur && (!tag || this.cur.opts.tag === tag)) { this.cur.cancelled = true; this.send('stop'); }
@@ -82,6 +85,8 @@ export class Engine {
     if (this.cur || !this.queue.length || this.dead) return;
     const j = this.cur = this.queue.shift();
     const o = j.opts;
+    const t = Math.max(1, Math.min(this.threads, this.limit || this.threads));
+    if (this.threads > 1 && t !== this.applied) { this.send(`setoption name Threads value ${t}`); this.applied = t; }
     this.send(`setoption name MultiPV value ${o.multipv || 1}`);
     (o.setup || []).forEach(c => this.send(c));
     this.send('position fen ' + j.fen);

@@ -7,6 +7,66 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Offline mode: a small model in the browser
+
+TODO items: 2.16.0, 2.16.1, 2.16.3–2.16.6 done; 2.16.2 partly (model choice with the eval set, 3.8).
+
+### Implementation notes
+
+- **`just offline`:**
+  - `scripts/fetch-model.mjs` downloads the chosen model once into `site/models/` (git-ignored) and checks its size and SHA-256 against the catalog in `server/models.mjs`. A marker file records the passing check, so later runs and server starts don't hash a gigabyte again.
+  - It then serves with `AI_PROVIDER=browser`, `AI_LOCAL_ONLY=1`, no `.env` (`--env=`), `--models site/models` and `--offline`.
+  - `just serve` also passes `--models`, so a downloaded model shows up there as "In browser".
+- **Catalog:** two models, both Apache-2.0 and pinned by size and SHA-256 from the Hugging Face metadata:
+  - Qwen2.5 1.5B Instruct Q4_K_M (1.12 GB), the default;
+  - Qwen2.5 0.5B Instruct Q4_K_M (0.49 GB): `just offline qwen2.5-0.5b`.
+- **Server:**
+  - The gateway has a `browser` provider. It's local, so local-only mode allows it and falls back to it after Ollama.
+  - The gateway never runs it: a request to it there fails with `in_browser`.
+  - `/api/ai/status` tells the page where the weights are (`browser: {url, name, bytes}`).
+  - `serve.mjs --models DIR` serves only the catalog's `.gguf` files, with an ETag, never a listing.
+  - `--offline` drops the Google Fonts links from the page, and the CSP then allows no other host at all.
+- **Runtime (`src/browser-llm.js`):** wllama 3.8.1 (MIT, llama.cpp) runs the GGUF model on WebGPU, or in multi-threaded WebAssembly on the CPU, inside its own worker. The build copies `wllama.js` and `wllama.wasm` into `dist/`, and the page imports them only when the model is first needed. `createBrowserModel()`:
+  - loads on first use, with progress;
+  - streams answers, cancels through the abort signal, and turns a JSON schema into `response_format`;
+  - runs one request at a time;
+  - joins consecutive messages of one role, for the chat template;
+  - unloads after ten idle minutes;
+  - refuses to load when `navigator.deviceMemory` says the model won't fit.
+- **Page:**
+  - **Coach settings:** "In browser" is a provider like the others. A box above the chat shows the model, its size and state, with Load and Unload. Nothing loads until the player presses Load; the consent is remembered.
+  - **Routing (2.16.5):** a setting sends only quick requests (chips and coach comments) to the in-browser model, everything else to the gateway.
+  - **Connection test:** for the in-browser model it runs in the page.
+- **Stockfish and the model share the CPU (2.16.4).** While the model generates on the CPU, the analyst gets fewer threads (`Engine.limitThreads`, applied between searches, never during one). On WebGPU it keeps them all.
+- **Tests:**
+  - Unit tests:
+    - `browser-llm` (11): loading once, streaming, cancelling, one request at a time, idle unload, threads, memory check, storage fallback;
+    - `models` (3): catalog, download check, servable files;
+    - `serve` (2): offline page and CSP, model files only;
+    - the `browser` provider in `ai.test`;
+    - `Engine.limitThreads`.
+  - Playwright `offline.spec` (3), with a fake `wllama.js`: consent, loading, an answer from the page with no request to the server, the connection test, unload; routing; local-only.
+  - `offline-live.spec` runs the real model only with `KIBITZ_LIVE_MODEL=1`. It passed with both models. Each loaded and answered on WebGPU, and the page made no http(s) request to another host.
+
+### Deviations
+
+- **wllama only, not WebLLM first (2.16.1).** wllama has run on WebGPU since v3, with WebAssembly as its own fallback. One MIT dependency with one wasm file covers both paths and loads any GGUF file from our server. WebLLM would need its own compiled model libraries and a second runtime. Chrome's built-in model is still open.
+- **Not in our Worker.** wllama starts its own worker (from a blob URL, allowed by `worker-src blob:`), so the page-side provider doesn't need one.
+- **Model chosen before the eval set exists.** Qwen2.5 is well known, Apache-2.0, has no "thinking" mode to switch off, and has official GGUF files. 3.8 should decide between it and newer small models. Adding one is a catalog entry.
+
+### Insights
+
+- **The browser's storage quota is the real limit, not memory.** wllama always downloads into the browser's private storage (OPFS), even with `useCache: false`. A 1.1 GB model failed in the test browser with "exceed its storage quota", as it would in a private window. The page now checks `navigator.storage.estimate()` first: when the model doesn't fit, or caching fails on the quota, it fetches the file itself and hands it to wllama in memory. The 0.5 GB model fit either way, which is why only the default model showed the problem.
+- **Quality follows size.** On the same coach prompt:
+  - the 0.5B model suggested "developing the rook on h8" in the starting position;
+  - the 1.5B model said to develop pieces and control the centre.
+
+  The answer check (3.4) marks wrong moves either way. A small model is fine for putting the engine's facts into words, not for chess judgement.
+- **Speed on WebGPU (Apple silicon, Chrome):** a full coach answer to a 2,950-character prompt took about 4 s with the 0.5B model.
+- **A test that waits for the "thinking" style to go reads a half-streamed answer.** It disappears with the first chunk; the Stop button only disappears at the end.
+
+---
+
 ## 2026-10-21 — Tutor commentary: aspects, templates, checked answers, when to comment, cache
 
 TODO items: 3.2.1–3.2.4, 3.3, 3.4, 3.6, 3.7 done; 3.2.5 partly.

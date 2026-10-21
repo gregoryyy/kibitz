@@ -11,10 +11,12 @@ Kibitz is licensed under the GNU General Public License, version 3 or (at your o
 | cburnett chess pieces, Colin M.L. Burnett, bundled with chessground | | GPL-2.0-or-later | CSS inlined into `index.html` |
 | [chess.js](https://github.com/jhlywa/chess.js), Jeff Hlywa | 1.4.0 | BSD-2-Clause (text below) | `chess.js` |
 | [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) | | CC0-1.0 | `eco.json`, built from `site/data/eco/` |
+| [wllama](https://github.com/ngxson/wllama), Xuan-Son Nguyen and contributors; includes [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT, The ggml authors) | 3.8.1 | MIT | `wllama.js`, `wllama.wasm` |
 
 ## Loaded by the page, not shipped
 
-- Fonts from Google Fonts: Bricolage Grotesque, Instrument Sans, JetBrains Mono (all SIL Open Font License 1.1).
+- Fonts from Google Fonts: Bricolage Grotesque, Instrument Sans, JetBrains Mono (all SIL Open Font License 1.1). Not in offline mode (`just offline`).
+- The in-browser model's weights, which `just offline` downloads from Hugging Face into `site/models/` and the local server hands to the page: [Qwen2.5 1.5B Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF) or [Qwen2.5 0.5B Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF), Alibaba Cloud (Qwen team), Apache-2.0. They're not in the repo.
 
 ## Used by the server (`site/server/`, installed from npm, not shipped to browsers)
 

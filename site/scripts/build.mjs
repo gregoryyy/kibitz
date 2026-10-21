@@ -23,6 +23,9 @@ copy(nm('stockfish/bin/stockfish-19-lite.js'), 'sf-mt.js');
 copy(nm('stockfish/bin/stockfish-19-lite.wasm'), 'sf-mt.wasm');
 copy(nm('chess.js/dist/esm/chess.js'), 'chess.js');
 copy(nm('@lichess-org/chessground/dist/chessground.min.js'), 'chessground.js');
+// wllama runs the in-browser model (TODO 2.16): one ES module and one wasm (WebGPU, or WebAssembly on the CPU)
+copy(nm('@wllama/wllama/esm/index.js'), 'wllama.js');
+copy(nm('@wllama/wllama/esm/wasm/wllama.wasm'), 'wllama.wasm');
 // The page's own modules (knowledge.js, engine.js, store.js, prompt.js, ...)
 for (const f of fs.readdirSync(path.join(root, 'src'))) if (f.endsWith('.js')) copy(path.join(root, 'src', f), f);
 // Licence texts ship with the page (GPL-3.0; chess.js's BSD notice is in the notices file)

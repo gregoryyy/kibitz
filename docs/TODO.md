@@ -62,17 +62,18 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 2.14 Settings UI: provider, model, connection test, local-only mode
 - [ ] 2.15 Contract tests per adapter against recorded responses; live smoke tests run only when an env flag is set. Remaining: recorded fixtures for OpenAI, Mistral and Ollama (hand-written from the documented format until their keys work; Claude's are recorded).
 - [ ] 2.16 Offline mode with an in-browser model: a small model runs in the page, so the coach works with no network, no key and no provider *(added)*
-  - [ ] 2.16.0 `just offline`, a recipe of its own: on first run it downloads the chosen model's weights into `site/models/` (gitignored, checksums verified); then it builds and serves the app with local-only mode on and the in-browser model as the provider. In this mode nothing leaves the machine: the weights come from our own server and the CSP allows `connect-src 'self'` only
-  - [ ] 2.16.1 Runtime:
+  - [x] 2.16.0 `just offline`, a recipe of its own: on first run it downloads the chosen model's weights into `site/models/` (gitignored, checksums verified); then it builds and serves the app with local-only mode on and the in-browser model as the provider. In this mode nothing leaves the machine: the weights come from our own server and the CSP allows `connect-src 'self'` only
+  - [x] 2.16.1 Runtime:
     - WebLLM on WebGPU first: fast, with an OpenAI-style API and JSON-schema output
     - wllama when there's no WebGPU: llama.cpp in WebAssembly, multi-threaded under the COOP/COEP headers we already send
     - Chrome's built-in model (Prompt API) as an optional extra where it exists
     - Licences fit GPL-3.0 (Apache-2.0, MIT)
-  - [ ] 2.16.2 Model: a small open model under Apache-2.0 or MIT, chosen with the tutor eval set (3.8). It only puts into words what the engine and the detectors found, which is what makes a small model usable. The weights download on first use, only after the player agrees, with the size shown. They're cached in the browser and always come from our own server (2.16.0), never from a CDN
-  - [ ] 2.16.3 It runs in a Worker behind a page-side provider with the same interface as the gateway's (`chat()`, JSON formats, usage), so the coach code doesn't depend on where the model runs. The coach settings list it as "In browser", and local-only mode (2.14) counts it as local
-  - [ ] 2.16.4 Resources: on the CPU it competes with Stockfish for threads, so the analyst gets fewer threads while the model is generating. Free memory is checked before loading, and the model is unloaded when idle
-  - [ ] 2.16.5 Routing per task (2.10): quick comments run in the browser, and chat and reviews go to the gateway when one is set up
-  - [ ] 2.16.6 Tests: the page-side provider against a fake runtime in the Worker, and a live smoke test with a real model only when an env flag is set
+    - Done with wllama alone: since v3 it runs on WebGPU too, with WebAssembly on the CPU as its fallback (see DONE.md). Remaining: Chrome's built-in model
+  - [ ] 2.16.2 Model: a small open model under Apache-2.0 or MIT, chosen with the tutor eval set (3.8). It only puts into words what the engine and the detectors found, which is what makes a small model usable. The weights download on first use, only after the player agrees, with the size shown. They're cached in the browser and always come from our own server (2.16.0), never from a CDN. Done: Qwen2.5 1.5B Instruct (default) and 0.5B, Apache-2.0, pinned by SHA-256, consent before loading. Remaining: choosing with the eval set (3.8)
+  - [x] 2.16.3 It runs in a Worker behind a page-side provider with the same interface as the gateway's (`chat()`, JSON formats, usage), so the coach code doesn't depend on where the model runs. The coach settings list it as "In browser", and local-only mode (2.14) counts it as local
+  - [x] 2.16.4 Resources: on the CPU it competes with Stockfish for threads, so the analyst gets fewer threads while the model is generating. Free memory is checked before loading, and the model is unloaded when idle
+  - [x] 2.16.5 Routing per task (2.10): quick comments run in the browser, and chat and reviews go to the gateway when one is set up
+  - [x] 2.16.6 Tests: the page-side provider against a fake runtime in the Worker, and a live smoke test with a real model only when an env flag is set
 
 ## 3. Tutor commentary
 

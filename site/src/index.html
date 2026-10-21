@@ -177,6 +177,7 @@ textarea { resize: vertical; min-height: 44px; }
 .san { font-family: var(--font-mono); font-weight: 600; color: var(--accent); border-bottom: 1px dotted currentColor; cursor: default; }
 .san.unchecked { color: var(--muted); }
 .san.invalid { color: var(--blunder); text-decoration: line-through; border-bottom: 0; }
+.model-box progress { display: block; width: 100%; margin-top: 6px; accent-color: var(--accent); }
 .check-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 6px; }
 .coach-note { margin-top: 10px; padding: 10px 13px; border-radius: var(--r); background: var(--surface-2); border: 1px solid var(--line); font-size: 14.5px; }
 .coach-note .who { display: flex; justify-content: space-between; gap: 8px; font: 600 11px var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 4px; }
@@ -341,6 +342,11 @@ a.ext { color: var(--accent); font-size: 14px; }
 
     <div class="pane" data-pane="coach" hidden>
       <div class="ctxline" id="coachCtx">Position: start</div>
+      <div class="notice model-box" id="browserModelBox" hidden>
+        <div><strong id="browserModelName">In-browser model</strong> <span class="hint" id="browserModelState"></span></div>
+        <progress id="browserModelProgress" max="1" value="0" hidden></progress>
+        <div class="row" style="margin-top:6px;gap:6px"><button class="btn small primary" id="btnLoadModel">Load</button><button class="btn small" id="btnUnloadModel" hidden>Unload</button></div>
+      </div>
       <div class="field"><span class="lbl-sm" id="aspectLbl">Comment on</span>
         <div class="chips" id="aspectPicker" role="group" aria-labelledby="aspectLbl"></div>
         <div class="row" style="margin-top:6px"><button class="btn small primary" id="btnComment">Comment on this position</button><span class="hint" id="aspectHint" role="status"></span></div>
@@ -358,7 +364,8 @@ a.ext { color: var(--accent); font-size: 14px; }
       <details class="box" id="coachSettings" hidden><summary>Coach settings</summary>
         <div class="field"><span class="lbl-sm">AI provider</span><div class="choice" id="optProvider"></div><span class="hint" id="providerHint"></span></div>
         <dl class="kv" id="coachModels" style="margin-top:10px"></dl>
-        <label class="row" style="gap:8px;margin-top:10px"><input type="checkbox" id="optLocalOnly"> Local only: nothing leaves this machine (Ollama)</label>
+        <label class="row" style="gap:8px;margin-top:10px"><input type="checkbox" id="optLocalOnly"> Local only: nothing leaves this machine (Ollama or the in-browser model)</label>
+        <label class="row" style="gap:8px;margin-top:6px" id="quickInBrowserRow" hidden><input type="checkbox" id="optQuickInBrowser"> Quick questions and comments use the in-browser model</label>
         <div class="row" style="margin-top:10px"><button class="btn small" id="btnTestAi">Test connection</button><span class="hint" id="testAiMsg" role="status"></span></div>
         <p class="hint" id="coachUsage"></p>
         <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
@@ -413,6 +420,7 @@ import * as K from './knowledge.js';
 import { Engine, stockfishAttempts } from './engine.js';
 import { createStore, browserStorage } from './store.js';
 import { quote } from './prompt.js';
+import { createBrowserModel, cpuThreads } from './browser-llm.js';
 import { COACH_RULES, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, SAN_RE, commentKey, lruCache } from './tutor.js';
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
@@ -450,11 +458,17 @@ async function localSample() {
   try { const r = await fetch('api/ai/status'); status = r.ok ? await r.json() : null; } catch { status = null; }
   GATEWAY = status; renderCoachSettings();
   if (!status?.available) { coachOffText(status); return null; }
-  return gatewaySample;
+  return coachSample;
 }
 function coachOffText(status) {
   $('#coachOff').textContent = status ? `The coach is off: ${status.reason}. Change it in the coach settings below, or in .env and restart the server. Stockfish analysis, flags and review still work.`
     : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
+}
+// Where a request goes: the in-browser model when it's the chosen provider, or for quick requests
+// when the player routes those to it (TODO 2.16.5); otherwise the gateway.
+function coachSample(input, opts = {}) {
+  const inBrowser = GATEWAY?.provider === 'browser' || (opts.task === 'quick' && S.quickInBrowser && !!GATEWAY?.browser);
+  return inBrowser ? browserSample(input, opts) : gatewaySample(input, opts);
 }
 async function gatewaySample(input, { signal, onText, task } = {}) {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
@@ -521,6 +535,7 @@ const S = {
   startPick: { kind: ['opening', 'fen'].includes(saved.startKind) ? saved.startKind : 'standard', opening: saved.startOpening || null, fen: saved.startFen || '' },
   aspects: normaliseAspects(saved.aspects), // what a coach comment covers (tutor.js)
   commentWhen: COMMENT_WHEN.some(w => w.id === saved.commentWhen) ? saved.commentWhen : 'request',
+  quickInBrowser: !!saved.quickInBrowser, // quick requests to the in-browser model (TODO 2.16.5)
 };
 const ANA = new Map(); // epd -> {depth, lines:[{score(white pov), pv}], best}
 // Tutor comments (TODO 3.2-3.7): LRU cache of comment texts (kept across reloads), the moves already
@@ -529,7 +544,7 @@ const TUTOR = { cache: lruCache(100, store.get('tutorCache', [])), ctl: null, se
 let ECO = {};
 fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); })
   .catch(() => toast('Opening names could not be loaded. Everything else still works.'));
-function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth, tc: S.tc, startKind: S.startPick.kind, startOpening: S.startPick.opening, startFen: S.startPick.fen, aspects: S.aspects, commentWhen: S.commentWhen }); }
+function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth, tc: S.tc, startKind: S.startPick.kind, startOpening: S.startPick.opening, startFen: S.startPick.fen, aspects: S.aspects, commentWhen: S.commentWhen, quickInBrowser: S.quickInBrowser }); }
 
 function last() { return S.nodes.length - 1; }
 function nodeFen(i = S.cursor) { return S.nodes[i].fen; }
@@ -1411,7 +1426,7 @@ function setCoach(s) { COACH.sample = s; $('#coachOff').hidden = !!s; $('#coachS
 use('sample').then(setCoach);
 // Coach settings (local gateway only): provider, models per task, local-only mode, a connection
 // test and today's usage. Keys and models stay in .env; the page only picks among what's set up.
-const PROVIDER_LABEL = { anthropic: 'Claude', openai: 'OpenAI', mistral: 'Mistral', ollama: 'Ollama (local)', mock: 'Mock (offline)' };
+const PROVIDER_LABEL = { anthropic: 'Claude', openai: 'OpenAI', mistral: 'Mistral', ollama: 'Ollama (local)', browser: 'In browser', mock: 'Mock (offline)' };
 function renderCoachSettings() {
   const g = GATEWAY;
   $('#coachSettings').hidden = !g;
@@ -1421,8 +1436,69 @@ function renderCoachSettings() {
   $('#providerHint').replaceChildren(...[g.available ? '' : g.reason, ...off].filter(Boolean).map(t => el('div', {}, t)));
   $('#coachModels').replaceChildren(...(g.models ? [['Quick questions', g.models.quick], ['Chat', g.models.chat], ['Reviews and plans', g.models.review]] : []).flatMap(([k, v]) => [el('dt', {}, k), el('dd', { class: 'mono' }, v)]));
   $('#optLocalOnly').checked = !!g.localOnly;
+  $('#quickInBrowserRow').hidden = !g.browser || g.provider === 'browser';
+  $('#optQuickInBrowser').checked = S.quickInBrowser;
   $('#coachUsage').textContent = usageText(g.usage);
+  renderBrowserModel();
 }
+// ---------------------------------------------------------------- In-browser model (TODO 2.16)
+// A small model the page runs itself (browser-llm.js, wllama), when the server has one: just
+// offline, or just serve with the model downloaded. It loads only after the player agrees, since
+// it takes a gigabyte of memory, and unloads itself after ten idle minutes.
+const BROWSER = { model: null, url: '', consent: !!store.get('browserModelOk', false) };
+function browserModel() {
+  const m = GATEWAY?.browser;
+  if (!m) return null;
+  if (BROWSER.model && BROWSER.url === m.url) return BROWSER.model;
+  BROWSER.model?.unload();
+  BROWSER.url = m.url;
+  const cores = navigator.hardwareConcurrency || 2;
+  BROWSER.model = createBrowserModel({
+    createRuntime: async () => {
+      const { Wllama } = await import('./wllama.js');
+      return new Wllama({ default: new URL('wllama.wasm', location.href).href }, { allowOffline: true, suppressNativeLog: true });
+    },
+    model: m, cores, deviceMemoryGB: /** @type {any} */ (navigator).deviceMemory || 0,
+    storageFree: async () => { const e = await navigator.storage?.estimate?.(); return e?.quota ? e.quota - (e.usage || 0) : undefined; },
+    onState: () => renderBrowserModel(),
+    // On the CPU the model and Stockfish share the cores: the analyst steps back while it generates.
+    onBusy: (busy, { gpu }) => analyst.limitThreads(busy && !gpu ? Math.max(1, Math.min(THREADS, cores - cpuThreads(cores) - 1)) : null),
+  });
+  return BROWSER.model;
+}
+async function browserSample(input, { signal, onText } = {}) {
+  const m = browserModel();
+  if (!m) throw { code: 'unavailable' };
+  if (!BROWSER.consent) { renderBrowserModel(); throw { code: 'needs_consent' }; }
+  return m.sample(input, { signal, onText });
+}
+const GB = n => (n / 1e9).toFixed(n < 1e9 ? 2 : 1) + ' GB';
+function renderBrowserModel() {
+  const g = GATEWAY, box = $('#browserModelBox');
+  const used = !!g?.browser && (g.provider === 'browser' || S.quickInBrowser);
+  box.hidden = !used;
+  if (!used) return;
+  const st = BROWSER.model?.status || { state: 'off', progress: 0, error: '', gpu: false };
+  $('#browserModelName').textContent = `${g.browser.name} (${GB(g.browser.bytes)}), in this browser`;
+  $('#browserModelState').textContent = {
+    off: BROWSER.consent ? 'loads on the next question' : 'not loaded: it runs on this machine and sends nothing anywhere',
+    loading: `loading… ${Math.round(st.progress * 100)}%`,
+    ready: `ready, on the ${st.gpu ? 'GPU (WebGPU)' : 'CPU'}`,
+    error: st.error,
+  }[st.state] || '';
+  $('#browserModelProgress').hidden = st.state !== 'loading';
+  $('#browserModelProgress').value = st.progress;
+  $('#btnLoadModel').hidden = st.state === 'ready' || st.state === 'loading';
+  $('#btnLoadModel').textContent = st.state === 'error' ? 'Try again' : `Load (${GB(g.browser.bytes)})`;
+  $('#btnUnloadModel').hidden = st.state !== 'ready';
+}
+$('#btnLoadModel').addEventListener('click', () => {
+  BROWSER.consent = true; store.set('browserModelOk', true);
+  browserModel()?.load().catch(() => { /* shown in the box */ });
+  renderBrowserModel();
+});
+$('#btnUnloadModel').addEventListener('click', () => { BROWSER.model?.unload(); renderBrowserModel(); });
+$('#optQuickInBrowser').addEventListener('change', e => { S.quickInBrowser = e.target.checked; saveSettings(); renderBrowserModel(); });
 function usageText(u) {
   if (!u) return '';
   const n = x => Number(x || 0).toLocaleString('en');
@@ -1445,15 +1521,22 @@ async function refreshGateway() {
 async function changeGateway(body) {
   try { GATEWAY = await gatewayPost('config', body); } catch (e) { toast(e.message || coachError(e)); }
   renderCoachSettings();
-  setCoach(GATEWAY?.available ? gatewaySample : null);
+  setCoach(GATEWAY?.available ? coachSample : null);
   if (!GATEWAY?.available) coachOffText(GATEWAY);
 }
 $('#optProvider').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled && b.dataset.v !== GATEWAY?.provider) changeGateway({ provider: b.dataset.v }); });
 $('#optLocalOnly').addEventListener('change', e => changeGateway({ localOnly: e.target.checked }));
 $('#btnTestAi').addEventListener('click', async () => {
   const msg = $('#testAiMsg'); msg.textContent = 'Testing…';
-  try { const r = await gatewayPost('test', {}); msg.textContent = `Connected: ${PROVIDER_LABEL[r.provider] || r.provider}, ${r.model}, ${r.ms} ms.`; }
-  catch (e) { msg.textContent = 'Failed: ' + (e.message || coachError(e)); }
+  try {
+    if (GATEWAY?.provider === 'browser') { // runs here, not on the server
+      const t0 = performance.now();
+      await browserSample('Reply with the single word OK.');
+      msg.textContent = `Working: ${PROVIDER_LABEL.browser}, ${GATEWAY.browser.name} on the ${BROWSER.model.status.gpu ? 'GPU' : 'CPU'}, ${Math.round(performance.now() - t0)} ms.`;
+    } else {
+      const r = await gatewayPost('test', {}); msg.textContent = `Connected: ${PROVIDER_LABEL[r.provider] || r.provider}, ${r.model}, ${r.ms} ms.`;
+    }
+  } catch (e) { msg.textContent = 'Failed: ' + (e.message || coachError(e)); }
   refreshGateway();
 });
 $('#coachSettings').addEventListener('toggle', () => { if ($('#coachSettings').open) refreshGateway(); });
@@ -1636,7 +1719,8 @@ function renderCoachNote() {
     body));
 }
 function coachError(e) {
-  const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.' };
+  const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.', needs_consent: 'The in-browser model isn\'t loaded yet: press Load above the chat. It runs on this machine and sends nothing anywhere.', in_browser: 'This model runs in the page; reload the page to use it.' };
+  if (e?.code === 'browser_model' && e.message) return e.message;
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
 // The answer's moves and piece claims checked against chess.js and the engine lines the coach saw
@@ -1923,7 +2007,7 @@ function start(data) {
   openTab(store.get('tab', 'game'));
   Lib.init();
 }
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN };
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES };
 window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo, style: S.style,
   startPly: S.startPly, tc: S.gameTc?.id, clock: S.clock && stopClock(S.clock, performance.now()), clockRunning: !!S.clock?.turn }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
