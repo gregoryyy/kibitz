@@ -7,6 +7,146 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Tutor eval set: reference positions, scored by key points, move checks and an LLM judge
+
+TODO items: 3.8; closes 2.16.2 (choosing the in-browser model).
+
+### Implementation notes
+
+- **The set** (`site/eval/positions.mjs`): ten positions, each with a quick-question chip and two to four key points. Every key point is one or more case-insensitive patterns, and all of them must match. The positions:
+  - tactics: the Opera Game's Nxb5, the Qh5 threat on f7, the Qg5 double attack, the Elephant Trap, a back-rank mate;
+  - plans: the d5 break in Steinitz–von Bardeleben, the Sicilian after 3. d4;
+  - endgames: the opposition, Lucena, Philidor.
+
+  We checked the key moves with Stockfish 19 at depth 18, so the key points agree with what the engine shows the coach.
+- **The runner** (`site/scripts/eval.mjs`, `just eval ai=… judge=… model=…`):
+  - serves the app with the chosen provider (or the in-browser model) and drives it headlessly with Playwright;
+  - loads each position, waits for the analysis and asks through the chip, so the model gets exactly the prompt a player's question produces;
+  - writes `docs/eval/<provider>-<model>.md` and `.json`, and regenerates the comparison table in `docs/eval/README.md`.
+
+  The helpers for driving the coach moved from `flipbook.mjs` to `scripts/coach-page.mjs` and are shared.
+- **Scoring** (`site/eval/score.mjs`, pure):
+  - the share of key points hit;
+  - the move check, using the app's own `checkAnswer` (TODO 3.4): it loses a third for each wrong move;
+  - an optional LLM judge, which grades accuracy, insight, clarity and level from 1 to 5. The judge sees the coach's context (with Stockfish's lines as the truth), the question, the answer and the key points. The answer sits between data markers. The judge runs in Node, so keys never reach the page.
+
+  The overall score is the mean of what was measured.
+- **Errors aren't answers.** The app now marks a coach bubble that holds an error with `data-error="<code>"`, and the runner reads that code:
+  - after a provider's rate limit, it waits a minute and retries, up to three times;
+  - any other error stops the run without writing a report.
+- **Tests:**
+  - unit `eval.test`: every position sets up legally, the patterns compile, and the scoring and summary work;
+  - e2e `eval.spec`: every position runs through the app with the mock provider. A provider error comes back as an error, not as an answer to score.
+
+### Results (judge: Claude Opus 5.5)
+
+| Coach | Overall | Key points | Judge |
+|---|---|---|---|
+| Claude Opus 5.5 | 95% | 97% | 88% |
+| Claude Haiku 5.5 | 79% | 76% | 64% |
+| Qwen2.5 1.5B, in the browser | 50% | 38% | 11% |
+| Qwen2.5 0.5B, in the browser | 42% | 23% | 3% |
+
+Not one of the four runs named a move that chess.js or the engine lines contradicted, except one in the Haiku run.
+
+### Deviations
+
+- OpenAI and Mistral have no results yet. The OpenAI key in `.env` was refused (401), and Mistral rate-limited every request. Those first runs were scored as if the error messages were answers, which is how we found the error handling was missing. We deleted those reports. Re-run them once the keys work: `just eval openai judge=anthropic`.
+- The runner doesn't record token usage. A full run with the judge costs ten calls to the coach and ten to the judge.
+
+### Insights
+
+- **The engine grounding works, but explaining is the hard part.** Even the 0.5B model rarely names a wrong move, because it copies Stockfish's lines. What the small models can't do is say *why*, and the judge scores insight lowest.
+- **2.16.2:** the 1.5B model stays the default in the browser, being clearly better than 0.5B. It's a fallback for offline and private use, not a substitute for a cloud model. A 3–4B model is worth evaluating once WebGPU memory allows.
+- **Haiku misses endgame theory.** It didn't mention the opposition in the king-and-pawn position, and the judge confirmed it. The retrieved classics (3.2.5) include the endgame studies, but no king-and-pawn opposition example yet, so that's where to add one.
+- **Key points have to follow the engine, not the textbook.**
+  - In the Lucena position, Opus followed Stockfish's line, 1. Rb1 and 2. Rd1+, then the king walks out, and never built the textbook bridge on the fourth rank. Its answer is correct, but it misses that key point.
+  - A key point that the engine's line doesn't need measures book knowledge, not coaching. That's why the judge, with Stockfish's lines as the truth, stays part of the score.
+  - Matching by regex is cheap but coarse, so each report keeps the judge's notes beside it.
+
+---
+
+## 2026-10-21 — Classic games for the coach: a first collection, retrieved by theme
+
+TODO items: 3.2.5 (and 3.2); started 7.3 and 7.4.
+
+### Implementation notes
+
+- **The collection.** `classics.js` is pure data and retrieval, like `knowledge.js`. It holds:
+  - nine games: the Opera, Immortal and Evergreen games, the Game of the Century, Réti–Tartakower, Légal's mate, Lasker–Thomas, Rotlewi–Rubinstein and Steinitz–von Bardeleben;
+  - four studies: Réti's king march, Saavedra, Lucena and Philidor.
+
+  Each has tags from the `TAG_LABELS` vocabulary, a one-line lesson, the ply of its key moment, and comments we wrote ourselves. The two games that were hard-coded as library examples are now the first two entries.
+- **Retrieval** (`retrieveClassics`) scores each game by the weights of the position's features that match its tags, so the opening family and the motifs in the best move count most. This complements `similarPositions`, which only finds the same position or pawn structure, and which a classic rarely shares with the player's game.
+- **Where it shows:**
+  - The coach's context lists up to two classics on the position's themes. The "Similar games" aspect now asks about them too.
+  - The Reading tab gains "Classic games on these themes", with an Open button that loads the game at its key moment.
+  - The library gets a Classics filter. "All" shows the player's own games, and the classics only while the library is empty or during a search, so 13 built-in entries don't bury the player's games.
+- **Tests:**
+  - unit `classics.test`: every score loads in chess.js with every move legal; games ending in "#" are really mate, and the mated side lost; key moments lie within the game; tags are known; the famous finishes are in place; retrieval ranks by theme.
+  - e2e `modes.spec`: a Caro-Kann finds Réti–Tartakower in the Reading tab, which opens at 9. Qd8+; the coach's context lists classics; the library filters work. The smoke and regression tests now expect 13 built-in games in an empty library.
+
+### Deviations
+
+- **The scores were written from memory.** chess.js can prove every move legal and every final mate real, but not that a game was played exactly so. The collection is small and limited to the most-published games. A larger one needs sources and licences per item (7.1).
+
+### Insights
+
+- **Position matching rarely finds a classic.** An exact position or pawn structure is a strong signal, but too rare to catch most games; tags by theme and opening family find a classic for most positions.
+
+---
+
+## 2026-10-21 — Explanation modes: commentary, challenges, interesting moves
+
+TODO items: 3.9 (3.9.1–3.9.5).
+
+### Implementation notes
+
+- **Modes** (`tutor.js`). "How the coach works" in the Coach tab has five modes:
+  - Only when asked (3.9.1);
+  - After my mistakes;
+  - After my moves;
+  - Commentary on every move (3.9.2);
+  - Challenge me (3.9.3).
+
+  `shouldComment` lets commentary cover both sides' moves, including a loaded game's as you step through it. In a game the comment still gets only the view the help setting allows (`engineView`), and with help off there is no commentary. Comments use the quick model and the comment cache (3.7).
+- **Interesting moves** (`modes.js interestingMoves`, 3.9.4):
+  - Two settings: the analyst's line count (3–5, MultiPV) and a window of 0.5, 1 or 2 pawns from the best move.
+  - Lines within the window are described from the board and the engine's own line:
+    - **sacrifice:** material given up within four plies, or a piece offered that the line takes;
+    - **trap:** a piece left to be taken that the engine's line doesn't take, counted net of what the move itself captured and of recaptures;
+    - **different plan:** another piece, on another wing, than the best move;
+    - **quiet move:** shown only when the best move is forcing.
+  - The Coach tab lists the best move and the picks, with rank, evaluation and the gap to the best. Hovering one draws it on the board.
+  - The coach's context gets the same picks (`interestingLines`), and a quick chip, "Other good moves", asks about them.
+  - All of this only when the evaluation may be shown.
+  - The analysis cache now re-runs a position when it holds fewer lines than the setting asks for.
+- **Challenges** (`modes.js makeChallenge`, `checkChallenge`):
+  - **Best move:** any move within 30 cp counts; only mating moves count when the best one mates.
+  - **The better of two:** the best move against one at least 80 cp worse, shown as option chips.
+  - **The threat:** the position with the other side to move (`flipSide`; not when in check). It needs a concrete threat: a mate, or two pawns of material won along the opponent's line.
+  - **Answering:** chips, or typed into the composer through the typed-move parser, so "ra8" and "0-0" work. Anything that isn't a legal move leaves the challenge open. "Show me" reveals the answer.
+  - **What follows:** only after the engine's verdict does the coach explain, if a model is set up. Challenges work without one too.
+  - **Where:** in challenge mode the coach asks after each move in analysis, and in a game with Full engine help after Stockfish's reply. The "Challenge me" chip asks at any time.
+  - **Progress:** results per theme (the motif of the answer move, else "calculation") are kept in the browser (`recordResult`) and shown in the Coach tab.
+- **Tests:**
+  - unit `modes.test`: tags on fixed lines, the window, Black's scores, each challenge kind and its checks, flipped positions, progress;
+  - `tutor.test`: commentary;
+  - e2e `modes.spec`: commentary on a loaded game, the interesting-moves list and the line setting, a challenge answered by chip, by typing and with an illegal move, and challenge mode asking by itself.
+
+### Deviations
+
+- **Challenges stay out of games** unless help is Full engine. Asking for the best move or the threat would otherwise hand out engine help the player switched off.
+- **"Trap" is a heuristic.** It marks a piece offered that the engine's own line doesn't take: what looks free to a human, not proven to lose for whoever takes it.
+
+### Insights
+
+- **The first threat test was wrong.** It judged a threat by how much the opponent's evaluation improves if they could move now. When the side to move has mate in one, every opponent move looks like a huge "threat". A threat has to be concrete: a mate, or material won along the opponent's line.
+- **A trade isn't a sacrifice.** Material has to be counted across the whole exchange: Bxf6 Qxf6 is even, while Nxb5 cxb5 Bxb5+ leaves a knight for two pawns.
+- **Evaluations need a side.** "+4.81" for a threat confused even me. Challenge evaluations now always say for whom ("it would give Black +4.70").
+
+---
+
 ## 2026-10-21 — Usage and budgets per user for paid models; tokens and cost on every answer
 
 TODO items: 2.11 (budgets and display per user; still open: a per-user rate limit, accounts, persistence).

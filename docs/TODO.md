@@ -70,7 +70,7 @@ Status: `[ ]` open, `[x]` done. Tags:
     - Chrome's built-in model (Prompt API) as an optional extra where it exists
     - Licences fit GPL-3.0 (Apache-2.0, MIT)
     - Done with wllama alone: since v3 it runs on WebGPU too, with WebAssembly on the CPU as its fallback (see DONE.md). Remaining: Chrome's built-in model
-  - [ ] 2.16.2 Model: a small open model under Apache-2.0 or MIT, chosen with the tutor eval set (3.8). It only puts into words what the engine and the detectors found, which is what makes a small model usable. The weights download on first use, only after the player agrees, with the size shown. They're cached in the browser and always come from our own server (2.16.0), never from a CDN. Done: Qwen2.5 1.5B Instruct (default) and 0.5B, Apache-2.0, pinned by SHA-256, consent before loading. Remaining: choosing with the eval set (3.8)
+  - [x] 2.16.2 Model: a small open model under Apache-2.0 or MIT, chosen with the tutor eval set (3.8). It only puts into words what the engine and the detectors found, which is what makes a small model usable. The weights download on first use, only after the player agrees, with the size shown. They're cached in the browser and always come from our own server (2.16.0), never from a CDN. Done: Qwen2.5 1.5B Instruct (default) and 0.5B, Apache-2.0, pinned by SHA-256, consent before loading. The eval set (3.8) keeps 1.5B as the default: 50% against 42% for 0.5B, but far behind the cloud models (Haiku 79%, Opus 95%), so it stays the offline fallback
   - [x] 2.16.3 It runs in a Worker behind a page-side provider with the same interface as the gateway's (`chat()`, JSON formats, usage), so the coach code doesn't depend on where the model runs. The coach settings list it as "In browser", and local-only mode (2.14) counts it as local
   - [x] 2.16.4 Resources: on the CPU it competes with Stockfish for threads, so the analyst gets fewer threads while the model is generating. Free memory is checked before loading, and the model is unloaded when idle
   - [x] 2.16.5 Routing per task (2.10): quick comments run in the browser, and chat and reviews go to the gateway when one is set up
@@ -79,24 +79,24 @@ Status: `[ ]` open, `[x]` done. Tags:
 ## 3. Tutor commentary
 
 - [x] 3.1 Grounding pipeline: engine lines in SAN, move class, motifs, position features and retrieved references go into the prompt context *(prototype: `contextFor`)*
-- [ ] 3.2 Aspect picker:
+- [x] 3.2 Aspect picker:
   - [x] 3.2.1 Last move: what it did, its rating, the engine's alternative
   - [x] 3.2.2 Future moves and opportunities: threats, plans, candidate moves
   - [x] 3.2.3 Things to keep in mind: weaknesses, king safety, loose pieces
   - [x] 3.2.4 Habits of strong players: blunder check, candidate moves, prophylaxis
-  - [ ] 3.2.5 Relevant classic games, taken from the reference library through RAG. Partly: the "Similar games" aspect uses similar positions from the player's library. Remaining: the classic games collection (7.3)
+  - [x] 3.2.5 Relevant classic games, taken from the reference library through RAG. The "Similar games" aspect uses similar positions from the player's library and the classic games that match the position's themes (`classics.js retrieveClassics`), which the Reading tab lists too
 - [x] 3.3 A prompt template per aspect, with shared rules: don't invent variations, back every claim with an engine line
 - [x] 3.4 Validate the output: check every move, square and line against chess.js and the engine's lines, then drop or flag the ones that can't be verified *(added)*. Flagged, not dropped (see DONE.md)
 - [x] 3.5 Adapt to the player's level *(prototype)*
 - [x] 3.6 When to comment: after every move, only after mistakes, or on request; no spoilers mid-game unless help is on
 - [x] 3.7 Cache comments by (EPD, aspect, level, model)
-- [ ] 3.8 Tutor eval set: reference positions with the key points a good comment should hit; scored by engine checks plus an LLM judge, run per provider *(added)*
-- [ ] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*
-  - [ ] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked
-  - [ ] 3.9.2 Continuous commentary: a short comment on every move by either side, like a broadcast commentator. Uses the quick model, is cached per position (3.7), and keeps to the spoiler rules from 3.6 during a game
-  - [ ] 3.9.3 Challenges: the coach asks instead of explaining ("What does Black threaten?", "Find the best move", "Nf3 or Bg5?", "Which square is weak?"). The player's answer is checked against the engine and the motif detectors before the coach reveals anything, and results count toward progress per theme (6.7, 9.2)
-  - [ ] 3.9.4 Interesting moves, not only the best: the analyst's MultiPV count and a centipawn window become settings. From the moves inside the window, the coach picks the ones worth showing (a different plan, a sacrifice, a quiet move, a trap for the opponent) instead of always the engine's first line. Each pick shows its engine rank and evaluation
-  - [ ] 3.9.5 Tests: each mode with the mock provider, challenge answers checked against fixed engine lines, the move picker on reference positions
+- [x] 3.8 Tutor eval set: reference positions with the key points a good comment should hit; scored by engine checks plus an LLM judge, run per provider *(added)*
+- [x] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*. In the Coach tab as "How the coach works": Only when asked, After my mistakes, After my moves, Commentary on every move, Challenge me
+  - [x] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked
+  - [x] 3.9.2 Continuous commentary: a short comment on every move by either side, like a broadcast commentator. Uses the quick model, is cached per position (3.7), and keeps to the spoiler rules from 3.6 during a game
+  - [x] 3.9.3 Challenges: the coach asks instead of explaining ("What does Black threaten?", "Find the best move", "Nf3 or Bg5?", "Which square is weak?"). The player's answer is checked against the engine and the motif detectors before the coach reveals anything, and results count toward progress per theme (6.7, 9.2). Done: best move, the better of two, and the threat (the position with the other side to move); results per theme are kept in the browser and shown in the Coach tab, for 6.7 and 9.2 to build on
+  - [x] 3.9.4 Interesting moves, not only the best: the analyst's MultiPV count and a centipawn window become settings. From the moves inside the window, the coach picks the ones worth showing (a different plan, a sacrifice, a quiet move, a trap for the opponent) instead of always the engine's first line. Each pick shows its engine rank and evaluation
+  - [x] 3.9.5 Tests: each mode with the mock provider, challenge answers checked against fixed engine lines, the move picker on reference positions
 
 ## 4. Chat and board annotations
 
@@ -172,8 +172,8 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 - [ ] 7.1 Data model: games, positions, problems, annotations, plus source and licence for each item
 - [ ] 7.2 PGN import with deduplication *(prototype)*. Remaining: deduplication.
-- [ ] 7.3 Classic games collection: public game scores only, no copyrighted annotations
-- [ ] 7.4 Problems and studies collection
+- [ ] 7.3 Classic games collection: public game scores only, no copyrighted annotations. Started: 9 games and 4 studies in `classics.js`, tagged by theme, with our own notes, every score checked with chess.js; in the library under Classics. Remaining: a larger collection with source and licence per item (7.1)
+- [ ] 7.4 Problems and studies collection. Started: four classic studies (Réti, Saavedra, Lucena, Philidor) in `classics.js`
 - [ ] 7.5 Search by player, opening, year, result, theme
 - [ ] 7.6 Storage: SQLite on the server, IndexedDB cache in the browser
 - [x] 7.7 The user's own games *(prototype)*
