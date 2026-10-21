@@ -15,7 +15,7 @@ export default [
   },
   // The page and its modules run in the browser.
   { files: ['src/**/*.js', 'src/**/*.html'], plugins: { html }, languageOptions: { globals: globals.browser } },
-  // Server, scripts, configs and tests run on Node; Playwright callbacks also run in the page.
+  // Server, scripts, configs and tests run on Node; Playwright callbacks (e2e tests, the flipbook tour) also run in the page.
   { files: ['server/**', 'scripts/**', 'tests/**', '*.mjs'], languageOptions: { globals: globals.node } },
-  { files: ['tests/e2e/**'], languageOptions: { globals: { ...globals.node, ...globals.browser } } },
+  { files: ['tests/e2e/**', 'flipbook/**', 'scripts/flipbook.mjs'], languageOptions: { globals: { ...globals.node, ...globals.browser } } },
 ];
