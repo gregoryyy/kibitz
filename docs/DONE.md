@@ -7,6 +7,38 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Answers: wrong moves underlined, game references linked to the game
+
+TODO items: 4.12.5, 4.12.6.
+
+### Implementation notes
+
+- **Wrong moves** (`.san.invalid`) are underlined in red (a 2px border in `--blunder`) instead of struck through, so the move can still be read. The note under the answer still counts them.
+- **Game references:**
+  - `classics.js` has a name list for each classic: its title ("the Opera Game", "Game of the Century", "Rubinstein's Immortal") or the players as a pairing ("Réti–Tartakower", "Anderssen vs. Kieseritzky").
+  - `findGameRefs(text)` returns the matches in text order, without overlaps.
+  - `keyPosition(Chess, id)` replays the game to its key moment and returns the FEN, the last move and a label such as "10. Nxb5".
+- **In the page:**
+  - `renderRich` turns each reference into a button styled as a link.
+  - Hovering or focusing it shows the key position on the board, with a dashed frame and a caption. The game on the board isn't touched, and anything that redraws the board (`syncBoard`) ends the preview.
+  - A click opens the game at that moment through `openGame`, which asks before leaving a running game.
+- **Tests:**
+  - unit `classics.test`: titles and pairings are found, while openings and names alone are not ("Philidor Defence", "Lucena and Philidor section", "Morphy's style"); every key position matches the library's position at that ply.
+  - e2e `modes.spec`: hovering shows and ends the preview without changing the game, and a click opens the Opera Game at 10. Nxb5.
+  - e2e `tutor.spec`: a wrong move is underlined, not struck through.
+
+### Deviations
+
+- **"Links to the original" means the game in our own collection, not an external site.** The link always leads to a game record we've checked with chess.js, and the page never builds a URL from model output. External sources (Wikipedia, a game database) could be added per classic as fixed links later.
+- **Only the 13 built-in classics are recognised.** Games in the player's library or imported studies aren't, because their names (player pairings, events) are too ambiguous to match safely in free text.
+
+### Insights
+
+- **A name only links when it means one game.** "Philidor" alone is also an opening and "Lucena" a person, so they need "position" or "study" after them. For the same reason, "Rubinstein's Immortal" must not also match "Immortal Game".
+- **The preview is a cheap version of ROAD's scratch board.** It borrows the board for as long as the pointer stays on the link. A variation stepper (4.3) can grow from the same `previewPosition` and `syncBoard` handover.
+
+---
+
 ## 2026-10-21 — Tutor eval set: reference positions, scored by key points, move checks and an LLM judge
 
 TODO items: 3.8; closes 2.16.2 (choosing the in-browser model).

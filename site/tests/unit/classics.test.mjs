@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { CLASSICS, classicGames, retrieveClassics } from '../../src/classics.js';
+import { CLASSICS, classicGames, retrieveClassics, findGameRefs, keyPosition } from '../../src/classics.js';
 import { TAG_LABELS } from '../../src/knowledge.js';
 
 test('every classic loads with chess.js, every move legal, the result consistent with the final position', () => {
@@ -41,4 +41,30 @@ test('retrieveClassics: by the position\'s themes, the opening family weighing m
   assert.deepEqual(ending.map(x => x.game.id).sort(), ['st-lucena', 'st-philidor']);
   assert.ok(!retrieveClassics([{ tag: 'open-games', weight: 3 }], { exclude: 'ex-opera', limit: 9 }).some(x => x.game.id === 'ex-opera'));
   assert.deepEqual(retrieveClassics([{ tag: 'hedgehog', weight: 3 }]), []);
+});
+
+test('game references: titles and pairings name the classic; openings and people alone do not', () => {
+  const ids = t => findGameRefs(t).map(r => r.id);
+  assert.deepEqual(ids('Just like the Opera Game: Morphy vs. the Duke.'), ['ex-opera', 'ex-opera']);
+  assert.deepEqual(ids('Réti–Tartakower, Vienna 1910, and Reti-Tartakower again'), ['cl-reti-tartakower', 'cl-reti-tartakower']);
+  assert.deepEqual(ids('Rubinstein\'s Immortal is not the Immortal Game.'), ['cl-rotlewi-rubinstein', 'ex-immortal']);
+  assert.deepEqual(ids('the Game of the Century, the Evergreen Game, Steinitz–von Bardeleben, Lasker v Thomas'), ['cl-century', 'cl-evergreen', 'cl-steinitz-bardeleben', 'cl-lasker-thomas']);
+  assert.deepEqual(ids('the Lucena position and the Philidor position, the Saavedra study, Réti\'s king march, Légal\'s mate'), ['st-lucena', 'st-philidor', 'st-saavedra', 'st-reti', 'cl-legal']);
+  assert.deepEqual(ids('The Philidor Defence, Lucena and Philidor section, an immortal attack, Morphy\'s style'), []);
+  const [r] = findGameRefs('See the Opera Game.');
+  assert.equal('See the Opera Game.'.slice(r.index, r.index + r.length), 'the Opera Game');
+  for (const c of CLASSICS) assert.ok(findGameRefs(`about ${c.title}`).some(x => x.id === c.id) || ['cl-reti-tartakower', 'cl-lasker-thomas', 'cl-steinitz-bardeleben'].includes(c.id), `${c.id} is found by its title or a pairing`);
+});
+
+test('key position: the game at its key moment, as the library opens it, with the move that led there', () => {
+  for (const g of classicGames()) {
+    const kp = keyPosition(Chess, g.id);
+    const c = new Chess(); c.loadPgn(g.pgn);
+    const h = c.history({ verbose: true });
+    assert.equal(kp.fen, h[g.moment - 1]?.after ?? c.getHeaders().FEN, g.id);
+    assert.deepEqual(kp.lastMove, g.moment ? [h[g.moment - 1].from, h[g.moment - 1].to] : null, g.id);
+  }
+  assert.equal(keyPosition(Chess, 'ex-opera').label, '10. Nxb5');
+  assert.equal(keyPosition(Chess, 'cl-century').label, '17… Be6');
+  assert.equal(keyPosition(Chess, 'nope'), null);
 });

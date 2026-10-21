@@ -112,3 +112,53 @@ export function retrieveClassics(features, { limit = 3, exclude = null } = {}) {
     return { game: c, hits, score: hits.reduce((a, f) => a + (f.weight || 1), 0) };
   }).filter(Boolean).sort((a, b) => b.score - a.score || b.hits.length - a.hits.length).slice(0, limit);
 }
+
+// --- Game references in text ---------------------------------------------------
+// How the coach (or a book) names each classic: its title, or the players as a pairing
+// ("Réti–Tartakower", "Anderssen vs. Kieseritzky"). Only names that mean this one game:
+// "Philidor" alone is also an opening, "Lucena" alone a person.
+const pair = (a, b) => `${a}\\s*(?:[–—-]|vs?\\.?|versus|against)\\s*${b}`;
+const NAMES = {
+  'ex-opera': ['(?:Morphy[\'’]s )?Opera (?:House )?Game', pair('Morphy', '(?:the )?(?:Duke|Count|Isouard|Brunswick)')],
+  'ex-immortal': ['(?<!Rubinstein[\'’]s )Immortal Game', pair('Anderssen', 'Kieseritzky')],
+  'cl-evergreen': ['Evergreen (?:Game|Partie)', pair('Anderssen', 'Dufresne')],
+  'cl-century': ['Game of the Century', pair('(?:Donald )?Byrne', 'Fischer')],
+  'cl-reti-tartakower': [pair('R[ée]ti', 'Tartakower')],
+  'cl-legal': ['L[ée]gal[\'’]s mate', pair('(?:de )?L[ée]gal', 'Saint[ -]Brie')],
+  'cl-lasker-thomas': [pair('(?:Edward |Ed\\. )?Lasker', 'Thomas')],
+  'cl-rotlewi-rubinstein': ['Rubinstein[\'’]s Immortal', pair('Rotlewi', 'Rubinstein')],
+  'cl-steinitz-bardeleben': [pair('Steinitz', '(?:von )?Bardeleben')],
+  'st-reti': ['R[ée]ti[\'’]s (?:king march|study|endgame study)', 'R[ée]ti (?:study|manoeuvre|maneuver)'],
+  'st-saavedra': ['Saavedra (?:position|study)'],
+  'st-lucena': ['Lucena (?:position|study|1497)'],
+  'st-philidor': ['Philidor (?:position|draw)'],
+};
+const REFS = Object.entries(NAMES).map(([id, names]) => ({ id, re: new RegExp(`\\b(?:the )?(?:${names.join('|')})\\b`, 'giu') }));
+
+// The classics a text names, in text order and without overlaps: [{index, length, id}].
+export function findGameRefs(text) {
+  const found = [];
+  for (const { id, re } of REFS) {
+    re.lastIndex = 0;
+    for (let m; (m = re.exec(text));) found.push({ index: m.index, length: m[0].length, id });
+  }
+  found.sort((a, b) => a.index - b.index || b.length - a.length);
+  const refs = [];
+  for (const r of found) if (!refs.length || r.index >= refs.at(-1).index + refs.at(-1).length) refs.push(r);
+  return refs;
+}
+
+// A classic at its key moment, for a preview on the board: {fen, lastMove: [from, to] | null, label}.
+// label is like "16. Qb8+", the move that leads to the moment (or "the start" for a study at ply 0).
+export function keyPosition(Chess, id) {
+  const g = classicGames().find(x => x.id === id);
+  if (!g) return null;
+  const c = new Chess(); c.loadPgn(g.pgn);
+  const moves = c.history({ verbose: true }).slice(0, CLASSICS.find(x => x.id === id).moment);
+  const start = c.getHeaders().FEN;
+  const b = new Chess(start || undefined);
+  for (const m of moves) b.move(m.san);
+  const last = moves.at(-1);
+  const num = last ? `${Math.ceil((moves.length + (start && start.split(' ')[1] === 'b' ? 1 : 0)) / 2)}${last.color === 'w' ? '.' : '…'}` : '';
+  return { fen: b.fen(), lastMove: last ? [last.from, last.to] : null, label: last ? `${num} ${last.san}` : 'the start' };
+}
