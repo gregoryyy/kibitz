@@ -57,17 +57,18 @@ e2e: install
 # The reference positions in site/eval/positions.mjs, asked through the app, scored on key points and
 # the app's move checks, and with judge=<provider> graded by an LLM (keys stay on this machine).
 # ai: env (as `just serve`), mock, anthropic, openai, mistral, ollama, or browser (model=qwen2.5-0.5b
-# for the smaller in-browser model). Model variables in the shell override .env, e.g.
-# ANTHROPIC_MODEL=claude-opus-5-5 EVAL_JUDGE_MODEL=claude-opus-5-5 just eval anthropic judge=anthropic
+# for the smaller in-browser model). The models are the ones in .env; EVAL_JUDGE_MODEL picks the judge's.
+# With a paid provider it prints the models and the number of calls and stops: yes=1 runs it.
 # Run the tutor eval set (TODO 3.8); writes docs/eval/
-eval ai="env" judge="none" model="": build
-    node site/scripts/eval.mjs --ai {{ai}} --judge {{judge}} {{ if model != "" { "--model " + model } else { "" } }}
+eval ai="env" judge="none" model="" yes="": build
+    node site/scripts/eval.mjs --ai {{ai}} --judge {{judge}} {{ if model != "" { "--model " + model } else { "" } }} {{ if yes != "" { "--yes" } else { "" } }}
 
 # Each step of site/flipbook/tour.mjs is played in a headless Chrome and captured into docs/flipbook/.
-# The coach uses the provider in .env, as `just serve` does (a few requests); `just flipbook mock` needs no keys.
+# The coach uses the provider and models in .env, as `just serve` does; `just flipbook mock` needs no keys.
+# With a paid provider it prints the models and the number of calls and stops: yes=1 renders it.
 # Render docs/flipbook/: a happy path through the app, one screenshot per step
-flipbook ai="env": build
-    node site/scripts/flipbook.mjs --ai {{ai}}
+flipbook ai="env" yes="": build
+    node site/scripts/flipbook.mjs --ai {{ai}} {{ if yes != "" { "--yes" } else { "" } }}
 # --- Documents: Markdown → PDF (adapted from the OrgFab repo) ------------------------------------
 # pandoc (Markdown → standalone HTML, images and scripts embedded, math as MathML) + headless Chrome
 # (HTML → A4 PDF), typography from docs/pdf/style.css. Documents with ```mermaid blocks get

@@ -7,6 +7,19 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Paid runs ask first: `just eval` and `just flipbook`
+
+TODO items: none (tooling). It goes with 2.11, the budgets for paid models.
+
+### Implementation notes
+
+- **The problem:** the eval and flipbook scripts call the AI provider in `.env` with its keys, a call per position or step. Earlier today, model variables set in the shell (Opus for the coach and the judge) cost about $2 that no one had agreed to, and 20 of those calls graded error messages.
+- **The guard** (`site/scripts/paid.mjs`): once the gateway is up, and before the first call, both scripts print who answers, with which models (from the gateway's status, or the judge's config) and about how many calls.
+  - With a paid provider (Anthropic, OpenAI, Mistral) as coach or judge, they stop there and send nothing. `--yes` (`just eval … yes=1`, `just flipbook … yes=1`) runs them.
+  - Ollama, the in-browser model and the mock run without asking.
+- **Stop at the first error:** the eval already stopped at a coach error; now a judge error stops it too. The flipbook stops at the first answer that is an error, so a bad key or a used-up budget costs one call.
+- **Docs:** the examples in the justfile and in `site/eval/README.md` no longer suggest Opus. They use the models in `.env` and show the `yes=1` step.
+- **Tests:** unit `paid.test`: what needs `--yes`, and the plan text. Both scripts were run against Anthropic without `--yes`: they printed the plan and sent nothing. The mock flipbook and the eval e2e test run as before.
 ## 2026-10-21 — Fix: a rejected request says why; no key fragments in the log
 
 TODO items: fix for 2.x (the AI gateway's errors).

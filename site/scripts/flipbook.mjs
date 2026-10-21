@@ -1,12 +1,14 @@
 // Renders docs/flipbook/: a happy path through the app, one screenshot per step of flipbook/tour.mjs.
-//   node scripts/flipbook.mjs [--ai env|mock|anthropic|openai|mistral|ollama] [--port 8797]
+//   node scripts/flipbook.mjs [--ai env|mock|anthropic|openai|mistral|ollama] [--port 8797] [--yes]
 // Serves the build (site/dist, from `just build`) with the AI gateway, drives the page headlessly
 // with Playwright, applies each step's acts, takes a whole-page screenshot and writes docs/flipbook/NN-<id>.png
 // and README.md, which quotes the coach's answers with a count of the moves the engine backs.
 // --ai env (the default) uses the provider configured in the repo's .env, as `just serve` does;
 // --ai anthropic (or another provider) uses that provider, with its key and models from .env;
 // --ai mock uses the mock provider, with keys from the shell blanked as in the e2e tests.
-// Fails on uncaught page errors and Content-Security-Policy violations, like the e2e tests.
+// Fails on uncaught page errors and Content-Security-Policy violations, like the e2e tests, and stops
+// at the first answer that is an error. With a paid provider it prints the models and the number of
+// calls and stops; --yes renders it (scripts/paid.mjs).
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
@@ -15,10 +17,11 @@ import { parseArgs } from 'util';
 import { chromium } from '@playwright/test';
 import { steps, meta } from '../flipbook/tour.mjs';
 import { answer, ask, coachCount, count, quoteOf } from './coach-page.mjs';
+import { mayRun, paidPlan, statusModels } from './paid.mjs';
 
-const { values: opt } = parseArgs({ options: { ai: { type: 'string', default: 'env' }, port: { type: 'string', default: '8797' } } });
+const { values: opt } = parseArgs({ options: { ai: { type: 'string', default: 'env' }, port: { type: 'string', default: '8797' }, yes: { type: 'boolean', default: false } } });
 const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama'];
-if (!['env', 'mock', ...PROVIDERS].includes(opt.ai)) { console.error(`usage: flipbook.mjs [--ai env|mock|${PROVIDERS.join('|')}] [--port N]`); process.exit(2); }
+if (!['env', 'mock', ...PROVIDERS].includes(opt.ai)) { console.error(`usage: flipbook.mjs [--ai env|mock|${PROVIDERS.join('|')}] [--port N] [--yes]`); process.exit(2); }
 
 const site = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repo = path.resolve(site, '..');
@@ -150,6 +153,12 @@ async function main() {
     const status = await ready;
     log(`serving on ${BASE}; ${status}`);
     if (PROVIDERS.includes(opt.ai) && !status.startsWith(`AI coach: ${opt.ai} `)) throw new Error(`asked for ${opt.ai}, but the gateway says: ${status}`);
+    // Who answers and what it costs, before the first call: one call per question, comment and capture.
+    const gw = await (await fetch(`${BASE}/api/ai/status`)).json();
+    const calls = steps.reduce((n, s) => n + s.acts.filter(a => /** @type {any} */ (a).ask || /** @type {any} */ (a).comment || /** @type {any} */ (a).capture).length, 0);
+    const uses = [{ role: 'coach', provider: gw.provider, models: statusModels(gw), calls }];
+    for (const line of paidPlan(uses)) log(line);
+    if (!mayRun(uses, opt.yes)) { log('Paid calls, so nothing was sent. Check the models above, then run again with --yes (just flipbook … yes=1).'); process.exitCode = 3; return; }
     const ai = opt.ai === 'mock' ? 'The coach is the mock provider, which answers with a placeholder' : await coachLine();
     browser = await chromium.launch({ channel: process.env.PW_CHANNEL ?? 'chrome', headless: true });
     const context = await browser.newContext({ viewport: VIEWPORT, reducedMotion: 'reduce', colorScheme: 'light' });
@@ -166,7 +175,11 @@ async function main() {
     const shots = [];
     for (const [i, step] of steps.entries()) {
       const quotes = [];
-      for (const a of step.acts) { const q = await act(page, a); if (q) quotes.push(q); }
+      for (const a of step.acts) {
+        const q = await act(page, a);
+        if (q?.error) throw new Error(`step ${step.id}: the coach answered with an error (${q.error}): ${q.text}`);
+        if (q) quotes.push(q);
+      }
       if (step.settle) await page.waitForSelector(step.settle, { state: 'visible', timeout: 60_000 });
       await page.waitForTimeout(400); // let the board and the eval bar settle
       const file = `${String(i + 1).padStart(2, '0')}-${step.id}.png`;
