@@ -14,6 +14,17 @@ Rules:
 - Be concise: under 170 words unless asked for more. Short paragraphs or at most 4 bullets. No headings.
 ${UNTRUSTED_RULE}`;
 
+// The language of the coach's answers (TODO 10.8). The prompt stays in English, which every model
+// follows best; only the answer is asked for in the player's language. Moves keep the English
+// letters, so the app can check them (the page also reads German letters, i18n.js germanSanToSan).
+export const ANSWER_LANGUAGE = {
+  en: '',
+  de: 'Answer in German (Deutsch) and address the player informally (du). Keep every move in SAN with the English piece letters K, Q, R, B, N (Nf3, Qxd5), never the German ones, so the app can check them.',
+};
+export function coachRules(lang = 'en') {
+  return ANSWER_LANGUAGE[lang] ? `${COACH_RULES}\n- ${ANSWER_LANGUAGE[lang]}` : COACH_RULES;
+}
+
 // --- Aspects (3.2) and their templates (3.3) ---------------------------
 // `engine`: the aspect needs the engine's view of the current position.
 export const ASPECTS = [
@@ -206,9 +217,9 @@ function longestRun(seqs, group) {
 
 // --- Comment cache (3.7) ----------------------------------------------
 // Key: the position (EPD), the move that led to it, the aspects, what the coach could see, the
-// player's level and the model.
-export function commentKey({ epd, uci = '', aspects, view, level, model }) {
-  return [epd, uci, normaliseAspects(aspects).join(','), view, level, model].join('|');
+// player's level, the model, and the language when it isn't English (so English keys stay as they were).
+export function commentKey({ epd, uci = '', aspects, view, level, model, lang = 'en' }) {
+  return [epd, uci, normaliseAspects(aspects).join(','), view, level, model, ...(lang !== 'en' ? [lang] : [])].join('|');
 }
 // A least-recently-used map of at most `max` entries; `entries` restores a saved one.
 export function lruCache(max = 100, entries = []) {

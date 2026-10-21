@@ -209,6 +209,10 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 10.6 Mobile layout and dark mode *(prototype)*
 - [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the coach works offline with Ollama or the in-browser model (2.16)
 - [ ] 10.8 Internationalization
+  - [x] 10.8.1 A language switch in the header, English and German: the page in German, the coach's answers in German, German move letters read (Sf3), screen-reader moves in German
+  - [ ] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
+  - [ ] 10.8.3 Opening names in German (eco.json is English), and the classic games' PGN comments
+  - [ ] 10.8.4 The tutor eval set in German: the same positions with German key points, run against each provider
 
 ## 11. Security testing (before every release)
 

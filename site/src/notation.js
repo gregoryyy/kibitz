@@ -1,22 +1,27 @@
 // Moves as text: reading what the player types, and saying a move for screen readers.
 
-const PIECE_WORD = { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight' };
+const WORDS = {
+  en: { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight', takes: 'takes', short: 'castles kingside', long: 'castles queenside', promotes: 'promotes to', check: 'check', mate: 'checkmate' },
+  de: { K: 'König', Q: 'Dame', R: 'Turm', B: 'Läufer', N: 'Springer', takes: 'schlägt', short: 'kurze Rochade', long: 'lange Rochade', promotes: 'wird zur', check: 'Schach', mate: 'Schachmatt' },
+};
 
 // "Nxe5+" -> "knight takes e5, check"; "O-O" -> "castles kingside"; "e8=Q#" -> "e8 promotes to queen, checkmate".
-export function sanToSpeech(san) {
+// lang 'de' says it in German ("Springer schlägt e5, Schach").
+export function sanToSpeech(san, lang = 'en') {
+  const W = WORDS[lang] || WORDS.en, PIECE_WORD = W;
   const m = /^(O-O-O|O-O|([KQRBN])?([a-h])?([1-8])?(x)?([a-h][1-8])(?:=([QRBN]))?)([+#])?/.exec(String(san || ''));
   if (!m) return String(san || '');
   let s;
-  if (m[1] === 'O-O') s = 'castles kingside';
-  else if (m[1] === 'O-O-O') s = 'castles queenside';
+  if (m[1] === 'O-O') s = W.short;
+  else if (m[1] === 'O-O-O') s = W.long;
   else {
     const piece = m[2] ? PIECE_WORD[m[2]] : '';
     const from = (m[3] || '') + (m[4] || '');
-    s = [piece, from, m[5] ? 'takes' : '', m[6]].filter(Boolean).join(' ');
-    if (m[7]) s += ` promotes to ${PIECE_WORD[m[7]]}`;
+    s = [piece, from, m[5] ? W.takes : '', m[6]].filter(Boolean).join(' ');
+    if (m[7]) s += ` ${W.promotes} ${PIECE_WORD[m[7]]}`;
   }
-  if (m[8] === '+') s += ', check';
-  if (m[8] === '#') s += ', checkmate';
+  if (m[8] === '+') s += `, ${W.check}`;
+  if (m[8] === '#') s += `, ${W.mate}`;
   return s;
 }
 
