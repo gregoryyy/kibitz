@@ -7,6 +7,42 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Flipbook: a happy path through the app in screenshots
+
+TODO items: none (tooling for the docs, modelled on the demo flipbooks of the OrgFab workbench).
+
+### Implementation notes
+
+- `just flipbook` builds the site, then runs `site/scripts/flipbook.mjs`. The runner:
+  - serves `site/dist` with the gateway on port 8797;
+  - drives the page in a headless Chrome through Playwright;
+  - writes one whole-page screenshot per step and a `README.md` into `docs/flipbook/`.
+- `site/flipbook/tour.mjs` is the single source of truth: 15 steps, each with a title, a caption and declarative acts (`tab`, `click`, `fill`, `range`, `move`, `ask`, `confirm`, `waitFor`, `wait`, `scroll`, `viewport`, `scheme`, `js`).
+- The path:
+  1. a game against Stockfish at 1200, with "Flag mistakes";
+  2. a hint;
+  3. a quick question and a typed question to the coach;
+  4. resignation, with the game saved;
+  5. the Opera Game loaded for analysis at 10. Nxb5;
+  6. the review and the coach's summary;
+  7. the library, the reading list and the coach settings;
+  8. a phone width and dark mode.
+- `move` acts take a list of moves and type the first legal one, because Stockfish's replies vary between runs. `ask` clicks the quick-question chip with that label, or else types the question, and waits until the answer has finished streaming.
+- The coach uses the provider in `.env` by default, like `just serve`. `just flipbook mock` blanks the keys and uses the mock provider. The README states which provider answered.
+- Uncaught page errors and CSP violations fail the run, as in the e2e tests.
+
+### Deviations
+
+- The OrgFab flipbooks keep their capture tooling in a separate npm package. Here it reuses `@playwright/test` from `site/`, so no new dependency is needed.
+
+### Insights
+
+- Screenshots of the viewport cut off the move list and flags under the board, so the runner takes whole pages.
+- The toast lasts 2.2 s. A step that triggers one waits for it to fade before its screenshot, so it doesn't cover the controls.
+- The tour's selectors (`#coachChips`, `#chat`, `#coachInput`, the tabs) work with both layouts, the chat in the Coach tab and the dialogue beside the board (4.9.2). The tour produced all 15 steps on each.
+
+---
+
 ## 2026-10-21 — The dialogue beside the board
 
 TODO items: 4.9.2 done; 4.9.3 partly.
