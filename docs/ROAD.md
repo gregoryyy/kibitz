@@ -103,3 +103,28 @@ Guided paths that train a skill, not just answer questions.
   - **Store rules:** app store rules on downloading model weights after install.
   - **Licences:** GPL-3.0 and the app stores' terms need a check before publishing, since Stockfish and chessground are GPL. Other GPL chess apps, such as Lichess, are on both stores.
   - **Design:** a touch-first board and layout (10.6). Voice (idea 5) suits phones well.
+
+## 8. A tutorial that follows one position
+
+A primer that accompanies the repo and follows one chess question through the patterns in [ARCH.md](ARCH.md). Each step adds context and ends with what the coach can say at that point. The model stays the same, and the answer gets sharper as its context grows.
+
+- **Basis:** a version of the Warsaw AI primer ("A Gentle Primer on Generative AI", 2026) already adapted to this scenario, to be added to the repo. The original follows one error message from raw text to a governed fix.
+- **The scenario:** a club player has just played a move, and asks "What should I play now?"
+- **The steps:**
+  1. The bare question with only the FEN: the model guesses, and names moves that are illegal or lose.
+  2. Context control: the position described in words, the player's level, and the help setting that limits what the coach may reveal (ARCH 3.1).
+  3. The engine's facts: Stockfish's top lines and evaluations, which the model may only explain.
+  4. Motifs and themes from `knowledge.js`: why a line works, not just that it does.
+  5. Structured retrieval: the opening, and similar games from the library by position and pawn structure, without embeddings.
+  6. Structured output and verification: every move in the answer checked against the engine, and the wrong ones struck through.
+  7. Tool use: the model asks the engine for what it needs (4.11).
+  8. Agency under policy: the coach loads a position or plays a line on a scratch board, with confirmation and undo (4.8, 4.10).
+  - A closing step on running it all in the browser, with no key and nothing leaving the machine (2.16).
+- **Hands-on:** each step can be repeated in the app. A prompt view shows exactly what the model saw at that step, and the mock provider makes the outputs reproducible.
+- **Appendices:** the transformer in more depth, literature, and links, as in the primer.
+- **Builds on:** ARCH.md, the coach's prompt templates (3.3) and answer checks (3.4), and the engine tools (4.11) for steps 7 and 8.
+- **Open questions:**
+  - the audience: developers, product designers, or chess players curious about AI;
+  - the format: Markdown in the repo, a PDF, or slides for a talk;
+  - recorded answers from a real model versus live ones;
+  - keeping the text in step with the code as it changes.
