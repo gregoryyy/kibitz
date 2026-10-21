@@ -194,8 +194,9 @@ tr { break-inside: avoid; }
     padding: 0;
   }
 
-  img { max-height: 23cm; width: auto; }
+  img { max-height: 19cm; width: auto; }  /* leaves room for the heading and a caption on the same page */
   a { color: inherit; }            /* links read as plain text on paper */
   tbody tr:nth-child(even) td { background: #f5f6f8; }  /* survives print rasterizing */
   pre, blockquote { break-inside: avoid; }
+  p:has(+ blockquote) { break-after: avoid; }  /* a label ("Coach:") stays with its quote */
 }
