@@ -198,6 +198,8 @@ textarea { resize: vertical; min-height: 44px; }
 .chip:hover { border-color: var(--accent); color: var(--accent); }
 .chip.static { cursor: default; } .chip.static:hover { border-color: var(--line); color: inherit; }
 .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.usage-note { margin-top: 6px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.usage-line { margin: 0; font-size: 12px; font-variant-numeric: tabular-nums; }
 .composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
 .notice { font-size: 14px; padding: 10px 12px; border-radius: 8px; background: var(--surface-2); border: 1px dashed var(--line); color: var(--muted); }
 
@@ -313,6 +315,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <textarea id="coachInput" rows="2" placeholder="Ask about this position, your last move, or a plan"></textarea>
         <div class="row" style="flex-direction:column;align-items:stretch;gap:6px"><button class="btn primary" id="coachSend">Ask</button><button class="btn" id="coachStop" hidden>Stop</button></div>
       </div>
+      <p class="hint usage-line" id="usageLine" role="status" hidden></p>
     </div>
     <div class="tabs" role="tablist">
       <button class="tools-toggle" id="btnTools" aria-expanded="true" aria-label="Hide the panels" title="Hide or show the panels below">▾</button>
@@ -483,10 +486,10 @@ function coachSample(input, opts = {}) {
 }
 async function gatewaySample(input, { signal, onText, task } = {}) {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
-    let text = '', truncated = false;
+    let text = '', truncated = false, usage = null;
     try {
       const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages, task }), signal });
-      if (!res.ok) throw { code: (await res.json().catch(() => null))?.error?.code || 'unavailable' };
+      if (!res.ok) { const err = (await res.json().catch(() => null))?.error; throw { code: err?.code || 'unavailable', message: err?.message }; }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buf = '';
       for (;;) {
@@ -498,16 +501,16 @@ async function gatewaySample(input, { signal, onText, task } = {}) {
           const line = buf.slice(0, nl); buf = buf.slice(nl + 1);
           if (!line) continue;
           const m = JSON.parse(line);
-          if (m.error) throw { code: m.error.code };
+          if (m.error) throw { code: m.error.code, message: m.error.message };
           if (m.text) { text += m.text; onText?.({ text }); }
-          if (m.done) truncated = !!m.truncated;
+          if (m.done) { truncated = !!m.truncated; usage = m.usage || null; if (m.user && GATEWAY) { GATEWAY.user = m.user; renderUsageLine(); } }
         }
       }
     } catch (e) {
       if (signal?.aborted) throw { code: 'cancelled' };
       throw e?.code ? e : { code: 'unavailable' };
     }
-    return { text, truncated };
+    return { text, truncated, usage };
 }
 // Screen-reader announcements (moves, navigation); the toast above is a status region too.
 function announce(text) { const a = $('#announce'); a.textContent = ''; requestAnimationFrame(() => { a.textContent = text; }); }
@@ -1463,7 +1466,8 @@ function renderCoachSettings() {
   $('#optLocalOnly').checked = !!g.localOnly;
   $('#quickInBrowserRow').hidden = !g.browser || g.provider === 'browser';
   $('#optQuickInBrowser').checked = S.quickInBrowser;
-  $('#coachUsage').textContent = usageText(g.usage);
+  $('#coachUsage').textContent = [usageText(g.usage).replace(/^Today:/, 'Server today:'), userUsageText(g.user, g.paid)].filter(Boolean).join(' ');
+  renderUsageLine();
   renderBrowserModel();
 }
 // ---------------------------------------------------------------- In-browser model (TODO 2.16)
@@ -1524,6 +1528,26 @@ $('#btnLoadModel').addEventListener('click', () => {
 });
 $('#btnUnloadModel').addEventListener('click', () => { BROWSER.model?.unload(); renderBrowserModel(); });
 $('#optQuickInBrowser').addEventListener('change', e => { S.quickInBrowser = e.target.checked; saveSettings(); renderBrowserModel(); });
+// Tokens and cost of one answer, shown under it: "412 + 96 tokens · $0.0021".
+function usageNote(u) {
+  if (!u || !(u.input + u.output)) return null;
+  const cost = typeof u.cost === 'number' ? ` · $${u.cost.toFixed(u.cost < 0.01 ? 4 : 2)}` : '';
+  return el('div', { class: 'usage-note', title: 'Tokens in + out for this answer, and its cost from AI_PRICES' }, `${u.input.toLocaleString('en')} + ${u.output.toLocaleString('en')} tokens${cost}`);
+}
+// The player's usage today, under the composer: tokens, cost, and what's left of their budgets for paid models.
+function userUsageText(u, paid) {
+  if (!u || !u.requests) return '';
+  const n = x => Number(x || 0).toLocaleString('en'), usd = x => `$${x.toFixed(x < 0.01 ? 4 : 2)}`;
+  let t = `You today: ${n(u.requests)} answer${u.requests === 1 ? '' : 's'}, ${n(u.input + u.output)} tokens`;
+  if (typeof u.cost === 'number') t += `, about ${usd(u.cost)}`;
+  const left = [u.budget?.tokens ? `${n(u.left.tokens)} of ${n(u.budget.tokens)} tokens` : '', u.budget?.cost ? `${usd(u.left.cost)} of ${usd(u.budget.cost)}` : ''].filter(Boolean);
+  if (paid && left.length) t += `. Left on paid models: ${left.join(' and ')}`;
+  return t + '.';
+}
+function renderUsageLine() {
+  const t = userUsageText(GATEWAY?.user, GATEWAY?.paid);
+  $('#usageLine').textContent = t; $('#usageLine').hidden = !t;
+}
 function usageText(u) {
   if (!u) return '';
   const n = x => Number(x || 0).toLocaleString('en');
@@ -1653,9 +1677,10 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   try {
     const history = chatTurns.slice(-8);
     const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${contextFor(i, { view })}\n\nQuestion: ${question}` }];
-    const { text, truncated } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task, onText: ({ text }) => render(text) });
+    const { text, truncated, usage } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task, onText: ({ text }) => render(text) });
     const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
     render(full, checkFor(full, i, view));
+    const note = usageNote(usage); if (note) bubble.append(note);
     chatTurns.push({ role: 'user', content: `[At ${i ? moveLabel(i) : 'start'}] ${question}` }, { role: 'assistant', content: text });
   } catch (e) {
     if (e?.text) render(e.text);
@@ -1699,14 +1724,14 @@ async function commentOn(i) {
     const body = el('div'); renderRich(body, text, fen, check); bubble.append(body); chat.scrollTop = chat.scrollHeight;
   };
   const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact' });
-  let text = TUTOR.cache.get(key);
+  let text = TUTOR.cache.get(key), usage = null;
   const cached = text !== undefined;
   if (!cached) {
     TUTOR.ctl?.abort();
     const ctl = TUTOR.ctl = new AbortController();
     try {
       const turns = [{ role: 'user', content: COACH_RULES }, { role: 'user', content: `${contextFor(i, { view })}\n\n${commentRequest(use, { view })}` }];
-      ({ text } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task: 'quick', onText: ({ text }) => render(text) }));
+      ({ text, usage } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task: 'quick', onText: ({ text }) => render(text) }));
     } catch (e) {
       if (e?.code === 'cancelled') bubble.remove();
       else { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, head), coachError(e)); }
@@ -1718,6 +1743,7 @@ async function commentOn(i) {
   const check = checkFor(text, i, view);
   render(text, check);
   if (cached) bubble.querySelector('.who').append(' (saved)');
+  const note = usageNote(usage); if (note) bubble.append(note);
   chatTurns.push({ role: 'user', content: `[At ${where}] Comment on: ${use.join(', ')}` }, { role: 'assistant', content: text });
 }
 // After the player's move is classified: comment if the setting asks for it (once per move).
@@ -1730,7 +1756,7 @@ function autoComment(i) {
 }
 function coachError(e) {
   const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.', needs_consent: 'The in-browser model isn\'t loaded yet: press Load above the chat. It runs on this machine and sends nothing anywhere.', in_browser: 'This model runs in the page; reload the page to use it.' };
-  if (e?.code === 'browser_model' && e.message) return e.message;
+  if (['browser_model', 'budget_exceeded'].includes(e?.code) && e.message) return e.message;
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
 // The answer's moves and piece claims checked against chess.js and the engine lines the coach saw

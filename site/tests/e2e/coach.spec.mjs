@@ -26,7 +26,7 @@ test('coach settings: providers, models, local-only, connection test and usage',
   await expect(page.locator('#coachModels')).toContainText('Reviews and plans');
   await page.locator('#btnTestAi').click();
   await expect(page.locator('#testAiMsg')).toHaveText(/^Connected: Mock \(offline\), mock, \d+ ms\.$/);
-  await expect(page.locator('#coachUsage')).toContainText(/Today: \d+ requests?/);
+  await expect(page.locator('#coachUsage')).toContainText(/Server today: \d+ requests?/);
   await page.locator('#optLocalOnly').check();
   await expect(page.locator('#optLocalOnly')).toBeChecked();
   await expect(page.locator('#optProvider button[data-v="mock"]')).toHaveAttribute('aria-pressed', 'true'); // mock is local
@@ -57,4 +57,26 @@ test('after a review, the chat knows the evaluation graph and the turning points
   expect(prompt).toMatch(/Evaluation after each move \(White's point of view\): 1\. e4 [+−]\d\.\d, 1… e5 /);
   expect(prompt).toContain('17. Rd8# mate for White');
   expect(prompt).toMatch(/Turning points:\\n {2}- \d+(\.|…) /);
+});
+
+test('each answer shows its tokens and cost, and the dialogue the player\'s total today', async ({ page }) => {
+  await open(page);
+  await expect(page.locator('#usageLine')).toBeHidden();
+  await page.locator('#coachChips .chip').first().click();
+  const answer = page.locator('#chat .msg.coach').last();
+  await expect(answer.locator('.usage-note')).toHaveText(/^[\d,]+ \+ \d+ tokens · \$\d+\.\d+$/);
+  await expect(page.locator('#usageLine')).toHaveText(/^You today: 1 answer, [\d,]+ tokens, about \$\d+\.\d+\.$/);
+  await page.locator('#coachInput').fill('And now?');
+  await page.locator('#coachSend').click();
+  await expect(page.locator('#usageLine')).toHaveText(/^You today: 2 answers, /);
+  await page.locator('[data-tab="coach"]').click();
+  await page.locator('#coachSettings summary').click();
+  await expect(page.locator('#coachUsage')).toContainText(/You today: 2 answers/);
+});
+
+test('a spent budget shows the server\'s message in the dialogue', async ({ page }) => {
+  await open(page);
+  await page.route('**/api/ai/sample', route => route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ error: { code: 'budget_exceeded', message: 'You\'ve used today\'s budget of 20 tokens on paid models. It resets at midnight; local models (Ollama, the in-browser model) still work.' } }) }));
+  await page.locator('#coachChips .chip').first().click();
+  await expect(page.locator('#chat .msg.coach').last()).toContainText('You\'ve used today\'s budget of 20 tokens on paid models');
 });

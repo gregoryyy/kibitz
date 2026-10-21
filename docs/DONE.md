@@ -7,6 +7,44 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Usage and budgets per user for paid models; tokens and cost on every answer
+
+TODO items: 2.11 (budgets and display per user; still open: a per-user rate limit, accounts, persistence).
+
+### Implementation notes
+
+- **Users without accounts.** The gateway gives each browser a random `kibitz_uid` cookie (128 bits, `HttpOnly`, `SameSite=Strict`, path `/api/`) on its first API request, and counts by it (`api.mjs userOf()`).
+- **`userLedger()`** (`usage.mjs`) keeps each user's day: requests, tokens in and out, and the cost from `AI_PRICES`.
+  - **Limits for paid models only:** `AI_TOKEN_BUDGET_PER_USER_PER_DAY` and `AI_COST_BUDGET_PER_USER_PER_DAY` (US dollars).
+  - "Paid" means a provider that isn't local. Ollama, the in-browser model and the mock are counted but never limited.
+  - **A spent budget** returns 429 `budget_exceeded`, with a message the dialogue shows as is: what was used, that it resets at midnight, and that local models still work.
+  - Users roll over at midnight, and at most 10,000 are kept, the oldest dropped first.
+- **The server-wide ledger** (`AI_TOKEN_BUDGET_PER_DAY`) still counts everything and caps the total.
+- **API:**
+  - `/status` gains `user` and `paid`.
+  - The stream's `done` line carries `usage` with the request's `cost`, and the user's totals.
+  - `/structured` and `/test` return the same.
+- **Page:**
+  - Under each coach answer and comment: "720 + 29 tokens · $0.0026".
+  - Under the composer: "You today: 2 answers, 1,531 tokens, about $0.0053", plus what's left of the budgets when the provider is paid.
+  - The coach settings show the server's day and the user's.
+- **Tests:**
+  - Unit (`usage.test`): `costOf`, per-user totals, both budgets, unpriced models, the day rollover, the cap on users.
+  - API (`api.test`): the cookie, per-user budgets enforced for a paid provider and not for a local one, the cost budget.
+  - e2e (`coach.spec`): the note under each answer, the running total, and a spent budget's message.
+
+### Deviations
+
+- **No per-user rate limit yet.** The per-minute limit is still server-wide.
+- **Soft per-user budgets.** Until there are accounts, clearing the cookie starts a new day; the server-wide budget is the hard cap.
+- **Usage lives in memory,** like the server ledger, so a restart resets it.
+
+### Insights
+
+- **A comment can hide part of a config line.** Adding `AI_PRICES` to the one-line env object in `playwright.config.mjs` with a trailing `//` comment silently commented out the blanked API keys after it. The test server then saw a key from the shell. A test caught it, because a provider button was enabled that should have been disabled. No real request went out, since the provider stayed `mock`. The fix is an inline `/* */` comment, checked by loading the config.
+
+---
+
 ## 2026-10-21 — Help level "Eval + mistakes"; the hidden eval bar no longer leaks its score
 
 TODO items: 1.14 (added).

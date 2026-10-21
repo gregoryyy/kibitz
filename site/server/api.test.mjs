@@ -49,9 +49,10 @@ const lines = body => body.trim().split('\n').map(l => JSON.parse(l));
 test('status reports provider and availability', async () => {
   const r = await request('/api/ai/status');
   assert.equal(r.status, 200);
-  const { usage, ...status } = JSON.parse(r.body);
+  const { usage, user, ...status } = JSON.parse(r.body);
   const { providers, ...rest } = status;
-  assert.deepEqual(rest, { provider: 'mock', model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true, reason: '', localOnly: false, browser: null });
+  assert.deepEqual(rest, { provider: 'mock', model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true, reason: '', localOnly: false, browser: null, paid: false });
+  assert.equal(typeof user.requests, 'number');
   assert.deepEqual(providers.map(p => [p.name, p.available, p.local]), [['anthropic', false, false], ['openai', false, false], ['mistral', false, false], ['ollama', false, true], ['browser', false, true], ['mock', true, true]]);
   assert.equal(typeof usage.requests, 'number');
   assert.equal(r.headers['cache-control'], 'no-store');
@@ -61,11 +62,16 @@ test('sample streams NDJSON text then done', async () => {
   const r = await post({ messages: [{ role: 'user', content: 'hi' }] }, { origin: `http://127.0.0.1:${port}` });
   assert.equal(r.status, 200);
   assert.match(r.headers['content-type'], /application\/x-ndjson/);
-  assert.deepEqual(lines(r.body), [{ text: 'Hello ' }, { text: 'there.' }, { done: true, truncated: false, usage: { input: 12, output: 3 } }]);
+  const out = lines(r.body);
+  assert.deepEqual(out.slice(0, 2), [{ text: 'Hello ' }, { text: 'there.' }]);
+  const { user, ...done } = out[2];
+  assert.deepEqual(done, { done: true, truncated: false, usage: { input: 12, output: 3, cost: null } });
+  assert.equal(typeof user.requests, 'number');
 });
 
 test('sample passes through truncation', async () => {
-  assert.deepEqual(lines((await post({ prompt: 'long' })).body).at(-1), { done: true, truncated: true, usage: { input: 12, output: 3 } });
+  const last = lines((await post({ prompt: 'long' })).body).at(-1);
+  assert.deepEqual([last.done, last.truncated, last.usage], [true, true, { input: 12, output: 3, cost: null }]);
 });
 
 test('provider errors before and after output become error lines', async () => {
@@ -201,5 +207,68 @@ test('settings: switch provider, local-only mode, connection test; all same-orig
   assert.equal((await post('/config', { localOnly: true }, { origin: 'http://evil.example' })).status, 403);
   assert.equal((await fetch(base + '/config', { method: 'POST', body: '{}' })).status, 415);
   assert.equal((await (await fetch(base + '/status')).json()).usage.requests, 1, 'the test request counted');
+  s.close();
+});
+
+// A server for one test, with its own config and ledgers; send() posts a sample request with the cookie jar.
+async function serverWith({ provider: name = 'mock', env = {}, ...opts } = {}) {
+  const config = { ...loadConfig({ AI_PROVIDER: 'mock', ...env }), provider: name, ratePerMinute: 1000 };
+  const api = createApi({ config, provider, log: quiet, ...opts });
+  const s = http.createServer((req, res) => api(req, res));
+  await new Promise(r => s.listen(0, '127.0.0.1', r));
+  const base = `http://127.0.0.1:${s.address().port}/api/ai`;
+  const send = (cookie = '') => fetch(base + '/sample', { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: '{"prompt":"hi"}' });
+  return { s, base, send };
+}
+const uidOf = r => /kibitz_uid=([^;]+)/.exec(r.headers.get('set-cookie') || '')?.[1];
+
+test('a user gets a random HttpOnly cookie on the first API request, and keeps it', async () => {
+  const { s, base, send } = await serverWith();
+  const r = await fetch(base + '/status');
+  const cookie = r.headers.get('set-cookie');
+  assert.match(cookie, /^kibitz_uid=[A-Za-z0-9_-]{22}; Path=\/api\/; HttpOnly; SameSite=Strict; Max-Age=\d+$/);
+  const uid = uidOf(r);
+  const again = await send(`kibitz_uid=${uid}`);
+  assert.equal(again.headers.get('set-cookie'), null);
+  await again.text();
+  assert.notEqual(uidOf(await fetch(base + '/status', { headers: { cookie: 'kibitz_uid=../../etc' } })), undefined); // malformed: a new one
+  s.close();
+});
+
+test('usage, cost and budgets are counted per user; the budgets apply to paid models only', async () => {
+  const env = { AI_PRICES: 'mock=1000/2000', AI_TOKEN_BUDGET_PER_USER_PER_DAY: '20' };
+  const { s, base, send } = await serverWith({ provider: 'anthropic', env });
+  const first = await send();
+  const alice = `kibitz_uid=${uidOf(first)}`;
+  const done = (await first.text()).trim().split('\n').map(l => JSON.parse(l)).at(-1);
+  assert.deepEqual(done.usage, { input: 12, output: 3, cost: 0.018 }); // 12 * $1000/M + 3 * $2000/M
+  assert.deepEqual([done.user.input, done.user.output, done.user.cost, done.user.paid.tokens, done.user.left.tokens], [12, 3, 0.018, 15, 5]);
+  await (await send(alice)).text(); // 30 tokens: over Alice's budget of 20
+  const over = await send(alice);
+  assert.equal(over.status, 429);
+  const err = (await over.json()).error;
+  assert.equal(err.code, 'budget_exceeded');
+  assert.match(err.message, /today's budget of 20 tokens on paid models/);
+  const bob = await send(); // another user still has a budget
+  assert.equal(bob.status, 200); await bob.text();
+  const st = await (await fetch(base + '/status', { headers: { cookie: alice } })).json();
+  assert.deepEqual([st.paid, st.user.requests, st.user.paid.tokens, st.user.left.tokens, st.usage.requests], [true, 2, 30, 0, 3]);
+  s.close();
+  // The same budget with a local model: counted, not limited.
+  const local = await serverWith({ provider: 'mock', env });
+  const r1 = await local.send(); const c = `kibitz_uid=${uidOf(r1)}`; await r1.text();
+  for (let k = 0; k < 3; k++) { const r = await local.send(c); assert.equal(r.status, 200); await r.text(); }
+  const lst = await (await fetch(local.base + '/status', { headers: { cookie: c } })).json();
+  assert.deepEqual([lst.paid, lst.user.requests, lst.user.paid.tokens], [false, 4, 0]);
+  local.s.close();
+});
+
+test('a cost budget per user stops paid requests once it is spent', async () => {
+  const { s, send } = await serverWith({ provider: 'openai', env: { AI_PRICES: 'mock=1000/2000', AI_COST_BUDGET_PER_USER_PER_DAY: '0.03' } });
+  const r = await send(); const c = `kibitz_uid=${uidOf(r)}`; await r.text(); // $0.018
+  await (await send(c)).text(); // $0.036
+  const over = await send(c);
+  assert.equal(over.status, 429);
+  assert.match((await over.json()).error.message, /today's budget of \$0\.03 on paid models/);
   s.close();
 });

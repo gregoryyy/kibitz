@@ -57,7 +57,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
 - [ ] 2.9 Key management: keys come from server env or an encrypted per-user store, and never reach the browser, logs or prompts. Remaining: the per-user store (depends on 10.1); env keys are done.
 - [x] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
-- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Remaining: per-user limits and budgets (they need accounts, 10.1); the daily token budget, usage and cost estimate are per server.
+- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Done: timeouts, a daily token budget for the server, per-user budgets in tokens and dollars for paid models, and the tokens and cost of each answer and of the player's day in the dialogue. Users are told apart by a cookie, so the per-user budgets are soft until there are accounts. Remaining: a per-user rate limit, budgets tied to accounts (10.2), and usage kept across server restarts.
 - [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
 - [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
 - [x] 2.14 Settings UI: provider, model, connection test, local-only mode

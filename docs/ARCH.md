@@ -95,7 +95,8 @@ What the model sees is assembled on purpose, not dumped in.
 - **Untrusted text is quoted.** PGN headers and comments, and the player's own notes, go into prompts only through `quote()` (`prompt.js`): one line, in «guillemets», with control characters removed and a length cap. A standing rule tells the model to treat quoted text as data. This is the defence against indirect prompt injection (OWASP LLM01).
 - **Cost and speed:**
   - a model per task: quick questions, chat, reviews;
-  - a daily token budget and a per-minute rate limit in the gateway;
+  - a daily token budget for the server, budgets in tokens and dollars per user for paid models (users told apart by a cookie until there are accounts), and a per-minute rate limit in the gateway;
+  - the tokens and cost of every answer, and the player's total today, shown in the dialogue;
   - a cache of coach comments keyed by position, move, aspects, engine view, level and model (`commentKey()`, `lruCache()`).
 
 ### 3.2 Retrieval (RAG)
