@@ -78,16 +78,16 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 - [x] 3.1 Grounding pipeline: engine lines in SAN, move class, motifs, position features and retrieved references go into the prompt context *(prototype: `contextFor`)*
 - [ ] 3.2 Aspect picker:
-  - [ ] 3.2.1 Last move: what it did, its rating, the engine's alternative
-  - [ ] 3.2.2 Future moves and opportunities: threats, plans, candidate moves
-  - [ ] 3.2.3 Things to keep in mind: weaknesses, king safety, loose pieces
-  - [ ] 3.2.4 Habits of strong players: blunder check, candidate moves, prophylaxis
-  - [ ] 3.2.5 Relevant classic games, taken from the reference library through RAG
-- [ ] 3.3 A prompt template per aspect, with shared rules: don't invent variations, back every claim with an engine line
-- [ ] 3.4 Validate the output: check every move, square and line against chess.js and the engine's lines, then drop or flag the ones that can't be verified *(added)*
+  - [x] 3.2.1 Last move: what it did, its rating, the engine's alternative
+  - [x] 3.2.2 Future moves and opportunities: threats, plans, candidate moves
+  - [x] 3.2.3 Things to keep in mind: weaknesses, king safety, loose pieces
+  - [x] 3.2.4 Habits of strong players: blunder check, candidate moves, prophylaxis
+  - [ ] 3.2.5 Relevant classic games, taken from the reference library through RAG. Partly: the "Similar games" aspect uses similar positions from the player's library. Remaining: the classic games collection (7.3)
+- [x] 3.3 A prompt template per aspect, with shared rules: don't invent variations, back every claim with an engine line
+- [x] 3.4 Validate the output: check every move, square and line against chess.js and the engine's lines, then drop or flag the ones that can't be verified *(added)*. Flagged, not dropped (see DONE.md)
 - [x] 3.5 Adapt to the player's level *(prototype)*
-- [ ] 3.6 When to comment: after every move, only after mistakes, or on request; no spoilers mid-game unless help is on
-- [ ] 3.7 Cache comments by (EPD, aspect, level, model)
+- [x] 3.6 When to comment: after every move, only after mistakes, or on request; no spoilers mid-game unless help is on
+- [x] 3.7 Cache comments by (EPD, aspect, level, model)
 - [ ] 3.8 Tutor eval set: reference positions with the key points a good comment should hit; scored by engine checks plus an LLM judge, run per provider *(added)*
 - [ ] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*
   - [ ] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked

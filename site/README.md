@@ -35,6 +35,7 @@ src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded wh
                       cancel by tag, time-capped depth searches; rejects all jobs if it dies
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
+src/tutor.js          Coach comments: aspects and their prompts, what the coach sees mid-game, the check of its moves, the cache
 src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
 src/play.js           Game-end rules, timeouts, clocks, the opponent's search, the weakened mode below 1320
                       Elo (calibrated), draw offers, start-position checks
