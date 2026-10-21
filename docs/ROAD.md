@@ -7,8 +7,10 @@ Ideas for where Kibitz could go beyond [TODO.md](TODO.md). These are directions 
 The coach explains a position by showing the main options side by side, not just the best move.
 
 - **What it looks like:** two to four candidate moves, each drawn in its own colour on the board (arrows, target squares). Each comes with a one-line idea ("Nf3: develops and guards e5"), its evaluation, and a follow-up line you can step through on a scratch board. Next to it is the opponent's best reply to each option.
+- **The text points at the board:** hovering over a piece, square or move in an explanation highlights it on the board ("the knight on f5" lights up the knight). Clicking a variation in the text plays it on a scratch board, ready to step through, and leaves the game untouched. Only what `checkAnswer` has verified becomes a link: legal moves that match an engine line, and squares that hold the piece named. On a phone, where there is no hover, a tap highlights and a second tap plays.
 - **Builds on:**
   - board annotations and rendering (4.2–4.4);
+  - the checked moves in answers (3.4), which already mark each move in the text;
   - the variation stepper (4.3);
   - picking interesting moves from Stockfish's ranked lines (3.9.4);
   - engine tools for the coach (4.11).
