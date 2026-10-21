@@ -2,6 +2,15 @@
 
 How Kibitz is built, and the ideas behind it. The plan is in [TODO.md](TODO.md), ideas beyond it in [ROAD.md](ROAD.md), and what was built, with its trade-offs, in [DONE.md](DONE.md). Items that are planned but not built yet are marked with their TODO number.
 
+## Motivation
+
+The Kibitz repo uses a modern chess training app to demonstrate key concepts in LLM-based and neurosymbolic architecture. Chess suits this well:
+
+- **There is a ground truth.** Stockfish plays far above any human and its analysis can be checked, so every claim a language model makes can be measured against it. Where most domains have to trust the model or ask an expert, here a wrong move is visible at once.
+- **Calculation and explanation are different skills.** The engine is exact and silent, and the model is fluent but bad at calculating. The app needs both, which makes the division of labour between a symbolic and a neural system concrete instead of abstract.
+- **The patterns are the ones production systems need.** Context control, retrieval, structured output, tool use, verification and agency under policy (section 3) all appear here, at a scale one person can read and run. The same shape fits other domains where a system of record knows the facts and a model explains them.
+- **It runs on one machine.** The engine, and even a small language model, run in the browser, so the whole architecture can be studied without cloud accounts or keys (section 4).
+
 ## 1. The idea: a symbolic engine and a neural explainer
 
 Kibitz is a neurosymbolic chess coach. Two very different kinds of system work together, and each does only what it's good at.

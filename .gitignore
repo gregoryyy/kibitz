@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Reference material kept out of the repo
+docs/input/
+
 # In-browser model weights (just offline downloads them; about 0.5-1.1 GB each)
 site/models/
 
