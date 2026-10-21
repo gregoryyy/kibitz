@@ -43,6 +43,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 1.11 Keyboard move entry and screen-reader move announcements *(added)*
 - [x] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game
 - [x] 1.13 Playing style for Stockfish (Solid, Balanced, Active, Aggressive, Reckless), saved with the Elo setting *(added)*
+- [x] 1.14 Help level "Eval + mistakes": mistakes are flagged, and the eval bar shows the position after the player's move, holding it through Stockfish's reply. The best move stays hidden, and the coach sees what it sees with Flag mistakes *(added)*
 
 ## 2. AI provider layer
 
