@@ -29,7 +29,34 @@ Make the possibilities in a position visible: first the tactical ones, later the
 - **Builds on:** the motif detectors (`knowledge.js`, 6.2–6.3), the reference library (7), RAG on positions and patterns (8), and the "Similar games" aspect (3.2.5).
 - **Open questions:** where the classic games and annotations come from without copyright problems (only public game scores, 7.3), and how to check a strategic claim.
 
-## 3. Talk to the coach: audio in and out
+## 3. Commentary that fits the player's strength
+
+The coach leaves out what the player already sees, and spends its words on what they probably don't.
+
+- **What changes:**
+  - An advanced player doesn't hear that a piece is attacked by a pawn, that the centre matters, or that 1. e4 opens lines.
+  - A beginner does, and doesn't hear about minority attacks yet.
+  - Today only the tone changes with the level (3.5); this would change what gets said.
+- **How to judge "obvious":**
+  - **Search depth:** the depth at which Stockfish first finds an idea is a measure of how hard it is. A one-move threat is obvious to a club player, a three-move combination is not.
+  - **Pattern difficulty:** how hard the motif behind it is, ranked from the puzzle themes (6.5).
+  - **The player's own history:** what they found or missed in their games (9.2). Themes they handle well get shorter comments, their weak spots longer ones.
+- **Builds on:** the player profile and rating estimate (9.1), the aspect picker (3.2), and the tutor eval set (3.8), which could check the result by level.
+- **Open questions:** how to stay right when the profile is wrong (a strong player new to the app); letting the player say "too basic" or "too much".
+
+## 4. Plans checked by the engine and the pattern recognizer
+
+When the coach suggests a plan, the symbolic side tests it before the player sees it, as it already does for single moves.
+
+- **What it looks like:**
+  - "Play for b4–b5, a minority attack" is checked by asking Stockfish about the plan's key moves (`go searchmoves`): does the evaluation hold, and what does the opponent do against it?
+  - The tactic recognizer runs over the resulting lines and flags what the plan allows, for example a fork once the knight leaves.
+  - A plan that fails is either dropped or shown with its refutation: "b4 looks natural, but after ...Nxe4 the e-pawn falls."
+- **Plans as patterns:** typical plans per pawn structure (Carlsbad: minority attack; IQP: d4–d5 break, kingside attack; opposite castling: pawn storms) become checkable templates. Each has key moves the engine can test, and a pattern the recognizer can spot in the current position.
+- **Builds on:** engine tools for the coach (4.11, including `try_move` and the pattern search over lines), the strategy themes (6.3), and the answer check (3.4), which today only checks single moves and lines.
+- **Open questions:** a plan unfolds over many moves, beyond what a quick search sees. How far to trust the evaluation after a plan's first few moves, and how to say so honestly.
+
+## 5. Talk to the coach: audio in and out
 
 Every exchange can happen by voice: speak your moves and questions, and hear the commentary.
 
@@ -45,7 +72,7 @@ Every exchange can happen by voice: speak your moves and questions, and hear the
   - languages (10.8);
   - how much this helps players who can't see the board (10.5).
 
-## 4. How-to courses: visualisation, openings, tactical patterns
+## 6. How-to courses: visualisation, openings, tactical patterns
 
 Guided paths that train a skill, not just answer questions.
 
@@ -65,7 +92,7 @@ Guided paths that train a skill, not just answer questions.
 - **Builds on:** the curriculum (6), challenges (3.9.3), progress and spaced repetition (9).
 - **Open questions:** where the exercise content comes from and under which licence; how to measure that a skill has improved (9.2).
 
-## 5. Mobile apps for iOS and Android
+## 7. Mobile apps for iOS and Android
 
 - **Path:** first the installable web app (PWA, 10.7), then store apps that wrap the same page (for example with Capacitor), rather than a native rewrite.
 - **To settle first:**
@@ -73,4 +100,4 @@ Guided paths that train a skill, not just answer questions.
   - **Where the AI comes from:** keys can't ship inside an app. It's either a hosted gateway with accounts (10.1, 10.2), or the in-browser model (2.16) on phones with enough memory and storage.
   - **Store rules:** app store rules on downloading model weights after install.
   - **Licences:** GPL-3.0 and the app stores' terms need a check before publishing, since Stockfish and chessground are GPL. Other GPL chess apps, such as Lichess, are on both stores.
-  - **Design:** a touch-first board and layout (10.6). Voice (idea 3) suits phones well.
+  - **Design:** a touch-first board and layout (10.6). Voice (idea 5) suits phones well.
