@@ -1,0 +1,9 @@
+{
+  "provider": "mistral",
+  "case": "chat",
+  "model": "mistral-small-latest",
+  "source": "hand-written from the documented format; replace with scripts/record-ai-fixtures.mjs once the provider is set up (Mistral sends usage with the final chunk)",
+  "status": 200,
+  "contentType": "text/event-stream; charset=utf-8",
+  "body": "data: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"mistral-small-latest\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"mistral-small-latest\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Control \"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"mistral-small-latest\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"the centre.\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"mistral-small-latest\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":22,\"completion_tokens\":5,\"total_tokens\":27}}\n\ndata: [DONE]\n\n"
+}

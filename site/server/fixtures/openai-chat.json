@@ -1,0 +1,9 @@
+{
+  "provider": "openai",
+  "case": "chat",
+  "model": "gpt-6-luna",
+  "source": "hand-written from the documented format; replace with scripts/record-ai-fixtures.mjs once the provider is set up",
+  "status": 200,
+  "contentType": "text/event-stream; charset=utf-8",
+  "body": "data: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"gpt-6-luna\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"gpt-6-luna\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Develop \"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"gpt-6-luna\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"your knights \"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"gpt-6-luna\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"before your bishops.\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"gpt-6-luna\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n\ndata: {\"id\":\"chatcmpl-fixture\",\"object\":\"chat.completion.chunk\",\"created\":1792540800,\"model\":\"gpt-6-luna\",\"choices\":[],\"usage\":{\"prompt_tokens\":24,\"completion_tokens\":9,\"total_tokens\":33}}\n\ndata: [DONE]\n\n"
+}

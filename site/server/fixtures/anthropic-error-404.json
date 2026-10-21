@@ -1,0 +1,8 @@
+{
+  "provider": "anthropic",
+  "case": "unknown model",
+  "source": "hand-written from the documented format; replace with scripts/record-ai-fixtures.mjs once the provider is set up",
+  "status": 404,
+  "contentType": "application/json",
+  "body": "{\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: claude-nonexistent\"}}"
+}

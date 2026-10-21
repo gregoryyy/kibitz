@@ -3,7 +3,7 @@
 Plan for Kibitz, a browser chess trainer. Stockfish (WASM) calculates; a choice of AI providers (OpenAI, Mistral, Claude, Ollama) explains. Progress, deviations and learnings are logged in [DONE.md](DONE.md).
 
 Status: `[ ]` open, `[x]` done. Tags:
-- *(prototype)*: a working version exists in `claude/` and `codex/`, but still has to be moved into the target architecture.
+- *(prototype)*: came from the original artifact prototype. Ticked once it works in `site/`; open ones still need work there.
 - *(added)*: not in the original brief; proposed during planning.
 
 ## Target architecture
@@ -16,54 +16,67 @@ Status: `[ ]` open, `[x]` done. Tags:
 
 ## 0. Foundation and process
 
-- [ ] 0.1 Create the GitHub repo, push `main`, and protect it (PRs required, CI must pass, no force pushes)
-- [ ] 0.2 Decide the target layout: evolve `claude/` and `codex/` in parallel, or merge them into one app folder. Record the decision in DONE.md.
-- [ ] 0.3 Set up npm workspaces (`client`, `server`, `shared`) and pin Node LTS (`.nvmrc`, `engines`)
-- [ ] 0.4 Decide on typing: JS + JSDoc checked by `tsc --checkJs`, or TypeScript
-- [ ] 0.5 Add linting and formatting (ESLint, Prettier)
-- [ ] 0.6 Set up the test harness: `node:test` for unit tests, `@playwright/test` for e2e (port `claude/tests/e2e.py` to JS)
-- [ ] 0.7 Turn `knowledge.test.mjs` into real assertions; today it only prints output
-- [ ] 0.8 GitHub Actions on every PR: lint, unit, e2e, build, `npm audit`, CodeQL, secret scanning
-- [ ] 0.9 PR template with a checklist: tests, TODO/DONE updated, security impact
-- [ ] 0.10 Licensing: GPL-3.0 (required by Stockfish and chessground), `LICENSE` file, third-party notices
-- [ ] 0.11 Fix `.gitignore`: `tests/out/` only matches at the repo root; use `**/tests/out/`
+- [x] 0.1 Create the GitHub repo, push `main`, and protect it (PRs required, CI must pass, no force pushes). Note: GitHub offers no branch protection or rulesets for private repos on the Free plan, so PR-only merging is a convention (AGENTS.md) until the repo is public or on Pro.
+- [x] 0.2 Decide the target layout: evolve `claude/` and `codex/` in parallel, or merge them into one app folder. Record the decision in DONE.md. (Merged into `site/`.)
+- [x] 0.3 Set up npm workspaces (`client`, `server`, `shared`) and pin Node LTS (`.nvmrc`, `engines`). Decided against workspaces for now: `site/` stays one npm project (see DONE.md). Node 24 LTS is pinned.
+- [x] 0.4 Decide on typing: JS + JSDoc checked by `tsc --checkJs`, or TypeScript. JS + JSDoc, checked by `npm run typecheck`.
+- [x] 0.5 Add linting and formatting (ESLint, Prettier). ESLint and `.editorconfig`; no Prettier (see DONE.md).
+- [x] 0.6 Set up the test harness: `node:test` for unit tests, `@playwright/test` for e2e (port `claude/tests/e2e.py` to JS)
+- [x] 0.7 Turn `knowledge.test.mjs` into real assertions; today it only prints output
+- [x] 0.8 GitHub Actions on every PR: lint, unit, e2e, build, `npm audit`, CodeQL, secret scanning. CodeQL is skipped while the repo is private; gitleaks does the secret scanning.
+- [x] 0.9 PR template with a checklist: tests, TODO/DONE updated, security impact
+- [x] 0.10 Licensing: GPL-3.0 (required by Stockfish and chessground), `LICENSE` file, third-party notices. GPL-3.0-or-later.
+- [x] 0.11 Fix `.gitignore`: `tests/out/` only matches at the repo root; use `**/tests/out/`
 
 ## 1. Play against the engine
 
-- [ ] 1.1 Board UI: legal moves, promotion, flip, coordinates *(prototype)*
-- [ ] 1.2 Stockfish 19 WASM worker with blob-URL and asm.js fallbacks *(prototype)*
-- [ ] 1.3 Multi-threaded Stockfish when cross-origin isolated (server sends COOP/COEP headers), with a single-threaded fallback
-- [ ] 1.4 Strength levels: `UCI_Elo` from 1320 up, a weakened mode below that *(prototype)*; calibrate them against real ratings
-- [ ] 1.5 Separate analyst engine (full strength, MultiPV) *(prototype)*
-- [ ] 1.6 Time controls and clock *(added)*
-- [ ] 1.7 Takeback, hint, resign *(prototype)*; draw offers; every game-end rule (threefold repetition, 50-move rule, insufficient material)
-- [ ] 1.8 Start from a FEN, an opening, or a curriculum position
-- [ ] 1.9 PGN import and export with comments and NAGs *(prototype)*
-- [ ] 1.10 Post-game review: eval graph, move classes, accuracy *(prototype)*
-- [ ] 1.11 Keyboard move entry and screen-reader move announcements *(added)*
-- [ ] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game
+- [x] 1.1 Board UI: legal moves, promotion, flip, coordinates *(prototype)*
+- [x] 1.2 Stockfish 19 WASM worker with blob-URL and asm.js fallbacks *(prototype)*; `site/src/engine.js`, unit-tested
+- [x] 1.3 Multi-threaded Stockfish when cross-origin isolated (server sends COOP/COEP headers), with a single-threaded fallback
+- [ ] 1.4 Strength levels: `UCI_Elo` from 1320 up, a weakened mode below that *(prototype)*; calibrate them against real ratings. The weakened mode is calibrated against Stockfish's UCI_Elo scale (`scripts/calibrate.mjs`). Remaining: checking the scale against human ratings, which needs players' results (see 9.2).
+- [x] 1.5 Separate analyst engine (full strength, MultiPV) *(prototype)*
+- [x] 1.6 Time controls and clock *(added)*
+- [x] 1.7 Takeback, hint, resign *(prototype)*; draw offers; every game-end rule (threefold repetition, 50-move rule, insufficient material)
+- [x] 1.8 Start from a FEN, an opening, or a curriculum position. FEN and opening done; curriculum positions moved to 6.8, since the curriculum doesn't exist yet.
+- [x] 1.9 PGN import and export with comments and NAGs *(prototype)*
+- [x] 1.10 Post-game review: eval graph, move classes, accuracy *(prototype)*
+- [x] 1.11 Keyboard move entry and screen-reader move announcements *(added)*
+- [x] 1.12 Tests: rule edge cases, engine adapter with a fake worker, e2e for a full game
+- [x] 1.13 Playing style for Stockfish (Solid, Balanced, Active, Aggressive, Reckless), saved with the Elo setting *(added)*
 
 ## 2. AI provider layer
 
-- [ ] 2.1 Node server: static hosting, JSON API, security headers (CSP, COOP/COEP, HSTS)
-- [ ] 2.2 Provider interface: `chat(messages, {stream, schema, maxTokens, signal})` and `embed(texts)`
-- [ ] 2.3 OpenAI adapter
-- [ ] 2.4 Mistral adapter
-- [ ] 2.5 Claude adapter (Anthropic Messages API)
-- [ ] 2.6 Ollama adapter (local models, so nothing leaves the machine)
-- [ ] 2.7 Structured output for board annotations on every provider (JSON schema or tool calling, plus fallback parsing)
-- [ ] 2.8 Stream replies to the browser over SSE, with cancellation
-- [ ] 2.9 Key management: keys come from server env or an encrypted per-user store, and never reach the browser, logs or prompts
-- [ ] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
-- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*
-- [ ] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
-- [ ] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
-- [ ] 2.14 Settings UI: provider, model, connection test, local-only mode
-- [ ] 2.15 Contract tests per adapter against recorded responses; live smoke tests run only when an env flag is set
+- [x] 2.1 Node server: static hosting, JSON API, security headers (CSP, COOP/COEP, HSTS). HSTS comes once hosted over HTTPS (12.2).
+- [x] 2.2 Provider interface: `chat(messages, {stream, schema, maxTokens, signal})` and `embed(texts)`
+- [x] 2.3 OpenAI adapter
+- [x] 2.4 Mistral adapter
+- [x] 2.5 Claude adapter (Anthropic Messages API)
+- [x] 2.6 Ollama adapter (local models, so nothing leaves the machine)
+- [x] 2.7 Structured output for board annotations on every provider (JSON schema or tool calling, plus fallback parsing)
+- [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
+- [ ] 2.9 Key management: keys come from server env or an encrypted per-user store, and never reach the browser, logs or prompts. Remaining: the per-user store (depends on 10.1); env keys are done.
+- [x] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
+- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Remaining: per-user limits and budgets (they need accounts, 10.1); the daily token budget, usage and cost estimate are per server.
+- [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
+- [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
+- [x] 2.14 Settings UI: provider, model, connection test, local-only mode
+- [ ] 2.15 Contract tests per adapter against recorded responses; live smoke tests run only when an env flag is set. Remaining: recorded fixtures for OpenAI, Mistral and Ollama (hand-written from the documented format until their keys work; Claude's are recorded).
+- [ ] 2.16 Offline mode with an in-browser model: a small model runs in the page, so the coach works with no network, no key and no provider *(added)*
+  - [ ] 2.16.0 `just offline`, a recipe of its own: on first run it downloads the chosen model's weights into `site/models/` (gitignored, checksums verified); then it builds and serves the app with local-only mode on and the in-browser model as the provider. In this mode nothing leaves the machine: the weights come from our own server and the CSP allows `connect-src 'self'` only
+  - [ ] 2.16.1 Runtime:
+    - WebLLM on WebGPU first: fast, with an OpenAI-style API and JSON-schema output
+    - wllama when there's no WebGPU: llama.cpp in WebAssembly, multi-threaded under the COOP/COEP headers we already send
+    - Chrome's built-in model (Prompt API) as an optional extra where it exists
+    - Licences fit GPL-3.0 (Apache-2.0, MIT)
+  - [ ] 2.16.2 Model: a small open model under Apache-2.0 or MIT, chosen with the tutor eval set (3.8). It only puts into words what the engine and the detectors found, which is what makes a small model usable. The weights download on first use, only after the player agrees, with the size shown. They're cached in the browser and always come from our own server (2.16.0), never from a CDN
+  - [ ] 2.16.3 It runs in a Worker behind a page-side provider with the same interface as the gateway's (`chat()`, JSON formats, usage), so the coach code doesn't depend on where the model runs. The coach settings list it as "In browser", and local-only mode (2.14) counts it as local
+  - [ ] 2.16.4 Resources: on the CPU it competes with Stockfish for threads, so the analyst gets fewer threads while the model is generating. Free memory is checked before loading, and the model is unloaded when idle
+  - [ ] 2.16.5 Routing per task (2.10): quick comments run in the browser, and chat and reviews go to the gateway when one is set up
+  - [ ] 2.16.6 Tests: the page-side provider against a fake runtime in the Worker, and a live smoke test with a real model only when an env flag is set
 
 ## 3. Tutor commentary
 
-- [ ] 3.1 Grounding pipeline: engine lines in SAN, move class, motifs, position features and retrieved references go into the prompt context *(prototype: `contextFor`)*
+- [x] 3.1 Grounding pipeline: engine lines in SAN, move class, motifs, position features and retrieved references go into the prompt context *(prototype: `contextFor`)*
 - [ ] 3.2 Aspect picker:
   - [ ] 3.2.1 Last move: what it did, its rating, the engine's alternative
   - [ ] 3.2.2 Future moves and opportunities: threats, plans, candidate moves
@@ -72,28 +85,70 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [ ] 3.2.5 Relevant classic games, taken from the reference library through RAG
 - [ ] 3.3 A prompt template per aspect, with shared rules: don't invent variations, back every claim with an engine line
 - [ ] 3.4 Validate the output: check every move, square and line against chess.js and the engine's lines, then drop or flag the ones that can't be verified *(added)*
-- [ ] 3.5 Adapt to the player's level *(prototype)*
+- [x] 3.5 Adapt to the player's level *(prototype)*
 - [ ] 3.6 When to comment: after every move, only after mistakes, or on request; no spoilers mid-game unless help is on
 - [ ] 3.7 Cache comments by (EPD, aspect, level, model)
 - [ ] 3.8 Tutor eval set: reference positions with the key points a good comment should hit; scored by engine checks plus an LLM judge, run per provider *(added)*
+- [ ] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*
+  - [ ] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked
+  - [ ] 3.9.2 Continuous commentary: a short comment on every move by either side, like a broadcast commentator. Uses the quick model, is cached per position (3.7), and keeps to the spoiler rules from 3.6 during a game
+  - [ ] 3.9.3 Challenges: the coach asks instead of explaining ("What does Black threaten?", "Find the best move", "Nf3 or Bg5?", "Which square is weak?"). The player's answer is checked against the engine and the motif detectors before the coach reveals anything, and results count toward progress per theme (6.7, 9.2)
+  - [ ] 3.9.4 Interesting moves, not only the best: the analyst's MultiPV count and a centipawn window become settings. From the moves inside the window, the coach picks the ones worth showing (a different plan, a sacrifice, a quiet move, a trap for the opponent) instead of always the engine's first line. Each pick shows its engine rank and evaluation
+  - [ ] 3.9.5 Tests: each mode with the mock provider, challenge answers checked against fixed engine lines, the move picker on reference positions
 
 ## 4. Chat and board annotations
 
-- [ ] 4.1 Chat panel: history per game and position, streaming, stop button *(prototype)*
+- [x] 4.1 Chat panel: history per game and position, streaming, stop button *(prototype)*
 - [ ] 4.2 Annotation schema: arrows, square highlights, ghost pieces, labels, move sequences
 - [ ] 4.3 Rendering: chessground shapes for arrows and highlights; a ghost-piece layer; a variation stepper that leaves the game untouched
 - [ ] 4.4 Check every annotation against the current position before drawing it
 - [ ] 4.5 "What if": the user tries a move on a scratch board, the engine evaluates it, the tutor explains
 - [ ] 4.6 Chat context: current position, game so far, selected aspects, recent tutor comments
 - [ ] 4.7 Tests: schema validation, rendering e2e, malformed and hostile model output
+- [ ] 4.8 Free conversation with the coach, about any game or position, not only the one on the board *(added)*
+  - [ ] 4.8.1 Open questions (plans, openings, general chess) without a position; answers stay grounded in the engine whenever a position is involved
+  - [ ] 4.8.2 Load from the chat: the player names a game ("the Opera Game", "my last loss with Black") or pastes a FEN or PGN, and the coach puts it on the board in analysis mode
+  - [ ] 4.8.3 Coach tools: search the library (7.5), load a game at a given move, load a position, load an opening line. Every load is checked with chess.js, and leaving a game in progress needs the player's confirmation; the tools only load, never change or delete anything (11.3.6). Builds on tool calling (2.7)
+  - [ ] 4.8.4 After a load, the engine analyses the position before the coach explains it, and the chat keeps track of which game and move each answer refers to
+  - [ ] 4.8.5 Tests: tool calls with the mock provider, invalid or hostile load requests, confirmation before leaving a game
+- [ ] 4.9 One chat outside the tabs: the chat stays visible whichever tab is open (play, analysis, review, openings, lessons), instead of living inside the Coach tab *(added)*
+  - [ ] 4.9.1 The chat follows the context. By default the coach talks about the active tab's game and position. A message that names something else ("this opening", "my last game", a FEN) switches the context, which shows as a chip above the input that the player can change. Each answer stays tied to the game and move it was about
+  - [ ] 4.9.2 Layout: a side panel on wide screens and a drawer on mobile (10.6), collapsible, with the history kept across tab switches
+  - [ ] 4.9.3 Tests: e2e for the chat across tabs, switching context by tab and by message, the mobile drawer
+- [ ] 4.10 Board control from the chat: the chat can make moves and set up pieces *(added)*
+  - [ ] 4.10.1 Moves: "play e4", "take back two moves", "go to move 15", "show me Nxf7 and what follows". Plain move text goes through the typed-move parser (`parseMoveInput`) without calling the model. In a game, the chat moves only for the player and follows the clock and help settings; elsewhere it plays in analysis, on a variation that leaves the game untouched (4.3)
+  - [ ] 4.10.2 Setup: "put a white knight on f5", "remove the queens", "set up a Lucena position", "White to move". This edits a scratch board in analysis mode, never a game in progress. The result must be a legal position (`checkStart`, `fixCastling`) before it's shown, with the side to move and castling rights stated
+  - [ ] 4.10.3 Coach tools for both (with 4.8.3): `move`, `goto`, `setup` taking pieces and squares, `undo`. Every call is checked with chess.js, every board change can be undone in one step, and none of them touches saved games or the library
+  - [ ] 4.10.4 After each change the engine re-analyses, and the coach's next answer is about the new position (async results checked against the FEN)
+  - [ ] 4.10.5 Tests: moves and setups through the mock provider, illegal or hostile requests (impossible positions, moves for the engine's side, setup during a game), undo
+- [ ] 4.11 Engine tools for the coach: the model asks, and Stockfish and the motif detectors answer *(added)*
+  - [ ] 4.11.1 Tools:
+    - `analyse(fen, depth, lines)`: the top lines in SAN, with evaluations
+    - `try_move(fen, move)`: does this move work, and what refutes it (`go searchmoves`)
+    - `threats(fen)`: what the opponent would play if it were their move (side to move flipped; not when in check)
+    - `compare(fen, moves)`
+    - `find_mate(fen, n)`
+    - `find_motifs(fen, line)`: `moveMotifs` on every move of a line
+  - [ ] 4.11.2 Pattern search over lines: the detectors run over every move of the top lines, and a motif counts only when the engine's evaluation confirms it pays off within a few moves. A large gap between the first and second line flags an "only move". The detectors grow to cover the themes in 6.2
+  - [ ] 4.11.3 Tool calling in the gateway for every provider: Claude tool use, and function calling for OpenAI, Mistral and Ollama. One mechanism also serves the load tools (4.8.3) and the board tools (4.10.3); today the gateway uses JSON-schema output instead (2.7). Models without tools fall back to a standard analysis run up front, which the model only explains
+  - [ ] 4.11.4 Where the engine runs: in the page, with the gateway handing each tool call to the page and waiting for the result, or on the server, where the npm Stockfish build also runs in Node. Decide on latency, cost and hosted load (10.1). Each answer gets a cap on tool calls and engine time
+  - [ ] 4.11.5 Tool arguments are untrusted: FENs and moves are checked with chess.js, and depth, time and line count are capped. Every line the model quotes must come from a tool result (3.4). The tool results are kept with the answer, so the chat can show the evidence
+  - [ ] 4.11.6 Tests: tool loops with the mock provider and a fake engine; hostile arguments (illegal FEN, huge depth, a tool loop that doesn't end); contract fixtures for tool calls per provider
 
 ## 5. Opening library
 
-- [x] 5.1 Opening names by position (Lichess chess-openings, CC0), in `claude/data/eco`
+- [x] 5.1 Opening names by position (Lichess chess-openings, CC0), in `site/data/eco`
 - [ ] 5.2 Opening explorer: move tree built from the reference library (check licence and terms before using any external explorer API)
 - [ ] 5.3 Repertoire builder: the user picks lines for White and for Black
 - [ ] 5.4 Repertoire drill with spaced repetition *(added)*
 - [ ] 5.5 Opening explanations: ideas, typical plans, resulting pawn structures
+- [ ] 5.6 Opening variations at the board: which opening this is, and the named continuations from here *(added)*
+  - [ ] 5.6.1 Panel with the current line's name and ECO code, and each next move that leads to a named variation, with that variation's name. Built from the Lichess lines already in `openings.json`; how often each move is played comes with the explorer (5.2)
+  - [ ] 5.6.2 Hovering a move shows it on the board; clicking plays it in analysis, or as the next move in a game
+  - [ ] 5.6.3 Matched by position, not move order, so transpositions find the right name
+  - [ ] 5.6.4 During a game the panel follows the live-help setting (off: hidden until the game ends), so it doesn't hint at moves
+  - [ ] 5.6.5 Chat: the coach gets the opening and its continuations in the context, and a quick question "About this opening". Questions like "what's the idea of 6. Bg5?" are answered from the engine's lines, and from the opening explanations once 5.5 exists
+  - [ ] 5.6.6 Tests: continuations for known positions, transpositions, hidden during play, the context sent to the coach
 
 ## 6. Tactics and strategy curriculum
 
@@ -104,26 +159,27 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 6.5 Puzzle source: Lichess puzzle database (CC0), already tagged by theme
 - [ ] 6.6 Lesson player: explanation, worked positions, exercises with tutor hints
 - [ ] 6.7 Progress per lesson and per theme
+- [ ] 6.8 Play a lesson position out against Stockfish (the game start from 1.8 takes a FEN or moves)
 
 ## 7. Reference library: games and problems
 
 - [ ] 7.1 Data model: games, positions, problems, annotations, plus source and licence for each item
-- [ ] 7.2 PGN import with deduplication *(prototype)*
+- [ ] 7.2 PGN import with deduplication *(prototype)*. Remaining: deduplication.
 - [ ] 7.3 Classic games collection: public game scores only, no copyrighted annotations
 - [ ] 7.4 Problems and studies collection
 - [ ] 7.5 Search by player, opening, year, result, theme
 - [ ] 7.6 Storage: SQLite on the server, IndexedDB cache in the browser
-- [ ] 7.7 The user's own games *(prototype)*
+- [x] 7.7 The user's own games *(prototype)*
 
 ## 8. RAG on positions and tactical patterns
 
-- [ ] 8.1 Position index: exact EPD and pawn-structure signature *(prototype)*, plus material signature and piece-placement features
+- [ ] 8.1 Position index: exact EPD and pawn-structure signature *(prototype)*, plus material signature and piece-placement features. Remaining: material and piece-placement signatures.
 - [ ] 8.2 Pattern tags per position and move, from the motif and theme detectors *(prototype)*
 - [ ] 8.3 Text index for annotations and lesson text; embeddings from a separately configured provider (OpenAI, Mistral or Ollama; Anthropic has no embeddings API)
 - [ ] 8.4 Hybrid retrieval: structural similarity, tag overlap and text embeddings, then re-ranking
 - [ ] 8.5 Fuzzy pawn-structure distance
 - [ ] 8.6 Retrieved items go into tutor and chat context with citations; the UI opens the cited game at that position
-- [ ] 8.7 Treat retrieved text as untrusted: delimit it and never follow instructions inside it (imported PGN comments can carry prompt injection) *(added)*
+- [x] 8.7 Treat retrieved text as untrusted: delimit it and never follow instructions inside it (imported PGN comments can carry prompt injection) *(added)*
 - [ ] 8.8 Retrieval eval: labelled query positions with expected references; track precision@k *(added)*
 
 ## 9. Progress and personalization *(added)*
@@ -132,7 +188,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 9.2 Weakness tracking from game reviews (missed themes, weak game phases)
 - [ ] 9.3 Puzzles generated from the user's own mistakes
 - [ ] 9.4 Spaced-repetition scheduler for puzzles, openings and lessons
-- [ ] 9.5 Study plan suggestions *(prototype)*
+- [x] 9.5 Study plan suggestions *(prototype)*
 
 ## 10. Accounts, privacy and reach *(added)*
 
@@ -141,8 +197,8 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 10.3 Data export and deletion
 - [ ] 10.4 Privacy notice: what goes to which AI provider, with opt-in per provider
 - [ ] 10.5 Accessibility: keyboard play, colour-blind-safe arrows, reduced motion
-- [ ] 10.6 Mobile layout and dark mode *(prototype)*
-- [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the tutor needs a provider or Ollama
+- [x] 10.6 Mobile layout and dark mode *(prototype)*
+- [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the coach works offline with Ollama or the in-browser model (2.16)
 - [ ] 10.8 Internationalization
 
 ## 11. Security testing (before every release)
@@ -150,16 +206,16 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 11.1 Threat model covering the data flows: browser ↔ server ↔ providers, PGN imports, RAG store
 - [ ] 11.2 OWASP Top 10 (current edition): a checklist mapped to the code, with findings tracked as GitHub issues
 - [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item:
-  - [ ] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
+  - [x] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
   - [ ] 11.3.2 LLM02 Sensitive information disclosure: API keys, other users' data
   - [ ] 11.3.3 LLM03 Supply chain: pinned packages and model versions
   - [ ] 11.3.4 LLM04 Data and model poisoning: imported games and annotations in the RAG store
-  - [ ] 11.3.5 LLM05 Improper output handling: model output never rendered as HTML; annotations validated
+  - [ ] 11.3.5 LLM05 Improper output handling: model output never rendered as HTML; annotations validated. Remaining: annotation validation (with 4.4); output is already rendered as text only.
   - [ ] 11.3.6 LLM06 Excessive agency: the model can only produce text and annotations, never take actions
   - [ ] 11.3.7 LLM07 System prompt leakage: no secrets in prompts
   - [ ] 11.3.8 LLM08 Vector and embedding weaknesses: users' data kept separate in the RAG store
   - [ ] 11.3.9 LLM09 Misinformation: every chess claim checked against the engine
-  - [ ] 11.3.10 LLM10 Unbounded consumption: rate limits and token budgets
+  - [ ] 11.3.10 LLM10 Unbounded consumption: rate limits and token budgets. Remaining: per-user limits (10.1); the gateway has a rate limit, a daily token budget, max output tokens and size limits.
 - [ ] 11.4 OWASP ASVS: pick a level (L1 for a local app, L2 if hosted with accounts), keep a verification checklist, automate checks where possible
 - [ ] 11.5 Automated scans: Dependabot, CodeQL, secret scanning, OWASP ZAP baseline against staging, CSP check
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings
