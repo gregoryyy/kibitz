@@ -4,7 +4,7 @@ Kibitz is a neurosymbolic chess coach in the browser. Stockfish (WASM) plays and
 
 ## Layout
 
-Everything for the app is in `site/`, a single npm project. Design notes are in `site/README.md`.
+Everything for the app is in `site/`, a single npm project. The architecture is explained in `docs/ARCH.md`; design notes are in `site/README.md`.
 - `site/src/`: the page (`index.html`, written as a Claude artifact body) and `knowledge.js`. These build into `site/dist/`; never edit `dist/`.
 - `site/server/`: the AI gateway. `site/scripts/serve.mjs --api` mounts it and loads `.env` from the repo root.
 - `site/tests/`, `site/server/*.test.mjs`: tests.
