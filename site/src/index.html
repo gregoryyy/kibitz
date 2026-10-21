@@ -432,7 +432,7 @@ import { Engine, stockfishAttempts } from './engine.js';
 import { createStore, browserStorage } from './store.js';
 import { quote } from './prompt.js';
 import { createBrowserModel, cpuThreads } from './browser-llm.js';
-import { COACH_RULES, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, SAN_RE, commentKey, lruCache } from './tutor.js';
+import { COACH_RULES, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './tutor.js';
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
@@ -1602,6 +1602,7 @@ function contextFor(i, { view = 'all' } = {}) {
     const reply = rated && anaOf(fen)?.best; // the opponent's punishing reply: about the player's move, not the player's next one
     if (reply && ['mistake', 'blunder'].includes(n.cls)) { const m = K.moveMotifs(Chess, fen, reply); if (m.length) lines.push(`Why it hurts: the reply ${uciToSan(fen, reply)} — ${m.map(x => x.why).join('; ')}.`); }
   }
+  if (S.reviewDone && view === 'all') lines.push(...reviewFacts());
   lines.push(`Position themes detected: ${feats.map(f => `${K.TAG_LABELS[f.tag] || f.tag} (${f.why})`).join('; ') || 'none'}.`);
   const notes = safetyNotes(Chess, fen);
   if (notes.length) lines.push(`Keep in mind (from the board): ${notes.join('; ')}.`);
@@ -1719,15 +1720,18 @@ function coachError(e) {
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
 // The answer's moves and piece claims checked against chess.js and the engine lines the coach saw
-// for node i (tutor.js checkAnswer, TODO 3.4).
+// for node i (tutor.js checkAnswer, TODO 3.4). After a review, the coach also saw the whole game and
+// the better line at each turning point (reviewFacts), so those count as backed too.
 function checkFor(text, i, view) {
   const fen = S.nodes[i].fen, prevFen = i > 0 ? S.nodes[i - 1].fen : null;
   const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv);
+  const review = S.reviewDone && view === 'all';
   return checkAnswer(Chess, text, {
     fen, prevFen,
     lines: view === 'all' ? pvs(fen) : [],
     prevLines: prevFen && view !== 'none' ? pvs(prevFen) : [],
-    game: S.nodes.slice(1, i + 1).map(n => n.san),
+    game: S.nodes.slice(1, review ? S.nodes.length : i + 1).map(n => n.san),
+    extra: review ? keyMoments(6).map(({ i: k }) => { const pf = S.nodes[k - 1].fen; return pvSans(Chess, pf, anaOf(pf)?.lines[0]?.pv || [], 6); }) : [],
   });
 }
 // Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.
@@ -1767,16 +1771,32 @@ function addSan(node, text, fen, marks = null) {
   }
   if (lastIdx < text.length) node.append(text.slice(lastIdx));
 }
+// The review's turning points as prompt lines: the swing, the engine's better move with its line, and the motif that refutes the move played.
+function turningPoints(limit) {
+  return keyMoments(limit).map(({ i, n }) => {
+    const pf = S.nodes[i - 1].fen; const a = anaOf(pf); const af = anaOf(n.fen);
+    const mot = af?.best ? K.moveMotifs(Chess, n.fen, af.best).map(m => m.why).join('; ') : '';
+    return `- ${moveLabel(i)} (${n.cls}): ${fmtCp(whiteCp(i - 1))} → ${fmtCp(whiteCp(i))}. Best was ${a?.best ? uciToSan(pf, a.best) + ' ' + pvToSan(pf, a.lines[0]?.pv, 5) : 'unknown'}.${mot ? ' Refutation motif: ' + mot : ''}`;
+  });
+}
+// What the review found, for the chat once a review has run: what the player sees as the
+// evaluation graph (the score after every move) and the turning points, so the coach can talk about them.
+function reviewFacts() {
+  const { c, acc } = tally();
+  const curve = S.nodes.slice(1).map((_, k) => `${moveLabel(k + 1)} ${fmtCp(whiteCp(k + 1))}`).join(', ');
+  return [
+    'Game review by Stockfish (the player sees it as the evaluation graph and the list of turning points):',
+    `  Accuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}. Blunders/mistakes/inaccuracies: White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.`,
+    `  Evaluation after each move (White's point of view): ${curve}.`,
+    '  Turning points:', ...turningPoints(6).map(l => '  ' + l),
+  ];
+}
 async function writeSummary() {
   if (!COACH.sample) return;
   const btn = $('#btnSummary'); const box = $('#summaryBox');
   btn.disabled = true; box.replaceChildren(el('span', { class: 'empty-note' }, 'Thinking…'));
   const { c, acc } = tally(); const names = playerNames();
-  const km = keyMoments(6).map(({ i, n }) => {
-    const pf = S.nodes[i - 1].fen; const a = anaOf(pf); const af = anaOf(n.fen);
-    const mot = af?.best ? K.moveMotifs(Chess, n.fen, af.best).map(m => m.why).join('; ') : '';
-    return `- ${moveLabel(i)} (${n.cls}): ${fmtCp(whiteCp(i - 1))} → ${fmtCp(whiteCp(i))}. Best was ${a?.best ? uciToSan(pf, a.best) + ' ' + pvToSan(pf, a.lines[0]?.pv, 5) : 'unknown'}.${mot ? ' Refutation motif: ' + mot : ''}`;
-  }).join('\n');
+  const km = turningPoints(6).join('\n');
   const allFeats = new Map();
   [Math.min(16, last()), Math.floor(last() / 2), last(), ...keyMoments(6).map(k => k.i)].forEach(i => K.positionFeatures(new Chess(S.nodes[i].fen), { ply: i, opening: openingAt(i) }).forEach(f => { const o = allFeats.get(f.tag); if (!o || o.weight < f.weight) allFeats.set(f.tag, f); }));
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });

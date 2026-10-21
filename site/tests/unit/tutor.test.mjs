@@ -110,6 +110,13 @@ test('checked answer: the position before counts too (the last move\'s alternati
   assert.deepEqual(statuses(r), ['Ng5:line', 'd3:game']);
 });
 
+test('checked answer: lines from other positions the coach was given (the review\'s turning points) count as backed', () => {
+  const text = 'Better was 2... Nc6 3. Bb5 Bc5, not 2... Qh4.';
+  assert.deepEqual(statuses(check(text)), ['Nc6:game', 'Bb5:invalid', 'Bc5:invalid', 'Qh4:invalid']);
+  const r = checkAnswer(Chess, text, { fen: ITALIAN, lines: LINES, game: GAME, extra: [['Nc6', 'Bb5', 'Bc5+']] });
+  assert.deepEqual(statuses(r), ['Nc6:line', 'Bb5:line', 'Bc5:line', 'Qh4:invalid']);
+});
+
 test('comment cache key covers position, move, aspects, view, level and model', () => {
   const base = { epd: 'x', uci: 'e2e4', aspects: ['mind', 'last'], view: 'all', level: 2, model: 'm' };
   assert.equal(commentKey(base), commentKey({ ...base, aspects: ['last', 'mind'] }));

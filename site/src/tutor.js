@@ -125,15 +125,16 @@ export function pvSans(Chess, fen, pv, max = 12) {
 const legalSans = (Chess, fen) => { try { return new Set(new Chess(fen).moves().map(strip)); } catch { return new Set(); } };
 
 // Each move-like token in `text`, in order, with where it's backed:
-//   'line'    in one of Stockfish's lines (for this position or the one before);
+//   'line'    in one of Stockfish's lines (for this position or the one before, or in `extra`:
+//             lines from other positions the coach was given, in SAN, e.g. the review's turning points);
 //   'game'    one of the game's moves;
 //   'legal'   legal here (or in the position before) but in no engine line: unchecked;
 //   'invalid' neither, or part of a sequence that isn't a line of Stockfish's or the game's;
 //   'square'  a bare square used as a square ("the knight on f3"), not a move.
 // Also "<piece> on <square>" claims, checked against the board now and one move before.
 // problems: the invalid moves plus the wrong piece claims.
-export function checkAnswer(Chess, text, { fen, prevFen = null, lines = [], prevLines = [], game = [] }) {
-  const seqs = [...lines.map(pv => pvSans(Chess, fen, pv)), ...(prevFen ? prevLines.map(pv => pvSans(Chess, prevFen, pv)) : [])];
+export function checkAnswer(Chess, text, { fen, prevFen = null, lines = [], prevLines = [], game = [], extra = [] }) {
+  const seqs = [...lines.map(pv => pvSans(Chess, fen, pv)), ...(prevFen ? prevLines.map(pv => pvSans(Chess, prevFen, pv)) : []), ...extra.map(l => l.map(strip))];
   const inLines = new Set(seqs.flat()), inGame = new Set(game.map(strip));
   const legal = new Set([...legalSans(Chess, fen), ...(prevFen ? legalSans(Chess, prevFen) : [])]);
   const moves = [];

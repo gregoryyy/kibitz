@@ -1,5 +1,5 @@
 // The coach's connection to the AI gateway: tasks, settings, usage (TODO 2.10-2.14).
-import { test, expect, open } from './fixtures.mjs';
+import { test, expect, open, loadPgn, OPERA } from './fixtures.mjs';
 
 test('quick questions, typed questions and the review summary ask for their own task', async ({ page }) => {
   const tasks = [];
@@ -32,4 +32,29 @@ test('coach settings: providers, models, local-only, connection test and usage',
   await expect(page.locator('#optProvider button[data-v="mock"]')).toHaveAttribute('aria-pressed', 'true'); // mock is local
   await page.locator('#optLocalOnly').uncheck();
   await expect(page.locator('#coachSend')).toBeEnabled();
+});
+
+test('after a review, the chat knows the evaluation graph and the turning points', async ({ page }) => {
+  const bodies = [];
+  page.on('request', r => { if (r.url().endsWith('/api/ai/sample')) bodies.push(JSON.stringify(JSON.parse(r.postData()).messages)); });
+  await open(page);
+  await loadPgn(page, OPERA);
+  const ask = async q => {
+    const n = await page.locator('#chat .msg.coach').count();
+    await page.locator('#coachInput').fill(q);
+    await page.locator('#coachSend').click();
+    await expect(page.locator('#chat .msg.coach')).toHaveCount(n + 1);
+    await expect(page.locator('#coachStop')).toBeHidden();
+  };
+  await ask('Where did the game turn?');
+  expect(bodies.at(-1)).not.toContain('Game review by Stockfish');
+  await page.locator('[data-tab="review"]').click();
+  await page.locator('#btnReview').click();
+  await expect(page.locator('#reviewBody .moments')).toBeVisible({ timeout: 60_000 });
+  await ask('Where did the game turn?');
+  const prompt = bodies.at(-1);
+  expect(prompt).toContain('Game review by Stockfish');
+  expect(prompt).toMatch(/Evaluation after each move \(White's point of view\): 1\. e4 [+−]\d\.\d, 1… e5 /);
+  expect(prompt).toContain('17. Rd8# mate for White');
+  expect(prompt).toMatch(/Turning points:\\n {2}- \d+(\.|…) /);
 });
