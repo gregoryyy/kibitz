@@ -34,8 +34,12 @@ async function squareCenter(page, sq) {
   const fx = flipped ? 7 - f : f, ry = flipped ? r - 1 : 8 - r;
   return { x: b.x + (fx + 0.5) * b.width / 8, y: b.y + (ry + 0.5) * b.height / 8 };
 }
-// Click-click move on the board.
+// Click-click move on the board. Scrolls it into view first: the panels below the dialogue can push
+// the page down when a test clicks an option there. Chessground forgets its cached board position on
+// the scroll event, which fires on the next frame, so the clicks wait for that.
 export async function move(page, from, to) {
+  await page.locator('#board').scrollIntoViewIfNeeded();
+  await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
   for (const sq of [from, to]) { const p = await squareCenter(page, sq); await page.mouse.click(p.x, p.y); await page.waitForTimeout(80); }
 }
 

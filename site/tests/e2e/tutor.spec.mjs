@@ -59,16 +59,17 @@ test('an answer\'s moves and piece claims are checked: an illegal move is struck
   await expect(answer.locator('.check-note')).toContainText('2 claims in this answer don\'t match');
 });
 
-test('after every move: the coach comments on the player\'s move under the board, without spoiling the position', async ({ page }) => {
+test('after every move: the coach comments on the player\'s move beside the board, without spoiling the position', async ({ page }) => {
   const bodies = recordSamples(page);
   await open(page);
   await page.locator('[data-tab="coach"]').click();
   await page.locator('#optCommentWhen button[data-v="every"]').click();
   await page.locator('[data-tab="game"]').click();
   await move(page, 'e2', 'e4');
-  await expect(page.locator('#coachNote .coach-note')).toContainText('Coach on 1. e4', { timeout: 20_000 });
-  await expect(page.locator('#coachNote .coach-note')).toContainText('Mock coach');
-  await expect(page.locator('[data-tab="coach"]')).toHaveClass(/has-new/);
+  const comment = page.locator('#chat .msg.coach').last();
+  await expect(comment).toContainText('Coach on 1. e4', { timeout: 20_000 });
+  await expect(comment).toContainText('Mock coach');
+  await expect(comment).toBeVisible(); // the dialogue is beside the board, whichever tab is open
   // Engine help is "flag mistakes": the coach sees how the move rated, not Stockfish's view of the position.
   expect(bodies).toHaveLength(1);
   const prompt = lastMessage(bodies[0]);
@@ -76,10 +77,7 @@ test('after every move: the coach comments on the player\'s move under the board
   expect(prompt).not.toContain('top lines');
   expect(prompt).not.toMatch(/What comes next/);
   await page.locator('[data-tab="coach"]').click();
-  await expect(page.locator('[data-tab="coach"]')).not.toHaveClass(/has-new/);
   await expect(page.locator('#aspectHint')).toContainText('What\'s next: left out while you play');
-  await page.locator('#coachNote .x').click();
-  await expect(page.locator('#coachNote .coach-note')).toHaveCount(0);
 });
 
 test('with engine help off, the coach stays quiet during the game', async ({ page }) => {
@@ -92,5 +90,5 @@ test('with engine help off, the coach stays quiet during the game', async ({ pag
   await expect(page.locator('#moves button')).toHaveCount(2); // Stockfish replied
   await page.waitForTimeout(2_000); // time for the moves to be classified
   expect(bodies).toHaveLength(0);
-  await expect(page.locator('#coachNote .coach-note')).toHaveCount(0);
+  await expect(page.locator('#chat .msg.coach')).toHaveCount(0);
 });

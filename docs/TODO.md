@@ -114,8 +114,8 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [ ] 4.8.5 Tests: tool calls with the mock provider, invalid or hostile load requests, confirmation before leaving a game
 - [ ] 4.9 One chat outside the tabs: the chat stays visible whichever tab is open (play, analysis, review, openings, lessons), instead of living inside the Coach tab *(added)*
   - [ ] 4.9.1 The chat follows the context. By default the coach talks about the active tab's game and position. A message that names something else ("this opening", "my last game", a FEN) switches the context, which shows as a chip above the input that the player can change. Each answer stays tied to the game and move it was about
-  - [ ] 4.9.2 Layout: a side panel on wide screens and a drawer on mobile (10.6), collapsible, with the history kept across tab switches
-  - [ ] 4.9.3 Tests: e2e for the chat across tabs, switching context by tab and by message, the mobile drawer
+  - [x] 4.9.2 Layout: a side panel on wide screens and a drawer on mobile (10.6), collapsible, with the history kept across tab switches. Done as the dialogue beside the board, as tall as it; the tab panels below fold away. On a phone it follows the board with a capped height, not a drawer
+  - [ ] 4.9.3 Tests: e2e for the chat across tabs, switching context by tab and by message, the mobile drawer. Partly: the layout across tabs and on a phone (`layout.spec`)
 - [ ] 4.10 Board control from the chat: the chat can make moves and set up pieces *(added)*
   - [ ] 4.10.1 Moves: "play e4", "take back two moves", "go to move 15", "show me Nxf7 and what follows". Plain move text goes through the typed-move parser (`parseMoveInput`) without calling the model. In a game, the chat moves only for the player and follows the clock and help settings; elsewhere it plays in analysis, on a variation that leaves the game untouched (4.3)
   - [ ] 4.10.2 Setup: "put a white knight on f5", "remove the queens", "set up a Lucena position", "White to move". This edits a scratch board in analysis mode, never a game in progress. The result must be a legal position (`checkStart`, `fixCastling`) before it's shown, with the side to move and castling rights stated
@@ -135,6 +135,11 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [ ] 4.11.4 Where the engine runs: in the page, with the gateway handing each tool call to the page and waiting for the result, or on the server, where the npm Stockfish build also runs in Node. Decide on latency, cost and hosted load (10.1). Each answer gets a cap on tool calls and engine time
   - [ ] 4.11.5 Tool arguments are untrusted: FENs and moves are checked with chess.js, and depth, time and line count are capped. Every line the model quotes must come from a tool result (3.4). The tool results are kept with the answer, so the chat can show the evidence
   - [ ] 4.11.6 Tests: tool loops with the mock provider and a fake engine; hostile arguments (illegal FEN, huge depth, a tool loop that doesn't end); contract fixtures for tool calls per provider
+- [ ] 4.12 UX review *(added)*
+  - [ ] 4.12.1 Settings behind a gear icon in the header, opening an overlay (a modal dialog: Escape and a click outside close it, focus stays inside while it is open). It takes what is spread over the tabs today: the coach settings and provider, local-only mode, the engine depth, the player's level, and when the coach comments. The tabs keep only what belongs to their task
+  - [ ] 4.12.2 The player talks about the game throughout, so the dialogue is always on: beside the board on desktop, below it in portrait on a phone, and never inside a tab. Mostly done with 4.9.2 (the dialogue at the board's height, the tab panels folding away). Still to check: landscape on a phone and tablets, and that the board and the composer both stay in view while typing on a phone
+  - [ ] 4.12.3 Tell the game in progress apart from the review. Today Game, Coach, Review, Library and Reading are one row of tabs, and the review works on whatever game is on the board. Group the tabs for the game in progress (new game, live help) apart from those for looking back (review, library, reading), make it visible which game the board, the dialogue and the review are about, and give leaving a running game for a review an explicit step that keeps the game, with a way back to it
+  - [ ] 4.12.4 Tests: e2e for the settings overlay (open, close, keyboard, settings kept), the dialogue placement at desktop, phone-portrait and phone-landscape sizes, and switching between a running game and a review without losing either
 
 ## 5. Opening library
 
