@@ -104,8 +104,9 @@ Guided paths that train a skill, not just answer questions.
 
 ## 8. A tutorial that follows one position
 
-A primer that accompanies the repo, in the style of the Warsaw AI primer ("A Gentle Primer on Generative AI", 2026). That primer follows one error message from raw text to a governed fix. This one follows one chess question through the patterns in [ARCH.md](ARCH.md). Each step adds context and ends with what the coach can say at that point. The model stays the same, and the answer gets sharper as its context grows.
+A primer that accompanies the repo and follows one chess question through the patterns in [ARCH.md](ARCH.md). Each step adds context and ends with what the coach can say at that point. The model stays the same, and the answer gets sharper as its context grows.
 
+- **Basis:** a version of the Warsaw AI primer ("A Gentle Primer on Generative AI", 2026) already adapted to this scenario, to be added to the repo. The original follows one error message from raw text to a governed fix.
 - **The scenario:** a club player has just played a move, and asks "What should I play now?"
 - **The steps:**
   1. The bare question with only the FEN: the model guesses, and names moves that are illegal or lose.
@@ -118,7 +119,7 @@ A primer that accompanies the repo, in the style of the Warsaw AI primer ("A Gen
   8. Agency under policy: the coach loads a position or plays a line on a scratch board, with confirmation and undo (4.8, 4.10).
   - A closing step on running it all in the browser, with no key and nothing leaving the machine (2.16).
 - **Hands-on:** each step can be repeated in the app. A prompt view shows exactly what the model saw at that step, and the mock provider makes the outputs reproducible.
-- **Appendices:** the transformer in more depth, literature, and links, as in the Warsaw primer.
+- **Appendices:** the transformer in more depth, literature, and links, as in the primer.
 - **Builds on:** ARCH.md, the coach's prompt templates (3.3) and answer checks (3.4), and the engine tools (4.11) for steps 7 and 8.
 - **Open questions:**
   - the audience: developers, product designers, or chess players curious about AI;
