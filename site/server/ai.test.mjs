@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyLocalOnly, complete, createEmbedder, createProvider, GatewayError, LIMITS, loadConfig, loadEmbeddingConfig, modelFor, publicStatus, switchProvider, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
+import { applyLocalOnly, complete, createEmbedder, createProvider, GatewayError, LIMITS, loadConfig, loadEmbeddingConfig, modelFor, providerReason, publicStatus, switchProvider, rateLimiter, toGatewayError, validateMessages } from './ai.mjs';
 
 const drain = async (gen) => { const out = []; let r; while (!(r = await gen.next()).done) out.push(r.value); return { chunks: out, result: r.value }; };
 const msgs = [{ role: 'user', content: 'Hi' }];
@@ -162,11 +162,26 @@ test('mock provider streams a canned reply', async () => {
 });
 
 // ---------------------------------------------------------------- errors and limits
+test('a provider\'s reason is shown and logged without anything that looks like a key', () => {
+  const e = Object.assign(new Error('401 Incorrect API key provided: sk-proj-********************************************sU5G. You can find your API key at https://platform.openai.com/account/api-keys.'), { status: 401 });
+  const why = providerReason(e);
+  assert.ok(!/sU5G|sk-proj/.test(why), why);
+  assert.match(why, /Incorrect API key provided: \[key\]/);
+  assert.ok(providerReason({ message: 'x'.repeat(500) }).length <= 200);
+  assert.equal(providerReason(null), '');
+});
+
 test('provider errors map to the codes the page understands', () => {
   assert.equal(toGatewayError(Object.assign(new Error('x'), { status: 429 })).code, 'rate_limited');
   assert.equal(toGatewayError(Object.assign(new Error('x'), { status: 401 })).code, 'auth_failed');
   assert.equal(toGatewayError(Object.assign(new Error('x'), { status: 404 })).code, 'model_not_found');
   assert.equal(toGatewayError(new Error('boom')).code, 'provider_error');
+  // A rejected request (400) says why, in the provider's words, e.g. Ollama with an old model.
+  const ollama = Object.assign(new Error('400 "deepseek-R1:latest" does not support chat'), { status: 400, error: { message: '"deepseek-R1:latest" does not support chat' } });
+  const g400 = toGatewayError(ollama);
+  assert.equal(g400.code, 'provider_rejected');
+  assert.equal(g400.message, 'The AI provider rejected the request: "deepseek-R1:latest" does not support chat');
+  assert.equal(toGatewayError(Object.assign(new Error(''), { status: 400 })).code, 'provider_error', 'without a reason it stays generic');
   const ac = new AbortController(); ac.abort();
   assert.equal(toGatewayError(new Error('aborted'), ac.signal).code, 'cancelled');
   const g = new GatewayError('refused', 'no', 200);

@@ -13,7 +13,7 @@
 //                           format names one of schema.mjs FORMATS, e.g. "annotations"
 import crypto from 'crypto';
 import net from 'net';
-import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, publicStatus, rateLimiter, switchProvider, toGatewayError, validateMessages } from './ai.mjs';
+import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, providerReason, publicStatus, rateLimiter, switchProvider, toGatewayError, validateMessages } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageLedger, userLedger } from './usage.mjs';
 
@@ -118,7 +118,7 @@ export function createApi({
     } catch (e) {
       const g = toGatewayError(e, ac.signal);
       // Log the code and the provider's message, never the prompt.
-      if (g.code !== 'cancelled') { log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`); write({ error: { code: g.code, message: g.message } }); }
+      if (g.code !== 'cancelled') { log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`); write({ error: { code: g.code, message: g.message } }); }
     }
     res.end();
     return true;
@@ -136,7 +136,7 @@ export function createApi({
     }
     catch (e) {
       const g = toGatewayError(e, ac.signal);
-      if (g.code !== 'cancelled') log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${e?.message ?? ''}`);
+      if (g.code !== 'cancelled') log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`);
       throw g;
     }
   }
