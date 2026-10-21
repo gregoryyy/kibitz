@@ -1,0 +1,335 @@
+{
+  "coach": "in-browser / Qwen2.5 0.5B Instruct",
+  "judge": "anthropic / claude-opus-5-5",
+  "date": "2026-10-21",
+  "file": "in-browser-qwen2.5-0.5b-instruct.md",
+  "summary": {
+    "positions": 10,
+    "keys": 0.225,
+    "moves": 1,
+    "judge": 0.03125,
+    "overall": 0.4187499999999999,
+    "wrongMoves": 0,
+    "secondsPerAnswer": 12.6795
+  },
+  "results": [
+    {
+      "id": "opera-b5",
+      "title": "Opera Game, after 9… b5",
+      "question": "Explain the idea behind Stockfish's best move in this position.",
+      "answer": "In this position, Stockfish's best move is 9...b5. This move is a strategic choice that leverages the opening play theme and the pawn structure of the position. The move is particularly effective because it allows the White king to maintain a strong position and prevent the Black king from making a powerful move. The move also creates a strong pawn structure that can be exploited later in the game. This move is a good example of a pawn structure that can be used to gain a tactical advantage in the game.",
+      "checks": {
+        "all": 1,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 *\nCurrent position (FEN): rn2kb1r/p3qppp/2p2n2/1p2p1B1/2B1P3/1QN5/PPP2PPP/R3K2R w KQkq - 0 10\nBoard:\n   +------------------------+\n 8 | r  n  .  .  k  b  .  r |\n 7 | p  .  .  .  q  p  p  p |\n 6 | .  .  p  .  .  n  .  . |\n 5 | .  p  .  .  p  .  B  . |\n 4 | .  .  B  .  P  .  .  . |\n 3 | .  Q  N  .  .  .  .  . |\n 2 | P  P  P  .  .  P  P  P |\n 1 | R  .  .  .  K  .  .  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nOpening: C41 Philidor Defense.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +4.21  10. Nxb5 Qb4+ 11. Qxb4 Bxb4+ 12. c3 cxb5 13. Bxb5+ Nbd7\n  2. +1.70  10. Bxf6 Qxf6 11. Nxb5 cxb5 12. Bxb5+ Nc6 13. Qd5 Rc8\n  3. +0.32  10. Be2 Nbd7 11. O-O Nc5 12. Qa3 Ne6 13. Qa6 Qc7\nLast move: 9… b5, rated mistake by the engine (win chance for the mover 29% → 18%).\nEngine preferred Na6 instead: +2.47 9… Na6 10. Bxa6 bxa6 11. O-O Qb4 12. Bxf6\nPosition themes detected: Opening play (Move 9, still in known opening territory); 1.e4 e5 open games (C41 Philidor Defense).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's bishop on g5 is loose (no defender); White's bishop on c4 is attacked by a cheaper piece; White's rook on a1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Opening play, 1.e4 e5 open games.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Opening play, 1.e4 e5 open games.\nSimilar positions from the player's library:\n  - «Paul Morphy» vs «Duke Karl / Count Isouard» «1858», after 9… b5, same position",
+      "ms": 10871,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 2,
+        "level": 1,
+        "missing": "Name 10. Nxb5 as the best move. Explain that it is a knight sacrifice exploiting Black's lagging development and uncastled king, opening the c-file and a4-e8 diagonal for Bxb5+ and the rooks. Mention that 9…b5 was a mistake, and Morphy's Opera Game as the model.",
+        "comment": "The answer names 9…b5, which was Black's last move and a mistake, as Stockfish's best move, when White is to move and the best move is 10. Nxb5. The rest is vague, invented filler with no real chess content."
+      },
+      "score": {
+        "hits": [
+          false,
+          false,
+          false,
+          true
+        ],
+        "keys": 0.25,
+        "moves": 1,
+        "judge": 0.0625,
+        "overall": 0.4375
+      }
+    },
+    {
+      "id": "qh5-threat",
+      "title": "1. e4 e5 2. Qh5 Nc6 3. Bc4: Black to move",
+      "question": "Is there a tactic in the air for either side right now? What should I watch for?",
+      "answer": "In the current position, both sides have a solid plan, but the Black side is slightly ahead in terms of tactical depth. The White side's pawn structure and piece placement are strong, but the Black's rook and bishop are loose. The Black's queen and bishop are also loose, which could pose a challenge for the White to counter.\n\nOne tactical tactic the White can consider is a queen move on the kingside, where the best move is a pawn move on the kingside. This would give the White a pawn advantage and a piece to control, which could be a significant advantage in the middlegame. However, the Black's rook and bishop are loose, which could be a problem for the White to counter.\n\nAnother tactical tactic the White can consider is a pawn move on the queenside, where the best move is a pawn move on the queenside. This would give the White a pawn advantage and a piece to control, which could be a significant advantage in the middlegame. However, the Black's rook and bishop are loose, which could be a problem for the White to counter.\n\nIn summary, the White has a solid plan, but the Black has a slightly better pawn structure and piece placement, which could be a problem for the White to counter. The Black's rook and bishop are loose, which could be a problem for the White to counter. The White should be prepared to counter with a queen move on the kingside, or a pawn move on the queenside, where the best move is a pawn move on the queenside.",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Qh5 Nc6 3. Bc4 *\nCurrent position (FEN): r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3\nBoard:\n   +------------------------+\n 8 | r  .  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  n  .  .  .  .  . |\n 5 | .  .  .  .  p  .  .  Q |\n 4 | .  .  B  .  P  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  P  P  .  P  P  P |\n 1 | R  N  B  .  K  .  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: C20 King's Pawn Game: Wayward Queen Attack.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. −0.25  3… g6 4. Qf3 Nf6 5. Ne2 Bg7 6. Nbc3 d6 7. O-O\n  2. −0.10  3… Qe7 4. Qd1 Qh4 5. d3 Bc5 6. Qf3 Nf6 7. c3\n  3. 0.00  3… Qf6 4. c3 Na5 5. Bd3 d6 6. Bc2 Nc6 7. Na3\nLast move: 3. Bc4, rated best by the engine (win chance for the mover 48% → 48%).\nInteresting alternatives to the best move g6 (+0.25 for the side to move), from Stockfish's lines:\n  - Qe7: rank 2, +0.10, 0.15 below the best. different plan: a different idea: a queen move on the centre, where the best move is a pawn move on the kingside.\nPosition themes detected: Opening play (Move 3, still in known opening territory); 1.e4 e5 open games (C20 King's Pawn Game: Wayward Queen Attack).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's queen on h5 is loose (no defender); White's bishop on c4 is loose (no defender); White's rook on a1 is loose (no defender); White's bishop on c1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Opening play, 1.e4 e5 open games.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Opening play, 1.e4 e5 open games.",
+      "ms": 11131,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 1,
+        "level": 1,
+        "missing": "The key point is that White threatens 4.Qxf7#, with the queen and the c4-bishop both hitting f7. Black must defend at once, and the best options are 3...g6 (engine's top choice, which also gains time against the queen), 3...Qe7 or 3...Qf6. The coach should also warn against natural-looking 3...Nf6??, which loses to Qxf7#.",
+        "comment": "The answer completely misses the mate threat on f7, which is the whole tactical story of this position. It is incoherent and repetitive, garbles the engine notes into meaningless 'tactics', and invents claims about pawn advantages and loose pieces."
+      },
+      "score": {
+        "hits": [
+          false,
+          false
+        ],
+        "keys": 0,
+        "moves": 1,
+        "judge": 0,
+        "overall": 0.3333333333333333
+      }
+    },
+    {
+      "id": "qg5-fork",
+      "title": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5: Black to move",
+      "question": "Is there a tactic in the air for either side right now? What should I watch for?",
+      "answer": "Yes, there is a tactical opportunity for either side right now. The key is to exploit the weaknesses in the opponent's position and create a strong counter. Here's how you should watch for it:\n\n- Black's Rook on a8: The rook on a8 is loose, and Black's knight on e5 is also loose. This creates a weakness in Black's defense.\n\n- White's Knight on d4: The knight on d4 is loose, and White's rook on h1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h1: The rook on h1 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h8: The rook on h8 is loose, and White's rook on h1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on a1: The rook on a1 is loose, and White's rook on h1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h2: The rook on h2 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h3: The rook on h3 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h4: The rook on h4 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h5: The rook on h5 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h6: The rook on h6 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h7: The rook on h7 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h8: The rook on h8 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h9: The rook on h9 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\n- White's Rook on h10: The rook on h10 is loose, and White's rook on a1 is also loose. This creates a weakness in White's defense.\n\nBy exploiting these weaknesses, you can create a strong counter and gain the upper hand.",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5 *\nCurrent position (FEN): r1bqkbnr/pppp1ppp/8/4N3/2BnP3/8/PPPP1PPP/RNBQK2R b KQkq - 0 4\nBoard:\n   +------------------------+\n 8 | r  .  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  N  .  .  . |\n 4 | .  .  B  n  P  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  P  P  .  P  P  P |\n 1 | R  N  B  Q  K  .  .  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: C50 Italian Game: Blackburne-Kostić Gambit.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. −0.62  4… Qg5 5. Bxf7+ Kd8 6. O-O Qxe5 7. d3 Nh6 8. Bd5\n  2. +0.78  4… d5 5. Bxd5 Qg5 6. Bxf7+ Kd8 7. d3 Qxe5 8. c3\n  3. +1.02  4… Qe7 5. Nxf7 Qxe4+ 6. Kf1 d5 7. Nc3 Qxc2 8. Qxc2\nLast move: 4. Nxe5, rated mistake by the engine (win chance for the mover 60% → 44%).\nEngine preferred Nxd4 instead: +1.07 4. Nxd4 exd4 5. O-O Nf6 6. Re1 d6\nPosition themes detected: Opening play (Move 4, still in known opening territory); Italian Game (C50 Italian Game: Blackburne-Kostić Gambit).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's knight on e5 is loose (no defender); Black's knight on d4 is loose (no defender); White's rook on a1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Evergreen Game: Adolf Anderssen vs Jean Dufresne, Berlin 1852. The Evans Gambit: lines opened in the centre, a quiet rook move that allows the queen to be taken, and a double check. Themes: Italian Game.\n  - Steinitz's rook dance: Wilhelm Steinitz vs Curt von Bardeleben, Hastings 1895. An isolated queen pawn pushed at the right moment, then a rook that checks on the seventh rank and cannot be taken. Themes: Italian Game.",
+      "ms": 34984,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 1,
+        "level": 1,
+        "missing": "It should name 4...Qg5!, the double attack on the e5 knight and the g2 pawn (Qxg2 would also hit the h1 rook). It should mention White's best try, 5.Bxf7+ Kd8 6.O-O Qxe5, after which Black stands better (about −0.6). It should also note that 4.Nxe5 was a mistake and 4.Nxd4 was correct.",
+        "comment": "The answer never mentions Qg5 or any concrete tactic. It degenerates into a repetitive list of nonexistent pieces and squares (rooks on h2–h10, a Black knight on e5), so it is factually wrong and useless to the player."
+      },
+      "score": {
+        "hits": [
+          false,
+          false
+        ],
+        "keys": 0,
+        "moves": 1,
+        "judge": 0,
+        "overall": 0.3333333333333333
+      }
+    },
+    {
+      "id": "elephant-trap",
+      "title": "Queen's Gambit: the Elephant Trap after 6. Nxd5",
+      "question": "Is there a tactic in the air for either side right now? What should I watch for?",
+      "answer": "Yes, there is a tactic in the air for both sides right now. The engine's best move is 6. Nxd5, which is a threat to a loose knight. This move is a critical move for the White side, as it gives the knight a chance to attack the Black rook on d5. The engine's analysis indicates that this move is a strong candidate for the White side, as it gives the knight a chance to attack the Black rook on d5. The White side should watch for this move to ensure that it is a strong candidate for the White side.",
+      "checks": {
+        "all": 1,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Nbd7 5. cxd5 exd5 6. Nxd5 *\nCurrent position (FEN): r1bqkb1r/pppn1ppp/5n2/3N2B1/3P4/8/PP2PPPP/R2QKBNR b KQkq - 0 6\nBoard:\n   +------------------------+\n 8 | r  .  b  q  k  b  .  r |\n 7 | p  p  p  n  .  p  p  p |\n 6 | .  .  .  .  .  n  .  . |\n 5 | .  .  .  N  .  .  B  . |\n 4 | .  .  .  P  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  .  .  P  P  P  P |\n 1 | R  .  .  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: D51 Queen's Gambit Declined: Modern Variation, Knight Defense.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. −4.74  6… Nxd5 7. Bxd8 Bb4+ 8. Qd2 Bxd2+ 9. Kxd2 Kxd8 10. e4\n  2. +0.56  6… h6 7. Bxf6 Nxf6 8. Nc3 Bd7 9. e3 Bb4 10. Be2\n  3. +0.96  6… c6 7. Nc3 Qb6 8. Bc1 c5 9. d5 Bd6 10. Nf3\nMotifs in the engine's best move: Nxd5 wins a loose knight.\nLast move: 6. Nxd5, rated blunder by the engine (win chance for the mover 53% → 15%).\nEngine preferred e3 instead: +0.35 6. e3 c6 7. Bd3 Be7 8. h3 Ne4\nWhy it hurts: the reply Nxd5 — Nxd5 wins a loose knight.\nPosition themes detected: Opening play (Move 6, still in known opening territory); Queen's Gambit (D51 Queen's Gambit Declined: Modern Variation, Knight Defense).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's knight on d5 is attacked and not defended; White's bishop on g5 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - Rubinstein's Immortal: Georg Rotlewi vs Akiba Rubinstein, Lodz 1907. Bishops aimed at the king: Black gives the queen and a rook to open the long diagonals against White's castled king. Themes: Queen's Gambit.\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Opening play.",
+      "ms": 7032,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 1,
+        "level": 1,
+        "missing": "It should say that Black, to move, plays 6...Nxd5! because the d5 knight is undefended. If 7.Bxd8, then 7...Bb4+ forces 8.Qd2 Bxd2+ 9.Kxd2 Kxd8, and Black comes out a piece up. This is the Elephant Trap idea, and the lesson is to watch for undefended pieces and pins against the king.",
+        "comment": "The answer is mostly wrong. It treats Nxd5 as a strong White move when it is the blunder already played, and it invents a 'Black rook on d5'. It never mentions Black's winning reply 6...Nxd5 or the Bb4+ follow-up, and it repeats itself without saying anything useful."
+      },
+      "score": {
+        "hits": [
+          true,
+          false,
+          false
+        ],
+        "keys": 0.3333333333333333,
+        "moves": 1,
+        "judge": 0,
+        "overall": 0.4444444444444444
+      }
+    },
+    {
+      "id": "back-rank",
+      "title": "A back-rank mate in one",
+      "question": "Explain the idea behind Stockfish's best move in this position.",
+      "answer": "In this position, Stockfish's best move is to capture the rook on square a1. The engine's top lines indicate that this move is a checkmate, capturing the rook with a pawn. The engine also scores this move at +1.00, which is a pawn advantage for White. This move is a classic endgame move, as it allows White to maintain control over the board and prevent the opponent from making a strong move. The engine also highlights the concept of checkmate pattern, as the rook is a fighting piece that can be easily captured.",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nMoves so far: *\nCurrent position (FEN): 6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1\nBoard:\n   +------------------------+\n 8 | .  .  .  .  .  .  k  . |\n 7 | .  .  .  .  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | .  .  .  .  .  P  P  P |\n 1 | R  .  .  .  .  .  K  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. #1  1. Ra8#\n  2. +6.98  1. g4 Kf8 2. Ra8+ Ke7 3. Rh8 h6 4. g5 hxg5\n  3. +6.74  1. Kf1 Kf8 2. Ra8+ Ke7 3. g4 h6 4. Rh8 Kf6\nMotifs in the engine's best move: Ra8# is checkmate; Mate on the back rank; Direct pressure on the king.\nPosition themes detected: Endgame (Little material left on the board); King activity (In the endgame the king is a fighting piece).\nKeep in mind (from the board): White's rook on a1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Endgame Strategy by Mikhail Shereshevsky: Practical endgame technique: king activity, the principle of two weaknesses and not hurrying.\n  - 100 Endgames You Must Know by Jesús de la Villa: The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Checkmate pattern, Back-rank weakness, Attack on the king.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Checkmate pattern, Attack on the king.",
+      "ms": 6626,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 2,
+        "level": 1,
+        "missing": "It should name 1. Ra8# and say it is immediate checkmate on the back rank. Black's king on g8 can't escape because its own pawns on f7, g7 and h7 block the flight squares, and no Black piece can block or capture the rook.",
+        "comment": "The answer is almost entirely wrong. It invents a capture on a1 'with a pawn', misreads the +1.00 scale note as the evaluation, and never mentions Ra8# or the back-rank mate idea. It would mislead a club player."
+      },
+      "score": {
+        "hits": [
+          false,
+          true,
+          false
+        ],
+        "keys": 0.3333333333333333,
+        "moves": 1,
+        "judge": 0.0625,
+        "overall": 0.46527777777777773
+      }
+    },
+    {
+      "id": "iqp-break",
+      "title": "Steinitz–von Bardeleben, before 17. d5",
+      "question": "What is the main plan for the side to move here, and why?",
+      "answer": "The main plan for the side to move here is to develop the d-pawn and create a center. The player has a loose rook on a8 and a rook on h8, which makes it difficult to develop the d-pawn. The player has a small number of pawn structures, which suggests that the side is developing their pieces into a small number of pawn-structure families. The player has a minor piece on the d-file, which suggests that the side is developing their pieces into a center. The player has a rook on the d-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into a center. The player has a rook on the e-file, which suggests that the side is developing their pieces into\n\n(Answer cut short. Ask a narrower question.)",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. c3 Nf6 5. d4 exd4 6. cxd4 Bb4+ 7. Nc3 d5 8. exd5 Nxd5 9. O-O Be6 10. Bg5 Be7 11. Bxd5 Bxd5 12. Nxd5 Qxd5 13. Bxe7 Nxe7 14. Re1 f6 15. Qe2 Qd7 16. Rac1 c6 *\nCurrent position (FEN): r3k2r/pp1qn1pp/2p2p2/8/3P4/5N2/PP2QPPP/2R1R1K1 w kq - 0 17\nBoard:\n   +------------------------+\n 8 | r  .  .  .  k  .  .  r |\n 7 | p  p  .  q  n  .  p  p |\n 6 | .  .  p  .  .  p  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  P  .  .  .  . |\n 3 | .  .  .  .  .  N  .  . |\n 2 | P  P  .  .  Q  P  P  P |\n 1 | .  .  R  .  R  .  K  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nOpening: C54 Italian Game: Giuoco Piano, Greco's Attack.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +1.70  17. d5 Kf7 18. dxc6 bxc6 19. h3 Rhe8 20. Red1 Nd5\n  2. +0.51  17. Nd2 Kf7 18. Ne4 Rhe8 19. Nc5 Qd5 20. Nxb7 Ng6\n  3. +0.39  17. Qc4 Kf8 18. Nd2 Nd5 19. Ne4 Kf7 20. Nc5 Qc7\nLast move: 16… c6, rated mistake by the engine (win chance for the mover 48% → 35%).\nEngine preferred Kf7 instead: +0.19 16… Kf7 17. Qd3 Nd5 18. Nd2 g6 19. Qf3\nPosition themes detected: Middlegame planning (Pieces developed, out of the opening); Italian Game (C54 Italian Game: Giuoco Piano, Greco's Attack); Isolated queen pawn (White has an isolated d-pawn); Open centre (Few or no pawns on the d- and e-files).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Pawn Structure Chess by Andrew Soltis: Groups openings into a small number of pawn-structure families and shows the plans that belong to each.\n  - Chess Structures: A Grandmaster Guide by Mauricio Flores Rios, the Isolated Queen Pawn chapter: Organised by pawn structure. Each chapter teaches the standard plans for both sides through annotated model games.\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - How to Reassess Your Chess by Jeremy Silman: Teaches planning from the imbalances in a position: minor pieces, pawn structure, space, material and development.\nClassic games on these themes (from the built-in collection):\n  - Steinitz's rook dance: Wilhelm Steinitz vs Curt von Bardeleben, Hastings 1895. An isolated queen pawn pushed at the right moment, then a rook that checks on the seventh rank and cannot be taken. Themes: Italian Game, Isolated queen pawn.\n  - The Evergreen Game: Adolf Anderssen vs Jean Dufresne, Berlin 1852. The Evans Gambit: lines opened in the centre, a quiet rook move that allows the queen to be taken, and a double check. Themes: Italian Game.\nSimilar positions from the player's library:\n  - «Wilhelm Steinitz» vs «Curt von Bardeleben» «1895», after 16… c6, same position",
+      "ms": 18917,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 1,
+        "level": 1,
+        "missing": "The concrete plan: 17. d5! (+1.70), using the isolated d-pawn as a lever to open lines while Black's king is still stuck on e8. After 17...cxd5 (or Kf7) White's queen and rooks on the e- and c-files hit e7/d7. It should also note why 16...c6 was a mistake (16...Kf7 was better) and point to Steinitz–von Bardeleben 1895, which is the same position.",
+        "comment": "The answer is incoherent and degenerates into one sentence repeated until it is cut off. It invents claims (a 'minor piece on the d-file', a 'rook on the d-file'), never names d5, the isolated pawn or Black's uncastled king, and gives a club player nothing usable."
+      },
+      "score": {
+        "hits": [
+          false,
+          false,
+          true
+        ],
+        "keys": 0.3333333333333333,
+        "moves": 1,
+        "judge": 0,
+        "overall": 0.4444444444444444
+      }
+    },
+    {
+      "id": "opposition",
+      "title": "King and pawn: Black has the opposition",
+      "question": "What is the main plan for the side to move here, and why?",
+      "answer": "The main plan for the side to move here is to capture the white king and pawn. This is a common tactic in endgames, especially when the king and pawn are in a strong position. The king is a fighting piece, and capturing it can force the opponent to make a sacrifice, which can be a decisive move in the endgame. The pawn structure is also important, as it can be used to create weaknesses in the opponent's position.",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nMoves so far: *\nCurrent position (FEN): 8/8/8/4k3/8/4K3/4P3/8 w - - 0 1\nBoard:\n   +------------------------+\n 8 | .  .  .  .  .  .  .  . |\n 7 | .  .  .  .  .  .  .  . |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  k  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  K  .  .  . |\n 2 | .  .  .  .  P  .  .  . |\n 1 | .  .  .  .  .  .  .  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +0.09  1. Kd3 Kd5 2. Ke3 Ke5 3. Kf3 Kf5 4. e3 Ke5\n  2. +0.07  1. Kf2 Kf4 2. e3+ Ke4 3. Ke2 Ke5 4. Kd3 Kd5\n  3. +0.06  1. Kf3 Kf5 2. Ke3 Ke5 3. Kd3 Kd5 4. e3 Ke5\nPosition themes detected: Endgame (Little material left on the board); Passed pawn (White has a passed e-pawn); King activity (In the endgame the king is a fighting piece); King and pawn ending (Only kings and pawns remain).\nRetrieved references (recommend only from these):\n  - 100 Endgames You Must Know by Jesús de la Villa, the king and pawn chapters: The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Endgame Strategy by Mikhail Shereshevsky: Practical endgame technique: king activity, the principle of two weaknesses and not hurrying.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\nClassic games on these themes (from the built-in collection):\n  - Réti's king march (study): Richard Réti vs study, Kagans Neueste Schachnachrichten 1921. A king can chase two goals at once: walking the diagonal, it supports its own pawn and catches the enemy one. Themes: Endgame, King activity, King and pawn ending.\n  - The Saavedra position (study): Fernando Saavedra vs study, Glasgow Weekly Citizen 1895. Underpromotion: a queen would allow stalemate, a rook wins. Themes: Endgame.",
+      "ms": 6274,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 2,
+        "level": 1,
+        "missing": "White is to move. The black king holds the opposition (kings on e3/e5 with the pawn behind), so White cannot force a win. With best play it is a draw. White's practical plan is to keep the king in front of the pawn and try to win the opposition or reach key squares, while Black simply mirrors White's king moves to keep the opposition. Stockfish's lines (Kd3 Kd5, Ke3 Ke5) show exactly this.",
+        "comment": "The answer is nonsense. It says the side to move should 'capture the white king', but White is to move and kings cannot be captured. It never mentions the opposition or the drawn result, and its talk of sacrifices and pawn structure is generic filler that doesn't fit this position."
+      },
+      "score": {
+        "hits": [
+          false,
+          false
+        ],
+        "keys": 0,
+        "moves": 1,
+        "judge": 0.0625,
+        "overall": 0.3541666666666667
+      }
+    },
+    {
+      "id": "lucena",
+      "title": "The Lucena position",
+      "question": "Explain the idea behind Stockfish's best move in this position.",
+      "answer": "In this position, the White king is in a strong position, with a passed b-pawn and a rook on c1. The White king is a fighting piece, and the rook is a rook ending. The White king is a loose rook, and the White rook is loose on c1. The White rook is in a good position to defend, as it shields the king from checks. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn. The White rook is in a position to defend, as it can hold the third rank until the pawn advances, and then checks from behind. The White king is in a position to attack, as it can queen the pawn.\n\n(Answer cut short. Ask a narrower question.)",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nMoves so far: *\nCurrent position (FEN): 1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1\nBoard:\n   +------------------------+\n 8 | .  K  .  .  .  .  .  . |\n 7 | .  P  .  k  .  .  .  . |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | r  .  .  .  .  .  .  . |\n 1 | .  .  R  .  .  .  .  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +4.59  1. Rd1+ Ke7 2. Rd4 Rc2 3. Rb4 Kd6 4. Ka7 Kc6\n  2. +4.59  1. Rc7+ Kd8 2. Rc4 Kd7 3. Rd4+ Kc6 4. Kc8 Rb2\n  3. +4.59  1. Rc4 Re2 2. Ra4 Rb2 3. Ka8 Kc7 4. Ra7 Rxb7\nMotifs in the engine's best move: Direct pressure on the king.\nInteresting alternatives to the best move Rd1+ (+4.59 for the side to move), from Stockfish's lines:\n  - Rc4: rank 3, +4.59, 0.00 below the best. quiet: a quiet move: no check, no capture.\nPosition themes detected: Endgame (Little material left on the board); Passed pawn (White has a passed b-pawn); King activity (In the endgame the king is a fighting piece); Rook ending (Rooks and pawns only); Rook + pawn vs rook (Rook and pawn versus rook: Lucena / Philidor territory).\nKeep in mind (from the board): Black's rook on a2 is loose (no defender); White's rook on c1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - 100 Endgames You Must Know by Jesús de la Villa, the rook and pawn versus rook positions (Lucena, Philidor): The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\n  - Fundamental Chess Endings by Karsten Müller & Frank Lamprecht: An encyclopedic one-volume reference for theoretical endings.\nClassic games on these themes (from the built-in collection):\n  - The Lucena position: study vs study, Lucena 1497. Building a bridge: the rook shields the king from checks so the pawn can queen. Themes: Endgame, Rook ending, Rook + pawn vs rook.\n  - The Philidor position: study vs study, Philidor 1777. The defence: the rook holds the third rank until the pawn advances, then checks from behind. Themes: Endgame, Rook ending, Rook + pawn vs rook.\nSimilar positions from the player's library:\n  - «study» vs «study» «1497», after 6… Rb1+, same pawn structure",
+      "ms": 18425,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 1,
+        "level": 1,
+        "missing": "It never names the best move, Rd1+. The answer should say that the check drives the black king off the d-file and away from b7, then Rd4 builds the bridge on the fourth rank to block the checks, so White wins (Lucena idea, about +4.6).",
+        "comment": "This is a degenerate, looping answer that never names Rd1+. It contains nonsense ('the White king is a loose rook', 'the rook is a rook ending') and gives Black's Philidor defence as White's plan. It is useless to the player."
+      },
+      "score": {
+        "hits": [
+          true,
+          true,
+          false
+        ],
+        "keys": 0.6666666666666666,
+        "moves": 1,
+        "judge": 0,
+        "overall": 0.5555555555555555
+      }
+    },
+    {
+      "id": "philidor",
+      "title": "The Philidor position: Black to move",
+      "question": "What is the main plan for the side to move here, and why?",
+      "answer": "The main plan for the side to move here is to capture the rook on h7 with a queen. This move is a direct pressure on the king and is a quiet move, as indicated by the negative score of −0.04. The side to move is in the endgame, with the king being a fighting piece, and the rook on h7 is loose (no defender). The captured rook can then be queened to advance the pawn and end the game.",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nMoves so far: *\nCurrent position (FEN): 4k3/7R/r7/3KP3/8/8/8/8 b - - 0 1\nBoard:\n   +------------------------+\n 8 | .  .  .  .  k  .  .  . |\n 7 | .  .  .  .  .  .  .  R |\n 6 | r  .  .  .  .  .  .  . |\n 5 | .  .  .  K  P  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | .  .  .  .  .  .  .  . |\n 1 | .  .  .  .  .  .  .  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +0.04  1… Ra5+ 2. Ke6 Ra6+ 3. Kf5 Rc6 4. Ra7 Rb6 5. Rg7\n  2. +0.04  1… Ra3 2. Rg7 Ra2 3. Ke6 Ra6+ 4. Kf5 Rh6 5. Rg6\n  3. +0.04  1… Ra1 2. Ke6 Ra6+ 3. Kf5 Rc6 4. Ra7 Kd8 5. Rg7\nMotifs in the engine's best move: Direct pressure on the king.\nInteresting alternatives to the best move Ra5+ (−0.04 for the side to move), from Stockfish's lines:\n  - Ra3: rank 2, −0.04, 0.00 below the best. quiet: a quiet move: no check, no capture.\n  - Ra1: rank 3, −0.04, 0.00 below the best. quiet: a quiet move: no check, no capture.\nPosition themes detected: Endgame (Little material left on the board); Passed pawn (White has a passed e-pawn); King activity (In the endgame the king is a fighting piece); Rook ending (Rooks and pawns only); Rook + pawn vs rook (Rook and pawn versus rook: Lucena / Philidor territory).\nKeep in mind (from the board): White's rook on h7 is loose (no defender); Black's rook on a6 is loose (no defender).\nRetrieved references (recommend only from these):\n  - 100 Endgames You Must Know by Jesús de la Villa, the rook and pawn versus rook positions (Lucena, Philidor): The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\n  - Fundamental Chess Endings by Karsten Müller & Frank Lamprecht: An encyclopedic one-volume reference for theoretical endings.\nClassic games on these themes (from the built-in collection):\n  - The Lucena position: study vs study, Lucena 1497. Building a bridge: the rook shields the king from checks so the pawn can queen. Themes: Endgame, Rook ending, Rook + pawn vs rook.\n  - The Philidor position: study vs study, Philidor 1777. The defence: the rook holds the third rank until the pawn advances, then checks from behind. Themes: Endgame, Rook ending, Rook + pawn vs rook.",
+      "ms": 6479,
+      "judgement": {
+        "accuracy": 1,
+        "insight": 1,
+        "clarity": 1,
+        "level": 1,
+        "missing": "The correct plan is the Philidor defence. Black's rook holds the sixth rank to keep White's king out (e.g. 1…Ra6 is already there, or checks like 1…Ra5+ 2.Ke6 Ra6+). Once the pawn advances to e6, the rook drops back and checks from behind, since White's king then has no shelter. With correct defence the position is a draw (Stockfish +0.04).",
+        "comment": "The answer is nonsense: there is no queen on the board, Black cannot capture h7, and it misreads the engine data (calling a check a 'quiet move'). It misses the Philidor defence and the drawn verdict entirely."
+      },
+      "score": {
+        "hits": [
+          false,
+          false,
+          false
+        ],
+        "keys": 0,
+        "moves": 1,
+        "judge": 0,
+        "overall": 0.3333333333333333
+      }
+    },
+    {
+      "id": "sicilian-d4",
+      "title": "Sicilian after 3. d4",
+      "question": "What is the main plan for the side to move here, and why?",
+      "answer": "The main plan for the side to move here is to take the center pawn, where the best move is a knight move on the kingside. This plan allows the side to maintain control of the center and create a pawn structure that can be used to build up the game. The pawn structure can also be used to create a pawn structure that can be used to build up the game.",
+      "checks": {
+        "all": 0,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Player: club player (1200–1800), analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 c5 2. Nf3 d6 3. d4 *\nCurrent position (FEN): rnbqkbnr/pp2pppp/3p4/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq - 0 3\nBoard:\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  .  .  p  p  p  p |\n 6 | .  .  .  p  .  .  .  . |\n 5 | .  .  p  .  .  .  .  . |\n 4 | .  .  .  P  P  .  .  . |\n 3 | .  .  .  .  .  N  .  . |\n 2 | P  P  P  .  .  P  P  P |\n 1 | R  N  B  Q  K  B  .  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: B50 Sicilian Defense.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +0.36  3… Nf6 4. Nc3 cxd4 5. Nxd4 a6 6. Bg5 e6 7. f4\n  2. +0.37  3… cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Bg5 e6 7. f4\n  3. +0.82  3… Nd7 4. Nc3 cxd4 5. Nxd4 a6 6. Be3 Ngf6 7. g4\nLast move: 3. d4, rated book by the engine (win chance for the mover 54% → 53%).\nInteresting alternatives to the best move Nf6 (−0.36 for the side to move), from Stockfish's lines:\n  - cxd4: rank 2, −0.37, 0.01 below the best. different plan: a different idea: a pawn move on the centre, where the best move is a knight move on the kingside.\nPosition themes detected: Opening play (Move 3, still in known opening territory); Sicilian Defence (B50 Sicilian Defense).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's rook on a1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Pawn Structure Chess by Andrew Soltis: Groups openings into a small number of pawn-structure families and shows the plans that belong to each.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Opening play.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Opening play.",
+      "ms": 6056,
+      "judgement": {
+        "accuracy": 2,
+        "insight": 1,
+        "clarity": 1,
+        "level": 2,
+        "missing": "State the moves clearly: 3...cxd4 4.Nxd4 Nf6 (or 3...Nf6 first, transposing after 4.Nc3 cxd4). Explain that trading the c-pawn for White's d-pawn gives Black two central pawns against one (the central majority) and the half-open c-file for rook and queen pressure. Add that ...Nf6 develops with tempo by hitting e4, and mention typical follow-ups such as ...a6 (Najdorf) and ...e6.",
+        "comment": "The answer contradicts itself, saying 'take the center pawn' while also saying the best move is a knight move. It names no actual moves (cxd4 or Nf6), and it repeats a vague, empty sentence about pawn structure. It never mentions the half-open c-file, the central majority, or the development point."
+      },
+      "score": {
+        "hits": [
+          false,
+          true,
+          false
+        ],
+        "keys": 0.3333333333333333,
+        "moves": 1,
+        "judge": 0.125,
+        "overall": 0.4861111111111111
+      }
+    }
+  ]
+}

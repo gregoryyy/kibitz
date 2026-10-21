@@ -1711,7 +1711,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   } catch (e) {
     if (e?.text) render(e.text);
     else if (e?.code === 'cancelled') bubble.remove();
-    else { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), coachError(e)); }
+    else { bubble.classList.remove('thinking'); bubble.dataset.error = e?.code || 'error'; bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), coachError(e)); }
     if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled'].includes(e?.code)) { COACH.sample = null; $('#coachOff').hidden = false; $('#coachSend').disabled = true; renderChips(); }
   } finally {
     if (COACH.ctl === ctl) { $('#coachStop').hidden = true; $('#coachSend').disabled = !COACH.sample; chat.removeAttribute('aria-busy'); }
@@ -1833,7 +1833,7 @@ async function commentOn(i) {
       ({ text, usage } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task: 'quick', onText: ({ text }) => render(text) }));
     } catch (e) {
       if (e?.code === 'cancelled') bubble.remove();
-      else { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, head), coachError(e)); }
+      else { bubble.classList.remove('thinking'); bubble.dataset.error = e?.code || 'error'; bubble.replaceChildren(el('span', { class: 'who' }, head), coachError(e)); }
       return;
     } finally { if (TUTOR.ctl === ctl) TUTOR.ctl = null; }
     if (S.gen !== gen || S.nodes[i] !== n) { bubble.remove(); return; }

@@ -12,6 +12,6 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["src/**/*.js", "server/**/*.mjs", "scripts/**/*.mjs", "flipbook/**/*.mjs"],
+  "include": ["src/**/*.js", "server/**/*.mjs", "scripts/**/*.mjs", "flipbook/**/*.mjs", "eval/**/*.mjs"],
   "exclude": ["**/*.test.mjs"]
 }

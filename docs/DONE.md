@@ -7,6 +7,65 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-21 — Tutor eval set: reference positions, scored by key points, move checks and an LLM judge
+
+TODO items: 3.8; closes 2.16.2 (choosing the in-browser model).
+
+### Implementation notes
+
+- **The set** (`site/eval/positions.mjs`): ten positions, each with a quick-question chip and two to four key points. Every key point is one or more case-insensitive patterns, and all of them must match. The positions:
+  - tactics: the Opera Game's Nxb5, the Qh5 threat on f7, the Qg5 double attack, the Elephant Trap, a back-rank mate;
+  - plans: the d5 break in Steinitz–von Bardeleben, the Sicilian after 3. d4;
+  - endgames: the opposition, Lucena, Philidor.
+
+  We checked the key moves with Stockfish 19 at depth 18, so the key points agree with what the engine shows the coach.
+- **The runner** (`site/scripts/eval.mjs`, `just eval ai=… judge=… model=…`):
+  - serves the app with the chosen provider (or the in-browser model) and drives it headlessly with Playwright;
+  - loads each position, waits for the analysis and asks through the chip, so the model gets exactly the prompt a player's question produces;
+  - writes `docs/eval/<provider>-<model>.md` and `.json`, and regenerates the comparison table in `docs/eval/README.md`.
+
+  The helpers for driving the coach moved from `flipbook.mjs` to `scripts/coach-page.mjs` and are shared.
+- **Scoring** (`site/eval/score.mjs`, pure):
+  - the share of key points hit;
+  - the move check, using the app's own `checkAnswer` (TODO 3.4): it loses a third for each wrong move;
+  - an optional LLM judge, which grades accuracy, insight, clarity and level from 1 to 5. The judge sees the coach's context (with Stockfish's lines as the truth), the question, the answer and the key points. The answer sits between data markers. The judge runs in Node, so keys never reach the page.
+
+  The overall score is the mean of what was measured.
+- **Errors aren't answers.** The app now marks a coach bubble that holds an error with `data-error="<code>"`, and the runner reads that code:
+  - after a provider's rate limit, it waits a minute and retries, up to three times;
+  - any other error stops the run without writing a report.
+- **Tests:**
+  - unit `eval.test`: every position sets up legally, the patterns compile, and the scoring and summary work;
+  - e2e `eval.spec`: every position runs through the app with the mock provider. A provider error comes back as an error, not as an answer to score.
+
+### Results (judge: Claude Opus 5.5)
+
+| Coach | Overall | Key points | Judge |
+|---|---|---|---|
+| Claude Opus 5.5 | 95% | 97% | 88% |
+| Claude Haiku 5.5 | 79% | 76% | 64% |
+| Qwen2.5 1.5B, in the browser | 50% | 38% | 11% |
+| Qwen2.5 0.5B, in the browser | 42% | 23% | 3% |
+
+Not one of the four runs named a move that chess.js or the engine lines contradicted, except one in the Haiku run.
+
+### Deviations
+
+- OpenAI and Mistral have no results yet. The OpenAI key in `.env` was refused (401), and Mistral rate-limited every request. Those first runs were scored as if the error messages were answers, which is how we found the error handling was missing. We deleted those reports. Re-run them once the keys work: `just eval openai judge=anthropic`.
+- The runner doesn't record token usage. A full run with the judge costs ten calls to the coach and ten to the judge.
+
+### Insights
+
+- **The engine grounding works, but explaining is the hard part.** Even the 0.5B model rarely names a wrong move, because it copies Stockfish's lines. What the small models can't do is say *why*, and the judge scores insight lowest.
+- **2.16.2:** the 1.5B model stays the default in the browser, being clearly better than 0.5B. It's a fallback for offline and private use, not a substitute for a cloud model. A 3–4B model is worth evaluating once WebGPU memory allows.
+- **Haiku misses endgame theory.** It didn't mention the opposition in the king-and-pawn position, and the judge confirmed it. The retrieved classics (3.2.5) include the endgame studies, but no king-and-pawn opposition example yet, so that's where to add one.
+- **Key points have to follow the engine, not the textbook.**
+  - In the Lucena position, Opus followed Stockfish's line, 1. Rb1 and 2. Rd1+, then the king walks out, and never built the textbook bridge on the fourth rank. Its answer is correct, but it misses that key point.
+  - A key point that the engine's line doesn't need measures book knowledge, not coaching. That's why the judge, with Stockfish's lines as the truth, stays part of the score.
+  - Matching by regex is cheap but coarse, so each report keeps the judge's notes beside it.
+
+---
+
 ## 2026-10-21 — Classic games for the coach: a first collection, retrieved by theme
 
 TODO items: 3.2.5 (and 3.2); started 7.3 and 7.4.

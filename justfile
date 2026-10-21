@@ -5,6 +5,7 @@
 #   just check         lint and type-check
 #   just flipbook      render docs/flipbook/, a happy path through the app in screenshots
 #   just pdfs          a PDF next to every Markdown document (just pdf FILE for one)
+#   just eval          the tutor eval set against the coach, with a report in docs/eval/
 # Port and bind address can be overridden: KIBITZ_PORT=9000 just serve
 
 port := env_var_or_default("KIBITZ_PORT", "8765")
@@ -52,6 +53,15 @@ test: build
 # End-to-end Playwright tests in the installed Chrome; builds, then starts its own server with the mock AI provider
 e2e: install
     npm --prefix site run test:e2e
+
+# The reference positions in site/eval/positions.mjs, asked through the app, scored on key points and
+# the app's move checks, and with judge=<provider> graded by an LLM (keys stay on this machine).
+# ai: env (as `just serve`), mock, anthropic, openai, mistral, ollama, or browser (model=qwen2.5-0.5b
+# for the smaller in-browser model). Model variables in the shell override .env, e.g.
+# ANTHROPIC_MODEL=claude-opus-5-5 EVAL_JUDGE_MODEL=claude-opus-5-5 just eval anthropic judge=anthropic
+# Run the tutor eval set (TODO 3.8); writes docs/eval/
+eval ai="env" judge="none" model="": build
+    node site/scripts/eval.mjs --ai {{ai}} --judge {{judge}} {{ if model != "" { "--model " + model } else { "" } }}
 
 # Each step of site/flipbook/tour.mjs is played in a headless Chrome and captured into docs/flipbook/.
 # The coach uses the provider in .env, as `just serve` does (a few requests); `just flipbook mock` needs no keys.
