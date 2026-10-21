@@ -49,6 +49,8 @@ npm run serve          # builds, then serves dist/ with the AI gateway on port 8
 
 ## AI coach
 
+How the engine and the language model work together, and the AI patterns behind it, is explained in [ARCH.md](docs/ARCH.md).
+
 The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library and reading suggestions.
 
 - **Run locally:** the page talks to the AI gateway in `site/server/`, which `site/scripts/serve.mjs --api` mounts. The gateway reads `.env`, calls the chosen provider, and keeps the API keys on the server.
