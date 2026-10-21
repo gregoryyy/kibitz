@@ -135,6 +135,11 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [ ] 4.11.4 Where the engine runs: in the page, with the gateway handing each tool call to the page and waiting for the result, or on the server, where the npm Stockfish build also runs in Node. Decide on latency, cost and hosted load (10.1). Each answer gets a cap on tool calls and engine time
   - [ ] 4.11.5 Tool arguments are untrusted: FENs and moves are checked with chess.js, and depth, time and line count are capped. Every line the model quotes must come from a tool result (3.4). The tool results are kept with the answer, so the chat can show the evidence
   - [ ] 4.11.6 Tests: tool loops with the mock provider and a fake engine; hostile arguments (illegal FEN, huge depth, a tool loop that doesn't end); contract fixtures for tool calls per provider
+- [ ] 4.12 UX review *(added)*
+  - [ ] 4.12.1 Settings behind a gear icon in the header, opening an overlay (a modal dialog: Escape and a click outside close it, focus stays inside while it is open). It takes what is spread over the tabs today: the coach settings and provider, local-only mode, the engine depth, the player's level, and when the coach comments. The tabs keep only what belongs to their task
+  - [ ] 4.12.2 The player talks about the game throughout, so the dialogue is always on: beside the board on desktop, below it in portrait on a phone, and never inside a tab. Mostly done with 4.9.2 (the dialogue at the board's height, the tab panels folding away). Still to check: landscape on a phone and tablets, and that the board and the composer both stay in view while typing on a phone
+  - [ ] 4.12.3 Tell the game in progress apart from the review. Today Game, Coach, Review, Library and Reading are one row of tabs, and the review works on whatever game is on the board. Group the tabs for the game in progress (new game, live help) apart from those for looking back (review, library, reading), make it visible which game the board, the dialogue and the review are about, and give leaving a running game for a review an explicit step that keeps the game, with a way back to it
+  - [ ] 4.12.4 Tests: e2e for the settings overlay (open, close, keyboard, settings kept), the dialogue placement at desktop, phone-portrait and phone-landscape sizes, and switching between a running game and a review without losing either
 
 ## 5. Opening library
 
