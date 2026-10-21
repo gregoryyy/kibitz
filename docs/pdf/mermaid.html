@@ -1,0 +1,12 @@
+<!-- Included by `just pdf` in documents with ```mermaid blocks (ARCH.md). pandoc downloads the
+     script and embeds it (network needed at build time only); Chrome then draws the diagrams before
+     printing. pandoc writes a block as <pre class="mermaid"><code>…</code></pre>, so the code's text
+     is moved up into the <pre>, where Mermaid looks for it. -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('pre.mermaid').forEach(pre => { pre.textContent = pre.textContent; });
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral', flowchart: { htmlLabels: false } });
+    mermaid.run({ querySelector: 'pre.mermaid' });
+  });
+</script>

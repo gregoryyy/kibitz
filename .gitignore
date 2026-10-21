@@ -7,6 +7,10 @@ dist/
 # In-browser model weights (just offline downloads them; about 0.5-1.1 GB each)
 site/models/
 
+# Generated PDFs (just pdf / just pdfs: foo.md → foo.md.pdf) and their build stamps
+*.md.pdf
+.pdfstamps/
+
 # Test output
 **/tests/out/
 coverage/
