@@ -1,6 +1,6 @@
-# Kibitz
+# Kibitz: Neurosymbolic Chess Coach
 
-A neurosymbolic chess trainer: Stockfish plays and measures, a language model explains.
+Stockfish plays and measures; a language model explains.
 
 In the browser, play against Stockfish 19 (from 600 Elo up, in five playing styles, with or without a clock, from the start, an opening or any position), see your mistakes flagged as you play, review finished games, keep a games library and get reading suggestions that match the position on the board. Stockfish does all the calculation, locally in Web Workers. An AI model (Claude, OpenAI, Mistral or a local Ollama model) only explains the engine's output.
 

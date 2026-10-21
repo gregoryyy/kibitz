@@ -1,4 +1,4 @@
-# Kibitz Chess Coach
+# Kibitz: Neurosymbolic Chess Coach
 
 Play Stockfish 19 in the browser, get your mistakes flagged as you play, ask Claude to explain positions, review finished games, keep a games library, and get reading suggestions matched to the position on the board.
 

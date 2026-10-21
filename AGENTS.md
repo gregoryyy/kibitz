@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Kibitz is a neurosymbolic chess trainer in the browser. Stockfish (WASM) plays and measures; an AI provider (OpenAI, Mistral, Claude or Ollama) explains. The plan is in [TODO.md](docs/TODO.md) and progress is logged in [DONE.md](docs/DONE.md).
+Kibitz is a neurosymbolic chess coach in the browser. Stockfish (WASM) plays and measures; an AI provider (OpenAI, Mistral, Claude or Ollama) explains. The plan is in [TODO.md](docs/TODO.md) and progress is logged in [DONE.md](docs/DONE.md).
 
 ## Layout
 
