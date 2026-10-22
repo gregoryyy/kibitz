@@ -1,5 +1,5 @@
 // The coach's connection to the AI gateway: tasks, settings, usage (TODO 2.10-2.14).
-import { test, expect, open, loadPgn, OPERA } from './fixtures.mjs';
+import { test, expect, open, loadPgn, OPERA, openSettings, closeSettings } from './fixtures.mjs';
 
 test('quick questions, typed questions and the review summary ask for their own task', async ({ page }) => {
   const tasks = [];
@@ -18,8 +18,7 @@ test('quick questions, typed questions and the review summary ask for their own 
 
 test('coach settings: providers, models, local-only, connection test and usage', async ({ page }) => {
   await open(page);
-  await page.locator('[data-tab="coach"]').click();
-  await page.locator('#coachSettings summary').click();
+  await openSettings(page);
   await expect(page.locator('#optProvider button[data-v="mock"]')).toHaveAttribute('aria-pressed', 'true');
   for (const p of ['anthropic', 'openai', 'mistral', 'ollama']) await expect(page.locator(`#optProvider button[data-v="${p}"]`)).toBeDisabled(); // no keys in the test server
   await expect(page.locator('#providerHint')).toContainText('ANTHROPIC_API_KEY');
@@ -31,6 +30,7 @@ test('coach settings: providers, models, local-only, connection test and usage',
   await expect(page.locator('#optLocalOnly')).toBeChecked();
   await expect(page.locator('#optProvider button[data-v="mock"]')).toHaveAttribute('aria-pressed', 'true'); // mock is local
   await page.locator('#optLocalOnly').uncheck();
+  await closeSettings(page);
   await expect(page.locator('#coachSend')).toBeEnabled();
 });
 
@@ -69,8 +69,7 @@ test('each answer shows its tokens and cost, and the dialogue the player\'s tota
   await page.locator('#coachInput').fill('And now?');
   await page.locator('#coachSend').click();
   await expect(page.locator('#usageLine')).toHaveText(/^You today: 2 answers, /);
-  await page.locator('[data-tab="coach"]').click();
-  await page.locator('#coachSettings summary').click();
+  await openSettings(page);
   await expect(page.locator('#coachUsage')).toContainText(/You today: 2 answers/);
 });
 

@@ -1,7 +1,7 @@
 // Live smoke test with the real in-browser model (TODO 2.16.6). Runs only with KIBITZ_LIVE_MODEL=1,
 // after `just offline` has downloaded a model:
 //   KIBITZ_LIVE_MODEL=1 [BROWSER_MODEL=qwen2.5-0.5b] npx playwright test offline-live
-import { test, expect, open } from './fixtures.mjs';
+import { test, expect, open, openSettings, closeSettings } from './fixtures.mjs';
 
 test.skip(process.env.KIBITZ_LIVE_MODEL !== '1', 'set KIBITZ_LIVE_MODEL=1 (and download a model with just offline)');
 
@@ -12,9 +12,9 @@ test('the real model loads in the page and answers a question', async ({ page })
   // here (this server isn't --offline); serve.test.mjs checks that offline mode drops it.
   page.on('request', r => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && !['127.0.0.1', 'localhost'].includes(u.hostname) && !/(^|\.)(gstatic|googleapis)\.com$/.test(u.hostname)) outside.push(r.url()); });
   await open(page);
-  await page.locator('[data-tab="coach"]').click();
-  await page.locator('#coachSettings summary').click();
+  await openSettings(page);
   await page.locator('#optProvider button[data-v="browser"]').click();
+  await closeSettings(page);
   await page.locator('#btnLoadModel').click();
   await expect(page.locator('#browserModelState')).toContainText('ready', { timeout: 8 * 60_000 });
   await page.locator('#coachInput').fill('Name one principle for the opening, in one sentence.');

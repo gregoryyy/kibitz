@@ -7,6 +7,38 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-22 — Settings behind a gear: a modal overlay
+
+TODO items: 4.12.1.
+
+### Implementation notes
+
+- **The gear** in the header opens a native `<dialog>` with `showModal()`. The browser makes the page behind it inert, closes the dialog on Escape and gives focus back to the gear. The close button and a click on the backdrop close it too: a click whose target is the dialog itself, outside `.settings-body`.
+- **What moved in:**
+  - General: the language (from the header) and the player's level (from the Game tab).
+  - Coach: how the coach works (from the Coach tab), and the AI provider, models, local-only mode, connection test and usage (the former "Coach settings" box).
+  - Engine: the analysis depth and where it runs (from the Game tab).
+
+  Opening the dialog refreshes the gateway's status and usage, as opening the old box did.
+- **What stayed in the tabs**, because it belongs to their task:
+  - Game: the new game's colour, start, strength, style, clock and live help, the help level being part of a game's setup and changed during it.
+  - Coach: the aspects a comment covers, the interesting moves with their line count and window, and the challenge results, now under their own heading.
+- **Layout:** the dialog is at most 560 px wide, 16 px from the edges on a phone, with a sticky title bar and scrolling contents.
+- **Tests:**
+  - e2e `settings.spec`:
+    - open and close by Escape, button and backdrop, with focus back on the gear;
+    - Tab never reaches the page behind;
+    - the controls live in the dialog and not in the tabs, and the settings persist after a reload;
+    - no sideways scrolling at 360 px.
+  - The tests and scripts that used the moved controls open the dialog first (`openSettings` and `closeSettings` in the fixtures; the eval runner and the flipbook tour click the gear). German has the new strings.
+
+### Deviations
+
+- **Live help stays on the Game tab.** It's part of setting up a game, and players change it during one. The plan had grouped it with the settings.
+- **"Focus stays inside" is the browser's modal behaviour.** Tab moves through the dialog and then into the browser's own toolbar, never to the page behind. The test checks exactly that, rather than a hand-made focus trap.
+
+---
+
 ## 2026-10-22 — Fix: a merge ran the boot twice; the language switch keeps the game
 
 TODO items: fix for 1.15 and 10.8.1.

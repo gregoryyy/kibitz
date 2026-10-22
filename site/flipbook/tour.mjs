@@ -47,7 +47,7 @@ export const steps = [
     id: 'load',
     title: 'Load a classic',
     acts: [
-      { click: '#optLevel button[data-v="2"]' },
+      { click: '#btnSettings' }, { click: '#optLevel button[data-v="2"]' }, { click: '#btnSettingsClose' },
       { js: () => { /** @type {HTMLDetailsElement} */ (document.querySelector('details:has(#loadText)')).open = true; } },
       { fill: '#loadText', value: OPERA },
       { click: '#btnLoad' },
@@ -145,7 +145,7 @@ export const steps = [
     title: 'Your turn: play the sacrifice yourself',
     acts: [
       { tab: 'coach' },
-      { click: '#optCommentWhen button[data-v="every"]' },
+      { click: '#btnSettings' }, { click: '#optCommentWhen button[data-v="every"]' }, { click: '#btnSettingsClose' },
       { tab: 'game' },
       { click: '#optColor button[data-v="w"]' },
       { click: '#optStart button[data-v="fen"]' },

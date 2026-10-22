@@ -1,6 +1,6 @@
 // The in-browser model (TODO 2.16): provider, consent and loading, routing, connection test.
 // wllama.js is replaced by a fake runtime; the test server advertises a fake model (playwright.config.mjs).
-import { test, expect, open } from './fixtures.mjs';
+import { test, expect, open, openSettings, closeSettings } from './fixtures.mjs';
 
 test.skip(process.env.KIBITZ_LIVE_MODEL === '1', 'the live run serves the real model');
 
@@ -47,9 +47,10 @@ async function ask(page, q) {
 
 test('"In browser" as the provider: asks for consent, loads with progress, answers in the page', async ({ page }) => {
   const gateway = await openWithFakeModel(page);
-  await page.locator('#coachSettings summary').click();
+  await openSettings(page);
   await page.locator('#optProvider button[data-v="browser"]').click();
   await expect(page.locator('#optProvider button[data-v="browser"]')).toHaveAttribute('aria-pressed', 'true');
+  await closeSettings(page);
   const box = page.locator('#browserModelBox');
   await expect(box).toBeVisible();
   await expect(box).toContainText('Fake model (1.1 GB), in this browser');
@@ -77,8 +78,10 @@ test('"In browser" as the provider: asks for consent, loads with progress, answe
   expect(req.at(-1).content).toContain('Question: What now?');
   expect(gateway).toHaveLength(0); // nothing went to the server
 
+  await openSettings(page);
   await page.locator('#btnTestAi').click();
   await expect(page.locator('#testAiMsg')).toHaveText(/^Working: In browser, Fake model on the CPU, \d+ ms\.$/);
+  await closeSettings(page);
 
   await page.locator('#btnUnloadModel').click();
   await expect(page.locator('#browserModelState')).toContainText('loads on the next question');
@@ -88,9 +91,10 @@ test('"In browser" as the provider: asks for consent, loads with progress, answe
 
 test('routing: quick questions go to the in-browser model, typed questions to the gateway', async ({ page }) => {
   const gateway = await openWithFakeModel(page);
-  await page.locator('#coachSettings summary').click();
+  await openSettings(page);
   await expect(page.locator('#quickInBrowserRow')).toBeVisible();
   await page.locator('#optQuickInBrowser').check();
+  await closeSettings(page);
   await page.locator('#btnLoadModel').click();
   await expect(page.locator('#browserModelState')).toContainText('ready');
   await page.locator('#coachChips .chip').first().click();
@@ -100,14 +104,13 @@ test('routing: quick questions go to the in-browser model, typed questions to th
   expect(gateway).toHaveLength(1);
   // The choice is saved.
   await page.reload();
-  await page.locator('[data-tab="coach"]').click();
-  await page.locator('#coachSettings summary').click();
+  await openSettings(page);
   await expect(page.locator('#optQuickInBrowser')).toBeChecked();
 });
 
 test('local-only mode can use the in-browser model', async ({ page }) => {
   await openWithFakeModel(page);
-  await page.locator('#coachSettings summary').click();
+  await openSettings(page);
   await page.locator('#optLocalOnly').check();
   for (const p of ['browser', 'mock']) await expect(page.locator(`#optProvider button[data-v="${p}"]`)).toBeEnabled();
   await page.locator('#optProvider button[data-v="browser"]').click();

@@ -148,7 +148,7 @@ async function main() {
     await page.addInitScript(() => localStorage.setItem('kibitz.browserModelOk', 'true')); // consent for --ai browser
     await page.goto(`http://127.0.0.1:${opt.port}/?debug`);
     await page.waitForSelector('#engineDot.ok', { timeout: 30_000 });
-    await page.click('#optLevel button[data-v="2"]'); // a club player
+    await page.click('#btnSettings'); await page.click('#optLevel button[data-v="2"]'); await page.click('#btnSettingsClose'); // a club player
     const st = await page.evaluate(() => fetch('api/ai/status').then(r => r.json()));
     const coach = st.provider === 'browser' ? `in-browser / ${st.browser?.name || st.model}` : `${st.provider} / ${st.models?.quick || st.model}`;
     const results = [];
