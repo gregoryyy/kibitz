@@ -7,6 +7,30 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-22 — The game on the board survives a reload
+
+TODO items: 1.15.
+
+### Implementation notes
+
+- **Before:** inside the Claude artifact, the host's snapshot (`window.claude.hot`) brought the game back after a reload. The local app (`just serve`) has no host, so every reload started a new game, and a running game was lost unless it had been saved to the library.
+- **Now:** the snapshot the host takes (`snapshot()`: PGN, comments, game id, cursor, mode, colour, orientation, Elo, style, start ply, clock times) goes to `localStorage` under `kibitz.current` when there's no host.
+  - It's written 400 ms after any change (`renderAll` and `renderMoves` schedule it, so every move, take-back, load and setting counts), and at once when the page is hidden or goes away (`pagehide`, `visibilitychange`).
+  - `boot()` reads it back through the same `start()` the host uses. So a running game resumes with its clock, Stockfish moves if it was to move, and a loaded game comes back in analysis at the same move.
+- **Details:**
+  - An untouched start position isn't kept, so a new visit starts a new game as before.
+  - The clock doesn't run while the page is closed.
+  - With two tabs open, the last change wins.
+  - A failed write (storage full) is announced once, instead of losing the game silently.
+- **Tests:** e2e `keep-game.spec`: a reload in the middle of a game, which goes on afterwards; a timed game keeps its times; a snapshot saved with Stockfish to move makes it move; a loaded game comes back at the same move; an untouched start isn't kept.
+
+### Deviations
+
+- **A finished game also comes back after a reload,** in analysis, as inside the artifact. It's already in the library, and showing it again is what the host does too. The plan had said to clear the snapshot when a game ends.
+
+### Insights
+
+- **The artifact's snapshot was already the right format.** The work was to write it locally and read it back through the same `start()`, so both hosts restore a game the same way.
 ## 2026-10-21 — Paid runs ask first: `just eval` and `just flipbook`
 
 TODO items: none (tooling). It goes with 2.11, the budgets for paid models.

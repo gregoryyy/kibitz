@@ -950,7 +950,7 @@ function updateGraphCursor() {
   const N = S.nodes.length, W = 600; const x = 8 + (W - 16) * (N <= 1 ? 0 : S.cursor / (N - 1));
   g._cur.setAttribute('x1', x); g._cur.setAttribute('x2', x);
 }
-function renderAll() { updateGraphCursor(); syncBoard(); renderMoves(); renderPlayers(); renderEval(); renderControls(); showFlag(); renderOpening(); renderCoachCtx(); renderReading(); renderReviewHeader(); renderAspectPicker(); renderInteresting(); }
+function renderAll() { scheduleSave(); updateGraphCursor(); syncBoard(); renderMoves(); renderPlayers(); renderEval(); renderControls(); showFlag(); renderOpening(); renderCoachCtx(); renderReading(); renderReviewHeader(); renderAspectPicker(); renderInteresting(); }
 function renderOpening() {
   const op = openingAt(S.cursor) || openingAt(last());
   // Opening names (eco.json) and a game's own title are data; the fallbacks are ours.
@@ -959,6 +959,7 @@ function renderOpening() {
   $('#openingEco').textContent = op ? op.eco : '';
 }
 function renderMoves() {
+  scheduleSave(); // every move, take-back and load passes here (TODO 1.15)
   const box = $('#moves');
   const hadFocus = box.contains(document.activeElement); // keep keyboard focus on the move list across re-renders
   box.replaceChildren();
@@ -2328,6 +2329,32 @@ function start(data) {
   setTools(store.get('toolsOpen', true));
   Lib.init();
 }
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES };
+// The game on the board survives a reload (TODO 1.15). Inside the artifact the host takes the
+// snapshot when it needs it; the local app keeps it in localStorage ('current'), written shortly
+// after every change and when the page goes away, and read back at boot.
+function snapshot() {
+  return { pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo, style: S.style,
+    startPly: S.startPly, tc: S.gameTc?.id, clock: S.clock && stopClock(S.clock, performance.now()), clockRunning: !!S.clock?.turn };
+}
+const HOSTED = !!window.claude?.hot;
+let saveTimer = 0, saveFailed = false;
+function saveSnapshot() {
+  clearTimeout(saveTimer);
+  if (HOSTED || !booted) return;
+  // An untouched start position isn't worth keeping: the next visit starts a new game as before.
+  const empty = S.nodes.length < 2 && S.start === START && !S.meta;
+  const ok = store.set('current', empty ? null : snapshot());
+  if (!ok && !saveFailed) toast('Browser storage is full, so the game in progress can\'t be kept across a reload.');
+  saveFailed = !ok;
+}
+function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveSnapshot, 400); }
+addEventListener('pagehide', saveSnapshot);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveSnapshot(); });
+window.claude?.hot?.snapshot?.(snapshot);
+let booted = false;
+const boot = data => { start(data); booted = true; saveSnapshot(); };
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(HOSTED ? window.claude.hot.data ?? {} : store.get('current', {}) ?? {});
 if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS };
 window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo, style: S.style,
   startPly: S.startPly, tc: S.gameTc?.id, clock: S.clock && stopClock(S.clock, performance.now()), clockRunning: !!S.clock?.turn }));
