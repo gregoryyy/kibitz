@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 340" width="720" height="340" font-family="Helvetica, 'Helvetica Neue', Arial, sans-serif" role="img" aria-labelledby="t d">
+<title id="t">Tokenization</title><desc id="d">A sentence cut into one token per word, the move list 1. e4 e5 2. Nf3 d6 3. d4 cut into fragments, and a FEN string cut into tokens that run across the ranks of the board.</desc>
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#1E2A30" stroke-width="1.2"/></marker><marker id="arrm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#5E6E76" stroke-width="1.2"/></marker><marker id="arrr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#F3533A" stroke-width="1.4"/></marker><marker id="arrb" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#004C8C" stroke-width="1.4"/></marker></defs>
+<rect width="720" height="340" fill="#FFFFFF"/>
+<text x="24.0" y="30.0" font-size="16" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Tokenization</text>
+<text x="24.0" y="46.0" font-size="8.5" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">The model reads fragments of text, not words, squares or pieces. Illustrative cut in the style of a byte-pair vocabulary.</text>
+<text x="24.0" y="76.0" font-size="9" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">A sentence</text>
+<rect x="24.0" y="86.0" width="35.5" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="41.8" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">The</text>
+<rect x="62.5" y="86.0" width="61.5" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="93.2" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣bishop</text>
+<rect x="127.0" y="86.0" width="48.5" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="151.2" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣pins</text>
+<rect x="178.5" y="86.0" width="42.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="199.5" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣the</text>
+<rect x="223.5" y="86.0" width="61.5" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="254.2" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣knight</text>
+<rect x="288.0" y="86.0" width="35.5" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="305.8" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣to</text>
+<rect x="326.5" y="86.0" width="42.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="347.5" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣the</text>
+<rect x="371.5" y="86.0" width="55.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="399.0" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣queen</text>
+<rect x="429.5" y="86.0" width="22.5" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="440.8" y="100.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">.</text>
+<text x="463.0" y="101.0" font-size="8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">one token per word</text>
+<text x="24.0" y="150.0" font-size="9" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Move list</text>
+<rect x="24.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="35.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">1</text>
+<rect x="50.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="61.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">.</text>
+<rect x="76.0" y="160.0" width="30.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="91.0" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣e</text>
+<rect x="109.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="120.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">4</text>
+<rect x="135.0" y="160.0" width="30.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="150.0" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣e</text>
+<rect x="168.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="179.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">5</text>
+<rect x="194.0" y="160.0" width="30.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="209.0" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣2</text>
+<rect x="227.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="238.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">.</text>
+<rect x="253.0" y="160.0" width="30.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="268.0" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣N</text>
+<rect x="286.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="297.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">f</text>
+<rect x="312.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="323.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">3</text>
+<rect x="338.0" y="160.0" width="30.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="353.0" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣d</text>
+<rect x="371.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="382.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">6</text>
+<rect x="397.0" y="160.0" width="30.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="412.0" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣3</text>
+<rect x="430.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="441.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">.</text>
+<rect x="456.0" y="160.0" width="30.0" height="22.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="471.0" y="174.2" font-size="9" fill="#1E2A30" font-weight="bold" text-anchor="middle" font-style="">␣d</text>
+<rect x="489.0" y="160.0" width="23.0" height="22.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="500.5" y="174.2" font-size="9" fill="#1E2A30" font-weight="bold" text-anchor="middle" font-style="">4</text>
+<text x="523.0" y="175.0" font-size="8.5" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">→ next token?</text>
+<text x="24.0" y="200.0" font-size="7.6" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">The square e4 is two tokens; Nf3 is three. The model has to learn from text alone that ␣e followed by 4 names a square.</text>
+<text x="24.0" y="236.0" font-size="9" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Position (FEN)</text>
+<rect x="24.0" y="246.0" width="22.4" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="35.2" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">rn</text>
+<rect x="48.4" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="56.5" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="66.6" y="246.0" width="22.4" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="77.8" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">kb</text>
+<rect x="91.0" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="99.1" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">1</text>
+<rect x="109.2" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="117.3" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">r</text>
+<rect x="127.4" y="246.0" width="28.6" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="141.7" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">/pp</text>
+<rect x="158.0" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="166.1" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="176.2" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="184.3" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">q</text>
+<rect x="194.4" y="246.0" width="28.6" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="208.7" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">ppp</text>
+<rect x="225.0" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="233.1" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">/</text>
+<rect x="243.2" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="251.3" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="261.4" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="269.5" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">p</text>
+<rect x="279.6" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="287.7" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="297.8" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="305.9" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">n</text>
+<rect x="316.0" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="324.1" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="334.2" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="342.3" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">/</text>
+<rect x="352.4" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="360.5" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">4</text>
+<rect x="370.6" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="378.7" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">p</text>
+<rect x="388.8" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="396.9" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">1</text>
+<rect x="407.0" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="415.1" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">B</text>
+<rect x="425.2" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="433.3" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">1</text>
+<rect x="443.4" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="451.5" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">/</text>
+<rect x="461.6" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="469.7" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="479.8" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="487.9" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">B</text>
+<rect x="498.0" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="506.1" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">1</text>
+<rect x="516.2" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="524.3" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">P</text>
+<rect x="534.4" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="542.5" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">3</text>
+<rect x="552.6" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="560.7" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">/</text>
+<rect x="570.8" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="578.9" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">1</text>
+<rect x="589.0" y="246.0" width="22.4" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="600.2" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">QN</text>
+<rect x="613.4" y="246.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="621.5" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">5</text>
+<rect x="631.6" y="246.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="639.7" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">/</text>
+<rect x="649.8" y="246.0" width="28.6" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="664.1" y="259.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">PPP</text>
+<rect x="24.0" y="273.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="32.1" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="42.2" y="273.0" width="28.6" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="56.5" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">PPP</text>
+<rect x="72.8" y="273.0" width="22.4" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="84.0" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">/R</text>
+<rect x="97.2" y="273.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="105.3" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">3</text>
+<rect x="115.4" y="273.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="123.5" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">K</text>
+<rect x="133.6" y="273.0" width="16.2" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="141.7" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">2</text>
+<rect x="151.8" y="273.0" width="16.2" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="159.9" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">R</text>
+<rect x="170.0" y="273.0" width="22.4" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="181.2" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣b</text>
+<rect x="194.4" y="273.0" width="28.6" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="208.7" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣KQ</text>
+<rect x="225.0" y="273.0" width="22.4" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="236.2" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">kq</text>
+<rect x="249.4" y="273.0" width="22.4" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="260.6" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣-</text>
+<rect x="273.8" y="273.0" width="22.4" height="20.0" rx="3" fill="#FF9A85" stroke="none" stroke-width="1"/>
+<text x="285.0" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣1</text>
+<rect x="298.2" y="273.0" width="22.4" height="20.0" rx="3" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="309.4" y="286.1" font-size="8.5" fill="#1E2A30" font-weight="normal" text-anchor="middle" font-style="">␣9</text>
+<text x="24.0" y="313.0" font-size="7.6" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">Rank boundaries (“/”) and token boundaries do not line up: a token such as “/pp” spans two ranks, and “QN” two pieces.</text>
+<text x="24.0" y="325.0" font-size="7.6" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">The position after 9. Bg5 in the Opera Game. Black to move.</text>
+</svg>

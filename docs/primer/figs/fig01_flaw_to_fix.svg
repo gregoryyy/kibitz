@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 430" width="720" height="430" font-family="Helvetica, 'Helvetica Neue', Arial, sans-serif" role="img" aria-labelledby="t d">
+<title id="t">Flaw to fix</title><desc id="d">Eight systematic flaws of a language model on the left, each joined by an arrow to the part of the application that compensates it on the right: the engine, the index and the checker.</desc>
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#1E2A30" stroke-width="1.2"/></marker><marker id="arrm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#5E6E76" stroke-width="1.2"/></marker><marker id="arrr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#F3533A" stroke-width="1.4"/></marker><marker id="arrb" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#004C8C" stroke-width="1.4"/></marker></defs>
+<rect width="720" height="430" fill="#FFFFFF"/>
+<text x="24.0" y="30.0" font-size="16" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Flaw to fix</text>
+<text x="24.0" y="46.0" font-size="8.5" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">What the model gets wrong on its own, and which part of the application compensates it.</text>
+<rect x="24.0" y="62.0" width="300.0" height="20.0" rx="4" fill="#1E2A30" stroke="none" stroke-width="1"/>
+<text x="174.0" y="76.0" font-size="8.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle" font-style="">Language model: systematic flaws</text>
+<rect x="400.0" y="62.0" width="296.0" height="20.0" rx="4" fill="#1E2A30" stroke="none" stroke-width="1"/>
+<text x="548.0" y="76.0" font-size="8.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle" font-style="">Engine, index and checker: compensations</text>
+<rect x="24.0" y="92.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="107.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Illegal moves and invented lines</text>
+<text x="34.0" y="119.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">no board, only text (Step 4)</text>
+<rect x="400.0" y="92.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#F3533A" stroke-width="1"/>
+<text x="410.0" y="107.0" font-size="8.6" fill="#F3533A" font-weight="bold" text-anchor="start" font-style="">The checker</text>
+<text x="410.0" y="119.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">every move the model names is verified (Step 6)</text>
+<line x1="330.0" y1="109.0" x2="396.0" y2="109.0" stroke="#F3533A" stroke-width="1.4" marker-end="url(#arrr)"/>
+<rect x="24.0" y="132.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="147.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Confident wrong judgments</text>
+<text x="34.0" y="159.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">plausibility, not truth (Step 3)</text>
+<rect x="400.0" y="132.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#F3533A" stroke-width="1"/>
+<text x="410.0" y="147.0" font-size="8.6" fill="#F3533A" font-weight="bold" text-anchor="start" font-style="">Facts first</text>
+<text x="410.0" y="159.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">the engine's lines and scores go into the prompt (Step 5)</text>
+<line x1="330.0" y1="149.0" x2="396.0" y2="149.0" stroke="#F3533A" stroke-width="1.4" marker-end="url(#arrr)"/>
+<rect x="24.0" y="172.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="187.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Invented facts, outdated knowledge</text>
+<text x="34.0" y="199.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">recall from training (Step 3)</text>
+<rect x="400.0" y="172.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#004C8C" stroke-width="1"/>
+<text x="410.0" y="187.0" font-size="8.6" fill="#004C8C" font-weight="bold" text-anchor="start" font-style="">Retrieval</text>
+<text x="410.0" y="199.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">library and games, with references shown (Step 7)</text>
+<line x1="330.0" y1="189.0" x2="396.0" y2="189.0" stroke="#004C8C" stroke-width="1.4" marker-end="url(#arrb)"/>
+<rect x="24.0" y="212.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="227.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Mixed-up positions</text>
+<text x="34.0" y="239.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">similarity is not equality (Step 2)</text>
+<rect x="400.0" y="212.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#004C8C" stroke-width="1"/>
+<text x="410.0" y="227.0" font-size="8.6" fill="#004C8C" font-weight="bold" text-anchor="start" font-style="">Exact keys</text>
+<text x="410.0" y="239.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">EPD, pawn structure, theme tags instead of vectors (Step 7)</text>
+<line x1="330.0" y1="229.0" x2="396.0" y2="229.0" stroke="#004C8C" stroke-width="1.4" marker-end="url(#arrb)"/>
+<rect x="24.0" y="252.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="267.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Made-up reasons for a correct move</text>
+<text x="34.0" y="279.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">explains whatever it is handed (Step 3)</text>
+<rect x="400.0" y="252.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#F3533A" stroke-width="1"/>
+<text x="410.0" y="267.0" font-size="8.6" fill="#F3533A" font-weight="bold" text-anchor="start" font-style="">Grounded explanation</text>
+<text x="410.0" y="279.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">the engine supplies the better move and its line (Step 9)</text>
+<line x1="330.0" y1="269.0" x2="396.0" y2="269.0" stroke="#F3533A" stroke-width="1.4" marker-end="url(#arrr)"/>
+<rect x="24.0" y="292.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="307.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Not repeatable</text>
+<text x="34.0" y="319.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">sampling from a distribution (Step 3)</text>
+<rect x="400.0" y="292.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#F3533A" stroke-width="1"/>
+<text x="410.0" y="307.0" font-size="8.6" fill="#F3533A" font-weight="bold" text-anchor="start" font-style="">The review</text>
+<text x="410.0" y="319.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">exact and repeatable, engine only (Step 8)</text>
+<line x1="330.0" y1="309.0" x2="396.0" y2="309.0" stroke="#F3533A" stroke-width="1.4" marker-end="url(#arrr)"/>
+<rect x="24.0" y="332.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="347.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Gives the game away</text>
+<text x="34.0" y="359.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">says what it knows</text>
+<rect x="400.0" y="332.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#004C8C" stroke-width="1"/>
+<text x="410.0" y="347.0" font-size="8.6" fill="#004C8C" font-weight="bold" text-anchor="start" font-style="">Help setting</text>
+<text x="410.0" y="359.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">what the model may see is set where the context is built (Step 10)</text>
+<line x1="330.0" y1="349.0" x2="396.0" y2="349.0" stroke="#004C8C" stroke-width="1.4" marker-end="url(#arrb)"/>
+<rect x="24.0" y="372.0" width="300.0" height="34.0" rx="4" fill="#F2F5F6" stroke="none" stroke-width="1"/>
+<text x="34.0" y="387.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Hidden instructions in data</text>
+<text x="34.0" y="399.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">instruction and data in one stream (Step 4)</text>
+<rect x="400.0" y="372.0" width="296.0" height="34.0" rx="4" fill="#FFFFFF" stroke="#1E2A30" stroke-width="1"/>
+<text x="410.0" y="387.0" font-size="8.6" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Quoted input, checked output</text>
+<text x="410.0" y="399.0" font-size="7.2" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">trust boundary at the tool layer (Part 3)</text>
+<line x1="330.0" y1="389.0" x2="396.0" y2="389.0" stroke="#1E2A30" stroke-width="1.4" marker-end="url(#arr)"/>
+<text x="24.0" y="422.0" font-size="7" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">Red: the engine and the checker.  Blue: the index and the context.  Illustrative grouping; Part 2 has the detail.</text>
+</svg>
