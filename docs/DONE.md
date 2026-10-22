@@ -7,6 +7,16 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-22 — Fix: an annotations test depended on which lines Stockfish found
+
+TODO items: fix for 4.7.
+
+- **The bug:** the e2e test for lines in an answer expected "1. e4 e5 2. Nf3" to read as one line. That needs Stockfish's lines to contain it, and they did on a laptop with four threads but not on CI with one, so the test failed in CI after #34 merged.
+- **The fix:** the test puts a fixed analysis for the start position into the page before asking. Every other annotations test was already independent of the engine.
+- **Insight:** a test that relies on the answer check relies on the engine, so it needs fixed engine lines. Making the depth the same isn't enough.
+
+---
+
 ## 2026-10-22 — The board speaks: lines, marks, a scratch board and "what if"
 
 TODO items: 4.2, 4.3, 4.4, 4.5, 4.6, 4.7 (milestone 4, part 1).
