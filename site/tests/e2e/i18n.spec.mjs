@@ -20,6 +20,7 @@ test('German: the switch translates the page, the coach is asked for German, and
   await expect(page.locator('#btnNewGame')).toHaveText('Partie starten');
   await expect(page.locator('#coachInput')).toHaveAttribute('placeholder', 'Frag nach dieser Stellung, deinem letzten Zug oder einem Plan');
   await expect(page.locator('#coachCtx')).toContainText('Weiß am Zug');
+  await expect(page.locator('#engineText')).toHaveAttribute('translate', 'no'); // the engine's name is data, as on CI with one thread
 
   // A move typed with German letters
   await page.locator('#modeAnalyse').click();

@@ -16,11 +16,13 @@ TODO items: fix for 1.15 and 10.8.1.
 - **The bug:** merging the languages (#28) and the kept game (#31) left both versions of the boot code at the end of the page script. `start()` then ran a second time with no data and started a new game, so on main a reload lost the game again. No test caught it before merging, because each PR passed alone; the keep-game tests fail on the merged main.
 - **The fix:** the old boot lines are gone, and the debug hook (`window.__kibitz`) is set once, with the language fields.
 - **The language switch** no longer saves a running game to the library and asks first. The game now survives the reload (1.15), so the switch keeps the snapshot and reloads, and the game goes on in the new language. A duplicated, unticked TODO 1.15 line from the same merge is removed.
-- **Tests:** the keep-game tests pass again on main. e2e `i18n.spec`: switching the language in a running game keeps the game going.
+- **CI on main** was red from #30 on, for a second reason: on CI, Stockfish runs with one thread, so the engine's name shows without "· N threads", and the German test found that bare name untranslated. The engine's name is data now (`translate="no"`), and only "threads" is translated.
+- **Tests:** the keep-game tests pass again on main. e2e `i18n.spec`: switching the language in a running game keeps the game going, and the engine's name is marked as data.
 
 ### Insights
 
-- **Two PRs that each pass can still break main together.** After merging several PRs that touch the same file, run the whole suite on main before starting new work on it.
+- **Two PRs that each pass can still break main together.** CI runs on main after every merge and showed it, red after #30 and #31. Check that run before starting new work.
+- **A test that only passes on one machine** depends on that machine, here the number of CPU threads. The German check now ignores the engine's name.
 
 ---
 

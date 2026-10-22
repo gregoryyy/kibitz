@@ -610,6 +610,7 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 function engineDown(err) {
   if (engineDown.shown) return; engineDown.shown = true;
   $('#engineDot').className = 'dot err';
+  $('#engineText').translate = true;
   $('#engineText').textContent = /start/.test(err?.message) ? 'Stockfish failed to start' : 'Stockfish stopped. Reload the page to restart it.';
 }
 // When the page is cross-origin isolated, the analyst gets the spare cores. The opponent keeps
@@ -619,7 +620,10 @@ const analyst = new Engine(stockfishAttempts(location.href, { threads: THREADS }
 const opponent = new Engine(stockfishAttempts(), { onFail: engineDown });
 analyst.ready.then(() => {
   $('#engineDot').className = 'dot ok';
-  $('#engineText').textContent = (analyst.name || ('Stockfish · ' + analyst.flavor)) + (analyst.threads > 1 ? ` · ${analyst.threads} threads` : '');
+  // The engine's name is data (it differs by build and machine); only "threads" is translated.
+  const name = analyst.name || ('Stockfish · ' + analyst.flavor);
+  $('#engineText').translate = false;
+  $('#engineText').textContent = analyst.threads > 1 ? t('{e} · {n} threads', { e: name, n: analyst.threads }) : name;
   refreshAnalysis();
 }, () => {});
 
