@@ -292,7 +292,11 @@ function mockProvider() {
       const asked = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
       const results = messages.filter(m => m.role === 'tool');
       const wants = /\[mock:(tool|loop|bad-tool)\]/.test(asked);
-      if (tools?.length && wants && (!results.length || asked.includes('[mock:loop]'))) {
+      const action = [...asked.matchAll(/\[mock:action:(\w+)\s+(\{[^\n]*\})\]/g)].at(-1);
+      if (tools?.some(t => t.name === action?.[1]) && !results.length) {
+        return { truncated: false, toolCalls: [{ id: 'action1', name: action[1], input: parseArgs(action[2]) }], usage: { input: Math.ceil(chars / 4), output: 20 } };
+      }
+      if (tools?.length && wants && tools.some(t => t.name === 'analyse') && (!results.length || asked.includes('[mock:loop]'))) {
         const fen = /Current position \(FEN\): (\S+ [wb] \S+ \S+ \d+ \d+)/.exec(asked)?.[1] || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
         const name = tools.some(t => t.name === 'analyse') ? 'analyse' : tools[0].name;
         const input = asked.includes('[mock:bad-tool]') ? { fen: 'not a fen', depth: 99 } : { fen };

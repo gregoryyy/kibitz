@@ -162,7 +162,7 @@ export function fixCastling(fen) {
 
 // Checks a FEN to start a game from: valid for chess.js, the side not to move not in check, and
 // the game not already over. Returns {fen} (normalised) or {error}.
-export function checkStart(Chess, fen) {
+export function checkPosition(Chess, fen) {
   let c;
   try { c = new Chess(fixCastling(String(fen ?? '').trim())); } catch { return { error: 'That isn\'t a valid FEN.' }; }
   const f = c.fen().split(' ');
@@ -171,6 +171,12 @@ export function checkStart(Chess, fen) {
   try {
     if (new Chess([f[0], f[1] === 'w' ? 'b' : 'w', '-', '-', '0', '1'].join(' ')).inCheck()) return { error: 'The side that isn\'t to move is in check.' };
   } catch { return { error: 'That isn\'t a valid FEN.' }; }
-  if (gameEnd(c)) return { error: 'The game is already over in that position.' };
   return { fen: c.fen() };
+}
+
+export function checkStart(Chess, fen) {
+  const pos = checkPosition(Chess, fen);
+  if (pos.error) return pos;
+  if (gameEnd(new Chess(pos.fen))) return { error: 'The game is already over in that position.' };
+  return pos;
 }

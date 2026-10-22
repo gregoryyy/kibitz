@@ -9,6 +9,8 @@
 import { moveMotifs, scoreToCp } from './knowledge.js';
 import { playLine } from './annotations.js';
 import { flipSide } from './modes.js';
+import { CHAT_TOOLS } from './chat.js';
+import { checkPosition } from './play.js';
 
 export const CAPS = { depth: 18, lines: 5, compare: 5, mate: 7, lineMoves: 12, rounds: 4, calls: 6 };
 const DEFAULT_DEPTH = 14;
@@ -48,10 +50,12 @@ export const TOOLS = {
     } },
   },
 };
+export const ENGINE_TOOL_NAMES = Object.keys(TOOLS);
+Object.assign(TOOLS, CHAT_TOOLS);
 export const TOOL_NAMES = Object.keys(TOOLS);
 
 const int = (v, lo, hi, d) => (v === undefined ? d : Number.isInteger(v) && v >= lo && v <= hi ? v : null);
-const chessOf = (Chess, fen) => { try { return typeof fen === 'string' && fen.length < 100 ? new Chess(fen) : null; } catch { return null; } };
+const chessOf = (Chess, fen) => { try { const p = typeof fen === 'string' && fen.length < 100 ? checkPosition(Chess, fen) : null; return p?.fen ? new Chess(p.fen) : null; } catch { return null; } };
 
 // A tool call's input checked: {ok: true, name, args} or {ok: false, why}. Unknown tools, extra
 // fields, illegal positions or moves, and values over the caps are refused, never clamped silently.

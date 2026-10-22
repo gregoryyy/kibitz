@@ -7,6 +7,34 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-22 — Chat context, library loading and board control
+
+TODO items: 4.8, 4.9, 4.10 (milestone 4, part 2b).
+
+### Implementation notes
+
+- **Commands and validation** (`site/src/chat.js`, pure): legal moves through the existing typed-move parser; FEN and PGN loading; move-number navigation; piece edits and side to move; library search by player, opening or theme, with own-game color and result filters. Imported metadata is quoted before it goes into tool results or history. Position checks now reject an attacked non-moving king as well as malformed FENs; game-start checks additionally reject terminal positions.
+- **Local commands:** `e4`, `play Nf3`, `show me e4 and what follows`, `take back two moves`, `go to move 15`, `put a white knight on f5`, `remove the queens`, `White to move`, `undo`, and `return to my game`. These work without a model. Analysis moves and setups stay on a scratch board; live moves respect the player's turn, clock and help level.
+- **Tools:** library and opening searches, game/FEN/PGN/opening loads, `move`, `goto`, `setup`, `undo`, using the same provider adapters as the engine tools. Each action is validated again against the current board. The existing four-round/six-call cap applies to both tool groups; engine tools withheld by the help setting are also refused if the model calls one anyway.
+- **Loading a running game requires confirmation.** Cancellation leaves it in place. An accepted load suspends it in memory, with a Return button; its clock resumes when returning. Loads, scratch edits and navigation never write the saved library. A board change can be undone as one action.
+- **Context:** the Discuss selector switches between the current game/position and General chess, which has its own history and sends no board context. The active tab is included in position requests. Answers carry a context button that revisits their position in analysis. Loads preserve the conversation and send fresh engine context before the next model turn; scratch questions use the position actually shown, including after stepping backwards.
+- **Async guards:** cancelled or replaced requests cannot add old messages to a new game. Board actions check both generation and FEN. Review summaries now discard responses when their original game has been replaced.
+- **Tests:** unit coverage for parsing, hostile arguments, legal setups, long/custom-start PGNs, quoted retrieval and gateway tool shapes; browser coverage for local and model commands, confirmation/cancellation/return, undo, searches and loads, context switches and links, withheld engine help, stale chat/summary responses, and phone/tablet layouts. Providers are mocked throughout.
+
+### Deviations
+
+- The context control is a select and answer buttons; the existing mobile dialogue stays in place rather than becoming a drawer.
+- Suspended games and undo snapshots live only in the current session. Saving games and resuming across a reload continue to use the existing explicit library save and current-game snapshot mechanisms.
+- Models without tool support still answer from fixed context. Local commands work with those models and when the coach is off. Named setups such as Lucena load their initial position from the classic collection, locally or through library tools.
+- This completes the chat continuation (4.8–4.10). Evaluation-confirmed pattern search (4.11.2) and the remaining game/review UX work (4.12) stay open.
+
+### Insights
+
+- Checking FEN syntax is not checking a legal position: chess.js accepts some impossible king placements. A shared position check protects both loads and engine tools.
+- An answer needs a snapshot of its position, not a later lookup of the same move index in whichever game is on the board. The same distinction makes general conversation, scratch analysis and return-to-game work together.
+
+---
+
 ## 2026-10-22 — Engine tools for the coach: the model asks, Stockfish answers
 
 TODO items: 4.11.1, 4.11.3, 4.11.4, 4.11.5, 4.11.6; 4.11.2 in part (milestone 4, part 2a).

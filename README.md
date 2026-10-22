@@ -54,6 +54,8 @@ How the engine and the language model work together, and the AI patterns behind 
 
 The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library and reading suggestions.
 
+The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
+
 - **Run locally:** the page talks to the AI gateway in `site/server/`, which `site/scripts/serve.mjs --api` mounts. The gateway reads `.env`, calls the chosen provider, and keeps the API keys on the server.
 - **Published as a Claude artifact:** the page uses the model the artifact provides through `window.claude`.
 

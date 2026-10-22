@@ -3,6 +3,18 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'Discuss': 'Besprechen',
+  'Current position': 'Aktuelle Stellung',
+  'General chess': 'Allgemeine Schachfragen',
+  'Return to my game': 'Zurück zu meiner Partie',
+  'Undo board change': 'Brettänderung rückgängig',
+  'Show this position': 'Diese Stellung zeigen',
+  'General chess: no position is sent to the coach.': 'Allgemeine Schachfragen: Dem Coach wird keine Stellung geschickt.',
+  'Leave this game to analyse? You can return to it here.': 'Diese Partie zum Analysieren verlassen? Du kannst hier zu ihr zurückkehren.',
+  'Leave and analyse': 'Verlassen und analysieren',
+  'Returned to your game.': 'Zurück zu deiner Partie.',
+  'Board updated.': 'Brett aktualisiert.',
+  'Loaded in analysis.': 'Zur Analyse geladen.',
   // --- Header and board -------------------------------------------------------------------------
   'Kibitz': 'Kibitz',
   'Kibitz: Neurosymbolic Chess Coach': 'Kibitz: neurosymbolischer Schachtrainer',

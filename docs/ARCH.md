@@ -125,22 +125,25 @@ For answers the page must act on, such as arrows and highlighted squares on the 
 - **Native first, then a fallback.** The gateway asks each provider for native JSON-schema output. If the provider rejects that, or the reply doesn't fit, it repeats the request with the schema in the instructions and parses the JSON out of the text (`completeJson()`).
 - **Validated twice.** The gateway validates every reply against the schema (`validate()`), including limits that strict provider modes can't express (lengths, patterns, item counts). The page checks every square against the position before drawing it (4.4).
 
-### 3.5 Tool use (planned)
+### 3.5 Tool use
 
 Instead of receiving a fixed context, the model asks the symbolic side questions (4.11, 4.8.3, 4.10.3):
 
-- **Engine tools:** `analyse`, `try_move` (`go searchmoves`), `threats` (what the opponent would do if it were their move), `compare`, `find_mate`.
+- **Engine tools:** `analyse`, `try_move` (compare a move with the best), `threats` (what the opponent would do if it were their move), `compare`, `find_mate`.
 - **Pattern tools:** `find_motifs` over a line.
-- **Board tools:** load a game or position, make a move, set up pieces.
+- **Library tools:** search saved and classic games, search named openings, and load a game at a move, a FEN, a PGN or an opening line.
+- **Board tools:** make a move, navigate, set up pieces, and undo a board change. In analysis, moves and setups use the scratch board.
 
-The rules are already decided:
+The page checks each call before it runs:
 
 - tool arguments are untrusted, so every FEN and move is checked with chess.js, and depth, time and line count are capped;
 - every line the model quotes must come from a tool result;
 - tools only load and show, never change or delete saved data;
 - leaving a game in progress needs the player's confirmation.
 
-wllama's OpenAI-style tool calling makes the same work possible with the in-browser model.
+The loop runs in the page, capped at four rounds and six calls per answer. A load analyses its new position before asking the model to explain it. The in-browser model and models that reject tools use fixed context; local commands such as `play e4`, `open the Opera Game`, `remove the queens` and `undo` work without tool support or an AI provider.
+
+The chat's Discuss control selects the current position or general chess. General questions keep their own history and send no board context. Each answer keeps a snapshot of the game and move it was about, with a button to revisit it in analysis. Leaving a running game keeps it in memory with a way back, including its clock; loads and scratch changes never write the saved library.
 
 ### 3.6 Verification and guardrails
 
@@ -159,6 +162,8 @@ The model's output is untrusted.
 - **Limits** on input size, request rate and daily tokens, enforced in the gateway.
 
 ### 3.7 Agency (planned)
+
+The bounded chat tool loop above is implemented. Longer autonomous investigations across several games remain planned.
 
 The coach as an agent: it decides which tools to call, in a bounded loop, to answer a question like "why did I lose this game?" or "find where I went wrong in my last three losses" (4.8, 4.11). It would:
 
