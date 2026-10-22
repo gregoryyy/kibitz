@@ -7,6 +7,23 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-22 — Fix: a merge ran the boot twice; the language switch keeps the game
+
+TODO items: fix for 1.15 and 10.8.1.
+
+### Implementation notes
+
+- **The bug:** merging the languages (#28) and the kept game (#31) left both versions of the boot code at the end of the page script. `start()` then ran a second time with no data and started a new game, so on main a reload lost the game again. No test caught it before merging, because each PR passed alone; the keep-game tests fail on the merged main.
+- **The fix:** the old boot lines are gone, and the debug hook (`window.__kibitz`) is set once, with the language fields.
+- **The language switch** no longer saves a running game to the library and asks first. The game now survives the reload (1.15), so the switch keeps the snapshot and reloads, and the game goes on in the new language. A duplicated, unticked TODO 1.15 line from the same merge is removed.
+- **Tests:** the keep-game tests pass again on main. e2e `i18n.spec`: switching the language in a running game keeps the game going.
+
+### Insights
+
+- **Two PRs that each pass can still break main together.** After merging several PRs that touch the same file, run the whole suite on main before starting new work on it.
+
+---
+
 ## 2026-10-22 — The game on the board survives a reload
 
 TODO items: 1.15.

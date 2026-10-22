@@ -536,15 +536,8 @@ if (LANG !== 'en' || DEBUG) {
 {
   const sel = $('#optLang');
   for (const [id, name] of Object.entries(LANGS)) sel.append(el('option', { value: id, selected: id === LANG }, name));
-  // The page reloads in the new language. Inside the artifact the host's snapshot brings the game
-  // back; the local app can't resume a running game yet (TODO 1.15), so it goes to the library first.
-  const switchTo = lang => { store.set('lang', lang); location.reload(); };
-  sel.addEventListener('change', () => {
-    const lang = sel.value;
-    if (!S.playing || S.nodes.length < 2 || window.claude?.hot) return switchTo(lang);
-    sel.value = LANG;
-    confirmBox('Switching the language reloads the page. The game in progress is saved to your library as unfinished.', 'Switch', async () => { await saveCurrentGame({ quiet: true, result: '*' }); switchTo(lang); });
-  });
+  // The page reloads in the new language, and the game on the board comes back with it (TODO 1.15).
+  sel.addEventListener('change', () => { store.set('lang', sel.value); saveSnapshot(); location.reload(); });
 }
 // Opening names are looked up this deep into a game; positions this early in the ECO table count as book moves.
 const OPENING_PLIES = 40, BOOK_PLIES = 30;
@@ -2329,7 +2322,7 @@ function start(data) {
   setTools(store.get('toolsOpen', true));
   Lib.init();
 }
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES };
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS };
 // The game on the board survives a reload (TODO 1.15). Inside the artifact the host takes the
 // snapshot when it needs it; the local app keeps it in localStorage ('current'), written shortly
 // after every change and when the page goes away, and read back at boot.
@@ -2355,8 +2348,4 @@ window.claude?.hot?.snapshot?.(snapshot);
 let booted = false;
 const boot = data => { start(data); booted = true; saveSnapshot(); };
 window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(HOSTED ? window.claude.hot.data ?? {} : store.get('current', {}) ?? {});
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS };
-window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo, style: S.style,
-  startPly: S.startPly, tc: S.gameTc?.id, clock: S.clock && stopClock(S.clock, performance.now()), clockRunning: !!S.clock?.turn }));
-window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 </script>
