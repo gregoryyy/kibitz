@@ -13,7 +13,7 @@
 //                           format names one of schema.mjs FORMATS, e.g. "annotations"
 import crypto from 'crypto';
 import net from 'net';
-import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, providerReason, publicStatus, rateLimiter, switchProvider, toGatewayError, validateMessages } from './ai.mjs';
+import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, providerReason, publicStatus, rateLimiter, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageLedger, userLedger } from './usage.mjs';
 
@@ -104,17 +104,19 @@ export function createApi({
   }
 
   async function sample(req, res, uid) {
-    const { messages, model } = await accept(req, uid);
+    const { body, messages, model } = await accept(req, uid);
+    const tools = validateTools(body?.tools); // TODO 4.11.3: the model may call these; the page runs them
 
     res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', ...SECURITY_HEADERS });
     const ac = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
     const write = obj => res.write(JSON.stringify(obj) + '\n');
     try {
-      const it = provider.chat(messages, { model, signal: ac.signal });
+      const it = provider.chat(messages, { model, tools, signal: ac.signal });
       let r;
       while (!(r = await it.next()).done) write({ text: r.value });
-      write({ done: true, truncated: !!r.value?.truncated, usage: count(uid, model, r.value?.usage), user: users.today(uid) });
+      const toolCalls = r.value?.toolCalls?.length ? r.value.toolCalls : undefined;
+      write({ done: true, truncated: !!r.value?.truncated, ...(toolCalls ? { toolCalls } : {}), usage: count(uid, model, r.value?.usage), user: users.today(uid) });
     } catch (e) {
       const g = toGatewayError(e, ac.signal);
       // Log the code and the provider's message, never the prompt.

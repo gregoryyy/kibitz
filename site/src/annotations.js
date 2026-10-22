@@ -111,11 +111,12 @@ export function checkMarks(Chess, fen, marks) {
 
 // The lines in an answer, from checkAnswer's moves (tutor.js): a run of moves separated only by spaces
 // and move numbers, up to the first wrong one, that plays legally from where the answer's previous line
-// ended, or else from the position or the one before.
+// ended, or else from the position, the one before, or one of `starts` (positions the coach's
+// tools looked at).
 // Returns the moves with {line, ply} added where they belong to a line (ply: moves played after this
 // one, from the line's start), and the lines themselves ({start, sans, ucis, fens}). A single move
 // is a line of one, so hovering it can show it from the right position.
-export function linesInAnswer(Chess, text, moves, { fen, prevFen = null }) {
+export function linesInAnswer(Chess, text, moves, { fen, prevFen = null, starts = [] }) {
   const t = String(text ?? '');
   const out = moves.map(m => ({ ...m }));
   const real = out.map((m, k) => k).filter(k => out[k].status !== 'square');
@@ -130,7 +131,7 @@ export function linesInAnswer(Chess, text, moves, { fen, prevFen = null }) {
     if (group.length) {
       const sans = group.map(k => out[k].san);
       // Prose continues lines ("3... g6, and if 4. Qf3 then Nf6"): try the end of the line before first.
-      const from = [lines.at(-1)?.fens.at(-1), fen, prevFen].filter(Boolean);
+      const from = [lines.at(-1)?.fens.at(-1), fen, prevFen, ...starts].filter(Boolean);
       const line = from.map(f => playLine(Chess, f, sans)).find(Boolean);
       if (line) {
         const id = lines.push(line) - 1;

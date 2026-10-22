@@ -125,18 +125,18 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [ ] 4.10.4 After each change the engine re-analyses, and the coach's next answer is about the new position (async results checked against the FEN)
   - [ ] 4.10.5 Tests: moves and setups through the mock provider, illegal or hostile requests (impossible positions, moves for the engine's side, setup during a game), undo
 - [ ] 4.11 Engine tools for the coach: the model asks, and Stockfish and the motif detectors answer *(added)*
-  - [ ] 4.11.1 Tools:
+  - [x] 4.11.1 Tools:
     - `analyse(fen, depth, lines)`: the top lines in SAN, with evaluations
     - `try_move(fen, move)`: does this move work, and what refutes it (`go searchmoves`)
     - `threats(fen)`: what the opponent would play if it were their move (side to move flipped; not when in check)
     - `compare(fen, moves)`
     - `find_mate(fen, n)`
     - `find_motifs(fen, line)`: `moveMotifs` on every move of a line
-  - [ ] 4.11.2 Pattern search over lines: the detectors run over every move of the top lines, and a motif counts only when the engine's evaluation confirms it pays off within a few moves. A large gap between the first and second line flags an "only move". The detectors grow to cover the themes in 6.2
-  - [ ] 4.11.3 Tool calling in the gateway for every provider: Claude tool use, and function calling for OpenAI, Mistral and Ollama. One mechanism also serves the load tools (4.8.3) and the board tools (4.10.3); today the gateway uses JSON-schema output instead (2.7). Models without tools fall back to a standard analysis run up front, which the model only explains
-  - [ ] 4.11.4 Where the engine runs: in the page, with the gateway handing each tool call to the page and waiting for the result, or on the server, where the npm Stockfish build also runs in Node. Decide on latency, cost and hosted load (10.1). Each answer gets a cap on tool calls and engine time
-  - [ ] 4.11.5 Tool arguments are untrusted: FENs and moves are checked with chess.js, and depth, time and line count are capped. Every line the model quotes must come from a tool result (3.4). The tool results are kept with the answer, so the chat can show the evidence
-  - [ ] 4.11.6 Tests: tool loops with the mock provider and a fake engine; hostile arguments (illegal FEN, huge depth, a tool loop that doesn't end); contract fixtures for tool calls per provider
+  - [ ] 4.11.2 Pattern search over lines: the detectors run over every move of the top lines, and a motif counts only when the engine's evaluation confirms it pays off within a few moves. A large gap between the first and second line flags an "only move". The detectors grow to cover the themes in 6.2. Done: the detectors run along the tools' lines (`motifsAlong`), and `analyse` flags an "only move" when the second line is 1.5 pawns worse. Remaining: the evaluation check per motif, and more detectors (6.2)
+  - [x] 4.11.3 Tool calling in the gateway for every provider: Claude tool use, and function calling for OpenAI, Mistral and Ollama. One mechanism also serves the load tools (4.8.3) and the board tools (4.10.3); today the gateway uses JSON-schema output instead (2.7). Models without tools fall back to a standard analysis run up front, which the model only explains
+  - [x] 4.11.4 Where the engine runs: in the page, with the gateway handing each tool call to the page and waiting for the result, or on the server, where the npm Stockfish build also runs in Node. Decide on latency, cost and hosted load (10.1). Each answer gets a cap on tool calls and engine time. Decided: in the page. The page asks the gateway for one model turn at a time and runs each tool call on its own Stockfish
+  - [x] 4.11.5 Tool arguments are untrusted: FENs and moves are checked with chess.js, and depth, time and line count are capped. Every line the model quotes must come from a tool result (3.4). The tool results are kept with the answer, so the chat can show the evidence
+  - [x] 4.11.6 Tests: tool loops with the mock provider and a fake engine; hostile arguments (illegal FEN, huge depth, a tool loop that doesn't end); contract fixtures for tool calls per provider
 - [ ] 4.12 UX review *(added)*
   - [x] 4.12.1 Settings behind a gear icon in the header, opening an overlay (a modal dialog: Escape and a click outside close it, focus stays inside while it is open). It takes what is spread over the tabs today: the coach settings and provider, local-only mode, the engine depth, the player's level, and when the coach comments. The tabs keep only what belongs to their task
   - [ ] 4.12.2 The player talks about the game throughout, so the dialogue is always on: beside the board on desktop, below it in portrait on a phone, and never inside a tab. Mostly done with 4.9.2 (the dialogue at the board's height, the tab panels folding away). Still to check: landscape on a phone and tablets, and that the board and the composer both stay in view while typing on a phone

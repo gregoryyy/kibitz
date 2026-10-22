@@ -12,6 +12,7 @@ const provider = {
     seenModels.push(opts.model);
     const q = messages.at(-1).content;
     if (q === 'fail-early') throw Object.assign(new Error('bad key'), { status: 401 });
+    if (opts.tools?.length && q === 'use-a-tool') return { truncated: false, toolCalls: [{ id: 't1', name: opts.tools[0].name, input: { fen: 'f' } }], usage: { input: 5, output: 2 } };
     yield 'Hello ';
     if (q === 'fail-late') throw new GatewayError('refused', 'no', 200);
     yield 'there.';
@@ -271,4 +272,16 @@ test('a cost budget per user stops paid requests once it is spent', async () => 
   assert.equal(over.status, 429);
   assert.match((await over.json()).error.message, /today's budget of \$0\.03 on paid models/);
   s.close();
+});
+
+test('sample with tools: the tool calls come in the done line; unknown tools are refused', async () => {
+  const origin = { origin: `http://127.0.0.1:${port}` };
+  const r = await post({ messages: [{ role: 'user', content: 'use-a-tool' }], tools: ['threats'] }, origin);
+  const done = lines(r.body).at(-1);
+  assert.deepEqual(done.toolCalls, [{ id: 't1', name: 'threats', input: { fen: 'f' } }]);
+  const plain = lines((await post({ messages: [{ role: 'user', content: 'hi' }] }, origin)).body).at(-1);
+  assert.equal(plain.toolCalls, undefined, 'no tool calls, no field');
+  const bad = await post({ messages: [{ role: 'user', content: 'hi' }], tools: ['format_disk'] }, origin);
+  assert.equal(bad.status, 400);
+  assert.match(JSON.parse(bad.body).error.message, /"tools" must name tools/);
 });

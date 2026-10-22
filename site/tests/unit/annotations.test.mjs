@@ -88,6 +88,12 @@ test('lines in an answer: a run of checked moves becomes a line from the right p
   const t3 = 'Try 3... Nf6 4. Qxf7# Ke7 Qd5 now.';
   const c3 = checkAnswer(Chess, t3, { fen, lines: [['g8f6', 'h5f7']], game: [] });
   assert.deepEqual(linesInAnswer(Chess, t3, c3.moves, { fen }).lines.map(l => l.sans), [['Nf6', 'Qxf7#']], 'Ke7 (illegal after mate) and what follows are left out');
+  // A line from a position a tool looked at (TODO 4.11.5): a start of its own
+  const after = playLine(Chess, fen, ['Nf6']).fens[1];
+  const t4 = 'Black can\'t allow 4. Qxf7#.';
+  const c4 = checkAnswer(Chess, t4, { fen, lines: [], game: [], extra: [['Qxf7#']] });
+  assert.deepEqual(linesInAnswer(Chess, t4, c4.moves, { fen }).lines, [], 'not legal from the board');
+  assert.equal(linesInAnswer(Chess, t4, c4.moves, { fen, starts: [after] }).lines[0].start, after);
   // A wrong move breaks no line into something drawn
   const bad = checkAnswer(Chess, 'Play 3... Qxh5 now.', { fen, lines: [], game: [] });
   assert.equal(linesInAnswer(Chess, 'Play 3... Qxh5 now.', bad.moves, { fen }).lines.length, 0);

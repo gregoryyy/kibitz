@@ -7,6 +7,43 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-22 — Engine tools for the coach: the model asks, Stockfish answers
+
+TODO items: 4.11.1, 4.11.3, 4.11.4, 4.11.5, 4.11.6; 4.11.2 in part (milestone 4, part 2a).
+
+### Implementation notes
+
+- **The catalogue** (`site/src/tools.js`, pure):
+  - Six tools: `analyse`, `try_move`, `threats`, `compare`, `find_mate`, `find_motifs`.
+  - `checkToolCall` checks every argument as untrusted. Unknown tools and extra fields are refused, FENs and moves go through chess.js, and depth, line count, mate length and line length are capped. Nothing over a cap is quietly clamped.
+  - `runTool` runs a call against an engine passed in as a function: the page's Stockfish, or a fake in the tests. It returns the result for the model and the SAN lines it showed.
+- **In the gateway** (4.11.3):
+  - Messages can carry tool calls (`{role: 'assistant', toolCalls}`) and results (`{role: 'tool', toolCallId}`). Every call must be answered, and only tools from the catalogue may appear. A request names its tools, and the definitions sent to the provider are the server's, never the client's.
+  - Anthropic gets `tool_use` and `tool_result` blocks, with the results of one turn grouped. OpenAI, Mistral and Ollama get function calling, with the streamed pieces of each call assembled by index; unreadable arguments become `{}`, which the page then refuses with a reason.
+  - Tool calls come back in the stream's done line.
+- **The loop runs in the page** (4.11.4, your choice): the page asks for one model turn at a time and runs each call on its own Stockfish, under the tag `tool`. Caps: 4 rounds and 6 calls per answer. The last round offers no tools, so the model must answer.
+- **When tools are used:** chat and quick questions, in analysis, a finished game, or with Full engine help. They're never offered in a game with less help, since the tools would show what the player chose not to see. The in-browser model has no tools, and neither does a provider that rejects them: the page asks once more without tools and stops offering them for the session. Those models answer from the context, as before.
+- **Evidence** (4.11.5): what the tools found is kept with the answer, shown under it ("Stockfish checked 2 things for this answer"), and counted by the answer check, so the lines the coach quotes from it are backed. Lines that start in positions the tools looked at can be stepped through on the scratch board too.
+- **Pattern search** (4.11.2, in part): the motif detectors run along each tool line (`motifsAlong`), and `analyse` flags an "only move" when the second line is 1.5 pawns or more worse.
+- **The mock** calls tools only when a question asks it to (`[mock:tool]`, `[mock:loop]`, `[mock:bad-tool]`), so the other tests don't change.
+- **Tests:**
+  - unit `tools.test`: the catalogue; hostile arguments; each tool against a fake engine.
+  - unit `server/tools.test`:
+    - messages with tool turns: accepted when complete, refused when calls are unknown, unanswered or oversized;
+    - tools only from the catalogue;
+    - the provider shapes, and tool calls read back from Anthropic and chat-completions streams;
+    - the mock.
+  - `api.test`: tool calls in the done line; unknown tools refused.
+  - e2e `tools.spec` (5): a tool call with evidence; a model that never stops is stopped after 4 rounds; hostile arguments refused with a reason; no tools in a game with flags only; the fallback when a provider refuses tools.
+
+### Deviations
+
+- **The contract fixtures for tool calls are written by hand,** from the providers' documented stream shapes, not recorded. Recording makes paid calls (`scripts/record-ai-fixtures.mjs`), so it's left for when you want it.
+- **The prompt says when to use tools,** and the coach rules gained one line. No eval has been run with tools yet, since that makes paid calls.
+
+### Insights
+
+- **Running the loop in the page kept the gateway stateless.** It only translates shapes. Each round is one ordinary request, counted against the rate limit and budgets like any other, so a runaway model costs at most five requests per question.
 ## 2026-10-22 — Fix: an annotations test depended on which lines Stockfish found
 
 TODO items: fix for 4.7.
