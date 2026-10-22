@@ -3,6 +3,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { exampleFor, providerSchema } from './schema.mjs';
+import { TOOLS, CAPS as TOOL_CAPS } from '../src/tools.js';
 
 export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock'];
 // Small, fast models by default: coaching replies are short and grounded in engine output.
@@ -113,29 +114,58 @@ export function modelFor(cfg, task) {
   return cfg.models?.[task] || cfg.model;
 }
 
-// Accepts {prompt: string} or {messages: [{role: 'user'|'assistant', content: string}]}.
-// The client can't send system messages, so it can't replace server-side instructions.
+// Accepts {prompt: string} or {messages: [...]}: {role: 'user', content}, {role: 'assistant',
+// content, toolCalls?: [{id, name, input}]}, and {role: 'tool', toolCallId, content} answering a
+// tool call of an earlier assistant turn (TODO 4.11.3). The client can't send system messages, so
+// it can't replace server-side instructions, and tool calls only name tools from the catalogue.
+const CALL_ID = /^[A-Za-z0-9_-]{1,64}$/;
 export function validateMessages(body) {
   const msgs = typeof body?.prompt === 'string' ? [{ role: 'user', content: body.prompt }] : body?.messages;
   if (!Array.isArray(msgs) || !msgs.length) throw new GatewayError('bad_request', 'Expected "messages" or "prompt"', 400);
   if (msgs.length > LIMITS.messages) throw new GatewayError('prompt_too_large', `At most ${LIMITS.messages} messages`, 413);
   let total = 0;
+  const bad = msg => { throw new GatewayError('bad_request', msg, 400); };
+  const open = new Set(); // tool calls not answered yet
   const out = msgs.map(m => {
-    if (!m || (m.role !== 'user' && m.role !== 'assistant') || typeof m.content !== 'string') {
-      throw new GatewayError('bad_request', 'Each message needs role "user" or "assistant" and string content', 400);
-    }
+    if (!m || !['user', 'assistant', 'tool'].includes(m.role) || typeof m.content !== 'string') bad('Each message needs role "user", "assistant" or "tool" and string content');
     total += m.content.length;
-    return { role: m.role, content: m.content };
+    if (m.role === 'user') return { role: 'user', content: m.content };
+    if (m.role === 'tool') {
+      if (typeof m.toolCallId !== 'string' || !open.delete(m.toolCallId)) bad('A tool message must answer a tool call of an earlier assistant turn');
+      return { role: 'tool', toolCallId: m.toolCallId, content: m.content };
+    }
+    if (m.toolCalls === undefined) return { role: 'assistant', content: m.content };
+    if (!Array.isArray(m.toolCalls) || !m.toolCalls.length || m.toolCalls.length > TOOL_CAPS.calls) bad(`An assistant turn has 1-${TOOL_CAPS.calls} tool calls`);
+    const calls = m.toolCalls.map(c => {
+      if (!c || !CALL_ID.test(c.id) || !Object.hasOwn(TOOLS, c.name) || !c.input || typeof c.input !== 'object' || Array.isArray(c.input)) bad('Each tool call needs an id, a known tool name and an object input');
+      const size = JSON.stringify(c.input).length;
+      if (size > 2000) bad('A tool call\'s input is too large');
+      total += size; open.add(c.id);
+      return { id: c.id, name: c.name, input: c.input };
+    });
+    return { role: 'assistant', content: m.content, toolCalls: calls };
   });
   if (total > LIMITS.chars) throw new GatewayError('prompt_too_large', `At most ${LIMITS.chars} characters in total`, 413);
-  if (out[0].role !== 'user' || out.at(-1).role !== 'user') throw new GatewayError('bad_request', 'The first and last messages must come from the user', 400);
+  if (out[0].role !== 'user' || !['user', 'tool'].includes(out.at(-1).role)) bad('The first message must come from the user, and the last from the user or a tool');
+  if (open.size) bad('Every tool call needs its result before the next request');
   return out;
+}
+// The tools a request offers the model, by name from the catalogue (src/tools.js): [{name,
+// description, schema}], or null for none. The definitions are ours, never the client's.
+export function validateTools(names) {
+  if (names === undefined || names === null) return null;
+  if (!Array.isArray(names) || names.length > Object.keys(TOOLS).length || names.some(n => typeof n !== 'string' || !Object.hasOwn(TOOLS, n))) {
+    throw new GatewayError('bad_request', `"tools" must name tools from: ${Object.keys(TOOLS).join(', ')}`, 400);
+  }
+  return [...new Set(names)].map(name => ({ name, ...TOOLS[name] }));
 }
 
 // A provider exposes chat(messages, opts): an async generator that yields text chunks and
-// returns {truncated, usage: {input, output}} (token counts, 0 when the provider doesn't say).
-//   opts: {model, system, maxTokens, schema, signal}; model and maxTokens default to the configuration.
+// returns {truncated, usage: {input, output}, toolCalls} (token counts, 0 when the provider doesn't
+// say; toolCalls: [{id, name, input}] when the model called tools, else empty).
+//   opts: {model, system, maxTokens, schema, tools, signal}; model and maxTokens default to the configuration.
 //   schema: a format from schema.mjs ({name, schema}); the provider is asked for JSON matching it.
+//   tools: from validateTools; the model may call them instead of (or after) writing text.
 // complete() below collects a whole reply. `client` can be injected for tests.
 export function createProvider(cfg, /** @type {{ client?: any }} */ { client } = {}) {
   switch (cfg.provider) {
@@ -154,17 +184,44 @@ export function createProvider(cfg, /** @type {{ client?: any }} */ { client } =
   }
 }
 
-/** @typedef {{ model?: string, system?: string, maxTokens?: number, schema?: { name: string, schema: object }, signal?: AbortSignal }} ChatOptions */
+/** @typedef {{ model?: string, system?: string, maxTokens?: number, schema?: { name: string, schema: object }, tools?: { name: string, description: string, schema: object }[] | null, signal?: AbortSignal }} ChatOptions */
+
+// Messages in Anthropic's shape: tool calls are tool_use blocks of the assistant turn, and the
+// results of one turn's calls go back together as tool_result blocks of one user turn.
+export function anthropicMessages(messages) {
+  const out = [];
+  for (const m of messages) {
+    if (m.role === 'tool') {
+      const block = { type: 'tool_result', tool_use_id: m.toolCallId, content: m.content };
+      const prev = out.at(-1);
+      if (prev?.role === 'user' && Array.isArray(prev.content) && prev.content.every(b => b.type === 'tool_result')) prev.content.push(block);
+      else out.push({ role: 'user', content: [block] });
+    } else if (m.role === 'assistant' && m.toolCalls) {
+      out.push({ role: 'assistant', content: [...(m.content ? [{ type: 'text', text: m.content }] : []), ...m.toolCalls.map(c => ({ type: 'tool_use', id: c.id, name: c.name, input: c.input }))] });
+    } else out.push({ role: m.role, content: m.content });
+  }
+  return out;
+}
+// ... and in the chat-completions shape (OpenAI, Mistral, Ollama).
+export function openAIMessages(messages) {
+  return messages.map(m => m.role === 'tool' ? { role: 'tool', tool_call_id: m.toolCallId, content: m.content }
+    : m.role === 'assistant' && m.toolCalls ? { role: 'assistant', content: m.content || null, tool_calls: m.toolCalls.map(c => ({ id: c.id, type: 'function', function: { name: c.name, arguments: JSON.stringify(c.input) } })) }
+    : { role: m.role, content: m.content });
+}
+// A tool call's arguments as the model wrote them; unreadable JSON becomes {} (the page then
+// answers the call with an error the model can read).
+const parseArgs = s => { try { const v = JSON.parse(s || '{}'); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; } catch { return {}; } };
 
 function anthropicProvider(cfg, client) {
   return {
-    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, signal } = {}) {
+    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, tools, signal } = {}) {
       const output = { ...(cfg.effort ? { effort: cfg.effort } : {}), ...(schema ? { format: { type: 'json_schema', schema: providerSchema(schema.schema) } } : {}) };
       const stream = client.beta.messages.stream({
         model,
         max_tokens: maxTokens,
-        messages,
+        messages: anthropicMessages(messages),
         ...(system ? { system } : {}),
+        ...(tools?.length ? { tools: tools.map(t => ({ name: t.name, description: t.description, input_schema: t.schema })) } : {}),
         ...(Object.keys(output).length ? { output_config: output } : {}),
         // On a safety decline, re-run on Anthropic's recommended fallback model instead of failing.
         // Haiku models have no server-side fallback, so the option is left off for them.
@@ -176,7 +233,8 @@ function anthropicProvider(cfg, client) {
       const msg = await stream.finalMessage();
       if (msg.stop_reason === 'refusal') throw new GatewayError('refused', 'The model declined to answer', 200);
       const u = msg.usage || {};
-      return { truncated: msg.stop_reason === 'max_tokens', usage: { input: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0), output: u.output_tokens || 0 } };
+      const toolCalls = (msg.content || []).filter(b => b.type === 'tool_use').map(b => ({ id: b.id, name: b.name, input: b.input && typeof b.input === 'object' ? b.input : {} }));
+      return { truncated: msg.stop_reason === 'max_tokens', toolCalls, usage: { input: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0), output: u.output_tokens || 0 } };
     },
   };
 }
@@ -187,24 +245,34 @@ function anthropicProvider(cfg, client) {
 function openAICompatProvider(cfg, client) {
   const tokenParam = cfg.provider === 'openai' ? 'max_completion_tokens' : 'max_tokens';
   return {
-    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, signal } = {}) {
+    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, tools, signal } = {}) {
+      const msgs = openAIMessages(messages);
       const params = {
         model, stream: true, [tokenParam]: maxTokens,
-        messages: system ? [{ role: 'system', content: system }, ...messages] : messages,
+        messages: system ? [{ role: 'system', content: system }, ...msgs] : msgs,
+        ...(tools?.length ? { tools: tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.schema } })) } : {}),
         ...(cfg.provider === 'mistral' ? {} : { stream_options: { include_usage: true } }),
         ...(schema ? { response_format: { type: 'json_schema', json_schema: { name: schema.name, schema: providerSchema(schema.schema), strict: true } } } : {}),
       };
       const stream = await client.chat.completions.create(params, { signal });
       let finish = null, usage = null;
+      const calls = []; // tool calls arrive in pieces, by index: id and name first, then the arguments
       for await (const chunk of stream) {
         const choice = chunk.choices?.[0];
         const text = deltaText(choice?.delta?.content);
         if (text) yield text;
+        for (const d of choice?.delta?.tool_calls || []) {
+          const c = calls[d.index ?? calls.length] ??= { id: '', name: '', args: '' };
+          if (d.id) c.id = d.id;
+          if (d.function?.name) c.name += d.function.name;
+          if (d.function?.arguments) c.args += d.function.arguments;
+        }
         if (choice?.finish_reason) finish = choice.finish_reason;
         if (chunk.usage) usage = chunk.usage;
       }
       if (finish === 'content_filter') throw new GatewayError('refused', 'The model declined to answer', 200);
-      return { truncated: finish === 'length', usage: { input: usage?.prompt_tokens || 0, output: usage?.completion_tokens || 0 } };
+      const toolCalls = calls.filter(c => c?.name).map((c, k) => ({ id: c.id || `call_${k}`, name: c.name, input: parseArgs(c.args) }));
+      return { truncated: finish === 'length', toolCalls, usage: { input: usage?.prompt_tokens || 0, output: usage?.completion_tokens || 0 } };
     },
   };
 }
@@ -213,23 +281,38 @@ const deltaText = c => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(p
 
 // Offline stand-in for development and tests (AI_PROVIDER=mock).
 // Token counts are rough (four characters a token) but deterministic.
+// With tools it calls one first: `analyse` on the FEN in the last user message (or the first tool
+// offered), then answers with what the tool said. For tests, a user message containing
+// "[mock:loop]" makes it call tools forever, and "[mock:bad-tool]" makes it call a tool with
+// arguments that don't hold up.
 function mockProvider() {
   return {
-    async *chat(messages, /** @type {ChatOptions} */ { schema } = {}) {
-      const reply = schema ? JSON.stringify(exampleFor(schema.schema)) : `Mock coach (AI_PROVIDER=mock). Your message had ${messages.at(-1).content.length} characters; set a real provider in .env for actual coaching.`;
-      for (const word of reply.split(/(?<= )/)) yield word;
+    async *chat(messages, /** @type {ChatOptions} */ { schema, tools } = {}) {
       const chars = messages.reduce((n, m) => n + m.content.length, 0);
-      return { truncated: false, usage: { input: Math.ceil(chars / 4), output: Math.ceil(reply.length / 4) } };
+      const asked = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
+      const results = messages.filter(m => m.role === 'tool');
+      if (tools?.length && (!results.length || asked.includes('[mock:loop]'))) {
+        const fen = /Current position \(FEN\): (\S+ [wb] \S+ \S+ \d+ \d+)/.exec(asked)?.[1] || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+        const name = tools.some(t => t.name === 'analyse') ? 'analyse' : tools[0].name;
+        const input = asked.includes('[mock:bad-tool]') ? { fen: 'not a fen', depth: 99 } : { fen };
+        return { truncated: false, toolCalls: [{ id: `mock${results.length + 1}`, name, input }], usage: { input: Math.ceil(chars / 4), output: 20 } };
+      }
+      const last = results.at(-1)?.content;
+      const reply = schema ? JSON.stringify(exampleFor(schema.schema))
+        : last !== undefined ? `Mock coach used a tool and read: ${last.slice(0, 160)}`
+        : `Mock coach (AI_PROVIDER=mock). Your message had ${messages.at(-1).content.length} characters; set a real provider in .env for actual coaching.`;
+      for (const word of reply.split(/(?<= )/)) yield word;
+      return { truncated: false, toolCalls: [], usage: { input: Math.ceil(chars / 4), output: Math.ceil(reply.length / 4) } };
     },
   };
 }
 
-// The whole reply at once: {text, truncated, usage}.
+// The whole reply at once: {text, truncated, usage, toolCalls}.
 export async function complete(provider, messages, opts = {}) {
   const it = provider.chat(messages, opts);
   let text = '', r;
   while (!(r = await it.next()).done) text += r.value;
-  return { text, truncated: !!r.value?.truncated, usage: r.value?.usage || { input: 0, output: 0 } };
+  return { text, truncated: !!r.value?.truncated, usage: r.value?.usage || { input: 0, output: 0 }, toolCalls: r.value?.toolCalls || [] };
 }
 
 // ---------------------------------------------------------------- Embeddings (for RAG, TODO 8.3)

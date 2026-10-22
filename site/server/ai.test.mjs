@@ -93,7 +93,7 @@ test('anthropic: streams text deltas and sends model and effort; no fallbacks fo
   const ac = new AbortController();
   const { chunks, result } = await drain(createProvider(cfg, { client }).chat(msgs, { signal: ac.signal }));
   assert.deepEqual(chunks, ['Play ', 'Nf3.']);
-  assert.deepEqual(result, { truncated: false, usage: { input: 0, output: 0 } });
+  assert.deepEqual(result, { truncated: false, toolCalls: [], usage: { input: 0, output: 0 } });
   const { params, opts } = client.calls[0];
   assert.equal(params.model, 'claude-haiku-5-5');
   assert.equal(params.max_tokens, 16000);
@@ -201,7 +201,7 @@ test('anthropic: system prompt, model and max tokens per call; usage includes ca
   const client = fakeAnthropic([delta('ok')], { stop_reason: 'end_turn', usage: { input_tokens: 10, cache_read_input_tokens: 90, cache_creation_input_tokens: 5, output_tokens: 7 } });
   const p = createProvider(loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k' }), { client });
   const r = await complete(p, msgs, { system: 'Be brief.', model: 'claude-sonnet-5-5', maxTokens: 300 });
-  assert.deepEqual(r, { text: 'ok', truncated: false, usage: { input: 105, output: 7 } });
+  assert.deepEqual(r, { text: 'ok', truncated: false, usage: { input: 105, output: 7 }, toolCalls: [] });
   const { params } = client.calls[0];
   assert.equal(params.system, 'Be brief.'); assert.equal(params.model, 'claude-sonnet-5-5'); assert.equal(params.max_tokens, 300);
   assert.equal(params.fallbacks, 'default', 'the fallback follows the model actually used');
