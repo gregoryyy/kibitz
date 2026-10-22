@@ -7,6 +7,49 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-22 — The board speaks: lines, marks, a scratch board and "what if"
+
+TODO items: 4.2, 4.3, 4.4, 4.5, 4.6, 4.7 (milestone 4, part 1).
+
+### Implementation notes
+
+- **The schema** (`site/src/annotations.js`, pure):
+  - Annotations are arrows (a move for the side to move, or a threat: a move for the other side), squares, ghost pieces (`wN` on d5: where a piece belongs), labels (one or two characters) and lines (moves played one after the other from a position).
+  - `checkAnnotation` checks each against the position before anything is drawn. Squares and pieces must exist, arrows must be legal moves for the right side, and a ghost needs a piece of that kind on the board and a square not taken by its own side.
+- **Two sources:**
+  - **Lines read from an answer:** `linesInAnswer` takes `checkAnswer`'s moves. A run of moves separated only by move numbers becomes a line, up to the first wrong move. It starts where the answer's previous line ended ("3... g6, and if 4. Qf3 then Nf6") or else in the position or the one before.
+  - **Marks the coach adds:** a block opened with three backticks and `board`, one mark per line: `arrow e2 e4`, `threat d8 h4`, `square f7`, `ghost wN d5`, `label d5 !`. It's a plain line format, not JSON, so small models get it right more often. `parseBoardBlock` reads it strictly, keeps at most 8, and takes it off the text, also while the answer streams. The coach rules describe it.
+- **Drawing** (`index.html`):
+  - The marks that fit are drawn while the board shows the answer's position, and a button shows them again. Those that don't fit are counted in a note under the answer: "One board mark didn't fit the position and was left out."
+  - Ghost pieces and labels use chessground's piece and label shapes. A red `threat` brush is added.
+  - A move that belongs to a line previews the position before it on hover or focus. A click or Enter opens the line on the **scratch board**: a bar under the board with the numbered moves, back and forward (also the arrow keys), Stockfish's view of the position shown, "Ask the coach about this line" and "Back to the game".
+- **What if** (4.5): "Try a move" opens the scratch board at the current position.
+  - The player plays moves on it; a move continues from the move shown and drops what came after. Stockfish evaluates each position.
+  - The coach can be asked about the line: it gets the line, the position after it and Stockfish's view there. The line and Stockfish's continuation count as backed in the answer check.
+- **The game is never touched.** Anything that moves the game closes the scratch board: a move, navigation or a load (the game's id, cursor and length are kept with it). Playing on it, and its engine view, are allowed only where the engine's view is shown anyway (analysis, a finished game, Full engine help). In a game with less help, a line from an answer can be stepped through but not played on, and without evaluations.
+- **Chat context** (4.6): the context already had the position, the game so far and the last eight turns, coach comments included. It now also has the aspects the player picked and, when there is one, the scratch line.
+- **Tests:**
+  - unit `annotations.test`: each kind against legal and illegal positions; threats; lines in SAN and UCI; the block's parsing, limit and streaming; hostile blocks (HTML, scripts, junk) draw nothing; lines in an answer, continued across prose and cut at a wrong move.
+  - e2e `annotations.spec` (6 tests):
+    - preview and stepping with the game unchanged;
+    - marks checked, drawn and counted;
+    - hostile marks run and draw nothing;
+    - what-if with Stockfish and the coach's context;
+    - no what-if in a game with flags only;
+    - the scratch board closes when the game moves.
+
+### Deviations
+
+- **Lines come from the answer's text,** not from a separate field of the model's output. The text is what the player reads, and `checkAnswer` already checks it. The model's own marks use the block. Tool calls replace it in part 2 (4.10, 4.11).
+- **The answer check stays strict:** a move the engine's lines don't back ends a line there, and the rest isn't drawn.
+
+### Insights
+
+- **The scratch board is the preview grown up.** The hover preview of game references (4.12.6) became a board state that `syncBoard` checks first. It closes by itself when the game's id, cursor or length change, so no code path that moves the game needs to know about it.
+- **A short line format beats JSON for model marks.** It's easier to read strictly, a broken line costs one mark rather than the block, and it survives streaming.
+
+---
+
 ## 2026-10-22 — Settings behind a gear: a modal overlay
 
 TODO items: 4.12.1.

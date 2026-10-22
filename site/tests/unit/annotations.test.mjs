@@ -81,6 +81,13 @@ test('lines in an answer: a run of checked moves becomes a line from the right p
   const qf3 = moves.find(m => m.san === 'Qf3');
   assert.deepEqual([qf3.line, qf3.ply], [1, 0]);
   assert.equal(moves.find(m => m.san === 'Qxf7#').line, undefined, 'a move the check marks wrong is in no line');
+  // A wrong move ends a line; the checked moves before it stay one
+  const t2 = 'Then 3... Nf6 4. Qxf7# ends it.';
+  const c2 = checkAnswer(Chess, t2, { fen, lines: [['g8f6', 'h5f7']], game: [] });
+  assert.deepEqual(linesInAnswer(Chess, t2, c2.moves, { fen }).lines.map(l => l.sans), [['Nf6', 'Qxf7#']]);
+  const t3 = 'Try 3... Nf6 4. Qxf7# Ke7 Qd5 now.';
+  const c3 = checkAnswer(Chess, t3, { fen, lines: [['g8f6', 'h5f7']], game: [] });
+  assert.deepEqual(linesInAnswer(Chess, t3, c3.moves, { fen }).lines.map(l => l.sans), [['Nf6', 'Qxf7#']], 'Ke7 (illegal after mate) and what follows are left out');
   // A wrong move breaks no line into something drawn
   const bad = checkAnswer(Chess, 'Play 3... Qxh5 now.', { fen, lines: [], game: [] });
   assert.equal(linesInAnswer(Chess, 'Play 3... Qxh5 now.', bad.moves, { fen }).lines.length, 0);

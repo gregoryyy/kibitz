@@ -64,7 +64,7 @@ export function playLine(Chess, start, moves) {
   let c; try { c = new Chess(start); } catch { return null; }
   const out = { start: c.fen(), sans: [], ucis: [], fens: [c.fen()] };
   for (const m of moves.slice(0, 40)) {
-    let mv = null;
+    let mv;
     const u = /^([a-h][1-8])([a-h][1-8])([qrbn])?$/.exec(String(m));
     try { mv = u ? c.move({ from: u[1], to: u[2], promotion: u[3] }) : c.move(String(m)); } catch { mv = null; }
     if (!mv) return null;
@@ -110,7 +110,7 @@ export function checkMarks(Chess, fen, marks) {
 }
 
 // The lines in an answer, from checkAnswer's moves (tutor.js): a run of moves separated only by spaces
-// and move numbers, none of them wrong, that plays legally from where the answer's previous line
+// and move numbers, up to the first wrong one, that plays legally from where the answer's previous line
 // ended, or else from the position or the one before.
 // Returns the moves with {line, ply} added where they belong to a line (ply: moves played after this
 // one, from the line's start), and the lines themselves ({start, sans, ucis, fens}). A single move
@@ -124,8 +124,10 @@ export function linesInAnswer(Chess, text, moves, { fen, prevFen = null }) {
   for (let s = 0; s < real.length;) {
     let e = s;
     while (e + 1 < real.length && GAP.test(t.slice(out[real[e]].index + out[real[e]].san.length, out[real[e + 1]].index))) e++;
-    const group = real.slice(s, e + 1);
-    if (!group.some(k => out[k].status === 'invalid')) {
+    // The checked moves of a run up to the first wrong one ("10. Nxb5 cxb5 11. Bxb5+ Nbd7??" keeps three).
+    const run = real.slice(s, e + 1), bad = run.findIndex(k => out[k].status === 'invalid');
+    const group = bad < 0 ? run : run.slice(0, bad);
+    if (group.length) {
       const sans = group.map(k => out[k].san);
       // Prose continues lines ("3... g6, and if 4. Qf3 then Nf6"): try the end of the line before first.
       const from = [lines.at(-1)?.fens.at(-1), fen, prevFen].filter(Boolean);
