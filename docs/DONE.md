@@ -44,6 +44,13 @@ TODO items: 4.11.1, 4.11.3, 4.11.4, 4.11.5, 4.11.6; 4.11.2 in part (milestone 4,
 ### Insights
 
 - **Running the loop in the page kept the gateway stateless.** It only translates shapes. Each round is one ordinary request, counted against the rate limit and budgets like any other, so a runaway model costs at most five requests per question.
+## 2026-10-22 — Fix: an annotations test depended on which lines Stockfish found
+
+TODO items: fix for 4.7.
+
+- **The bug:** the e2e test for lines in an answer expected "1. e4 e5 2. Nf3" to read as one line. That needs Stockfish's lines to contain it, and they did on a laptop with four threads but not on CI with one, so the test failed in CI after #34 merged.
+- **The fix:** the test puts a fixed analysis for the start position into the page before asking. Every other annotations test was already independent of the engine.
+- **Insight:** a test that relies on the answer check relies on the engine, so it needs fixed engine lines. Making the depth the same isn't enough.
 
 ---
 

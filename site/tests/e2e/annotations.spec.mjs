@@ -8,6 +8,13 @@ const answerWith = (page, text) => page.route('**/api/ai/sample', r => r.fulfill
   body: [{ text }, { done: true, truncated: false }].map(l => JSON.stringify(l)).join('\n') + '\n',
 }));
 const K = (page, f) => page.evaluate(f);
+// Stockfish's lines for the start position, fixed: the answer check backs a line only if the engine
+// has it, and which lines a real engine finds depends on the machine (CI runs one thread).
+const fixAnalysis = page => page.evaluate(() => {
+  const { ANA } = /** @type {any} */ (window).__kibitz;
+  ANA.set('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -', { depth: 99, multipv: 5, best: 'e2e4',
+    lines: [{ score: { cp: 30 }, pv: ['e2e4', 'e7e5', 'g1f3'] }, { score: { cp: 25 }, pv: ['d2d4', 'd7d5'] }, { score: { cp: 20 }, pv: ['g1f3', 'g8f6'] }] });
+});
 const ask = async (page, q = 'What now?') => {
   await page.locator('#coachInput').fill(q); await page.locator('#coachSend').click();
   const a = page.locator('#chat .msg.coach').last();
@@ -19,6 +26,7 @@ test('a line in an answer: hovering previews the position before a move, a click
   await answerWith(page, 'Start with 1. e4 e5 2. Nf3, the main line.');
   await open(page);
   await page.locator('#modeAnalyse').click();
+  await fixAnalysis(page);
   const a = await ask(page);
   await expect(a.locator('.san.in-line')).toHaveCount(3);
   await a.locator('.san', { hasText: 'Nf3' }).hover();
