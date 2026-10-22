@@ -281,17 +281,18 @@ const deltaText = c => typeof c === 'string' ? c : Array.isArray(c) ? c.filter(p
 
 // Offline stand-in for development and tests (AI_PROVIDER=mock).
 // Token counts are rough (four characters a token) but deterministic.
-// With tools it calls one first: `analyse` on the FEN in the last user message (or the first tool
-// offered), then answers with what the tool said. For tests, a user message containing
-// "[mock:loop]" makes it call tools forever, and "[mock:bad-tool]" makes it call a tool with
-// arguments that don't hold up.
+// Tools, for tests, when a user message asks: "[mock:tool]" calls `analyse` on the FEN in the
+// messages (or the first tool offered) once, then answers with what the tool said; "[mock:loop]"
+// calls tools forever; "[mock:bad-tool]" calls one with arguments that don't hold up. Otherwise it
+// answers directly, as a model that needs no tool would.
 function mockProvider() {
   return {
     async *chat(messages, /** @type {ChatOptions} */ { schema, tools } = {}) {
       const chars = messages.reduce((n, m) => n + m.content.length, 0);
       const asked = messages.filter(m => m.role === 'user').map(m => m.content).join('\n');
       const results = messages.filter(m => m.role === 'tool');
-      if (tools?.length && (!results.length || asked.includes('[mock:loop]'))) {
+      const wants = /\[mock:(tool|loop|bad-tool)\]/.test(asked);
+      if (tools?.length && wants && (!results.length || asked.includes('[mock:loop]'))) {
         const fen = /Current position \(FEN\): (\S+ [wb] \S+ \S+ \d+ \d+)/.exec(asked)?.[1] || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
         const name = tools.some(t => t.name === 'analyse') ? 'analyse' : tools[0].name;
         const input = asked.includes('[mock:bad-tool]') ? { fen: 'not a fen', depth: 99 } : { fen };

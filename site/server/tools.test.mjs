@@ -80,9 +80,9 @@ test('chat completions (OpenAI, Mistral, Ollama): tool call pieces assembled by 
   }
 });
 
-test('the mock calls a tool first, then answers from its result; [mock:loop] keeps calling', async () => {
+test('the mock calls a tool when asked ([mock:tool]), then answers from its result; [mock:loop] keeps calling', async () => {
   const p = createProvider(loadConfig({ AI_PROVIDER: 'mock' }));
-  const q = { role: 'user', content: 'Current position (FEN): 6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1\n\nQuestion: mate?' };
+  const q = { role: 'user', content: 'Current position (FEN): 6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1\n\nQuestion: mate? [mock:tool]' };
   const r1 = await complete(p, [q], { tools: validateTools(['analyse']) });
   assert.deepEqual(r1.toolCalls, [{ id: 'mock1', name: 'analyse', input: { fen: '6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1' } }]);
   const r2 = await complete(p, [q, { role: 'assistant', content: '', toolCalls: r1.toolCalls }, { role: 'tool', toolCallId: 'mock1', content: '{"lines":["1. Ra8#"]}' }], { tools: validateTools(['analyse']) });
@@ -92,4 +92,5 @@ test('the mock calls a tool first, then answers from its result; [mock:loop] kee
   const r3 = await complete(p, [loop, { role: 'assistant', content: '', toolCalls: [call('m1')] }, { role: 'tool', toolCallId: 'm1', content: '{}' }], { tools: validateTools(['analyse']) });
   assert.equal(r3.toolCalls.length, 1);
   assert.deepEqual((await complete(p, [q])).toolCalls, [], 'no tools offered, no tool calls');
+  assert.deepEqual((await complete(p, [{ role: 'user', content: 'plain' }], { tools: validateTools(['analyse']) })).toolCalls, [], 'not asked to: answers directly');
 });

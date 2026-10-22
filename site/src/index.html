@@ -289,6 +289,9 @@ a.ext { color: var(--accent); font-size: 14px; }
 .boardcol.scratching .board-outer #board { outline: 2px dashed var(--accent); outline-offset: 2px; }
 .san.in-line { cursor: pointer; }
 .board-marks { margin-top: 6px; }
+.evidence { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.evidence summary { cursor: pointer; }
+.evidence ul { margin: 4px 0 0; padding-left: 18px; font-family: var(--font-mono); font-size: 12px; }
 .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r); background: var(--accent-soft); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 @media (max-width: 520px) { .brand small { display: none; } .tabs button { padding: 10px 10px; } .pane { padding: 14px 12px; } .tiles .big { font-size: 26px; } }
@@ -512,6 +515,7 @@ import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
+import { TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
 import { sanToSpeech, parseMoveInput } from './notation.js';
@@ -617,11 +621,11 @@ function coachSample(input, opts = {}) {
   const inBrowser = GATEWAY?.provider === 'browser' || (opts.task === 'quick' && S.quickInBrowser && !!GATEWAY?.browser);
   return inBrowser ? browserSample(input, opts) : gatewaySample(input, opts);
 }
-async function gatewaySample(input, { signal, onText, task } = {}) {
+async function gatewaySample(input, { signal, onText, task, tools } = {}) {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
-    let text = '', truncated = false, usage = null;
+    let text = '', truncated = false, usage = null, toolCalls = [];
     try {
-      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages, task }), signal });
+      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages, task, ...(tools ? { tools } : {}) }), signal });
       if (!res.ok) { const err = (await res.json().catch(() => null))?.error; throw { code: err?.code || 'unavailable', message: err?.message }; }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buf = '';
@@ -636,14 +640,14 @@ async function gatewaySample(input, { signal, onText, task } = {}) {
           const m = JSON.parse(line);
           if (m.error) throw { code: m.error.code, message: m.error.message };
           if (m.text) { text += m.text; onText?.({ text }); }
-          if (m.done) { truncated = !!m.truncated; usage = m.usage || null; if (m.user && GATEWAY) { GATEWAY.user = m.user; renderUsageLine(); } }
+          if (m.done) { truncated = !!m.truncated; usage = m.usage || null; toolCalls = Array.isArray(m.toolCalls) ? m.toolCalls : []; if (m.user && GATEWAY) { GATEWAY.user = m.user; renderUsageLine(); } }
         }
       }
     } catch (e) {
       if (signal?.aborted) throw { code: 'cancelled' };
       throw e?.code ? e : { code: 'unavailable' };
     }
-    return { text, truncated, usage };
+    return { text, truncated, usage, toolCalls };
 }
 // Screen-reader announcements (moves, navigation); the toast above is a status region too.
 // Answers in German may still write moves with German letters (Sf3); they become SAN before they
@@ -1862,9 +1866,14 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   try {
     const history = chatTurns.slice(-8);
     const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${contextFor(i, { view, scratch })}\n\nQuestion: ${question}` }];
-    const { text, truncated, usage } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task, onText: ({ text }) => render(text) });
+    const status = msg => { bubble.classList.add('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), msg); };
+    const opts = { signal: ctl.signal, cache: false, task, onText: ({ text }) => text && render(text) };
+    // Engine tools (TODO 4.11) where the engine's view is allowed anyway, never during a game with less help.
+    const { text, truncated, usage, evidence = [] } = toolsUsable(task) && view === 'all'
+      ? await sampleWithTools(turns, { ...opts, onStatus: status }) : await COACH.sample(turns, opts);
     const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
-    render(full, checkFor(full, i, view, scratch));
+    render(full, checkFor(full, i, view, scratch, evidence));
+    if (evidence.length) bubble.append(evidenceBox(evidence));
     const note = usageNote(usage); if (note) bubble.append(note);
     chatTurns.push({ role: 'user', content: `[At ${i ? moveLabel(i) : 'start'}] ${question}` }, { role: 'assistant', content: text });
   } catch (e) {
@@ -1877,6 +1886,71 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
     if ($('#settings').open) refreshGateway(); // today's usage
   }
 }
+// ---------------------------------------------------------------- Engine tools (TODO 4.11)
+// The model may ask Stockfish and the motif detectors (src/tools.js). The loop runs here, on the
+// page's own engine (4.11.4): the gateway returns the model's tool calls, the page checks each call's
+// arguments, runs it and sends the results in the next request, for at most TOOL_CAPS.rounds rounds
+// and TOOL_CAPS.calls calls; the last round offers no tools, so the model has to answer.
+let TOOLS_OFF = false; // the provider refused a request with tools (a model without them): answer from the context
+function toolsUsable(task) {
+  if (TOOLS_OFF || !GATEWAY?.available || GATEWAY.provider === 'browser' || typeof window.claude?.use === 'function') return false;
+  return !(task === 'quick' && S.quickInBrowser && GATEWAY.browser); // routed to the in-browser model
+}
+async function toolEngine(fen, { depth, lines }) {
+  const res = await analyst.go(fen, { depth, multipv: lines, maxMs: ANALYSIS_CAP_MS, tag: 'tool' }).catch(() => null);
+  return res ? { depth: res.depth, lines: toWhite(res.lines, turnOf(fen)) } : { depth: 0, lines: [] };
+}
+const TOOL_DOING = { analyse: 'Stockfish is analysing…', try_move: 'Stockfish is trying a move…', threats: 'Stockfish is looking for threats…', compare: 'Stockfish is comparing moves…', find_mate: 'Stockfish is looking for a mate…', find_motifs: 'Checking the motifs of a line…' };
+const CALL_ID = /^[A-Za-z0-9_-]{1,64}$/;
+async function sampleWithTools(turns, { signal, task, onText, onStatus }) {
+  const msgs = turns.slice(), evidence = [];
+  const usage = { input: 0, output: 0, cost: 0 };
+  const add = u => { usage.input += u?.input || 0; usage.output += u?.output || 0; usage.cost = typeof u?.cost === 'number' && usage.cost !== null ? usage.cost + u.cost : null; };
+  let calls = 0;
+  for (let round = 0; round <= TOOL_CAPS.rounds; round++) {
+    const offer = round < TOOL_CAPS.rounds;
+    let r;
+    try { r = await COACH.sample(msgs, { signal, cache: false, task, onText, ...(offer ? { tools: TOOL_NAMES } : {}) }); }
+    catch (e) {
+      // A model without tools (some Ollama models) refuses the request: ask again without them.
+      if (round === 0 && ['provider_rejected', 'provider_error'].includes(e?.code)) { TOOLS_OFF = true; return { ...(await COACH.sample(turns, { signal, cache: false, task, onText })), evidence }; }
+      throw e;
+    }
+    add(r.usage);
+    // Only calls the gateway would accept back: known tools, sane ids. Others are dropped.
+    const toolCalls = (r.toolCalls || []).filter(c => TOOL_NAMES.includes(c?.name) && CALL_ID.test(c?.id)).slice(0, TOOL_CAPS.calls);
+    if (!offer || !toolCalls.length) return { ...r, usage: usage.input + usage.output ? usage : r.usage, evidence };
+    msgs.push({ role: 'assistant', content: r.text || '', toolCalls: toolCalls.map(c => ({ id: c.id, name: c.name, input: c.input && typeof c.input === 'object' && JSON.stringify(c.input).length <= 2000 ? c.input : {} })) });
+    for (const c of toolCalls) {
+      const chk = ++calls > TOOL_CAPS.calls ? { ok: false, why: 'too many tool calls for one answer: answer with what you have' } : checkToolCall(Chess, c.name, c.input);
+      let result;
+      if (chk.ok) {
+        onStatus?.(TOOL_DOING[c.name]);
+        const out = await runTool(Chess, toolEngine, chk);
+        evidence.push({ name: chk.name, args: chk.args, result: out.result, lines: out.lines });
+        result = out.result;
+      } else result = { error: chk.why };
+      msgs.push({ role: 'tool', toolCallId: c.id, content: JSON.stringify(result) });
+    }
+    onStatus?.('Thinking…');
+  }
+}
+// What the tools found, under the answer (TODO 4.11.5): the evidence the coach's lines come from.
+function evidenceText(e) {
+  const r = e.result;
+  if (e.name === 'analyse') return `analyse, depth ${r.depth}${r.onlyMove ? ', only one move holds' : ''}: ${r.lines.map(l => `${l.eval} ${l.moves}`).join(' · ')}`;
+  if (e.name === 'try_move') return `try ${r.move}: ${r.verdict} (${r.evalAfter}; best ${r.best ?? '?'} ${r.bestEval})${r.reply ? `, reply ${r.reply}` : ''}`;
+  if (e.name === 'threats') return r.threat ? `threat for ${r.side}: ${r.line} (${r.evalIfAllowed})` : `threats: ${r.why || 'none'}`;
+  if (e.name === 'compare') return `compare: ${r.moves.map(m => `${m.move} ${m.eval}`).join(', ')}`;
+  if (e.name === 'find_mate') return r.mate ? `mate in ${r.mate}: ${r.line}` : `find mate: ${r.note}`;
+  return `motifs: ${r.line.map(x => `${x.move}${x.motifs.length ? ` (${x.motifs.join('; ')})` : ''}`).join(' ')}`;
+}
+function evidenceBox(evidence) {
+  return el('details', { class: 'evidence' },
+    el('summary', {}, evidence.length === 1 ? 'Stockfish checked one thing for this answer' : `Stockfish checked ${evidence.length} things for this answer`),
+    el('ul', { translate: 'no' }, ...evidence.map(e => el('li', {}, evidenceText(e)))));
+}
+
 // ---------------------------------------------------------------- Tutor comments (TODO 3.2-3.7)
 // A comment covers the chosen aspects of a position. Cached by position, move, aspects, what the
 // coach could see, level and model; the cache survives reloads.
@@ -2027,19 +2101,21 @@ function coachError(e) {
 // The answer's moves and piece claims checked against chess.js and the engine lines the coach saw
 // for node i (tutor.js checkAnswer, TODO 3.4). After a review, the coach also saw the whole game and
 // the better line at each turning point (reviewFacts), so those count as backed too.
-// With `scratch` (scratchFacts), the line the player tried and Stockfish's line after it count too.
-function checkFor(text, i, view, scratch = null) {
+// With `scratch` (scratchFacts), the line the player tried and Stockfish's line after it count too;
+// with `evidence` (the tool results), the lines the tools showed. `starts`: where those lines begin.
+function checkFor(text, i, view, scratch = null, evidence = []) {
   const fen = S.nodes[i].fen, prevFen = i > 0 ? S.nodes[i - 1].fen : null;
   const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv);
   const review = S.reviewDone && view === 'all';
-  const tried = scratch ? [scratch.sans, ...(view === 'all' ? pvs(scratch.end).slice(0, 2).map(pv => pvSans(Chess, scratch.end, pv, 6)) : [])] : [];
-  return checkAnswer(Chess, parseBoardBlock(text).text, {
+  const tried = [...(scratch ? [scratch.sans, ...(view === 'all' ? pvs(scratch.end).slice(0, 2).map(pv => pvSans(Chess, scratch.end, pv, 6)) : [])] : []), ...evidence.flatMap(e => e.lines)];
+  const starts = evidence.flatMap(e => [e.args.fen, ...(e.name === 'threats' ? [flipSide(Chess, e.args.fen)] : [])]).filter(Boolean);
+  return { starts, ...checkAnswer(Chess, parseBoardBlock(text).text, {
     fen, prevFen,
     lines: view === 'all' ? pvs(fen) : [],
     prevLines: prevFen && view !== 'none' ? pvs(prevFen) : [],
     game: S.nodes.slice(1, review ? S.nodes.length : i + 1).map(n => n.san),
     extra: [...(review ? keyMoments(6).map(({ i: k }) => { const pf = S.nodes[k - 1].fen; return pvSans(Chess, pf, anaOf(pf)?.lines[0]?.pv || [], 6); }) : []), ...tried],
-  });
+  }) };
 }
 // Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.
 // With `check`, moves that aren't backed by the engine are marked, and a note says how many.
@@ -2051,7 +2127,7 @@ function renderRich(box, text, fen = nodeFen(), check = null) {
   const block = parseBoardBlock(text);
   text = block.text;
   const k = S.nodes.findIndex(n => n.fen === fen);
-  const lines = check ? linesInAnswer(Chess, text, check.moves, { fen, prevFen: k > 0 ? S.nodes[k - 1].fen : null }) : null;
+  const lines = check ? linesInAnswer(Chess, text, check.moves, { fen, prevFen: k > 0 ? S.nodes[k - 1].fen : null, starts: check.starts || [] }) : null;
   const marks = lines ? lines.moves.map(m => ({ ...m, lineRef: m.line !== undefined ? lines.lines[m.line] : null })) : null; // in text order, one per SAN_RE match
   const blocks = text.replace(/\r/g, '').split(/\n{2,}/);
   for (const b of blocks) {
