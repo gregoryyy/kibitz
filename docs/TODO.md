@@ -102,12 +102,12 @@ Status: `[ ]` open, `[x]` done. Tags:
 ## 4. Chat and board annotations
 
 - [x] 4.1 Chat panel: history per game and position, streaming, stop button *(prototype)*
-- [ ] 4.2 Annotation schema: arrows, square highlights, ghost pieces, labels, move sequences
-- [ ] 4.3 Rendering: chessground shapes for arrows and highlights; a ghost-piece layer; a variation stepper that leaves the game untouched
-- [ ] 4.4 Check every annotation against the current position before drawing it
-- [ ] 4.5 "What if": the user tries a move on a scratch board, the engine evaluates it, the tutor explains
-- [ ] 4.6 Chat context: current position, game so far, selected aspects, recent tutor comments
-- [ ] 4.7 Tests: schema validation, rendering e2e, malformed and hostile model output
+- [x] 4.2 Annotation schema: arrows, square highlights, ghost pieces, labels, move sequences
+- [x] 4.3 Rendering: chessground shapes for arrows and highlights; a ghost-piece layer; a variation stepper that leaves the game untouched
+- [x] 4.4 Check every annotation against the current position before drawing it
+- [x] 4.5 "What if": the user tries a move on a scratch board, the engine evaluates it, the tutor explains
+- [x] 4.6 Chat context: current position, game so far, selected aspects, recent tutor comments
+- [x] 4.7 Tests: schema validation, rendering e2e, malformed and hostile model output
 - [ ] 4.8 Free conversation with the coach, about any game or position, not only the one on the board *(added)*
   - [ ] 4.8.1 Open questions (plans, openings, general chess) without a position; answers stay grounded in the engine whenever a position is involved
   - [ ] 4.8.2 Load from the chat: the player names a game ("the Opera Game", "my last loss with Black") or pastes a FEN or PGN, and the coach puts it on the board in analysis mode

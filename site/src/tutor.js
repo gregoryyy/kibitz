@@ -12,6 +12,7 @@ Rules:
 - Use standard algebraic notation (SAN). Describe evaluations in words ("about a pawn better for White") and give the number in brackets.
 - Recommend reading only from the retrieved references, naming the part when it is given.
 - Be concise: under 170 words unless asked for more. Short paragraphs or at most 4 bullets. No headings.
+- To point at the board, you may end with a block that starts with \`\`\`board, one mark per line, at most 6: "arrow e2 e4" (a move for the side to move), "threat d8 h4" (what the other side threatens), "square f7", "ghost wN d5" (where a piece belongs), "label d5 !". Only marks that fit the position are drawn.
 ${UNTRUSTED_RULE}`;
 
 // The language of the coach's answers (TODO 10.8). The prompt stays in English, which every model

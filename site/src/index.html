@@ -281,6 +281,14 @@ a.ext { color: var(--accent); font-size: 14px; }
 
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 14px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .toast.on { opacity: 1; }
+.scratch { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px dashed var(--accent); border-radius: var(--r); background: var(--accent-soft); }
+.scratch-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.scratch-moves { display: flex; flex-wrap: wrap; gap: 2px 4px; font: 600 14px var(--font-mono); }
+.scratch-moves button { border: 0; background: none; padding: 2px 4px; border-radius: 4px; cursor: pointer; font: inherit; color: var(--ink); }
+.scratch-moves button[aria-current="true"] { background: var(--accent); color: var(--on-accent); }
+.boardcol.scratching .board-outer #board { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.san.in-line { cursor: pointer; }
+.board-marks { margin-top: 6px; }
 .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r); background: var(--accent-soft); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 @media (max-width: 520px) { .brand small { display: none; } .tabs button { padding: 10px 10px; } .pane { padding: 14px 12px; } .tiles .big { font-size: 26px; } }
@@ -304,6 +312,13 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div class="board-outer"><div id="board" class="cg-wrap" translate="no"></div><div id="boardPreview" class="board-preview" hidden></div><div id="promo" class="promo" hidden></div></div>
     </div>
     <div class="player" id="playerBottom"></div>
+    <!-- A line from an answer, or moves the player tries, on top of the game (TODO 4.3, 4.5) -->
+    <div class="scratch" id="scratchBar" role="region" aria-label="Scratch board" hidden>
+      <div class="scratch-head"><strong id="scratchTitle"></strong><span class="hint" id="scratchEval" translate="no"></span></div>
+      <div class="scratch-moves" id="scratchMoves" translate="no"></div>
+      <div class="row"><button class="btn icon" id="scratchPrev" aria-label="Previous move in the line">&lt;</button><button class="btn icon" id="scratchNext" aria-label="Next move in the line">&gt;</button><button class="btn small" id="scratchAsk">Ask the coach about this line</button><span class="spacer"></span><button class="btn small primary" id="scratchClose">Back to the game</button></div>
+      <span class="hint" id="scratchHint"></span>
+    </div>
     <div class="controls">
       <button class="btn icon" id="btnFirst" title="First move" aria-label="First move">|&lt;</button>
       <button class="btn icon" id="btnPrev" title="Previous move (←)" aria-label="Previous move">&lt;</button>
@@ -311,6 +326,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <button class="btn icon" id="btnLast" title="Latest move" aria-label="Latest move">&gt;|</button>
       <button class="btn icon" id="btnFlip" title="Flip board" aria-label="Flip board">⇅</button>
       <span class="spacer"></span>
+      <button class="btn" id="btnWhatIf" title="Try moves on a scratch board; the game stays as it is">Try a move</button>
       <button class="btn" id="btnHint">Hint</button>
       <button class="btn" id="btnTakeback">Take back</button>
       <button class="btn" id="btnDraw">Offer draw</button>
@@ -495,6 +511,7 @@ import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentR
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
+import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
 import { sanToSpeech, parseMoveInput } from './notation.js';
@@ -762,6 +779,7 @@ const cg = Chessground($('#board'), {
     alt: { key: 'ka', color: '#3a49d6', opacity: 0.8, lineWidth: 10 },
     hint: { key: 'kh', color: '#c08f00', opacity: 0.9, lineWidth: 12 },
     san: { key: 'ks', color: '#3a49d6', opacity: 0.6, lineWidth: 9 },
+    threat: { key: 'kt', color: '#d23535', opacity: 0.6, lineWidth: 9 },
   } },
 });
 new ResizeObserver(() => cg.redrawAll()).observe($('.board-outer'));
@@ -780,6 +798,9 @@ function canMove() {
 let previewing = false; // a game reference's position is on the board (previewPosition)
 function syncBoard() {
   if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
+  // A scratch board stays until the game moves on or changes under it (a move, navigation, a load).
+  if (SCRATCH && (SCRATCH.gen !== S.gen || SCRATCH.cursor !== S.cursor || SCRATCH.nodes !== S.nodes.length)) closeScratch(false);
+  if (SCRATCH) return syncScratch();
   const fen = nodeFen(); const n = S.nodes[S.cursor]; const c = new Chess(fen);
   const turn = turnOf(fen) === 'w' ? 'white' : 'black';
   const mov = canMove();
@@ -793,6 +814,7 @@ function syncBoard() {
   drawShapes();
 }
 function drawShapes() {
+  if (SCRATCH) return cg.setAutoShapes(scratchShapes());
   const shapes = [];
   const i = S.cursor, n = S.nodes[i];
   const a = anaOf(n.fen);
@@ -804,6 +826,7 @@ function drawShapes() {
   }
   if (hintShape && hintShape.i === i) shapes.push(hintShape.s);
   if (sanShape) shapes.push(sanShape);
+  if (MARKS && MARKS.fen === n.fen) shapes.push(...MARKS.shapes);
   cg.setAutoShapes(shapes);
 }
 function flagVisible(i) {
@@ -814,6 +837,7 @@ function flagVisible(i) {
 }
 
 function onBoardMove(orig, dest) {
+  if (SCRATCH) return scratchBoardMove(orig, dest);
   const fen = nodeFen();
   const c = new Chess(fen);
   const piece = c.get(orig);
@@ -1084,6 +1108,7 @@ function renderControls() {
   $('#btnDraw').disabled = !S.playing || S.thinking || S.drawPending || last() - S.startPly < 2 || last() < S.drawBlock;
   $('#btnResign').disabled = !S.playing || S.nodes.length < 2;
   $('#btnHint').disabled = !!S.over && play;
+  $('#btnWhatIf').hidden = !whatIfAllowed();
   $('#modePlay').setAttribute('aria-pressed', String(play)); $('#modeAnalyse').setAttribute('aria-pressed', String(!play));
   $('#gameStateHint').textContent = S.playing && S.nodes.length > 1 ? 'A game is in progress. Starting a new one saves it as unfinished.' : '';
 }
@@ -1754,7 +1779,7 @@ function renderCoachCtx() {
 // The coach's context for node i. view (tutor.js engineView): 'all' gives everything; 'past'
 // (mid-game, help "flag mistakes") leaves out the engine's view of the current position and rates
 // only the player's own moves; 'none' (mid-game, help off) leaves out all engine data (TODO 3.6).
-function contextFor(i, { view = 'all' } = {}) {
+function contextFor(i, { view = 'all', scratch = null } = {}) {
   const n = S.nodes[i]; const fen = n.fen; const c = chessAt(i);
   const a = view === 'all' ? anaOf(fen) : null; const op = openingAt(i);
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
@@ -1787,6 +1812,15 @@ function contextFor(i, { view = 'all' } = {}) {
   }
   if (a && view === 'all') lines.push(...interestingLines(interestingMoves(Chess, fen, a.lines, { windowCp: S.window })));
   if (S.reviewDone && view === 'all') lines.push(...reviewFacts());
+  // TODO 4.6: what the player is looking at beyond the game, and what they asked comments to cover.
+  if (scratch) {
+    lines.push(`The player is trying a line on a scratch board, from the current position; it isn't part of the game: ${scratch.text}.`);
+    lines.push(`Position after the line (FEN): ${scratch.end}`);
+    const sa = view === 'all' ? anaOf(scratch.end) : null, st = terminalCp(scratch.end);
+    if (st !== null) lines.push(`After the line the game would be over (${new Chess(scratch.end).isCheckmate() ? 'checkmate' : 'draw'}).`);
+    else if (sa) lines.push(`Stockfish after the line (depth ${sa.depth}): ${fmtScore(sa.lines[0]?.score)}  ${pvToSan(scratch.end, sa.lines[0]?.pv, 6)}`);
+  }
+  lines.push(`Aspects the player picked for comments: ${S.aspects.map(id => ASPECTS.find(a => a.id === id)?.label).filter(Boolean).join(', ')}.`);
   lines.push(`Position themes detected: ${feats.map(f => `${K.TAG_LABELS[f.tag] || f.tag} (${f.why})`).join('; ') || 'none'}.`);
   const notes = safetyNotes(Chess, fen);
   if (notes.length) lines.push(`Keep in mind (from the board): ${notes.join('; ')}.`);
@@ -1811,6 +1845,9 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   // Own tag, so moving around the board (which cancels 'live' analysis) doesn't starve the coach.
   if (!anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'coach');
   if (i > 0 && !anaOf(S.nodes[i - 1].fen)) await analyse(S.nodes[i - 1].fen, S.depth, 'coach');
+  // A line on the scratch board (TODO 4.5): the coach gets it with Stockfish's view at its end.
+  const scratch = scratchFacts();
+  if (scratch && engineView(S) === 'all' && terminalCp(scratch.end) === null) await analyse(scratch.end, S.depth, 'coach');
   if (S.gen !== gen || S.nodes[i]?.fen !== fen) return; // the game changed while the engine ran
   COACH.ctl?.abort();
   const ctl = COACH.ctl = new AbortController();
@@ -1824,10 +1861,10 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   const render = (text, check = null) => { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); const body = el('div'); renderRich(body, text, fen, check); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
   try {
     const history = chatTurns.slice(-8);
-    const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${contextFor(i, { view })}\n\nQuestion: ${question}` }];
+    const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${contextFor(i, { view, scratch })}\n\nQuestion: ${question}` }];
     const { text, truncated, usage } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task, onText: ({ text }) => render(text) });
     const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
-    render(full, checkFor(full, i, view));
+    render(full, checkFor(full, i, view, scratch));
     const note = usageNote(usage); if (note) bubble.append(note);
     chatTurns.push({ role: 'user', content: `[At ${i ? moveLabel(i) : 'start'}] ${question}` }, { role: 'assistant', content: text });
   } catch (e) {
@@ -1990,23 +2027,32 @@ function coachError(e) {
 // The answer's moves and piece claims checked against chess.js and the engine lines the coach saw
 // for node i (tutor.js checkAnswer, TODO 3.4). After a review, the coach also saw the whole game and
 // the better line at each turning point (reviewFacts), so those count as backed too.
-function checkFor(text, i, view) {
+// With `scratch` (scratchFacts), the line the player tried and Stockfish's line after it count too.
+function checkFor(text, i, view, scratch = null) {
   const fen = S.nodes[i].fen, prevFen = i > 0 ? S.nodes[i - 1].fen : null;
   const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv);
   const review = S.reviewDone && view === 'all';
-  return checkAnswer(Chess, text, {
+  const tried = scratch ? [scratch.sans, ...(view === 'all' ? pvs(scratch.end).slice(0, 2).map(pv => pvSans(Chess, scratch.end, pv, 6)) : [])] : [];
+  return checkAnswer(Chess, parseBoardBlock(text).text, {
     fen, prevFen,
     lines: view === 'all' ? pvs(fen) : [],
     prevLines: prevFen && view !== 'none' ? pvs(prevFen) : [],
     game: S.nodes.slice(1, review ? S.nodes.length : i + 1).map(n => n.san),
-    extra: review ? keyMoments(6).map(({ i: k }) => { const pf = S.nodes[k - 1].fen; return pvSans(Chess, pf, anaOf(pf)?.lines[0]?.pv || [], 6); }) : [],
+    extra: [...(review ? keyMoments(6).map(({ i: k }) => { const pf = S.nodes[k - 1].fen; return pvSans(Chess, pf, anaOf(pf)?.lines[0]?.pv || [], 6); }) : []), ...tried],
   });
 }
 // Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.
 // With `check`, moves that aren't backed by the engine are marked, and a note says how many.
+// The coach's ```board block is taken off the text; with `check` (the finished answer), its marks are
+// checked against the position: those that fit are drawn and can be shown again, the others counted.
+// Runs of moves become lines (annotations.js) that hovering previews and clicking steps through.
 function renderRich(box, text, fen = nodeFen(), check = null) {
   box.replaceChildren();
-  const marks = check ? check.moves.slice() : null; // in text order, one per SAN_RE match
+  const block = parseBoardBlock(text);
+  text = block.text;
+  const k = S.nodes.findIndex(n => n.fen === fen);
+  const lines = check ? linesInAnswer(Chess, text, check.moves, { fen, prevFen: k > 0 ? S.nodes[k - 1].fen : null }) : null;
+  const marks = lines ? lines.moves.map(m => ({ ...m, lineRef: m.line !== undefined ? lines.lines[m.line] : null })) : null; // in text order, one per SAN_RE match
   const blocks = text.replace(/\r/g, '').split(/\n{2,}/);
   for (const b of blocks) {
     const lines = b.split('\n');
@@ -2015,6 +2061,13 @@ function renderRich(box, text, fen = nodeFen(), check = null) {
     } else box.append(inline(el('p', { translate: 'no' }), b.replace(/^#+\s*/gm, ''), fen, marks));
   }
   if (check?.problems) box.append(el('p', { class: 'check-note' }, `${check.problems === 1 ? 'One claim' : check.problems + ' claims'} in this answer ${check.problems === 1 ? 'doesn\'t' : 'don\'t'} match the board or Stockfish's lines (marked). Trust the engine over the coach here.`));
+  if (!check || !(block.marks.length + block.skipped)) return;
+  const { shown, dropped } = checkMarks(Chess, fen, block.marks);
+  const left = dropped.length + block.skipped;
+  if (left) box.append(el('p', { class: 'check-note' }, left === 1 ? 'One board mark didn\'t fit the position and was left out.' : `${left} board marks didn't fit the position and were left out.`));
+  if (!shown.length) return;
+  box.append(el('div', { class: 'board-marks' }, el('button', { class: 'btn small', onclick: () => showMarks(fen, shown) }, shown.length === 1 ? 'Show the mark on the board' : `Show the ${shown.length} marks on the board`)));
+  if (nodeFen() === fen && !SCRATCH) { MARKS = { fen, shapes: shown.map(markShape) }; drawShapes(); }
 }
 function inline(node, text, fen, marks) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -2042,6 +2095,113 @@ function addRefs(node, text, fen, marks) {
   }
   if (at < text.length) addSan(node, text.slice(at), fen, marks);
 }
+// ---------------------------------------------------------------- Scratch board (TODO 4.3, 4.5)
+// A line from an answer, stepped through, or moves the player tries from the position on the board.
+// The game underneath never changes, and anything that moves the game closes the scratch board.
+let SCRATCH = null; // {start, sans, ucis, fens, i, free, title, gen, cursor, nodes}; fens[i] is on the board
+// The player may play moves on it only where the engine's view is shown anyway (analysis, a finished
+// game, or Full engine help), so it is never a way around the help setting.
+function whatIfAllowed() { return showEngine(); }
+function openScratch(line, { i = line.sans.length, free = whatIfAllowed(), title = 'Line from the coach' } = {}) {
+  if (!line) return;
+  if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
+  SCRATCH = { ...line, i: Math.max(0, Math.min(line.sans.length, i)), free, title, gen: S.gen, cursor: S.cursor, nodes: S.nodes.length };
+  sanShape = null;
+  $('.boardcol').classList.add('scratching');
+  syncBoard(); renderScratch(); analyseScratch();
+}
+function closeScratch(sync = true) {
+  if (!SCRATCH) return;
+  SCRATCH = null; $('#scratchBar').hidden = true; $('.boardcol').classList.remove('scratching');
+  if (sync) syncBoard();
+}
+const scratchFen = () => SCRATCH.fens[SCRATCH.i];
+function stepScratch(d) {
+  if (!SCRATCH) return;
+  const k = SCRATCH.i + d;
+  if (k < 0 || k > SCRATCH.sans.length) return;
+  SCRATCH.i = k; syncScratch(); renderScratch(); analyseScratch();
+}
+function syncScratch() {
+  const fen = scratchFen(), c = new Chess(fen), turn = turnOf(fen) === 'w' ? 'white' : 'black';
+  const can = SCRATCH.free && !c.isGameOver(), u = SCRATCH.ucis[SCRATCH.i - 1];
+  cg.set({ fen, orientation: S.orientation, turnColor: turn, check: c.inCheck() ? turn : false, lastMove: u ? [u.slice(0, 2), u.slice(2, 4)] : undefined,
+    movable: { color: can ? turn : undefined, dests: can ? dests(fen) : new Map() } });
+  drawShapes();
+}
+function scratchShapes() {
+  const fen = scratchFen(), a = anaOf(fen), shapes = [];
+  if (showEngine() && a?.best && terminalCp(fen) === null) shapes.push({ orig: a.best.slice(0, 2), dest: a.best.slice(2, 4), brush: 'best' });
+  if (sanShape) shapes.push(sanShape);
+  return shapes;
+}
+// A move on the scratch board continues the line from the move shown, dropping what came after.
+function scratchBoardMove(orig, dest) {
+  const fen = scratchFen(), piece = new Chess(fen).get(orig);
+  const go = promotion => {
+    const step = playLine(Chess, fen, [orig + dest + (promotion || '')]);
+    if (!step || !SCRATCH) return SCRATCH && syncScratch();
+    const k = SCRATCH.i;
+    Object.assign(SCRATCH, { sans: [...SCRATCH.sans.slice(0, k), step.sans[0]], ucis: [...SCRATCH.ucis.slice(0, k), step.ucis[0]], fens: [...SCRATCH.fens.slice(0, k + 1), step.fens[1]], i: k + 1 });
+    syncScratch(); renderScratch(); analyseScratch();
+  };
+  if (piece?.type === 'p' && (dest[1] === '8' || dest[1] === '1')) askPromotion(piece.color, go); else go();
+}
+async function analyseScratch() {
+  if (!SCRATCH || !showEngine()) return;
+  const fen = scratchFen();
+  await analyse(fen, S.depth, 'scratch');
+  if (SCRATCH && scratchFen() === fen) { renderScratch(); drawShapes(); }
+}
+// The moves with numbers, as in a game score: "10. Nxb5 cxb5 11. Bxb5+".
+function lineText(line, upTo = line.sans.length) {
+  return line.sans.slice(0, upTo).map((san, k) => { const [, side, , , , num] = line.fens[k].split(' '); return side === 'w' ? `${num}. ${san}` : k === 0 ? `${num}… ${san}` : san; }).join(' ');
+}
+function renderScratch() {
+  const bar = $('#scratchBar'); bar.hidden = !SCRATCH;
+  if (!SCRATCH) return;
+  $('#scratchTitle').textContent = SCRATCH.title;
+  const box = $('#scratchMoves'); box.replaceChildren();
+  SCRATCH.sans.forEach((san, k) => {
+    const [, side, , , , num] = SCRATCH.fens[k].split(' ');
+    box.append(el('button', { 'aria-current': String(SCRATCH.i === k + 1), onclick: () => { SCRATCH.i = k + 1; syncScratch(); renderScratch(); analyseScratch(); } },
+      side === 'w' ? `${num}. ${san}` : k === 0 ? `${num}… ${san}` : san));
+  });
+  $('#scratchPrev').disabled = SCRATCH.i === 0;
+  $('#scratchNext').disabled = SCRATCH.i >= SCRATCH.sans.length;
+  const fen = scratchFen(), a = anaOf(fen), term = terminalCp(fen);
+  $('#scratchEval').textContent = !showEngine() ? '' : term !== null ? (new Chess(fen).isCheckmate() ? t('checkmate') : t('draw')) : a ? `Stockfish: ${fmtScore(a.lines[0]?.score)}${a.best ? ` · ${t('best')} ${uciToSan(fen, a.best)}` : ''}` : t('Stockfish is thinking…');
+  $('#scratchAsk').disabled = !COACH.sample || !SCRATCH.sans.length;
+  $('#scratchHint').textContent = SCRATCH.free ? 'Make moves on the board to try your own line. The game stays as it is.' : 'Step through the line. The game stays as it is.';
+}
+$('#scratchPrev').addEventListener('click', () => stepScratch(-1));
+$('#scratchNext').addEventListener('click', () => stepScratch(1));
+$('#scratchClose').addEventListener('click', () => closeScratch());
+$('#btnWhatIf').addEventListener('click', () => openScratch(playLine(Chess, nodeFen(), []), { i: 0, free: true, title: 'What if…' }));
+$('#scratchAsk').addEventListener('click', () => { if (SCRATCH?.sans.length) askCoach(`What about this line from here: ${lineText(SCRATCH)}? Explain the idea, and how the position looks after it.`); });
+// The line on the scratch board, for the coach's context and the answer check (TODO 4.6): a copy,
+// since the player may keep playing while the answer streams.
+function scratchFacts() {
+  if (!SCRATCH?.sans.length) return null;
+  return { start: SCRATCH.start, sans: SCRATCH.sans.slice(), ucis: SCRATCH.ucis.slice(), end: SCRATCH.fens.at(-1), text: lineText(SCRATCH) };
+}
+
+// An answer's board marks (TODO 4.2): {fen, shapes}, drawn while the board shows that position.
+let MARKS = null;
+const ROLE = { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight', P: 'pawn' };
+function markShape(a) {
+  if (a.kind === 'arrow') return { orig: a.from, dest: a.to, brush: a.brush };
+  if (a.kind === 'square') return { orig: a.sq, brush: a.brush };
+  if (a.kind === 'ghost') return { orig: a.sq, brush: 'san', piece: { role: ROLE[a.piece[1]], color: a.piece[0] === 'w' ? 'white' : 'black', scale: 0.8 } };
+  return { orig: a.sq, brush: 'san', label: { text: a.text } };
+}
+function showMarks(fen, shown) {
+  MARKS = { fen, shapes: shown.map(markShape) };
+  const k = S.nodes.findIndex(n => n.fen === fen);
+  if (SCRATCH) closeScratch(false);
+  if (k >= 0 && k !== S.cursor) goTo(k); else syncBoard();
+}
+
 // A position shown on the board for a moment (a game reference under the pointer); the game itself
 // is untouched, and anything that redraws the board (syncBoard) ends the preview.
 function previewPosition(p, caption) {
@@ -2052,6 +2212,29 @@ function previewPosition(p, caption) {
   const cap = $('#boardPreview'); cap.textContent = caption; cap.hidden = false;
 }
 function endPreview() { if (previewing) syncBoard(); }
+// A move that belongs to a line in an answer (TODO 4.3): hovering or focusing shows it from the
+// position before it (as a preview when that isn't the position on the board); a click or Enter
+// opens the line on the scratch board, at this move.
+function lineMove(span, line, ply) {
+  const before = line.fens[ply], u = line.ucis[ply];
+  const arrow = { orig: u.slice(0, 2), dest: u.slice(2, 4), brush: 'san' };
+  const show = () => {
+    if (SCRATCH ? scratchFen() === before : nodeFen() === before) { sanShape = arrow; drawShapes(); return; }
+    if (SCRATCH) return;
+    const p = ply ? line.ucis[ply - 1] : null;
+    previewPosition({ fen: before, lastMove: p ? [p.slice(0, 2), p.slice(2, 4)] : null }, `Before ${lineText({ ...line, sans: line.sans.slice(ply), fens: line.fens.slice(ply) }, 1)}`);
+    cg.setAutoShapes([arrow]);
+  };
+  const hide = () => { if (previewing) endPreview(); else { sanShape = null; drawShapes(); } };
+  const open = () => { hide(); openScratch(line, { i: ply + 1 }); };
+  span.classList.add('in-line');
+  span.setAttribute('tabindex', '0'); span.setAttribute('role', 'button');
+  span.title = `${span.title ? span.title + '. ' : ''}Click to step through the line on the board`;
+  span.addEventListener('mouseenter', show); span.addEventListener('focus', show);
+  span.addEventListener('mouseleave', hide); span.addEventListener('blur', hide);
+  span.addEventListener('click', open);
+  span.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+}
 function addSan(node, text, fen, marks = null) {
   let lastIdx = 0; let m; SAN_RE.lastIndex = 0;
   const legal = new Map(new Chess(fen).moves({ verbose: true }).map(mv => [mv.san.replace(/[+#]/, ''), mv]));
@@ -2062,7 +2245,8 @@ function addSan(node, text, fen, marks = null) {
     const mv = legal.get(m[1]);
     const flag = mark?.status === 'invalid' ? ' invalid' : mark?.status === 'legal' ? ' unchecked' : '';
     const span = el('span', { class: 'san' + flag, title: mark?.why || (mv ? 'Hover to see it on the board' : '') }, m[0]);
-    if (mv) { span.addEventListener('mouseenter', () => { if (nodeFen() === fen) { sanShape = { orig: mv.from, dest: mv.to, brush: 'san' }; drawShapes(); } }); span.addEventListener('mouseleave', () => { sanShape = null; drawShapes(); }); }
+    if (mark?.lineRef) lineMove(span, mark.lineRef, mark.ply);
+    else if (mv) { span.addEventListener('mouseenter', () => { if (nodeFen() === fen) { sanShape = { orig: mv.from, dest: mv.to, brush: 'san' }; drawShapes(); } }); span.addEventListener('mouseleave', () => { sanShape = null; drawShapes(); }); }
     node.append(span); lastIdx = m.index + m[0].length;
   }
   if (lastIdx < text.length) node.append(text.slice(lastIdx));
@@ -2342,6 +2526,7 @@ $('#btnStudyPlan').addEventListener('click', studyPlan);
 $('#btnAddRef').addEventListener('click', addRef);
 document.addEventListener('keydown', e => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+  if (SCRATCH && ['ArrowLeft', 'ArrowRight', 'Escape'].includes(e.key)) { e.preventDefault(); if (e.key === 'Escape') closeScratch(); else stepScratch(e.key === 'ArrowLeft' ? -1 : 1); return; }
   if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(S.cursor - 1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); goTo(S.cursor + 1); }
   else if (e.key === 'f') $('#btnFlip').click();
@@ -2371,7 +2556,7 @@ function start(data) {
   setTools(store.get('toolsOpen', true));
   Lib.init();
 }
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS };
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS };
 // The game on the board survives a reload (TODO 1.15). Inside the artifact the host takes the
 // snapshot when it needs it; the local app keeps it in localStorage ('current'), written shortly
 // after every change and when the page goes away, and read back at boot.
