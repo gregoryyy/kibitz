@@ -108,22 +108,22 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [x] 4.5 "What if": the user tries a move on a scratch board, the engine evaluates it, the tutor explains
 - [x] 4.6 Chat context: current position, game so far, selected aspects, recent tutor comments
 - [x] 4.7 Tests: schema validation, rendering e2e, malformed and hostile model output
-- [ ] 4.8 Free conversation with the coach, about any game or position, not only the one on the board *(added)*
-  - [ ] 4.8.1 Open questions (plans, openings, general chess) without a position; answers stay grounded in the engine whenever a position is involved
-  - [ ] 4.8.2 Load from the chat: the player names a game ("the Opera Game", "my last loss with Black") or pastes a FEN or PGN, and the coach puts it on the board in analysis mode
-  - [ ] 4.8.3 Coach tools: search the library (7.5), load a game at a given move, load a position, load an opening line. Every load is checked with chess.js, and leaving a game in progress needs the player's confirmation; the tools only load, never change or delete anything (11.3.6). Builds on tool calling (2.7)
-  - [ ] 4.8.4 After a load, the engine analyses the position before the coach explains it, and the chat keeps track of which game and move each answer refers to
-  - [ ] 4.8.5 Tests: tool calls with the mock provider, invalid or hostile load requests, confirmation before leaving a game
-- [ ] 4.9 One chat outside the tabs: the chat stays visible whichever tab is open (play, analysis, review, openings, lessons), instead of living inside the Coach tab *(added)*
-  - [ ] 4.9.1 The chat follows the context. By default the coach talks about the active tab's game and position. A message that names something else ("this opening", "my last game", a FEN) switches the context, which shows as a chip above the input that the player can change. Each answer stays tied to the game and move it was about
+- [x] 4.8 Free conversation with the coach, about any game or position, not only the one on the board *(added)*
+  - [x] 4.8.1 Open questions (plans, openings, general chess) without a position; answers stay grounded in the engine whenever a position is involved
+  - [x] 4.8.2 Load from the chat: the player names a game ("the Opera Game", "my last loss with Black") or pastes a FEN or PGN, and the coach puts it on the board in analysis mode
+  - [x] 4.8.3 Coach tools: search the library (7.5), load a game at a given move, load a position, load an opening line. Every load is checked with chess.js, and leaving a game in progress needs the player's confirmation; the tools only load, never change or delete anything (11.3.6). Builds on tool calling (2.7)
+  - [x] 4.8.4 After a load, the engine analyses the position before the coach explains it, and the chat keeps track of which game and move each answer refers to
+  - [x] 4.8.5 Tests: tool calls with the mock provider, invalid or hostile load requests, confirmation before leaving a game
+- [x] 4.9 One chat outside the tabs: the chat stays visible whichever tab is open (play, analysis, review, openings, lessons), instead of living inside the Coach tab *(added)*
+  - [x] 4.9.1 The chat follows the context. By default the coach talks about the active tab's game and position. A message that names something else ("this opening", "my last game", a FEN) switches the context, which shows as a chip above the input that the player can change. Each answer stays tied to the game and move it was about
   - [x] 4.9.2 Layout: a side panel on wide screens and a drawer on mobile (10.6), collapsible, with the history kept across tab switches. Done as the dialogue beside the board, as tall as it; the tab panels below fold away. On a phone it follows the board with a capped height, not a drawer
-  - [ ] 4.9.3 Tests: e2e for the chat across tabs, switching context by tab and by message, the mobile drawer. Partly: the layout across tabs and on a phone (`layout.spec`)
-- [ ] 4.10 Board control from the chat: the chat can make moves and set up pieces *(added)*
-  - [ ] 4.10.1 Moves: "play e4", "take back two moves", "go to move 15", "show me Nxf7 and what follows". Plain move text goes through the typed-move parser (`parseMoveInput`) without calling the model. In a game, the chat moves only for the player and follows the clock and help settings; elsewhere it plays in analysis, on a variation that leaves the game untouched (4.3)
-  - [ ] 4.10.2 Setup: "put a white knight on f5", "remove the queens", "set up a Lucena position", "White to move". This edits a scratch board in analysis mode, never a game in progress. The result must be a legal position (`checkStart`, `fixCastling`) before it's shown, with the side to move and castling rights stated
-  - [ ] 4.10.3 Coach tools for both (with 4.8.3): `move`, `goto`, `setup` taking pieces and squares, `undo`. Every call is checked with chess.js, every board change can be undone in one step, and none of them touches saved games or the library
-  - [ ] 4.10.4 After each change the engine re-analyses, and the coach's next answer is about the new position (async results checked against the FEN)
-  - [ ] 4.10.5 Tests: moves and setups through the mock provider, illegal or hostile requests (impossible positions, moves for the engine's side, setup during a game), undo
+  - [x] 4.9.3 Tests: e2e for the chat across tabs, switching context by tab and by message, the mobile drawer. Covered by `layout.spec` and `chat.spec`: tab switches, general/position context, answer links, phone portrait and landscape, and tablet widths. The mobile layout remains the capped dialogue from 4.9.2
+- [x] 4.10 Board control from the chat: the chat can make moves and set up pieces *(added)*
+  - [x] 4.10.1 Moves: "play e4", "take back two moves", "go to move 15", "show me Nxf7 and what follows". Plain move text goes through the typed-move parser (`parseMoveInput`) without calling the model. In a game, the chat moves only for the player and follows the clock and help settings; elsewhere it plays in analysis, on a variation that leaves the game untouched (4.3)
+  - [x] 4.10.2 Setup: "put a white knight on f5", "remove the queens", "set up a Lucena position", "White to move". This edits a scratch board in analysis mode, never a game in progress. The result must be a legal position (`checkStart`, `fixCastling`) before it's shown, with the side to move and castling rights stated
+  - [x] 4.10.3 Coach tools for both (with 4.8.3): `move`, `goto`, `setup` taking pieces and squares, `undo`. Every call is checked with chess.js, every board change can be undone in one step, and none of them touches saved games or the library
+  - [x] 4.10.4 After each change the engine re-analyses, and the coach's next answer is about the new position (async results checked against the FEN)
+  - [x] 4.10.5 Tests: moves and setups through the mock provider, illegal or hostile requests (impossible positions, moves for the engine's side, setup during a game), undo
 - [ ] 4.11 Engine tools for the coach: the model asks, and Stockfish and the motif detectors answer *(added)*
   - [x] 4.11.1 Tools:
     - `analyse(fen, depth, lines)`: the top lines in SAN, with evaluations
@@ -225,7 +225,7 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [ ] 11.3.3 LLM03 Supply chain: pinned packages and model versions
   - [ ] 11.3.4 LLM04 Data and model poisoning: imported games and annotations in the RAG store
   - [ ] 11.3.5 LLM05 Improper output handling: model output never rendered as HTML; annotations validated. Remaining: annotation validation (with 4.4); output is already rendered as text only.
-  - [ ] 11.3.6 LLM06 Excessive agency: the model can only produce text and annotations, never take actions
+  - [ ] 11.3.6 LLM06 Excessive agency: model actions are limited to validated, bounded board tools; the saved library is read-only, and leaving a running game requires confirmation
   - [ ] 11.3.7 LLM07 System prompt leakage: no secrets in prompts
   - [ ] 11.3.8 LLM08 Vector and embedding weaknesses: users' data kept separate in the RAG store
   - [ ] 11.3.9 LLM09 Misinformation: every chess claim checked against the engine

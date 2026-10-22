@@ -22,7 +22,7 @@ test('the coach calls a tool: the page runs it on Stockfish, sends the result ba
   const a = await ask(page, 'Is e4 good? [mock:tool]');
   await expect(a).toContainText('Mock coach used a tool and read:');
   expect(bodies).toHaveLength(2);
-  expect(bodies[0].tools).toEqual(['analyse', 'try_move', 'threats', 'compare', 'find_mate', 'find_motifs']);
+  expect(bodies[0].tools).toEqual(expect.arrayContaining(['analyse', 'try_move', 'threats', 'compare', 'find_mate', 'find_motifs', 'search_library', 'load_game', 'setup']));
   const toolMsg = bodies[1].messages.at(-1);
   expect(toolMsg.role).toBe('tool');
   const result = JSON.parse(toolMsg.content);
@@ -58,14 +58,15 @@ test('hostile tool arguments are refused and the model is told why; nothing runs
   await expect(a.locator('.evidence')).toHaveCount(0);
 });
 
-test('no tools in a game with less engine help: the coach can\'t ask Stockfish what the player may not see', async ({ page }) => {
+test('no engine tools in a game with less help: library and board tools cannot reveal Stockfish', async ({ page }) => {
   const bodies = record(page);
   await open(page);
   await page.locator('#optHelp button[data-v="flags"]').click();
   await page.locator('#btnNewGame').click();
   await ask(page, 'What now? [mock:tool]');
   expect(bodies).toHaveLength(1);
-  expect(bodies[0].tools).toBeUndefined();
+  expect(bodies[0].tools).not.toContain('analyse');
+  expect(bodies[0].tools).toContain('load_game');
 });
 
 test('a provider that refuses tools: the page asks again without them, and stops offering them', async ({ page }) => {
