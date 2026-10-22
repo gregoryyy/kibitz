@@ -1,14 +1,15 @@
 // Explanation modes (TODO 3.9): commentary on every move, interesting moves, challenges.
-import { test, expect, open, loadPgn, reveal, OPERA } from './fixtures.mjs';
+import { test, expect, open, loadPgn, reveal, OPERA, openSettings, closeSettings } from './fixtures.mjs';
 
 // White to move mates in one with Ra8#.
 const MATE_IN_1 = '6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1';
 
 test('commentary: the coach comments on every move by either side, here a loaded game\'s', async ({ page }) => {
   await open(page);
-  await page.locator('[data-tab="coach"]').click();
+  await openSettings(page);
   await page.locator('#optCommentWhen button[data-v="commentary"]').click();
   await expect(page.locator('#modeHint')).toContainText('every move by either side');
+  await closeSettings(page);
   await loadPgn(page, OPERA);
   await page.locator('#btnFirst').click();
   await page.locator('#btnNext').click();
@@ -58,8 +59,9 @@ test('a challenge: the engine checks the answer before anything is revealed, and
 
 test('challenge mode: stepping through a game, the coach asks instead of explaining', async ({ page }) => {
   await open(page);
-  await page.locator('[data-tab="coach"]').click();
+  await openSettings(page);
   await page.locator('#optCommentWhen button[data-v="challenge"]').click();
+  await closeSettings(page);
   await loadPgn(page, OPERA);
   await page.locator('#moves button >> nth=16').click(); // after 9. Bg5, Black to move
   await expect(page.locator('#chat .msg.challenge').last()).toContainText('Challenge at 9. Bg5', { timeout: 30_000 });

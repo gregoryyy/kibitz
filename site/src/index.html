@@ -106,6 +106,21 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
 .btn.ghost { background: transparent; }
 .btn.icon { padding: 7px 10px; font-family: var(--font-mono); }
+.btn.gear { display: inline-flex; align-items: center; padding: 7px; color: var(--muted); }
+.btn.gear:hover { color: var(--accent); }
+/* Settings (TODO 4.12.1) */
+.settings { width: min(560px, calc(100vw - 32px)); max-height: min(85vh, 820px); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); box-shadow: 0 24px 60px -20px rgb(10 14 40 / .5); }
+.settings::backdrop { background: rgb(10 12 25 / .45); }
+.settings-body { padding: 16px 20px 20px; }
+.settings-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: -16px; margin: -16px -20px 8px; padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--line); z-index: 1; }
+.settings-head h2 { margin: 0; }
+.settings-sec { padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; }
+.settings #coachSettings:not([hidden]) { display: flex; flex-direction: column; gap: 10px; }
+.settings label.row { flex-wrap: nowrap; align-items: flex-start; font-size: 14px; }
+.settings label.row input { margin-top: 3px; }
+.settings-sec:last-child { border-bottom: 0; }
+.settings-sec h3 { margin: 0 0 6px; }
+.settings .lang { width: auto; align-self: flex-start; }
 .btn.small { padding: 4px 9px; font-size: 13px; }
 .btn.danger { color: var(--blunder); }
 .spacer { flex: 1; }
@@ -162,8 +177,8 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 .tabs .count { font: 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
 .pane { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.pane h2 { font: 600 18px/1.2 var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-.pane h3 { font: 600 12px/1.2 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+.pane h2, .settings h2 { font: 600 18px/1.2 var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.pane h3, .settings h3 { font: 600 12px/1.2 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label, .lbl-sm { font-size: 13px; color: var(--muted); font-weight: 500; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -277,7 +292,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <button id="modePlay" aria-pressed="true">Play</button>
     <button id="modeAnalyse" aria-pressed="false">Analyse</button>
   </div>
-  <select id="optLang" class="lang" aria-label="Language" translate="no"></select>
+  <button class="btn icon gear" id="btnSettings" aria-haspopup="dialog" aria-controls="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.4 7.4 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5a.5.5 0 0 0 .6.2l2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6a.5.5 0 0 0 .5.4h4a.5.5 0 0 0 .5-.4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1a.5.5 0 0 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
   <div class="engine-status" id="engineStatus"><span class="dot" id="engineDot"></span><span id="engineText">Loading Stockfish…</span></div>
 </header>
 
@@ -366,18 +381,11 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div class="choice" id="optHelp"><button data-v="off" aria-pressed="false">Off</button><button data-v="flags" aria-pressed="true">Flag mistakes</button><button data-v="eval" aria-pressed="false">Eval + mistakes</button><button data-v="full" aria-pressed="false">Full engine</button></div>
         <span class="hint" id="helpHint"></span>
       </div>
-      <div class="field"><span class="lbl-sm">Your level (sets the coach's language and reading list)</span>
-        <div class="choice" id="optLevel"><button data-v="1" aria-pressed="false">Beginner</button><button data-v="2" aria-pressed="true">Club</button><button data-v="3" aria-pressed="false">Advanced</button><button data-v="4" aria-pressed="false">Expert</button></div>
-      </div>
       <div class="row"><button class="btn primary" id="btnNewGame">Start game</button><span class="hint" id="gameStateHint"></span></div>
       <details class="box"><summary>Load a position or PGN to analyse</summary>
         <div class="field"><textarea id="loadText" rows="4" placeholder="Paste a FEN or a PGN game"></textarea></div>
         <div class="row" style="margin-top:8px"><button class="btn" id="btnLoad">Load into analysis</button><span class="hint" id="loadMsg"></span></div>
       </details>
-      <div class="field"><h3>Engine</h3>
-        <dl class="kv"><dt>Analysis depth</dt><dd><select id="optDepth" style="width:auto"><option value="12">12 (fast)</option><option value="14" selected>14</option><option value="16">16</option><option value="18">18 (slow)</option></select></dd>
-        <dt>Runs</dt><dd id="engineWhere">In your browser, nothing leaves the page.</dd></dl>
-      </div>
     </div>
 
     <div class="pane" data-pane="coach" hidden>
@@ -385,9 +393,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div class="chips" id="aspectPicker" role="group" aria-labelledby="aspectLbl"></div>
         <span class="hint" id="aspectHint" role="status"></span>
       </div>
-      <div class="field"><span class="lbl-sm">How the coach works</span>
-        <div class="choice" id="optCommentWhen"><button data-v="request" aria-pressed="true">Only when asked</button><button data-v="mistakes" aria-pressed="false">After my mistakes</button><button data-v="every" aria-pressed="false">After my moves</button><button data-v="commentary" aria-pressed="false">Commentary on every move</button><button data-v="challenge" aria-pressed="false">Challenge me</button></div>
-        <span class="hint" id="modeHint"></span>
+      <div class="field" id="challengeField" hidden><span class="lbl-sm">Challenges</span>
         <p class="hint" id="challengeProgress" hidden></p>
       </div>
       <div class="field"><span class="lbl-sm" id="interestingLbl">Interesting moves, not only the best</span>
@@ -395,15 +401,6 @@ a.ext { color: var(--accent); font-size: 14px; }
           <span class="hint">within</span><div class="choice" id="optWindow"><button data-v="50">0.5</button><button data-v="100">1</button><button data-v="200">2</button></div><span class="hint">pawns of the best</span></div>
         <ol class="interesting" id="interesting" aria-labelledby="interestingLbl"></ol>
       </div>
-      <details class="box" id="coachSettings" hidden><summary>Coach settings</summary>
-        <div class="field"><span class="lbl-sm">AI provider</span><div class="choice" id="optProvider"></div><span class="hint" id="providerHint"></span></div>
-        <dl class="kv" id="coachModels" style="margin-top:10px"></dl>
-        <label class="row" style="gap:8px;margin-top:10px"><input type="checkbox" id="optLocalOnly"> Local only: nothing leaves this machine (Ollama or the in-browser model)</label>
-        <label class="row" style="gap:8px;margin-top:6px" id="quickInBrowserRow" hidden><input type="checkbox" id="optQuickInBrowser"> Quick questions and comments use the in-browser model</label>
-        <div class="row" style="margin-top:10px"><button class="btn small" id="btnTestAi">Test connection</button><span class="hint" id="testAiMsg" role="status"></span></div>
-        <p class="hint" id="coachUsage" translate="no"></p>
-        <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
-      </details>
     </div>
 
     <div class="pane" data-pane="review" hidden>
@@ -446,6 +443,43 @@ a.ext { color: var(--accent); font-size: 14px; }
     </div>
   </section>
 </main>
+<!-- Settings (TODO 4.12.1): what isn't part of one tab's task. A modal dialog: Escape, the close
+     button and a click outside close it, and focus stays inside while it is open. -->
+<dialog id="settings" class="settings" aria-labelledby="settingsTitle">
+  <div class="settings-body">
+    <div class="settings-head"><h2 id="settingsTitle">Settings</h2><button class="btn icon" id="btnSettingsClose" aria-label="Close settings" title="Close (Esc)">✕</button></div>
+    <section class="settings-sec">
+      <h3>General</h3>
+      <div class="field"><label class="lbl-sm" for="optLang">Language</label><select id="optLang" class="lang" translate="no"></select></div>
+      <div class="field"><span class="lbl-sm">Your level (sets the coach's language and reading list)</span>
+        <div class="choice" id="optLevel"><button data-v="1" aria-pressed="false">Beginner</button><button data-v="2" aria-pressed="true">Club</button><button data-v="3" aria-pressed="false">Advanced</button><button data-v="4" aria-pressed="false">Expert</button></div>
+      </div>
+    </section>
+    <section class="settings-sec">
+      <h3>Coach</h3>
+      <div class="field"><span class="lbl-sm">How the coach works</span>
+        <div class="choice" id="optCommentWhen"><button data-v="request" aria-pressed="true">Only when asked</button><button data-v="mistakes" aria-pressed="false">After my mistakes</button><button data-v="every" aria-pressed="false">After my moves</button><button data-v="commentary" aria-pressed="false">Commentary on every move</button><button data-v="challenge" aria-pressed="false">Challenge me</button></div>
+        <span class="hint" id="modeHint"></span>
+      </div>
+      <div id="coachSettings" hidden>
+        <div class="field"><span class="lbl-sm">AI provider</span><div class="choice" id="optProvider"></div><span class="hint" id="providerHint"></span></div>
+        <dl class="kv" id="coachModels"></dl>
+        <label class="row"><input type="checkbox" id="optLocalOnly"> Local only: nothing leaves this machine (Ollama or the in-browser model)</label>
+        <label class="row" id="quickInBrowserRow" hidden><input type="checkbox" id="optQuickInBrowser"> Quick questions and comments use the in-browser model</label>
+        <div class="row"><button class="btn small" id="btnTestAi">Test connection</button><span class="hint" id="testAiMsg" role="status"></span></div>
+        <p class="hint" id="coachUsage" translate="no"></p>
+        <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
+      </div>
+    </section>
+    <section class="settings-sec">
+      <h3>Engine</h3>
+      <div class="field">
+        <dl class="kv"><dt>Analysis depth</dt><dd><select id="optDepth" style="width:auto"><option value="12">12 (fast)</option><option value="14" selected>14</option><option value="16">16</option><option value="18">18 (slow)</option></select></dd>
+        <dt>Runs</dt><dd id="engineWhere">In your browser, nothing leaves the page.</dd></dl>
+      </div>
+    </section>
+  </div>
+</dialog>
 <div class="toast" id="toast" role="status"></div>
 <div class="sr-only" id="announce" aria-live="polite" aria-atomic="true"></div>
 
@@ -1691,7 +1725,7 @@ $('#btnTestAi').addEventListener('click', async () => {
   } catch (e) { msg.textContent = 'Failed: ' + (e.message || coachError(e)); }
   refreshGateway();
 });
-$('#coachSettings').addEventListener('toggle', () => { if ($('#coachSettings').open) refreshGateway(); });
+
 const QUICK = [
   ['What\'s the plan?', 'What is the main plan for the side to move here, and why?'],
   ['Explain the best move', 'Explain the idea behind Stockfish\'s best move in this position.'],
@@ -1803,7 +1837,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
     if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled'].includes(e?.code)) { COACH.sample = null; $('#coachOff').hidden = false; $('#coachSend').disabled = true; renderChips(); }
   } finally {
     if (COACH.ctl === ctl) { $('#coachStop').hidden = true; $('#coachSend').disabled = !COACH.sample; chat.removeAttribute('aria-busy'); }
-    if ($('#coachSettings').open) refreshGateway(); // today's usage
+    if ($('#settings').open) refreshGateway(); // today's usage
   }
 }
 // ---------------------------------------------------------------- Tutor comments (TODO 3.2-3.7)
@@ -1885,6 +1919,7 @@ function answerChallenge(input) {
 function renderProgress() {
   const p = TUTOR.progress, themes = Object.entries(p);
   const box = $('#challengeProgress');
+  $('#challengeField').hidden = !themes.length;
   if (!themes.length) { box.hidden = true; return; }
   const right = themes.reduce((a, [, t]) => a + t.right, 0), tries = themes.reduce((a, [, t]) => a + t.tries, 0);
   box.hidden = false;
@@ -2196,6 +2231,16 @@ function modeHint() {
   }[S.commentWhen];
 }
 modeHint(); renderProgress();
+
+// ---------------------------------------------------------------- Settings (TODO 4.12.1)
+// A modal <dialog>: the browser keeps focus inside, closes it on Escape and gives focus back to the
+// gear. A click on the backdrop (outside .settings-body) closes it too.
+{
+  const dlg = /** @type {HTMLDialogElement} */ ($('#settings'));
+  $('#btnSettings').addEventListener('click', () => { dlg.showModal(); if (!$('#coachSettings').hidden) refreshGateway(); });
+  $('#btnSettingsClose').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+}
 $('#btnComment').addEventListener('click', () => commentOn(S.cursor));
 choice('#optLevel', S.level, v => { S.level = +v; saveSettings(); renderAll(); renderPlayers(); });
 choice('#libFilter', 'all', () => renderLibrary());

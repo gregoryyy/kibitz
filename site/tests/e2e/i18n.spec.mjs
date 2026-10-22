@@ -1,6 +1,6 @@
 // Languages (TODO 10.8): switching to German translates the page, asks the coach for German, and
 // reads German move letters. With ?debug the page lists any text it showed without a translation.
-import { test, expect, open, reveal, OPERA } from './fixtures.mjs';
+import { test, expect, open, reveal, OPERA, openSettings } from './fixtures.mjs';
 
 const gaps = page => page.evaluate(() => [.../** @type {any} */ (window).__kibitz.I18N_GAPS].map(([text, where]) => `${text} (${where})`));
 
@@ -13,6 +13,7 @@ test('German: the switch translates the page, the coach is asked for German, and
   });
   await open(page);
   await expect(page.locator('[data-tab="game"]')).toHaveText('Game');
+  await openSettings(page);
   await page.locator('#optLang').selectOption('de');
   await expect(page.locator('#engineDot')).toHaveClass(/ok/); // the page reloads in German
   await expect(page.locator('html')).toHaveAttribute('lang', 'de');
@@ -49,6 +50,7 @@ test('German: the switch translates the page, the coach is asked for German, and
   expect(await gaps(page)).toEqual([]);
 
   // And back to English
+  await openSettings(page);
   await page.locator('#optLang').selectOption('en');
   await expect(page.locator('#engineDot')).toHaveClass(/ok/);
   await expect(page.locator('[data-tab="game"]')).toHaveText('Game');
@@ -59,6 +61,7 @@ test('switching the language in a running game keeps the game going', async ({ p
   await page.locator('#btnNewGame').click();
   await page.locator('#moveInput').fill('e4'); await page.locator('#moveInput').press('Enter');
   await expect(page.locator('#moves button')).toHaveCount(2, { timeout: 30_000 });
+  await openSettings(page);
   await page.locator('#optLang').selectOption('de');
   await expect(page.locator('[data-tab="game"]')).toHaveText('Partie');
   await expect(page.locator('#engineDot')).toHaveClass(/ok/);

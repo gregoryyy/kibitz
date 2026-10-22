@@ -1,5 +1,5 @@
 // Tutor comments: aspects, templates, checked answers, when the coach comments, cache (TODO 3.2-3.7).
-import { test, expect, open, move } from './fixtures.mjs';
+import { test, expect, open, move, openSettings, closeSettings } from './fixtures.mjs';
 
 // Records the bodies of the page's requests to the AI gateway.
 function recordSamples(page) {
@@ -67,9 +67,9 @@ test('an answer\'s moves and piece claims are checked: an illegal move is underl
 test('after every move: the coach comments on the player\'s move beside the board, without spoiling the position', async ({ page }) => {
   const bodies = recordSamples(page);
   await open(page);
-  await page.locator('[data-tab="coach"]').click();
+  await openSettings(page);
   await page.locator('#optCommentWhen button[data-v="every"]').click();
-  await page.locator('[data-tab="game"]').click();
+  await closeSettings(page);
   await move(page, 'e2', 'e4');
   const comment = page.locator('#chat .msg.coach').last();
   await expect(comment).toContainText('Coach on 1. e4', { timeout: 20_000 });
@@ -89,8 +89,9 @@ test('with engine help off, the coach stays quiet during the game', async ({ pag
   const bodies = recordSamples(page);
   await open(page);
   await page.locator('#optHelp button[data-v="off"]').click();
-  await page.locator('[data-tab="coach"]').click();
+  await openSettings(page);
   await page.locator('#optCommentWhen button[data-v="every"]').click();
+  await closeSettings(page);
   await move(page, 'e2', 'e4');
   await expect(page.locator('#moves button')).toHaveCount(2); // Stockfish replied
   await page.waitForTimeout(2_000); // time for the moves to be classified

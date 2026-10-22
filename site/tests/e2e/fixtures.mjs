@@ -43,6 +43,16 @@ export async function move(page, from, to) {
   for (const sq of [from, to]) { const p = await squareCenter(page, sq); await page.mouse.click(p.x, p.y); await page.waitForTimeout(80); }
 }
 
+// The settings overlay (TODO 4.12.1): open it, and close it again before using the page behind it.
+export async function openSettings(page) {
+  await page.locator('#btnSettings').click();
+  await expect(page.locator('#settings')).toBeVisible();
+}
+export async function closeSettings(page) {
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#settings')).toBeHidden();
+}
+
 // Opens the collapsed <details> section that holds `selector`.
 export const reveal = (page, selector) => page.locator(`details:has(${selector})`).evaluate(d => { d.open = true; });
 
