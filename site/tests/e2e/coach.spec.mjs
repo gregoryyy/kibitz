@@ -80,3 +80,11 @@ test('a spent budget shows the server\'s message in the dialogue', async ({ page
   await page.locator('#coachChips .chip').first().click();
   await expect(page.locator('#chat .msg.coach').last()).toContainText('You\'ve used today\'s budget of 20 tokens on paid models');
 });
+
+test('a request the provider rejects shows its reason, not a generic error', async ({ page }) => {
+  await page.route('**/api/ai/sample', route => route.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_rejected', message: 'The AI provider rejected the request: "deepseek-R1:latest" does not support chat' } }) }));
+  await open(page);
+  await page.locator('#coachInput').fill('What now?');
+  await page.locator('#coachSend').click();
+  await expect(page.locator('#chat .msg.coach').last()).toContainText('does not support chat');
+});

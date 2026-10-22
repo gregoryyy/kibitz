@@ -115,25 +115,26 @@ export function retrieveClassics(features, { limit = 3, exclude = null } = {}) {
 
 // --- Game references in text ---------------------------------------------------
 // How the coach (or a book) names each classic: its title, or the players as a pairing
-// ("Réti–Tartakower", "Anderssen vs. Kieseritzky"). Only names that mean this one game:
+// ("Réti–Tartakower", "Anderssen vs. Kieseritzky"), in English and German (TODO 10.8: a German
+// answer says "die Opernpartie" or "Morphy gegen den Herzog"). Only names that mean this one game:
 // "Philidor" alone is also an opening, "Lucena" alone a person.
-const pair = (a, b) => `${a}\\s*(?:[–—-]|vs?\\.?|versus|against)\\s*${b}`;
+const pair = (a, b) => `${a}\\s*(?:[–—-]|vs?\\.?|versus|against|gegen)\\s*${b}`;
 const NAMES = {
-  'ex-opera': ['(?:Morphy[\'’]s )?Opera (?:House )?Game', pair('Morphy', '(?:the )?(?:Duke|Count|Isouard|Brunswick)')],
-  'ex-immortal': ['(?<!Rubinstein[\'’]s )Immortal Game', pair('Anderssen', 'Kieseritzky')],
-  'cl-evergreen': ['Evergreen (?:Game|Partie)', pair('Anderssen', 'Dufresne')],
-  'cl-century': ['Game of the Century', pair('(?:Donald )?Byrne', 'Fischer')],
-  'cl-reti-tartakower': [pair('R[ée]ti', 'Tartakower')],
-  'cl-legal': ['L[ée]gal[\'’]s mate', pair('(?:de )?L[ée]gal', 'Saint[ -]Brie')],
+  'ex-opera': ['(?:Morphy[\'’]s )?Opera (?:House )?Game', 'Opernpartie', pair('Morphy', '(?:the |den )?(?:Duke|Count|Herzog|Grafen?|Isouard|Brunswick|Braunschweig)')],
+  'ex-immortal': ['(?<!Rubinstein[\'’]s )Immortal Game', '(?<!Rubinsteins )Unsterbliche(?:n)? Partie', pair('Anderssen', 'Kieseritzky')],
+  'cl-evergreen': ['Evergreen (?:Game|Partie)', 'Immergrüne(?:n)? Partie', pair('Anderssen', 'Dufresne')],
+  'cl-century': ['Game of the Century', 'Partie des Jahrhunderts', pair('(?:Donald )?Byrne', 'Fischer')],
+  'cl-reti-tartakower': [pair('R[ée]ti', 'Tartakower'), 'R[ée]tis Damenopfer'],
+  'cl-legal': ['L[ée]gal[\'’]s mate', 'Seekadettenmatt', pair('(?:de )?L[ée]gal', 'Saint[ -]Brie')],
   'cl-lasker-thomas': [pair('(?:Edward |Ed\\. )?Lasker', 'Thomas')],
-  'cl-rotlewi-rubinstein': ['Rubinstein[\'’]s Immortal', pair('Rotlewi', 'Rubinstein')],
+  'cl-rotlewi-rubinstein': ['Rubinstein[\'’]?s Immortal', 'Rubinsteins Unsterbliche', pair('Rotlewi', 'Rubinstein')],
   'cl-steinitz-bardeleben': [pair('Steinitz', '(?:von )?Bardeleben')],
-  'st-reti': ['R[ée]ti[\'’]s (?:king march|study|endgame study)', 'R[ée]ti (?:study|manoeuvre|maneuver)'],
-  'st-saavedra': ['Saavedra (?:position|study)'],
-  'st-lucena': ['Lucena (?:position|study|1497)'],
-  'st-philidor': ['Philidor (?:position|draw)'],
+  'st-reti': ['R[ée]ti[\'’]s (?:king march|study|endgame study)', 'R[ée]ti (?:study|manoeuvre|maneuver)', 'R[ée]tis (?:Königsmarsch|Studie)', 'R[ée]ti-Studie'],
+  'st-saavedra': ['Saavedra (?:position|study)', 'Saavedra-(?:Stellung|Studie)'],
+  'st-lucena': ['Lucena (?:position|study|1497)', 'Lucena-Stellung'],
+  'st-philidor': ['Philidor (?:position|draw)', 'Philidor-Stellung'],
 };
-const REFS = Object.entries(NAMES).map(([id, names]) => ({ id, re: new RegExp(`\\b(?:the )?(?:${names.join('|')})\\b`, 'giu') }));
+const REFS = Object.entries(NAMES).map(([id, names]) => ({ id, re: new RegExp(`(?<![\\p{L}\\p{N}])(?:(?:the|die|der|den) )?(?:${names.join('|')})(?![\\p{L}\\p{N}])`, 'giu') }));
 
 // The classics a text names, in text order and without overlaps: [{index, length, id}].
 export function findGameRefs(text) {

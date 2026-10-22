@@ -23,13 +23,15 @@ The overall score is the mean of what was measured.
 ## Running it
 
 ```
-just eval                                      # the provider in .env, no judge
-just eval anthropic judge=anthropic            # Claude, graded by Claude
-ANTHROPIC_MODEL=claude-opus-5-5 EVAL_JUDGE_MODEL=claude-opus-5-5 just eval anthropic judge=anthropic
-just eval browser judge=anthropic              # the in-browser model (download it with `just offline` first)
-just eval browser model=qwen2.5-0.5b
 just eval mock                                 # no keys; checks the pipeline
+just eval                                      # the provider in .env, no judge
+just eval anthropic judge=anthropic            # Claude, graded by Claude: prints the plan and stops
+just eval anthropic judge=anthropic yes=1      # ... and runs it
+just eval browser judge=anthropic yes=1        # the in-browser model (download it with `just offline` first)
+just eval browser model=qwen2.5-0.5b
 ```
+
+**Paid runs ask first.** When the coach or the judge is a paid provider (Claude, OpenAI, Mistral), the run prints who answers, with which models, and how many calls it will make, about one per position for each. Then it stops without sending anything; `yes=1` (`--yes`) runs it. The models are the ones in `.env`; `EVAL_JUDGE_MODEL` picks the judge's. A larger model as coach or judge multiplies the cost, so set one only on purpose. The run stops at the first error from the coach or the judge, so a bad key or a used-up budget costs one call, not a whole run.
 
 Each run writes `docs/eval/<provider>-<model>.md`, with every answer, the key points it hit and the judge's notes, plus a `.json` file. It also regenerates the table in `docs/eval/README.md`. Answers differ between runs, so a difference of a few points between two models means little.
 

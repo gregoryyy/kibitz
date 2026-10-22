@@ -42,6 +42,7 @@ header.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; pad
 .brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
 .brand h1 { font: 700 26px/1 var(--font-display); letter-spacing: -0.02em; margin: 0; }
 .brand small { color: var(--muted); font-size: 13px; }
+.lang { width: auto; padding: 4px 6px; font-size: 13px; }
 .engine-status { font: 12px var(--font-mono); color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--inacc); }
 .dot.ok { background: var(--best); } .dot.err { background: var(--blunder); }
@@ -276,6 +277,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <button id="modePlay" aria-pressed="true">Play</button>
     <button id="modeAnalyse" aria-pressed="false">Analyse</button>
   </div>
+  <select id="optLang" class="lang" aria-label="Language" translate="no"></select>
   <div class="engine-status" id="engineStatus"><span class="dot" id="engineDot"></span><span id="engineText">Loading Stockfish…</span></div>
 </header>
 
@@ -284,7 +286,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <div class="player" id="playerTop"></div>
     <div class="boardwrap">
       <div class="evalbar" id="evalbar" title="Engine evaluation"><div class="w" id="evalW" style="height:50%"></div><div class="mid"></div></div>
-      <div class="board-outer"><div id="board" class="cg-wrap"></div><div id="boardPreview" class="board-preview" hidden></div><div id="promo" class="promo" hidden></div></div>
+      <div class="board-outer"><div id="board" class="cg-wrap" translate="no"></div><div id="boardPreview" class="board-preview" hidden></div><div id="promo" class="promo" hidden></div></div>
     </div>
     <div class="player" id="playerBottom"></div>
     <div class="controls">
@@ -326,7 +328,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <textarea id="coachInput" rows="2" placeholder="Ask about this position, your last move, or a plan"></textarea>
         <div class="row" style="flex-direction:column;align-items:stretch;gap:6px"><button class="btn primary" id="coachSend">Ask</button><button class="btn" id="coachStop" hidden>Stop</button></div>
       </div>
-      <p class="hint usage-line" id="usageLine" role="status" hidden></p>
+      <p class="hint usage-line" id="usageLine" role="status" translate="no" hidden></p>
     </div>
     <div class="tabs" role="tablist">
       <button class="tools-toggle" id="btnTools" aria-expanded="true" aria-label="Hide the panels" title="Hide or show the panels below">▾</button>
@@ -399,7 +401,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <label class="row" style="gap:8px;margin-top:10px"><input type="checkbox" id="optLocalOnly"> Local only: nothing leaves this machine (Ollama or the in-browser model)</label>
         <label class="row" style="gap:8px;margin-top:6px" id="quickInBrowserRow" hidden><input type="checkbox" id="optQuickInBrowser"> Quick questions and comments use the in-browser model</label>
         <div class="row" style="margin-top:10px"><button class="btn small" id="btnTestAi">Test connection</button><span class="hint" id="testAiMsg" role="status"></span></div>
-        <p class="hint" id="coachUsage"></p>
+        <p class="hint" id="coachUsage" translate="no"></p>
         <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
       </details>
     </div>
@@ -455,13 +457,15 @@ import { Engine, stockfishAttempts } from './engine.js';
 import { createStore, browserStorage } from './store.js';
 import { quote } from './prompt.js';
 import { createBrowserModel, cpuThreads } from './browser-llm.js';
-import { COACH_RULES, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './tutor.js';
+import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './tutor.js';
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
 import { sanToSpeech, parseMoveInput } from './notation.js';
+import { LANGS, pickLang, translator, isText, germanSanToSan } from './i18n.js';
+import DE from './i18n-de.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -479,6 +483,69 @@ const LEVELS = { 1: 'beginner (under 1200)', 2: 'club player (1200–1800)', 3: 
 const GLYPH = { inaccuracy: '?!', mistake: '?', blunder: '??', best: '', good: '', book: '' };
 const CLS_LABEL = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', best: 'the best move', good: 'a good move', book: 'a book move' };
 const store = createStore(browserStorage());
+
+// ---------------------------------------------------------------- Language (TODO 10.8)
+// The page is written in English; i18n.js translates what it shows as it appears: the markup once,
+// then every text node and title, placeholder and aria-label added later (a MutationObserver), so
+// code that builds text needs no change. Text inside translate="no" stays as it is: the board, the
+// coach's answers (asked for in the player's language), the player's messages, PGN comments.
+const DEBUG = location.search.includes('debug');
+const LANG = pickLang(store.get('lang'), navigator.languages || [navigator.language]);
+const I18N = translator(LANG === 'de' ? DE : {});
+const t = (text, vars) => I18N.t(text, vars);
+const COACH_RULES = coachRules(LANG);
+const I18N_ATTRS = ['title', 'placeholder', 'aria-label'];
+const I18N_GAPS = new Map(); // ?debug: text shown without a translation (all of it in English) -> where
+const I18N_DONE = new WeakMap(); // text nodes translated, with what was written, so the echo is ignored
+const where = e => e ? `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${e.className && typeof e.className === 'string' ? '.' + e.className.split(' ')[0] : ''} in ${e.parentElement?.id || e.parentElement?.className || '?'}` : '?';
+function translateText(n) {
+  if (!n.isConnected || I18N_DONE.get(n) === n.data || n.parentElement?.closest('[translate="no"], script, style')) return; // gone already, or echo, or data
+  const v = I18N.find(n.data);
+  if (v === null) { if (DEBUG && isText(n.data)) I18N_GAPS.set(n.data.trim(), where(n.parentElement)); return; }
+  I18N_DONE.set(n, v); if (v !== n.data) n.data = v;
+}
+const I18N_ATTR_DONE = new WeakMap(); // element -> {attribute: what was written}
+function translateAttr(e, a) {
+  const old = e.getAttribute(a); if (!old || !e.isConnected || e.hasAttribute('data-raw')) return; // data-raw: its attributes are data
+  const done = I18N_ATTR_DONE.get(e) || {};
+  if (done[a] === old) return;
+  const v = I18N.find(old);
+  if (v === null) { if (DEBUG && isText(old)) I18N_GAPS.set(old.trim(), where(e) + '@' + a); return; }
+  done[a] = v; I18N_ATTR_DONE.set(e, done);
+  if (v !== old) e.setAttribute(a, v);
+}
+// Attributes are ours (titles, labels), so they are translated inside translate="no" too, except
+// on an element marked data-raw (a model id, an opening name as a title).
+function translateTree(n) {
+  if (n.nodeType === 3) return translateText(n);
+  if (n.nodeType !== 1 || n.matches('script, style')) return;
+  for (const a of I18N_ATTRS) if (n.hasAttribute(a)) translateAttr(n, a);
+  for (const k of n.childNodes) translateTree(k);
+}
+if (LANG !== 'en' || DEBUG) {
+  document.documentElement.lang = LANG;
+  translateTree(document.body);
+  new MutationObserver(recs => {
+    for (const r of recs) {
+      if (r.type === 'childList') r.addedNodes.forEach(translateTree);
+      else if (r.type === 'characterData') translateText(/** @type {Text} */ (r.target));
+      else if (r.type === 'attributes' && r.target.nodeType === 1) translateAttr(/** @type {Element} */ (r.target), r.attributeName);
+    }
+  }).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS });
+}
+{
+  const sel = $('#optLang');
+  for (const [id, name] of Object.entries(LANGS)) sel.append(el('option', { value: id, selected: id === LANG }, name));
+  // The page reloads in the new language. Inside the artifact the host's snapshot brings the game
+  // back; the local app can't resume a running game yet (TODO 1.15), so it goes to the library first.
+  const switchTo = lang => { store.set('lang', lang); location.reload(); };
+  sel.addEventListener('change', () => {
+    const lang = sel.value;
+    if (!S.playing || S.nodes.length < 2 || window.claude?.hot) return switchTo(lang);
+    sel.value = LANG;
+    confirmBox('Switching the language reloads the page. The game in progress is saved to your library as unfinished.', 'Switch', async () => { await saveCurrentGame({ quiet: true, result: '*' }); switchTo(lang); });
+  });
+}
 // Opening names are looked up this deep into a game; positions this early in the ECO table count as book moves.
 const OPENING_PLIES = 40, BOOK_PLIES = 30;
 // sample(input, {task, ...}): the task (quick | chat | review) picks the gateway's model for it; the
@@ -535,8 +602,14 @@ async function gatewaySample(input, { signal, onText, task } = {}) {
     return { text, truncated, usage };
 }
 // Screen-reader announcements (moves, navigation); the toast above is a status region too.
+// Answers in German may still write moves with German letters (Sf3); they become SAN before they
+// are checked and shown, streamed text included.
+function germanSans(sample) {
+  return (input, opts = {}) => sample(input, { ...opts, ...(opts.onText ? { onText: r => opts.onText({ ...r, text: germanSanToSan(r.text) }) } : {}) })
+    .then(r => ({ ...r, text: germanSanToSan(r.text) }));
+}
 function announce(text) { const a = $('#announce'); a.textContent = ''; requestAnimationFrame(() => { a.textContent = text; }); }
-function spokenMove(i) { const n = S.nodes[i]; return `${moveNum(i)}${n.color === 'w' ? '.' : '…'} ${n.color === 'w' ? 'White' : 'Black'} ${sanToSpeech(n.san)}`; }
+function spokenMove(i) { const n = S.nodes[i]; return `${moveNum(i)}${n.color === 'w' ? '.' : '…'} ${n.color === 'w' ? 'White' : 'Black'} ${sanToSpeech(n.san, LANG)}`; }
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2200); }
 
 // ---------------------------------------------------------------- Engine
@@ -738,7 +811,7 @@ function playMove(m, { fromEngine = false } = {}) {
   S.cursor = last();
   // The first move starts the other side's clock; later moves switch it and add the increment.
   if (timed) { S.clock = pressClock(S.clock, now, mv.color === 'w' ? 'b' : 'w'); S.nodes[S.cursor].clk = { w: S.clock.w, b: S.clock.b }; }
-  announce(S.mode === 'play' ? `${fromEngine ? 'Stockfish' : 'You'} played ${sanToSpeech(mv.san)}.` : spokenMove(S.cursor));
+  announce(S.mode === 'play' ? `${fromEngine ? 'Stockfish' : 'You'} played ${sanToSpeech(mv.san, LANG)}.` : spokenMove(S.cursor));
   hintShape = null;
   checkGameOver(c);
   renderAll();
@@ -880,6 +953,8 @@ function updateGraphCursor() {
 function renderAll() { scheduleSave(); updateGraphCursor(); syncBoard(); renderMoves(); renderPlayers(); renderEval(); renderControls(); showFlag(); renderOpening(); renderCoachCtx(); renderReading(); renderReviewHeader(); renderAspectPicker(); renderInteresting(); }
 function renderOpening() {
   const op = openingAt(S.cursor) || openingAt(last());
+  // Opening names (eco.json) and a game's own title are data; the fallbacks are ours.
+  $('#openingName').translate = !op && !S.meta?.title;
   $('#openingName').textContent = op ? op.name : (S.meta?.title || (S.start === START ? 'Starting position' : 'Custom position'));
   $('#openingEco').textContent = op ? op.eco : '';
 }
@@ -911,11 +986,13 @@ function lastOwnMove() {
   for (let i = S.cursor; i > 0; i--) if (S.nodes[i].color === S.userColor) return i;
   return 0;
 }
+// The node whose evaluation the player may see (0: none). Help 'eval' shows the position after the
+// player's last move and holds it through Stockfish's reply: a jump there would tell the player
+// that a tactic is waiting.
+function evalNode() { return showEngine() ? S.cursor : S.help === 'eval' ? lastOwnMove() : 0; }
 function renderEval(liveScore, liveDepth) {
   const bar = $('#evalbar');
-  // Help 'eval' shows the position after the player's last move and holds it through Stockfish's
-  // reply: a jump there would tell the player that a tactic is waiting.
-  const i = showEngine() ? S.cursor : S.help === 'eval' ? lastOwnMove() : 0;
+  const i = evalNode();
   const shown = showEngine() || i > 0;
   bar.classList.toggle('hidden-eval', !shown);
   const fen = S.nodes[i].fen;
@@ -950,7 +1027,7 @@ function renderPlayers() {
   for (const [id, side] of [['#playerTop', top], ['#playerBottom', bottom]]) {
     const box = $(id); box.replaceChildren();
     const thinking = S.thinking && side !== S.userColor && S.mode === 'play';
-    box.append(el('span', { class: 'tomove' + (turn === side ? ' on' : '') }), el('span', { class: 'name' }, names[side].name), el('span', { class: 'meta' }, names[side].meta), capturedFor(side));
+    box.append(el('span', { class: 'tomove' + (turn === side ? ' on' : '') }), el('span', { class: 'name', translate: names[side].data ? 'no' : null }, names[side].name), el('span', { class: 'meta' }, names[side].meta), capturedFor(side));
     const right = el('span', { class: 'right' });
     if (thinking) right.append(el('span', { class: 'clockish' }, 'thinking…'));
     else if (S.over && S.mode === 'play') right.append(el('span', { class: 'clockish' }, S.over.result === '1/2-1/2' ? '½' : ((S.over.result === '1-0') === (side === 'w') ? '1' : '0')));
@@ -960,7 +1037,7 @@ function renderPlayers() {
   renderClocks();
 }
 function playerNames() {
-  if (S.meta && S.mode === 'analysis' && S.meta.white) return { w: { name: S.meta.white, meta: '' }, b: { name: S.meta.black, meta: '' } };
+  if (S.meta && S.mode === 'analysis' && S.meta.white) return { w: { name: S.meta.white, meta: '', data: true }, b: { name: S.meta.black, meta: '', data: true } };
   if (S.mode === 'analysis') return { w: { name: 'White', meta: '' }, b: { name: 'Black', meta: '' } };
   const you = { name: 'You', meta: LEVELS[S.level].split(' (')[0] };
   const style = styleOf(S.style);
@@ -1340,7 +1417,7 @@ function renderLibrary() {
       del.replaceWith(el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id) }, 'Delete'), el('button', { class: 'btn small', onclick: renderLibrary }, 'Keep')));
     } }, 'Delete');
     box.append(el('div', { class: 'game' },
-      el('div', {}, el('div', { class: 'title' }, g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? g.title + ' · ' : '', `${g.white} – ${g.black}`),
+      el('div', {}, el('div', { class: 'title' }, g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? g.title + ' · ' : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, `${g.white} – ${g.black}`)),
         el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills)),
       el('div', { class: 'res' }, g.result || '*'),
       el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g) }, g.reviewed ? 'Open review' : 'Open'),
@@ -1390,6 +1467,7 @@ function tally() {
 function renderReviewHeader() {
   $('#btnReview').textContent = S.reviewDone ? 'Re-run review' : 'Run review';
   $('#btnReview').disabled = S.nodes.length < 2 || !!reviewCtl || (S.playing && !S.over);
+  $('#reviewTitle').translate = !S.meta?.white;
   $('#reviewTitle').textContent = S.meta?.white ? `${S.meta.white} – ${S.meta.black}` : 'Game review';
 }
 async function runReview() {
@@ -1477,7 +1555,7 @@ function evalGraph() {
 // ---------------------------------------------------------------- Coach (Claude)
 const COACH = { sample: null, ctl: null };
 const chatTurns = [];
-function setCoach(s) { COACH.sample = s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !s; $('#btnStudyPlan').disabled = !s; renderChips(); renderAspectPicker(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; }
+function setCoach(s) { COACH.sample = s && LANG === 'de' ? germanSans(s) : s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !s; $('#btnStudyPlan').disabled = !s; renderChips(); renderAspectPicker(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; }
 use('sample').then(setCoach);
 // Coach settings (local gateway only): provider, models per task, local-only mode, a connection
 // test and today's usage. Keys and models stay in .env; the page only picks among what's set up.
@@ -1486,14 +1564,14 @@ function renderCoachSettings() {
   const g = GATEWAY;
   $('#coachSettings').hidden = !g;
   if (!g) return;
-  $('#optProvider').replaceChildren(...(g.providers || []).map(p => el('button', { 'data-v': p.name, 'aria-pressed': String(p.name === g.provider), disabled: !p.available && p.name !== g.provider, title: p.available ? p.model : p.reason }, PROVIDER_LABEL[p.name] || p.name)));
+  $('#optProvider').replaceChildren(...(g.providers || []).map(p => el('button', { 'data-v': p.name, 'aria-pressed': String(p.name === g.provider), disabled: !p.available && p.name !== g.provider, title: p.available ? p.model : p.reason, 'data-raw': p.available ? '' : null }, PROVIDER_LABEL[p.name] || p.name)));
   const off = (g.providers || []).filter(p => !p.available && p.name !== g.provider).map(p => `${PROVIDER_LABEL[p.name] || p.name}: ${p.reason}`);
   $('#providerHint').replaceChildren(...[g.available ? '' : g.reason, ...off].filter(Boolean).map(t => el('div', {}, t)));
-  $('#coachModels').replaceChildren(...(g.models ? [['Quick questions', g.models.quick], ['Chat', g.models.chat], ['Reviews and plans', g.models.review]] : []).flatMap(([k, v]) => [el('dt', {}, k), el('dd', { class: 'mono' }, v)]));
+  $('#coachModels').replaceChildren(...(g.models ? [['Quick questions', g.models.quick], ['Chat', g.models.chat], ['Reviews and plans', g.models.review]] : []).flatMap(([k, v]) => [el('dt', {}, k), el('dd', { class: 'mono', translate: 'no' }, v)]));
   $('#optLocalOnly').checked = !!g.localOnly;
   $('#quickInBrowserRow').hidden = !g.browser || g.provider === 'browser';
   $('#optQuickInBrowser').checked = S.quickInBrowser;
-  $('#coachUsage').textContent = [usageText(g.usage).replace(/^Today:/, 'Server today:'), userUsageText(g.user, g.paid)].filter(Boolean).join(' ');
+  $('#coachUsage').textContent = [usageText(g.usage, true), userUsageText(g.user, g.paid)].filter(Boolean).join(' ');
   renderUsageLine();
   renderBrowserModel();
 }
@@ -1559,30 +1637,31 @@ $('#optQuickInBrowser').addEventListener('change', e => { S.quickInBrowser = e.t
 function usageNote(u) {
   if (!u || !(u.input + u.output)) return null;
   const cost = typeof u.cost === 'number' ? ` · $${u.cost.toFixed(u.cost < 0.01 ? 4 : 2)}` : '';
-  return el('div', { class: 'usage-note', title: 'Tokens in + out for this answer, and its cost from AI_PRICES' }, `${u.input.toLocaleString('en')} + ${u.output.toLocaleString('en')} tokens${cost}`);
+  return el('div', { class: 'usage-note', translate: 'no', title: 'Tokens in + out for this answer, and its cost from AI_PRICES' }, t('{a} + {b} tokens', { a: u.input.toLocaleString(LANG), b: u.output.toLocaleString(LANG) }) + cost);
 }
 // The player's usage today, under the composer: tokens, cost, and what's left of their budgets for paid models.
 function userUsageText(u, paid) {
   if (!u || !u.requests) return '';
-  const n = x => Number(x || 0).toLocaleString('en'), usd = x => `$${x.toFixed(x < 0.01 ? 4 : 2)}`;
-  let t = `You today: ${n(u.requests)} answer${u.requests === 1 ? '' : 's'}, ${n(u.input + u.output)} tokens`;
-  if (typeof u.cost === 'number') t += `, about ${usd(u.cost)}`;
-  const left = [u.budget?.tokens ? `${n(u.left.tokens)} of ${n(u.budget.tokens)} tokens` : '', u.budget?.cost ? `${usd(u.left.cost)} of ${usd(u.budget.cost)}` : ''].filter(Boolean);
-  if (paid && left.length) t += `. Left on paid models: ${left.join(' and ')}`;
-  return t + '.';
+  // Built from translated parts (the element is translate="no"), with numbers in the page's language.
+  const n = x => Number(x || 0).toLocaleString(LANG), usd = x => `$${x.toFixed(x < 0.01 ? 4 : 2)}`;
+  let s = t(u.requests === 1 ? 'You today: {n} answer, {t} tokens' : 'You today: {n} answers, {t} tokens', { n: n(u.requests), t: n(u.input + u.output) });
+  if (typeof u.cost === 'number') s += t(', about {c}', { c: usd(u.cost) });
+  const left = [u.budget?.tokens ? t('{a} of {b} tokens', { a: n(u.left.tokens), b: n(u.budget.tokens) }) : '', u.budget?.cost ? t('{a} of {b}', { a: usd(u.left.cost), b: usd(u.budget.cost) }) : ''].filter(Boolean);
+  if (paid && left.length) s += t('. Left on paid models: {x}', { x: left.join(t(' and ')) });
+  return s + '.';
 }
 function renderUsageLine() {
   const t = userUsageText(GATEWAY?.user, GATEWAY?.paid);
   $('#usageLine').textContent = t; $('#usageLine').hidden = !t;
 }
-function usageText(u) {
+function usageText(u, server = false) {
   if (!u) return '';
-  const n = x => Number(x || 0).toLocaleString('en');
-  let t = `Today: ${n(u.requests)} request${u.requests === 1 ? '' : 's'}, ${n(u.input)} tokens in, ${n(u.output)} out`;
-  if (typeof u.cost === 'number' && u.input + u.output > 0) t += `, about $${u.cost.toFixed(u.cost < 0.01 ? 4 : 2)}${u.unpricedTokens ? ' (some models have no price in AI_PRICES)' : ''}`;
-  else if (u.input + u.output > 0) t += ' (set AI_PRICES in .env for a cost estimate)';
-  if (u.budget) t += `. Budget left today: ${n(u.left)} of ${n(u.budget)} tokens`;
-  return t + '.';
+  const n = x => Number(x || 0).toLocaleString(LANG);
+  let s = t(u.requests === 1 ? '{who}: {n} request, {i} tokens in, {o} out' : '{who}: {n} requests, {i} tokens in, {o} out', { who: t(server ? 'Server today' : 'Today'), n: n(u.requests), i: n(u.input), o: n(u.output) });
+  if (typeof u.cost === 'number' && u.input + u.output > 0) s += t(', about {c}', { c: `$${u.cost.toFixed(u.cost < 0.01 ? 4 : 2)}` }) + (u.unpricedTokens ? t(' (some models have no price in AI_PRICES)') : '');
+  else if (u.input + u.output > 0) s += t(' (set AI_PRICES in .env for a cost estimate)');
+  if (u.budget) s += t('. Budget left today: {a} of {b} tokens', { a: n(u.left), b: n(u.budget) });
+  return s + '.';
 }
 async function gatewayPost(path, body) {
   const r = await fetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -1631,10 +1710,15 @@ function renderChips() {
   box.append(el('button', { class: 'chip', id: 'btnChallenge', title: 'The coach asks, you answer; the engine checks', onclick: () => startChallenge(S.cursor) }, 'Challenge me'));
 }
 function renderCoachCtx() {
-  const i = S.cursor; const fen = nodeFen(); const a = anaOf(fen);
+  const i = S.cursor; const fen = nodeFen();
   const turn = turnOf(fen) === 'w' ? 'White' : 'Black';
-  const ev = terminalCp(fen) !== null ? 'game over' : a ? `${fmtScore(a.lines[0]?.score)} d${a.depth || '–'}` : 'analysing…';
-  $('#coachCtx').textContent = `Looking at ${i ? 'after ' + moveLabel(i) : 'the start'} · ${turn} to move · ${showEngine() ? 'eval ' + ev : 'eval hidden while you play'} · coach sees ${{ all: 'the engine\'s analysis', past: 'how your moves rated', none: 'no engine data' }[engineView(S)]}`;
+  const evOf = f => { const x = anaOf(f); return terminalCp(f) !== null ? 'game over' : x ? `${fmtScore(x.lines[0]?.score)} d${x.depth || '–'}` : 'analysing…'; };
+  // What the eval bar shows, in words: the help setting decides, as in renderEval.
+  const j = evalNode();
+  const ev = showEngine() ? 'eval ' + evOf(fen)
+    : S.help !== 'eval' ? 'eval hidden while you play'
+    : j ? `eval after your move ${moveLabel(j)}: ${evOf(S.nodes[j].fen)}` : 'eval after your first move';
+  $('#coachCtx').textContent = `Looking at ${i ? 'after ' + moveLabel(i) : 'the start'} · ${turn} to move · ${ev} · coach sees ${{ all: 'the engine\'s analysis', past: 'how your moves rated', none: 'no engine data' }[engineView(S)]}`;
 }
 // The coach's context for node i. view (tutor.js engineView): 'all' gives everything; 'past'
 // (mid-game, help "flag mistakes") leaves out the engine's view of the current position and rates
@@ -1753,7 +1837,7 @@ function renderInteresting() {
     li.addEventListener('focus', () => show(true)); li.addEventListener('blur', () => show(false));
     return li;
   };
-  const tags = t => t.filter(x => x !== 'forcing' && x !== 'quiet').map(x => x.replace('-', ' ')).join(', ') || (t.includes('quiet') ? 'quiet move' : 'forcing move');
+  const tags = ts => ts.filter(x => x !== 'forcing' && x !== 'quiet').map(x => t(x.replace('-', ' '))).join(', ') || t(ts.includes('quiet') ? 'quiet move' : 'forcing move');
   box.replaceChildren(item(r.best, 'best'), ...r.picks.map(p => item(p, `rank ${p.rank}, ${(p.gap / 100).toFixed(2)} below: ${tags(p.tags)}`)));
   if (!r.picks.length) box.append(el('li', { class: 'empty-note' }, `No other move within ${S.window / 100} pawn${S.window === 100 ? '' : 's'} stands out here.`));
 }
@@ -1788,7 +1872,7 @@ function answerChallenge(input) {
   const c = openChallenge(); if (!c) return;
   const { ch, bubble } = c;
   const note = bubble.querySelector('.challenge-note');
-  const r = input === null ? { valid: true, correct: false, verdict: `The answer: ${ch.answerSan} (${ch.eval}).` } : checkChallenge(Chess, ch, input);
+  const r = input === null ? { valid: true, correct: false, verdict: `The answer: ${ch.answerSan} (${ch.eval}).` } : checkChallenge(Chess, ch, LANG === 'de' ? germanSanToSan(input) : input);
   if (!r.valid) { note.textContent = r.verdict; return; } // try again
   TUTOR.challenge = null;
   $('#coachInput').placeholder = 'Ask about this position, your last move, or a plan';
@@ -1829,7 +1913,7 @@ async function commentOn(i) {
     bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, head));
     const body = el('div'); renderRich(body, text, fen, check); bubble.append(body); chat.scrollTop = chat.scrollHeight;
   };
-  const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact' });
+  const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact', lang: LANG });
   let text = TUTOR.cache.get(key), usage = null;
   const cached = text !== undefined;
   if (!cached) {
@@ -1868,7 +1952,7 @@ function autoComment(i) {
 }
 function coachError(e) {
   const m = { rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.', needs_consent: 'The in-browser model isn\'t loaded yet: press Load above the chat. It runs on this machine and sends nothing anywhere.', in_browser: 'This model runs in the page; reload the page to use it.' };
-  if (['browser_model', 'budget_exceeded'].includes(e?.code) && e.message) return e.message;
+  if (['browser_model', 'budget_exceeded', 'provider_rejected'].includes(e?.code) && e.message) return e.message;
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
 // The answer's moves and piece claims checked against chess.js and the engine lines the coach saw
@@ -1895,8 +1979,8 @@ function renderRich(box, text, fen = nodeFen(), check = null) {
   for (const b of blocks) {
     const lines = b.split('\n');
     if (lines.every(l => /^\s*([-*•]|\d+\.)\s+/.test(l) || !l.trim())) {
-      const ul = el('ul'); lines.filter(l => l.trim()).forEach(l => ul.append(inline(el('li'), l.replace(/^\s*([-*•]|\d+\.)\s+/, ''), fen, marks))); box.append(ul);
-    } else box.append(inline(el('p'), b.replace(/^#+\s*/gm, ''), fen, marks));
+      const ul = el('ul', { translate: 'no' }); lines.filter(l => l.trim()).forEach(l => ul.append(inline(el('li'), l.replace(/^\s*([-*•]|\d+\.)\s+/, ''), fen, marks))); box.append(ul);
+    } else box.append(inline(el('p', { translate: 'no' }), b.replace(/^#+\s*/gm, ''), fen, marks));
   }
   if (check?.problems) box.append(el('p', { class: 'check-note' }, `${check.problems === 1 ? 'One claim' : check.problems + ' claims'} in this answer ${check.problems === 1 ? 'doesn\'t' : 'don\'t'} match the board or Stockfish's lines (marked). Trust the engine over the coach here.`));
 }
@@ -1991,6 +2075,8 @@ async function writeSummary() {
 
 // ---------------------------------------------------------------- Reading (retrieval)
 function userBooks() { return [...Lib.books.values()].map(b => ({ ...b, user: true, level: S.level, about: b.note || 'Your reference.', where: {} })); }
+// A feature whose "why" is the opening's name ("C41 Philidor Defense") has data as its title.
+const ecoWhy = why => (/^[A-E]\d\d /.test(why || '') ? '' : null);
 function renderReading() {
   if (paneHidden('reading')) return; // runs on every move otherwise; openTab('reading') renders it
   const fen = nodeFen(); const i = S.cursor; const op = openingAt(i);
@@ -1998,15 +2084,15 @@ function renderReading() {
   const a = anaOf(fen);
   if (a?.best && showEngine()) K.moveMotifs(Chess, fen, a.best).forEach(m => feats.push({ ...m, weight: 2 }));
   const chips = $('#themeChips'); chips.replaceChildren();
-  if (op) chips.append(el('span', { class: 'chip static on', title: op.name }, `${op.eco} ${op.name.split(':')[0]}`));
-  for (const f of feats) if (!(op && K.openingFamily(op.name) === f.tag)) chips.append(el('span', { class: 'chip static', title: f.why }, K.TAG_LABELS[f.tag] || f.tag));
+  if (op) chips.append(el('span', { class: 'chip static on', title: op.name, translate: 'no', 'data-raw': '' }, `${op.eco} ${op.name.split(':')[0]}`));
+  for (const f of feats) if (!(op && K.openingFamily(op.name) === f.tag)) chips.append(el('span', { class: 'chip static', title: f.why, 'data-raw': ecoWhy(f.why) }, K.TAG_LABELS[f.tag] || f.tag));
   const books = K.retrieveLiterature(feats, { level: S.level, limit: 5, userBooks: userBooks() });
   const bl = $('#bookList'); bl.replaceChildren();
   for (const r of books) {
-    bl.append(el('div', { class: 'book' }, el('div', { class: 'bt' }, r.book.user ? el('span', { class: 'badge' }, 'Yours') : null, r.book.title),
-      el('div', { class: 'ba' }, [r.book.author, r.book.year].filter(Boolean).join(' · ')),
+    bl.append(el('div', { class: 'book' }, el('div', { class: 'bt' }, r.book.user ? el('span', { class: 'badge' }, 'Yours') : null, el('span', { translate: 'no' }, r.book.title)),
+      el('div', { class: 'ba', translate: 'no' }, [r.book.author, r.book.year].filter(Boolean).join(' · ')),
       el('div', { class: 'bw' }, r.book.about), r.where ? el('div', { class: 'where' }, 'Start with ' + r.where + '.') : null,
-      el('div', { class: 'bm' }, ...r.hits.slice(0, 4).map(h => el('span', { title: h.why }, K.TAG_LABELS[h.tag] || h.tag))),
+      el('div', { class: 'bm' }, ...r.hits.slice(0, 4).map(h => el('span', { title: h.why, 'data-raw': ecoWhy(h.why) }, K.TAG_LABELS[h.tag] || h.tag))),
       r.book.user ? el('div', {}, el('button', { class: 'btn small ghost danger', onclick: () => Lib.delBook(r.book.id) }, 'Remove')) : null));
   }
   if (!books.length) bl.append(el('p', { class: 'empty-note' }, 'No references matched this position yet.'));
@@ -2157,7 +2243,7 @@ function renderOpeningResults() {
   const hits = OPENINGS.filter(o => words.every(w => (o[0] + ' ' + o[1]).toLowerCase().includes(w))).slice(0, 8);
   const cur = S.startPick.opening;
   for (const [eco, name, moves] of hits) box.append(el('button', { 'aria-pressed': String(cur?.name === name && cur?.moves === moves), title: sansText(moves.split(' ')),
-    onclick: () => { S.startPick.opening = { eco, name, moves }; saveSettings(); renderOpeningResults(); renderStartPick(); } }, el('span', { class: 'eco-code' }, eco), name));
+    translate: 'no', onclick: () => { S.startPick.opening = { eco, name, moves }; saveSettings(); renderOpeningResults(); renderStartPick(); } }, el('span', { class: 'eco-code' }, eco), name));
   if (!hits.length) box.append(el('span', { class: 'hint' }, 'No opening matches that.'));
 }
 function renderStartPick() {
@@ -2181,7 +2267,7 @@ $('#moveInput').addEventListener('keydown', e => {
     msg.textContent = S.mode === 'play' && S.over ? 'The game is over.' : S.thinking ? 'Wait for Stockfish to move.' : S.mode === 'play' && S.cursor !== last() ? 'Go to the latest move first.' : 'It isn\'t your move.';
     return;
   }
-  const r = parseMoveInput(Chess, nodeFen(), e.target.value);
+  const r = parseMoveInput(Chess, nodeFen(), LANG === 'de' ? germanSanToSan(e.target.value) : e.target.value);
   if (r.error) { msg.textContent = r.error; return; }
   msg.textContent = ''; e.target.value = '';
   playMove({ from: r.from, to: r.to, promotion: r.promotion });
@@ -2269,4 +2355,8 @@ window.claude?.hot?.snapshot?.(snapshot);
 let booted = false;
 const boot = data => { start(data); booted = true; saveSnapshot(); };
 window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(HOSTED ? window.claude.hot.data ?? {} : store.get('current', {}) ?? {});
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS };
+window.claude?.hot?.snapshot?.(() => ({ pgn: toPGN({ annotate: false }), meta: S.meta, comments: S.comments, gameId: S.gameId, cursor: S.cursor, mode: S.mode, playing: S.playing, userColor: S.userColor, orientation: S.orientation, elo: S.elo, style: S.style,
+  startPly: S.startPly, tc: S.gameTc?.id, clock: S.clock && stopClock(S.clock, performance.now()), clockRunning: !!S.clock?.turn }));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 </script>

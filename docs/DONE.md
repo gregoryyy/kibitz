@@ -31,6 +31,94 @@ TODO items: 1.15.
 ### Insights
 
 - **The artifact's snapshot was already the right format.** The work was to write it locally and read it back through the same `start()`, so both hosts restore a game the same way.
+## 2026-10-21 — Paid runs ask first: `just eval` and `just flipbook`
+
+TODO items: none (tooling). It goes with 2.11, the budgets for paid models.
+
+### Implementation notes
+
+- **The problem:** the eval and flipbook scripts call the AI provider in `.env` with its keys, a call per position or step. Earlier today, model variables set in the shell (Opus for the coach and the judge) cost about $2 that no one had agreed to, and 20 of those calls graded error messages.
+- **The guard** (`site/scripts/paid.mjs`): once the gateway is up, and before the first call, both scripts print who answers, with which models (from the gateway's status, or the judge's config) and about how many calls.
+  - With a paid provider (Anthropic, OpenAI, Mistral) as coach or judge, they stop there and send nothing. `--yes` (`just eval … yes=1`, `just flipbook … yes=1`) runs them.
+  - Ollama, the in-browser model and the mock run without asking.
+- **Stop at the first error:** the eval already stopped at a coach error; now a judge error stops it too. The flipbook stops at the first answer that is an error, so a bad key or a used-up budget costs one call.
+- **Docs:** the examples in the justfile and in `site/eval/README.md` no longer suggest Opus. They use the models in `.env` and show the `yes=1` step.
+- **Tests:** unit `paid.test`: what needs `--yes`, and the plan text. Both scripts were run against Anthropic without `--yes`: they printed the plan and sent nothing. The mock flipbook and the eval e2e test run as before.
+## 2026-10-21 — Fix: a rejected request says why; no key fragments in the log
+
+TODO items: fix for 2.x (the AI gateway's errors).
+
+### Implementation notes
+
+- **The bug:** with Ollama and a model pulled by an older Ollama (`deepseek-R1:latest`), the coach said "The coach couldn't answer just now", and Test connection said "Failed: The AI provider returned an error". Ollama's own reason, `"deepseek-R1:latest" does not support chat`, was dropped: every status the gateway didn't know (here 400) became the generic `provider_error`.
+- **The fix:**
+  - A rejected request (400) becomes `provider_rejected`, with the provider's reason in the message: "The AI provider rejected the request: …". The page shows that message in the chat and in Test connection.
+  - `providerReason()` gives the provider's words as one short line, and replaces anything that looks like a key (`sk-…`, even masked) with "[key]".
+  - The gateway's error log now uses it too. Before, a wrong OpenAI key put "sk-proj-***…sU5G" into the server log, against the rule that keys stay out of logs.
+- **Tests:**
+  - unit `ai.test`: a 400 with a reason maps to `provider_rejected` with that reason, and to `provider_error` without one; key fragments are cut and the length is capped.
+  - e2e `coach.spec`: a rejected request shows its reason in the chat.
+
+### Insights
+
+- **The same model fails differently depending on the request.** Ollama answers the old model with 404 "not found" through the SDK's streaming request, but with 400 "does not support chat" through a plain one. Both now say what's wrong. The cure is `ollama pull deepseek-r1` again, or another model from `ollama list`.
+## 2026-10-21 — Languages: English and German
+
+TODO items: 10.8.1 (10.8 started).
+
+### Implementation notes
+
+- **The approach:** English stays the source, and a language is a dictionary from English text to its translation (`site/src/i18n.js`, `i18n-de.js`).
+  - The page translates what it shows as it appears: the markup once at load, then every text node and every title, placeholder and aria-label added later, through a MutationObserver.
+  - Code that builds text needed almost no change, and neither did the pure modules (`knowledge.js`, `tutor.js`, `modes.js`) whose sentences the page shows.
+- **Templates:** a key is exact text or a template with `{placeholders}` ("{n} moves ready. …"). The parts are translated again, so sentences built from smaller pieces come out whole. Two extensions cover German grammar:
+  - `{p|the *}` looks the part up inside a phrase, so "the knight" becomes "den Springer" and "knight move" becomes "Springerzug";
+  - keys starting with "@" only translate parts, never whole text, so a loose connector like "{a} and {b}" can't half-translate an unknown sentence.
+- **What stays as it is:** text inside `translate="no"`, which covers:
+  - the board, the coach's answers (already German) and PGN comments;
+  - player names, book titles and authors, opening names (eco.json is English), and model ids.
+
+  Elements marked `data-raw` keep their attributes too, such as an opening name as a title. Text built from translated parts with numbers in German format (the token counts) is marked the same way.
+- **The coach:** the prompts stay in English, which every model follows best, and a rule asks for the answer in German, using "du" and English move letters (`coachRules`). Comments are cached per language. The few moves an answer still writes with German letters (Sf3, Dxd5) become SAN before they're checked and shown (`germanSanToSan`), and so do moves typed that way. Game references in German answers link too ("die Opernpartie", "Morphy gegen den Herzog").
+- **The switch:** a select in the header. The choice is saved and the page reloads. Without a saved choice, the browser's language decides.
+  - Inside the Claude artifact, the host's snapshot brings the game back.
+  - The local app can't resume a running game yet (new TODO 1.15). So the switch asks first, and saves the game in progress to the library as unfinished.
+- **Tests:**
+  - unit `i18n.test`:
+    - the translator, German move letters and German speech;
+    - the dictionary covers every text and attribute in the markup and every label the modules show;
+    - each template's placeholders match its key;
+    - the coach rule and the cache key.
+  - e2e `i18n.spec`:
+    - the switch, and a German move typed;
+    - the coach asked for German, its German letters read as moves, a German game name linked;
+    - every tab with a loaded game: with `?debug`, the page records each text it showed without a translation, and that list must be empty;
+    - and back to English.
+
+### Deviations
+
+- **Moves keep the English letters,** as on Lichess, rather than K, D, T, L, S. German letters are read, not shown. Showing them, or figurines, as a setting is 10.8.2.
+- **Opening names and the classics' PGN comments stay English** (10.8.3), as do book titles, which are published names.
+- **The tutor eval set is English only** (10.8.4).
+
+### Insights
+
+- **Translating in the DOM beats rewriting every string.** The page builds its text in about 200 places, many of them sentences put together from module output. Matching the finished text against templates kept those places unchanged and made German a single file to review.
+- **A debug list of untranslated text is the test.** Crawling the page in English with `?debug` gave the complete inventory to translate. The same list in German, empty, is the e2e check, and it found everything the first dictionary missed: titles echoed back by the observer, nodes replaced in the same tick, and opening names used as titles.
+- **Grammar needs a little more than templates.** German case ("den Springer") and compounds ("Läuferzug") are handled by phrase lookups. Sentences joined with "; " are translated part by part.
+## 2026-10-21 — Fix: the coach's context line with "Eval + mistakes"
+
+TODO items: fix for 1.14.
+
+### Implementation notes
+
+- **The bug:** with the help level "Eval + mistakes", the eval bar showed the position after the player's move, but the context line above the chat said "eval hidden while you play". The line only knew two cases, the engine shown or not, and so contradicted the setting.
+- **The fix:** one function, `evalNode()`, now decides which position's evaluation the player may see, for both the bar and the line. With "Eval + mistakes" the line says "eval after your first move" until the first move, and then something like "eval after your move 1. e4: +0.30 d14". With Off and Flag mistakes it still says the evaluation is hidden.
+- **Test:** an e2e regression test in `play.spec` covers the line before and after the first move, and after switching to Flag mistakes.
+
+### Insights
+
+- **The bar and the text should be computed by the same function.** 1.14 added the new level to the bar's logic but not to the line that describes the bar.
 
 ---
 

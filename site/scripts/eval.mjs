@@ -1,11 +1,13 @@
 // Runs the tutor eval set (TODO 3.8, eval/positions.mjs) against a provider and writes a report.
 //   node scripts/eval.mjs [--ai env|mock|anthropic|openai|mistral|ollama|browser] [--model ID]
-//                         [--judge none|env|anthropic|openai|mistral|ollama] [--only id,id] [--port 8795]
+//                         [--judge none|env|anthropic|openai|mistral|ollama] [--only id,id] [--port 8795] [--yes]
 // The answers come from the running app, driven headlessly with Playwright, so the coach sees exactly
 // the prompt a player's question produces; the app's own answer check counts the wrong moves.
 // --ai browser runs the in-browser model (`just offline` downloads it; --model picks which).
 // --judge grades every answer with an LLM, called from here (Node), so keys stay on this machine.
 // Model variables set in the shell (ANTHROPIC_MODEL, ..., EVAL_JUDGE_MODEL) take precedence over .env.
+// With a paid provider (coach or judge) it prints the models and the number of calls and stops;
+// --yes runs it (scripts/paid.mjs). It stops at the first error from the coach or the judge.
 // Writes docs/eval/<provider>-<model>.json and .md, and regenerates docs/eval/README.md from all runs.
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
@@ -17,6 +19,7 @@ import { Chess } from 'chess.js';
 import { POSITIONS } from '../eval/positions.mjs';
 import { scoreAnswer, summarise, judgePrompt, JUDGE_SCHEMA } from '../eval/score.mjs';
 import { ask } from './coach-page.mjs';
+import { mayRun, paidPlan, statusModels } from './paid.mjs';
 
 const site = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repo = path.resolve(site, '..');
@@ -82,7 +85,7 @@ async function makeJudge(name) {
   const model = process.env.EVAL_JUDGE_MODEL || config.models?.review || config.model;
   const provider = createProvider(config);
   return {
-    label: `${config.provider} / ${model}`,
+    label: `${config.provider} / ${model}`, provider: config.provider, model,
     grade: async r => (await completeJson(provider, judgePrompt({ context: r.context, question: r.question, answer: r.answer, keyPoints: POSITIONS.find(p => p.id === r.id).keyPoints }), { name: 'eval_judge', schema: JUDGE_SCHEMA }, { model })).data,
   };
 }
@@ -122,8 +125,8 @@ export async function index() {
 }
 
 async function main() {
-  const { values: opt } = parseArgs({ options: { ai: { type: 'string', default: 'env' }, model: { type: 'string', default: '' }, judge: { type: 'string', default: 'none' }, only: { type: 'string', default: '' }, port: { type: 'string', default: '8795' } } });
-  if (!['env', 'mock', 'browser', ...CLOUD].includes(opt.ai) || !['none', 'env', ...CLOUD].includes(opt.judge)) { console.error('usage: eval.mjs [--ai env|mock|browser|anthropic|openai|mistral|ollama] [--model ID] [--judge none|env|anthropic|...] [--only id,id]'); process.exit(2); }
+  const { values: opt } = parseArgs({ options: { ai: { type: 'string', default: 'env' }, model: { type: 'string', default: '' }, judge: { type: 'string', default: 'none' }, only: { type: 'string', default: '' }, port: { type: 'string', default: '8795' }, yes: { type: 'boolean', default: false } } });
+  if (!['env', 'mock', 'browser', ...CLOUD].includes(opt.ai) || !['none', 'env', ...CLOUD].includes(opt.judge)) { console.error('usage: eval.mjs [--ai env|mock|browser|anthropic|openai|mistral|ollama] [--model ID] [--judge none|env|anthropic|...] [--only id,id] [--yes]'); process.exit(2); }
   await fs.access(path.join(site, 'dist', '_test.html')).catch(() => { throw new Error('no build in site/dist: run `just build` first'); });
   const positions = opt.only ? POSITIONS.filter(p => opt.only.split(',').includes(p.id)) : POSITIONS;
   const judge = await makeJudge(opt.judge);
@@ -132,6 +135,14 @@ async function main() {
   try {
     const status = await ready;
     log(`${status}${judge ? `; judge ${judge.label}` : ''}`);
+    // Who answers and what it costs, before the first call.
+    const gw = await (await fetch(`http://127.0.0.1:${opt.port}/api/ai/status`)).json();
+    const uses = [
+      { role: 'coach', provider: gw.provider, models: gw.provider === 'browser' ? [gw.browser?.name || gw.model] : statusModels(gw), calls: positions.length },
+      ...(judge ? [{ role: 'judge', provider: judge.provider, models: [judge.model], calls: positions.length }] : []),
+    ];
+    for (const line of paidPlan(uses)) log(line);
+    if (!mayRun(uses, opt.yes)) { log('Paid calls, so nothing was sent. Check the models above, then run again with --yes (just eval … yes=1).'); process.exitCode = 3; return; }
     browser = await chromium.launch({ channel: process.env.PW_CHANNEL ?? 'chrome', headless: true });
     const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
     await page.addInitScript(() => localStorage.setItem('kibitz.browserModelOk', 'true')); // consent for --ai browser
@@ -151,7 +162,8 @@ async function main() {
         r = await runPosition(page, pos);
       }
       if (r.error) throw new Error(`${pos.id}: the coach answered with an error (${r.error}): ${r.answer}. No report written.`);
-      r.judgement = judge ? await judge.grade(r).catch(e => { log(`judge failed on ${pos.id}: ${e.message}`); return null; }) : null;
+      // A failing judge fails every call after it too (a bad key, a used-up budget): stop.
+      r.judgement = judge ? await judge.grade(r).catch(e => { throw new Error(`${pos.id}: the judge failed: ${e.message}. No report written.`); }) : null;
       r.score = scoreAnswer({ text: r.answer, keyPoints: pos.keyPoints, checks: r.checks, judge: r.judgement });
       log(`${pos.id}: key points ${r.score.hits.filter(Boolean).length}/${pos.keyPoints.length}, wrong moves ${r.checks.invalid}${r.judgement ? `, judge ${pct(r.score.judge)}` : ''}, ${(r.ms / 1000).toFixed(1)} s`);
       results.push(r);

@@ -51,6 +51,10 @@ test('game references: titles and pairings name the classic; openings and people
   assert.deepEqual(ids('the Game of the Century, the Evergreen Game, Steinitz–von Bardeleben, Lasker v Thomas'), ['cl-century', 'cl-evergreen', 'cl-steinitz-bardeleben', 'cl-lasker-thomas']);
   assert.deepEqual(ids('the Lucena position and the Philidor position, the Saavedra study, Réti\'s king march, Légal\'s mate'), ['st-lucena', 'st-philidor', 'st-saavedra', 'st-reti', 'cl-legal']);
   assert.deepEqual(ids('The Philidor Defence, Lucena and Philidor section, an immortal attack, Morphy\'s style'), []);
+  // German answers (TODO 10.8)
+  assert.deepEqual(ids('Wie in der Opernpartie (Morphy gegen den Herzog), Rétis Damenopfer und das Seekadettenmatt'), ['ex-opera', 'ex-opera', 'cl-reti-tartakower', 'cl-legal']);
+  assert.deepEqual(ids('die Unsterbliche Partie, nicht Rubinsteins Unsterbliche; die Lucena-Stellung und die Philidor-Stellung'), ['ex-immortal', 'cl-rotlewi-rubinstein', 'st-lucena', 'st-philidor']);
+  assert.deepEqual(ids('die Philidor-Verteidigung'), []);
   const [r] = findGameRefs('See the Opera Game.');
   assert.equal('See the Opera Game.'.slice(r.index, r.index + r.length), 'the Opera Game');
   for (const c of CLASSICS) assert.ok(findGameRefs(`about ${c.title}`).some(x => x.id === c.id) || ['cl-reti-tartakower', 'cl-lasker-thomas', 'cl-steinitz-bardeleben'].includes(c.id), `${c.id} is found by its title or a pairing`);
