@@ -1,0 +1,2096 @@
+{
+  "schemaVersion": 1,
+  "suite": "kibitz-position-retrieval",
+  "suiteVersion": 1,
+  "retriever": "exact-epd+pawns-v1",
+  "corpusHash": "3dea6cb239ae871630680a159b92fdfdd8e47e504fdbc228af92338730618642",
+  "casesHash": "bb0e9647bc0dce940b63af8ff89b19bf947abe6bbbe3bfecdf2fdc7762ed3235",
+  "cutoffs": [
+    1,
+    3,
+    6
+  ],
+  "counts": {
+    "documents": 21,
+    "occurrences": 481,
+    "annotations": 45,
+    "queries": 24
+  },
+  "summary": {
+    "overall": [
+      {
+        "k": 1,
+        "queries": 24,
+        "answerable": 18,
+        "unanswerable": 6,
+        "precision": 0.8333333333333334,
+        "recall": 0.6481481481481483,
+        "mrr": 0.8333333333333334,
+        "ndcg": 0.7592592592592593,
+        "falsePositiveRate": 0.6666666666666666
+      },
+      {
+        "k": 3,
+        "queries": 24,
+        "answerable": 18,
+        "unanswerable": 6,
+        "precision": 0.4444444444444444,
+        "recall": 0.8611111111111112,
+        "mrr": 0.8518518518518519,
+        "ndcg": 0.8234678382510625,
+        "falsePositiveRate": 0.6666666666666666
+      },
+      {
+        "k": 6,
+        "queries": 24,
+        "answerable": 18,
+        "unanswerable": 6,
+        "precision": 0.24999999999999994,
+        "recall": 1,
+        "mrr": 0.8796296296296297,
+        "ndcg": 0.8859912404021391,
+        "falsePositiveRate": 0.6666666666666666
+      }
+    ],
+    "byGroup": {
+      "exact": [
+        {
+          "k": 1,
+          "queries": 8,
+          "answerable": 8,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 8,
+          "answerable": 8,
+          "unanswerable": 0,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 8,
+          "answerable": 8,
+          "unanswerable": 0,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "transposition": [
+        {
+          "k": 1,
+          "queries": 4,
+          "answerable": 4,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 0.625,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 4,
+          "answerable": 4,
+          "unanswerable": 0,
+          "precision": 0.5833333333333334,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 4,
+          "answerable": 4,
+          "unanswerable": 0,
+          "precision": 0.2916666666666667,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "occurrence": [
+        {
+          "k": 1,
+          "queries": 3,
+          "answerable": 3,
+          "unanswerable": 0,
+          "precision": 0,
+          "recall": 0,
+          "mrr": 0,
+          "ndcg": 0,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 3,
+          "answerable": 3,
+          "unanswerable": 0,
+          "precision": 0.1111111111111111,
+          "recall": 0.16666666666666666,
+          "mrr": 0.1111111111111111,
+          "ndcg": 0.10219119879424306,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 3,
+          "answerable": 3,
+          "unanswerable": 0,
+          "precision": 0.2222222222222222,
+          "recall": 1,
+          "mrr": 0.27777777777777773,
+          "ndcg": 0.4773316117007021,
+          "falsePositiveRate": null
+        }
+      ],
+      "structure": [
+        {
+          "k": 1,
+          "queries": 3,
+          "answerable": 3,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 0.38888888888888884,
+          "mrr": 1,
+          "ndcg": 0.5555555555555555,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 3,
+          "answerable": 3,
+          "unanswerable": 0,
+          "precision": 0.8888888888888888,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 0.8386158307121322,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 3,
+          "answerable": 3,
+          "unanswerable": 0,
+          "precision": 0.4444444444444444,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 0.8386158307121322,
+          "falsePositiveRate": null
+        }
+      ],
+      "no-answer": [
+        {
+          "k": 1,
+          "queries": 6,
+          "answerable": 0,
+          "unanswerable": 6,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0.6666666666666666
+        },
+        {
+          "k": 3,
+          "queries": 6,
+          "answerable": 0,
+          "unanswerable": 6,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0.6666666666666666
+        },
+        {
+          "k": 6,
+          "queries": 6,
+          "answerable": 0,
+          "unanswerable": 6,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0.6666666666666666
+        }
+      ]
+    },
+    "byLanguage": {
+      "en": [
+        {
+          "k": 1,
+          "queries": 14,
+          "answerable": 11,
+          "unanswerable": 3,
+          "precision": 0.8181818181818182,
+          "recall": 0.6212121212121212,
+          "mrr": 0.8181818181818182,
+          "ndcg": 0.7575757575757575,
+          "falsePositiveRate": 1
+        },
+        {
+          "k": 3,
+          "queries": 14,
+          "answerable": 11,
+          "unanswerable": 3,
+          "precision": 0.45454545454545453,
+          "recall": 0.8636363636363636,
+          "mrr": 0.8484848484848484,
+          "ndcg": 0.8240452129500843,
+          "falsePositiveRate": 1
+        },
+        {
+          "k": 6,
+          "queries": 14,
+          "answerable": 11,
+          "unanswerable": 3,
+          "precision": 0.25757575757575757,
+          "recall": 1,
+          "mrr": 0.8712121212121211,
+          "ndcg": 0.8872038202815374,
+          "falsePositiveRate": 1
+        }
+      ],
+      "de": [
+        {
+          "k": 1,
+          "queries": 10,
+          "answerable": 7,
+          "unanswerable": 3,
+          "precision": 0.8571428571428571,
+          "recall": 0.6904761904761905,
+          "mrr": 0.8571428571428571,
+          "ndcg": 0.7619047619047619,
+          "falsePositiveRate": 0.3333333333333333
+        },
+        {
+          "k": 3,
+          "queries": 10,
+          "answerable": 7,
+          "unanswerable": 3,
+          "precision": 0.42857142857142855,
+          "recall": 0.8571428571428571,
+          "mrr": 0.8571428571428571,
+          "ndcg": 0.8225605351525997,
+          "falsePositiveRate": 0.3333333333333333
+        },
+        {
+          "k": 6,
+          "queries": 10,
+          "answerable": 7,
+          "unanswerable": 3,
+          "precision": 0.23809523809523808,
+          "recall": 1,
+          "mrr": 0.8928571428571429,
+          "ndcg": 0.884085757734513,
+          "falsePositiveRate": 0.3333333333333333
+        }
+      ]
+    }
+  },
+  "results": [
+    {
+      "id": "opera-en",
+      "group": "exact",
+      "language": "en",
+      "text": "Find this Opera Game position after 10. Nxb5.",
+      "fen": "rn2kb1r/p3qppp/2p2n2/1N2p1B1/2B1P3/1Q6/PPP2PPP/R3K2R b KQkq - 0 10",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "grade": 2,
+          "reason": "The position after Morphy’s 10. Nxb5."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "documentId": "game:classic:ex-opera",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 19,
+          "fen": "rn2kb1r/p3qppp/2p2n2/1N2p1B1/2B1P3/1Q6/PPP2PPP/R3K2R b KQkq - 0 10",
+          "annotationIds": [
+            "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19/comment/4"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "opera-de",
+      "group": "exact",
+      "language": "de",
+      "text": "Finde diese Stellung der Opernpartie nach 10. Sxb5.",
+      "fen": "rn2kb1r/p3qppp/2p2n2/1N2p1B1/2B1P3/1Q6/PPP2PPP/R3K2R b KQkq - 0 10",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "grade": 2,
+          "reason": "The position after Morphy’s 10. Nxb5."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "documentId": "game:classic:ex-opera",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 19,
+          "fen": "rn2kb1r/p3qppp/2p2n2/1N2p1B1/2B1P3/1Q6/PPP2PPP/R3K2R b KQkq - 0 10",
+          "annotationIds": [
+            "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19/comment/4"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "opera-counters",
+      "group": "exact",
+      "language": "en",
+      "text": "Find the same position, ignoring move counters.",
+      "fen": "rn2kb1r/p3qppp/2p2n2/1N2p1B1/2B1P3/1Q6/PPP2PPP/R3K2R b KQkq - 17 42",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "grade": 2,
+          "reason": "The position after Morphy’s 10. Nxb5."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "documentId": "game:classic:ex-opera",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 19,
+          "fen": "rn2kb1r/p3qppp/2p2n2/1N2p1B1/2B1P3/1Q6/PPP2PPP/R3K2R b KQkq - 0 10",
+          "annotationIds": [
+            "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/19/comment/4"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "lucena-root",
+      "group": "exact",
+      "language": "en",
+      "text": "Find the starting diagram of the Lucena study.",
+      "fen": "1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/0",
+          "grade": 2,
+          "reason": "Custom-start study root."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/0",
+          "documentId": "game:classic:st-lucena",
+          "occurrenceId": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/0",
+          "gameId": "st-lucena",
+          "collection": "classic",
+          "ply": 0,
+          "fen": "1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1",
+          "annotationIds": [],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "philidor-black",
+      "group": "exact",
+      "language": "de",
+      "text": "Finde die Philidor-Ausgangsstellung mit Schwarz am Zug.",
+      "fen": "4k3/7R/r7/3KP3/8/8/8/8 b - - 0 1",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/0",
+          "grade": 2,
+          "reason": "Black-to-move study root."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/0",
+          "documentId": "game:classic:st-philidor",
+          "occurrenceId": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/0",
+          "gameId": "st-philidor",
+          "collection": "classic",
+          "ply": 0,
+          "fen": "4k3/7R/r7/3KP3/8/8/8/8 b - - 0 1",
+          "annotationIds": [],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "saavedra-root",
+      "group": "exact",
+      "language": "en",
+      "text": "Find the Saavedra starting diagram.",
+      "fen": "8/8/1KP5/3r4/8/8/8/k7 w - - 0 1",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/0",
+          "grade": 2,
+          "reason": "The exact source diagram."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/0",
+          "documentId": "game:classic:st-saavedra",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/0",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 0,
+          "fen": "8/8/1KP5/3r4/8/8/8/k7 w - - 0 1",
+          "annotationIds": [],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "castling-rights",
+      "group": "exact",
+      "language": "en",
+      "text": "Find this position with all four castling rights.",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 10",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:castling@d28665e0ca7f8e40ebf23cbfc5669c20b9a1df809b9d61b43c1c733f08510ff4/ply/0",
+          "grade": 2,
+          "reason": "Board, side and castling rights agree."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:castling@d28665e0ca7f8e40ebf23cbfc5669c20b9a1df809b9d61b43c1c733f08510ff4/ply/0",
+          "documentId": "game:library:castling",
+          "occurrenceId": "game:library:castling@d28665e0ca7f8e40ebf23cbfc5669c20b9a1df809b9d61b43c1c733f08510ff4/ply/0",
+          "gameId": "castling",
+          "collection": "library",
+          "ply": 0,
+          "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 10",
+          "annotationIds": [
+            "game:library:castling@d28665e0ca7f8e40ebf23cbfc5669c20b9a1df809b9d61b43c1c733f08510ff4/ply/0/comment/0"
+          ],
+          "kind": "same position"
+        },
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/12",
+          "documentId": "game:classic:st-saavedra",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/12",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 12,
+          "fen": "2R5/8/8/8/r7/8/2K5/k7 w - - 1 7",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "en-passant-right",
+      "group": "exact",
+      "language": "de",
+      "text": "Finde diese Stellung mit möglichem en passant auf d6.",
+      "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 22",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0",
+          "grade": 2,
+          "reason": "The legal en-passant right is part of position identity."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0",
+          "documentId": "game:library:en-passant",
+          "occurrenceId": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0",
+          "gameId": "en-passant",
+          "collection": "library",
+          "ply": 0,
+          "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 22",
+          "annotationIds": [
+            "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0/comment/0"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "qgd-en",
+      "group": "transposition",
+      "language": "en",
+      "text": "Find both games that reach this QGD position.",
+      "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "grade": 2,
+          "reason": "The first move order reaches this exact board."
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "grade": 2,
+          "reason": "The second move order transposes to it."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "documentId": "game:library:qgd-a",
+          "occurrenceId": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "gameId": "qgd-a",
+          "collection": "library",
+          "ply": 8,
+          "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+          "annotationIds": [
+            "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8/comment/0"
+          ],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "documentId": "game:library:qgd-b",
+          "occurrenceId": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "gameId": "qgd-b",
+          "collection": "library",
+          "ply": 8,
+          "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+          "annotationIds": [
+            "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8/comment/0"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.5,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.6666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "qgd-de",
+      "group": "transposition",
+      "language": "de",
+      "text": "Finde beide Zugfolgen, die diese Stellung erreichen.",
+      "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "grade": 2,
+          "reason": "The first move order reaches this exact board."
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "grade": 2,
+          "reason": "The second move order transposes to it."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "documentId": "game:library:qgd-a",
+          "occurrenceId": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "gameId": "qgd-a",
+          "collection": "library",
+          "ply": 8,
+          "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+          "annotationIds": [
+            "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8/comment/0"
+          ],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "documentId": "game:library:qgd-b",
+          "occurrenceId": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "gameId": "qgd-b",
+          "collection": "library",
+          "ply": 8,
+          "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+          "annotationIds": [
+            "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8/comment/0"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.5,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.6666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "qgd-counters",
+      "group": "transposition",
+      "language": "en",
+      "text": "Find this transposition with different move counters.",
+      "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 9 23",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "grade": 2,
+          "reason": "The first move order reaches this exact board."
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "grade": 2,
+          "reason": "The second move order transposes to it."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "documentId": "game:library:qgd-a",
+          "occurrenceId": "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8",
+          "gameId": "qgd-a",
+          "collection": "library",
+          "ply": 8,
+          "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+          "annotationIds": [
+            "game:library:qgd-a@db8e8e56f128a22f89e848d5ced04b1b0dae856dc0381f0896e14606113eadf0/ply/8/comment/0"
+          ],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "documentId": "game:library:qgd-b",
+          "occurrenceId": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "gameId": "qgd-b",
+          "collection": "library",
+          "ply": 8,
+          "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+          "annotationIds": [
+            "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8/comment/0"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.5,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.6666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "qgd-exclude-current",
+      "group": "transposition",
+      "language": "de",
+      "text": "Zeige die andere Partie, nicht die gerade geöffnete.",
+      "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+      "unit": "occurrence",
+      "excludeGameId": "qgd-a",
+      "judgements": [
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "grade": 2,
+          "reason": "The second move order transposes to it."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "documentId": "game:library:qgd-b",
+          "occurrenceId": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8",
+          "gameId": "qgd-b",
+          "collection": "library",
+          "ply": 8,
+          "fen": "rnbqk2r/ppp1bppp/4pn2/3p4/2PP4/2N2N2/PP2PPPP/R1BQKB1R w KQkq - 2 5",
+          "annotationIds": [
+            "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/8/comment/0"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "repeat-both",
+      "group": "occurrence",
+      "language": "en",
+      "text": "Find both arrivals at this board in the repetition game.",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "grade": 2,
+          "reason": "First occurrence of the board."
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "grade": 2,
+          "reason": "Second occurrence of the same board."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/1",
+          "documentId": "game:classic:cl-century",
+          "occurrenceId": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/1",
+          "gameId": "cl-century",
+          "collection": "classic",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/1",
+          "documentId": "game:library:qgd-b",
+          "occurrenceId": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/1",
+          "gameId": "qgd-b",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "documentId": "game:library:repeat",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [
+            "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1/comment/0"
+          ],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "documentId": "game:library:repeat",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 5,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+          "annotationIds": [
+            "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5/comment/1"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 0.5,
+          "reciprocalRank": 0.3333333333333333,
+          "ndcg": 0.3065735963827292,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 2,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 0.3333333333333333,
+          "ndcg": 0.5706417189553201,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "repeat-second-en",
+      "group": "occurrence",
+      "language": "en",
+      "text": "Find the note at the second arrival, after 3. Nf3, not 1. Nf3.",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "grade": 2,
+          "reason": "Second occurrence of the same board."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/1",
+          "documentId": "game:classic:cl-century",
+          "occurrenceId": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/1",
+          "gameId": "cl-century",
+          "collection": "classic",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/1",
+          "documentId": "game:library:qgd-b",
+          "occurrenceId": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/1",
+          "gameId": "qgd-b",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "documentId": "game:library:repeat",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [
+            "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1/comment/0"
+          ],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "documentId": "game:library:repeat",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 5,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+          "annotationIds": [
+            "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5/comment/1"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 0.25,
+          "ndcg": 0.4306765580733931,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "repeat-second-de",
+      "group": "occurrence",
+      "language": "de",
+      "text": "Finde die Notiz nach 3. Sf3, beim zweiten Auftreten.",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+      "unit": "occurrence",
+      "judgements": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "grade": 2,
+          "reason": "Second occurrence of the same board."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/1",
+          "documentId": "game:classic:cl-century",
+          "occurrenceId": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/1",
+          "gameId": "cl-century",
+          "collection": "classic",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/1",
+          "documentId": "game:library:qgd-b",
+          "occurrenceId": "game:library:qgd-b@b2bd38777818097ac77e98d4f8834f905a220e5998a8778b4a427cfd3ca6fcd3/ply/1",
+          "gameId": "qgd-b",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "documentId": "game:library:repeat",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "annotationIds": [
+            "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1/comment/0"
+          ],
+          "kind": "same position"
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "documentId": "game:library:repeat",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 5,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+          "annotationIds": [
+            "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5/comment/1"
+          ],
+          "kind": "same position"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 0.25,
+          "ndcg": 0.4306765580733931,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "iqp-plan-en",
+      "group": "structure",
+      "language": "en",
+      "text": "Find IQP middlegame examples for White with a rook on e1 and no immediate check.",
+      "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR2K w - - 0 25",
+      "unit": "document",
+      "judgements": [
+        {
+          "id": "game:library:iqp-e1",
+          "grade": 2,
+          "reason": "Same IQP, rook on e1, no immediate check."
+        },
+        {
+          "id": "game:library:iqp-f1",
+          "grade": 1,
+          "reason": "Useful IQP analogy, but the rook is still on f1."
+        },
+        {
+          "id": "game:classic:cl-steinitz-bardeleben",
+          "grade": 1,
+          "reason": "A real IQP example; White later places the rook on e1, with a different piece configuration."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "documentId": "game:classic:cl-steinitz-bardeleben",
+          "occurrenceId": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "gameId": "cl-steinitz-bardeleben",
+          "collection": "classic",
+          "ply": 16,
+          "fen": "r1bqk2r/ppp2ppp/2n5/3n4/1bBP4/2N2N2/PP3PPP/R1BQK2R w KQkq - 0 9",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "documentId": "game:library:iqp-f1",
+          "occurrenceId": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "gameId": "iqp-f1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "documentId": "game:library:iqp-e1",
+          "occurrenceId": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "gameId": "iqp-e1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR1K1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "documentId": "game:library:iqp-check",
+          "occurrenceId": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "gameId": "iqp-check",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2qr1k1/ppp2ppp/2n5/7n/3P4/2N2N2/PP3PPP/R2QK2R w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.3333333333333333,
+          "reciprocalRank": 1,
+          "ndcg": 0.3333333333333333,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 3,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 0.7579237460681981,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 3,
+          "precision": 0.5,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 0.7579237460681981,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "iqp-plan-de",
+      "group": "structure",
+      "language": "de",
+      "text": "Finde Isolani-Beispiele für Weiß mit Turm auf e1 ohne unmittelbares Schach.",
+      "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR2K w - - 0 25",
+      "unit": "document",
+      "judgements": [
+        {
+          "id": "game:library:iqp-e1",
+          "grade": 2,
+          "reason": "Same IQP, rook on e1, no immediate check."
+        },
+        {
+          "id": "game:library:iqp-f1",
+          "grade": 1,
+          "reason": "Useful IQP analogy, but the rook is still on f1."
+        },
+        {
+          "id": "game:classic:cl-steinitz-bardeleben",
+          "grade": 1,
+          "reason": "A real IQP example; White later places the rook on e1, with a different piece configuration."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "documentId": "game:classic:cl-steinitz-bardeleben",
+          "occurrenceId": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "gameId": "cl-steinitz-bardeleben",
+          "collection": "classic",
+          "ply": 16,
+          "fen": "r1bqk2r/ppp2ppp/2n5/3n4/1bBP4/2N2N2/PP3PPP/R1BQK2R w KQkq - 0 9",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "documentId": "game:library:iqp-f1",
+          "occurrenceId": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "gameId": "iqp-f1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "documentId": "game:library:iqp-e1",
+          "occurrenceId": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "gameId": "iqp-e1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR1K1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "documentId": "game:library:iqp-check",
+          "occurrenceId": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "gameId": "iqp-check",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2qr1k1/ppp2ppp/2n5/7n/3P4/2N2N2/PP3PPP/R2QK2R w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.3333333333333333,
+          "reciprocalRank": 1,
+          "ndcg": 0.3333333333333333,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 3,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 0.7579237460681981,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 3,
+          "precision": 0.5,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 0.7579237460681981,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "iqp-exclude-current",
+      "group": "structure",
+      "language": "en",
+      "text": "Find another quiet IQP example outside my current game.",
+      "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR2K w - - 0 25",
+      "unit": "document",
+      "excludeGameId": "iqp-e1",
+      "judgements": [
+        {
+          "id": "game:library:iqp-f1",
+          "grade": 1,
+          "reason": "Useful IQP analogy, but the rook is still on f1."
+        },
+        {
+          "id": "game:classic:cl-steinitz-bardeleben",
+          "grade": 1,
+          "reason": "A real IQP example; White later places the rook on e1, with a different piece configuration."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "documentId": "game:classic:cl-steinitz-bardeleben",
+          "occurrenceId": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "gameId": "cl-steinitz-bardeleben",
+          "collection": "classic",
+          "ply": 16,
+          "fen": "r1bqk2r/ppp2ppp/2n5/3n4/1bBP4/2N2N2/PP3PPP/R1BQK2R w KQkq - 0 9",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "documentId": "game:library:iqp-f1",
+          "occurrenceId": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "gameId": "iqp-f1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "documentId": "game:library:iqp-check",
+          "occurrenceId": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "gameId": "iqp-check",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2qr1k1/ppp2ppp/2n5/7n/3P4/2N2N2/PP3PPP/R2QK2R w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.5,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 2,
+          "precision": 0.6666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 3,
+          "relevant": 2,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "missing-exact-iqp",
+      "group": "no-answer",
+      "language": "en",
+      "text": "Find an identical position, not a pawn-structure analogy.",
+      "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR2K w - - 0 25",
+      "unit": "occurrence",
+      "judgements": [],
+      "ranked": [
+        {
+          "id": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "documentId": "game:classic:cl-steinitz-bardeleben",
+          "occurrenceId": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "gameId": "cl-steinitz-bardeleben",
+          "collection": "classic",
+          "ply": 16,
+          "fen": "r1bqk2r/ppp2ppp/2n5/3n4/1bBP4/2N2N2/PP3PPP/R1BQK2R w KQkq - 0 9",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "documentId": "game:library:iqp-f1",
+          "occurrenceId": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "gameId": "iqp-f1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "documentId": "game:library:iqp-e1",
+          "occurrenceId": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "gameId": "iqp-e1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR1K1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "documentId": "game:library:iqp-check",
+          "occurrenceId": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "gameId": "iqp-check",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2qr1k1/ppp2ppp/2n5/7n/3P4/2N2N2/PP3PPP/R2QK2R w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        }
+      ]
+    },
+    {
+      "id": "missing-exact-iqp-de",
+      "group": "no-answer",
+      "language": "de",
+      "text": "Finde exakt diese Stellung, kein Beispiel mit nur gleicher Bauernstruktur.",
+      "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR2K w - - 0 25",
+      "unit": "occurrence",
+      "judgements": [],
+      "ranked": [
+        {
+          "id": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "documentId": "game:classic:cl-steinitz-bardeleben",
+          "occurrenceId": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/16",
+          "gameId": "cl-steinitz-bardeleben",
+          "collection": "classic",
+          "ply": 16,
+          "fen": "r1bqk2r/ppp2ppp/2n5/3n4/1bBP4/2N2N2/PP3PPP/R1BQK2R w KQkq - 0 9",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "documentId": "game:library:iqp-f1",
+          "occurrenceId": "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12",
+          "gameId": "iqp-f1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-f1@c1043a8c03fc9b0defd9259e98447e6607285503d51d6b4d27666ee091247fe7/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "documentId": "game:library:iqp-e1",
+          "occurrenceId": "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12",
+          "gameId": "iqp-e1",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2QR1K1 w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-e1@5a9e57595953f22326418f4abb2b3f768baaa4ff53f5c7cdcfe0cd3570848482/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        },
+        {
+          "id": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "documentId": "game:library:iqp-check",
+          "occurrenceId": "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12",
+          "gameId": "iqp-check",
+          "collection": "library",
+          "ply": 12,
+          "fen": "r2qr1k1/ppp2ppp/2n5/7n/3P4/2N2N2/PP3PPP/R2QK2R w - - 12 26",
+          "annotationIds": [
+            "game:library:iqp-check@ae98a5549dd54b1e00136180b621d4597e68e399de42a16b24483c88e3967fe3/ply/12/comment/0"
+          ],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        }
+      ]
+    },
+    {
+      "id": "missing-castling-rights",
+      "group": "no-answer",
+      "language": "en",
+      "text": "Find this exact diagram with castling rights removed.",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R w - - 0 10",
+      "unit": "occurrence",
+      "judgements": [],
+      "ranked": [
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/12",
+          "documentId": "game:classic:st-saavedra",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/12",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 12,
+          "fen": "2R5/8/8/8/r7/8/2K5/k7 w - - 1 7",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        }
+      ]
+    },
+    {
+      "id": "missing-en-passant",
+      "group": "no-answer",
+      "language": "de",
+      "text": "Finde dieselbe Stellung ohne en-passant-Recht.",
+      "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - - 0 22",
+      "unit": "occurrence",
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "missing-side",
+      "group": "no-answer",
+      "language": "en",
+      "text": "Find this exact rook position with Black to move.",
+      "fen": "r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 10",
+      "unit": "occurrence",
+      "judgements": [],
+      "ranked": [
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/12",
+          "documentId": "game:classic:st-saavedra",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/12",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 12,
+          "fen": "2R5/8/8/8/r7/8/2K5/k7 w - - 1 7",
+          "annotationIds": [],
+          "kind": "same pawn structure"
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        }
+      ]
+    },
+    {
+      "id": "excluded-only-match",
+      "group": "no-answer",
+      "language": "de",
+      "text": "Finde diese Studie außerhalb der gerade geöffneten Saavedra-Studie.",
+      "fen": "8/8/1KP5/3r4/8/8/8/k7 w - - 0 1",
+      "unit": "occurrence",
+      "excludeGameId": "st-saavedra",
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    }
+  ]
+}

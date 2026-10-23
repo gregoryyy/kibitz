@@ -112,6 +112,8 @@ The coach recommends reading and recalls games, but only from what retrieval fou
 
 The existing flat local/account game documents gain an optional version-one provenance envelope. Reading legacy records adds no migration write; malformed/future source metadata remains untouched and is excluded from position retrieval. Import accepts optional attribution/licence fields, and source editing preserves the PGN. Built-ins identify the packaged collection and the project's annotation licence without inventing original score rights. Browser persistence writes only the changed collection and rolls back memory on failure. Compiled snapshots cache exact input, clear superseded position results while rebuilding, and reject late generations after source changes/deletion; held source edits recheck record identity. Retrieved source assertions enter coach context only through `quote()`. SQLite/IndexedDB, deduplication, text search and citation resolution remain planned.
 
+The [offline retrieval benchmark](RETRIEVAL-EVAL.md) (8.8) replays a fixed, source-aware corpus through this production index. Manually labelled English/German queries distinguish exact matches, transpositions, requested occurrences, structural analogies and no-answer cases. It reports precision/recall/MRR/graded nDCG at 1/3/6 separately from no-answer false positives, with source revisions, corpus/case hashes and per-query rankings. It measures current retrieval limitations without a provider call or change to retrieval behaviour; it does not establish engine correctness or answer faithfulness.
+
 ### 3.3 Structured retrieval
 
 Chess positions have structure that text embeddings would blur, so retrieval here uses keys from chess itself rather than vector similarity:

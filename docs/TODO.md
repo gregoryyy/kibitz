@@ -194,8 +194,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [ ] 8.5 Fuzzy pawn-structure distance
 - [ ] 8.6 Retrieved items go into tutor and chat context with citations; the UI opens the cited game at that position
 - [x] 8.7 Treat retrieved text as untrusted: delimit it and never follow instructions inside it (imported PGN comments can carry prompt injection) *(added)*
-- [ ] 8.8 Retrieval eval: labelled query positions with expected references; track precision@k *(added)*
-- [x] 8.9 Research text, structured and graph RAG, neurosymbolic game approaches, and AI use cases in milestones 5–7; document the current Stockfish boundary and proposed evaluations in [docs/research](research/README.md). Research only; implementation and retrieval benchmarks remain open. *(added)*
+- [x] 8.8 Retrieval eval: 24 labelled English/German position queries with expected source/occurrence references; offline production baseline with precision/recall/MRR/nDCG at 1/3/6 and separate no-answer false-positive rates. [Method and results](RETRIEVAL-EVAL.md) *(added)*
+- [x] 8.9 Research text, structured and graph RAG, neurosymbolic game approaches, and AI use cases in milestones 5–7; document the current Stockfish boundary and proposed evaluations in [docs/research](research/README.md). Research delivery; subsequent implementation is tracked separately above. *(added)*
 
 ## 9. Progress and personalization *(added)*
 

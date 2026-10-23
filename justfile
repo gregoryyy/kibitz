@@ -6,6 +6,7 @@
 #   just flipbook      render docs/flipbook/, a happy path through the app in screenshots
 #   just pdfs          a PDF next to every Markdown document (just pdf FILE for one)
 #   just eval          the tutor eval set against the coach, with a report in docs/eval/
+#   just retrieval-eval   the offline position-retrieval benchmark (TODO 8.8)
 # Port and bind address can be overridden: KIBITZ_PORT=9000 just serve
 
 port := env_var_or_default("KIBITZ_PORT", "8765")
@@ -62,6 +63,10 @@ e2e: install
 # Run the tutor eval set (TODO 3.8); writes docs/eval/
 eval ai="env" judge="none" model="" yes="": build
     node site/scripts/eval.mjs --ai {{ai}} --judge {{judge}} {{ if model != "" { "--model " + model } else { "" } }} {{ if yes != "" { "--yes" } else { "" } }}
+
+# Offline labelled retrieval benchmark; optional args, e.g. --out docs/eval/retrieval/baseline
+retrieval-eval *args: install
+    node utils/retrieval-eval.mjs {{args}}
 
 # Each step of site/flipbook/tour.mjs is played in a headless Chrome and captured into docs/flipbook/.
 # The coach uses the provider and models in .env, as `just serve` does; `just flipbook mock` needs no keys.
