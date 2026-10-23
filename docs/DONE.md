@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Road idea: animated Primer website
+
+TODO items: none; [ROAD 11](ROAD.md#11-animated-primer-website) records a future feature.
+
+### Implementation notes
+
+- Added an animated Primer website idea, connected to the existing one-position tutorial and design overview. Its main scenes visualise the neurosymbolic evidence/tool/validation flow and RAG from query through matching/ranking to evidence and citations.
+- Recorded step/replay controls, inspectable intermediate state, reuse of the Primer sources, accessible/static presentation and reproducible traces. Planned retrieval extensions remain labelled as such.
+
+### Deviations
+
+- Planning only: no website or animation implemented and no implementation TODO marked complete.
+
+### Insights
+
+- The useful animation follows evidence between components, showing where chess facts, retrieved material and generated explanations come from and how they are checked.
+
+---
+
 ## 2026-10-23 — Brief LLM and symbolic design overview
 
 TODO items: 0.13 (documentation).

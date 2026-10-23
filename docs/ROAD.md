@@ -122,6 +122,7 @@ A primer that accompanies the repo and follows one chess question through the pa
   - A closing step on running it all in the browser, with no key and nothing leaving the machine (2.16).
 - **Hands-on:** each step can be repeated in the app. A prompt view shows exactly what the model saw at that step, and the mock provider makes the outputs reproducible.
 - **Appendices:** the transformer in more depth, literature, and links, as in the primer.
+- **Animated web presentation:** see idea 11 for a Primer website focused on visualising the neurosymbolic and retrieval flows.
 - **Builds on:** ARCH.md, the coach's prompt templates (3.3) and answer checks (3.4), and the engine tools (4.11) for steps 7 and 8.
 - **Open questions:**
   - the audience: developers, product designers, or chess players curious about AI;
@@ -165,3 +166,14 @@ Find positions that are similar in the respect the player wants to study. The cl
 - **Research:** [aspect-conditioned position similarity](research/position-similarity.md), including prior chess retrieval work, candidate distances, conditional metric learning and an evaluation plan. This is an investigation, not a selected or implemented metric.
 - **Builds on:** position/pattern retrieval (8.1–8.5), retrieval evaluation (8.8), the reference library (7), curriculum examples (6) and piece relationships (idea 9).
 - **Open questions:** which aspects and default weights are useful; whether the task needs a mathematical metric or a relevance score; colour/board symmetries; multi-aspect requests; and how experts and learners judge similarity under each aspect.
+
+## 11. Animated Primer website
+
+Present the [Primer](primer/Primer_v01.md) as a website with animations and interactive, step-by-step diagrams. Focus especially on the neurosymbolic combination and RAG, following one chess position through the system as in idea 8.
+
+- **Neurosymbolic flow:** animate how the position reaches the rules, Stockfish search/NNUE and feature detectors; how their evidence enters the LLM context; and how explanations, tool requests and board marks pass through validation. Show which component supplies each fact and what happens when a move or motif is unsupported.
+- **RAG flow:** animate the query/aspect, position and tag matching, candidate references, ranking, the selected evidence packet and the answer's citations. Let the reader open a retrieved example on the board. Distinguish exact matches from structural/thematic analogies, and show text embeddings, hybrid ranking or graph retrieval as planned/research extensions where appropriate.
+- **Inspection and controls:** pause, step forward/back and replay; inspect intermediate facts, tool results, retrieval matches and the context actually sent to the model. Switching the position or aspect should make the changed evidence visible.
+- **Presentation:** reuse the existing Primer text/figures and the [design overview](AI-DESIGN.md). Provide keyboard controls, reduced-motion/static alternatives and a mobile layout. Recorded or mock traces can make the main walkthrough reproducible; live engine/model demonstrations are an optional extension.
+- **Builds on:** the Primer sources, tutorial idea 8, the checked coach/board flow (3–4), RAG (8) and the [retrieval research](research/README.md).
+- **Open questions:** the first scenes to animate, how closely the website follows the printed Primer, the animation/site tooling and hosting, and whether any live provider calls belong in the public walkthrough.
