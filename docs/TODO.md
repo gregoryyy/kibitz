@@ -12,6 +12,8 @@ Status: `[ ]` open, `[x]` done. Tags:
 - **Node server:** serves the app and sets security headers. It also runs the AI gateway (one adapter per provider, keys kept server-side), stores library and user data, and handles RAG retrieval.
 - **Shared module:** pure chess knowledge (features, motifs, scoring, retrieval), used by both client and server (today's `knowledge.js`).
 
+Design background: [research on milestones 5–7, RAG and neurosymbolic games](research/README.md), including an audit of the current Stockfish integration. Research recommendations are separate from implemented features below.
+
 ---
 
 ## 0. Foundation and process
@@ -191,6 +193,7 @@ Status: `[ ]` open, `[x]` done. Tags:
 - [ ] 8.6 Retrieved items go into tutor and chat context with citations; the UI opens the cited game at that position
 - [x] 8.7 Treat retrieved text as untrusted: delimit it and never follow instructions inside it (imported PGN comments can carry prompt injection) *(added)*
 - [ ] 8.8 Retrieval eval: labelled query positions with expected references; track precision@k *(added)*
+- [x] 8.9 Research text, structured and graph RAG, neurosymbolic game approaches, and AI use cases in milestones 5–7; document the current Stockfish boundary and proposed evaluations in [docs/research](research/README.md). Research only; implementation and retrieval benchmarks remain open. *(added)*
 
 ## 9. Progress and personalization *(added)*
 
