@@ -7,6 +7,35 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Local annotation and study-note search
+
+TODO items: 8.3.1 (lexical part of 8.3; embedding ingestion/search remains 8.3.2).
+
+### Implementation notes
+
+- Added pure, JSDoc-typed `text-search.js`: original mainline comments become revision-bound passages with source/annotation/occurrence IDs, exact PGN UTF-16 ranges, full FEN and separate annotation licence assertions. Long fields split into bounded overlapping substrings without splitting surrogate pairs. Initial notes and repeated occurrences remain distinct; NAGs/variation comments are not indexed as prose.
+- Exposed detached original guide text in both languages. Idea, plans and structure are separate passages, with SHA-256 revisions for each full language-specific guide and field locators. Guides retain the project licence and general-background role, without an invented board or engine verification.
+- An in-memory inverted index performs BM25 title/body search after language/source-kind/collection filtering. Unicode/diacritic folding, English/German stopwords, SAN/castling/ECO tokens and uppercase German move-letter aliases support the current corpus. Stable-ID tie breaking and zero-score exclusion make rankings reproducible; query/term/result bounds are independent of the input element.
+- Library now offers **Search study text** with local personal/classic/guide search, language filters, literal excerpts/full passages and source/licence inspection. Annotation results open the exact source step through a fresh legal PGN replay. Leave-game confirmation, source revision, current record, query/source selection and game/library generations guard navigation. Imported text is rendered as text only; no passage or search query is added to a prompt.
+- Source replacements/deletions immediately clear old text results. Static guides compile lazily; completion uses only the current account's annotation set. Restricted live help clears results even in a closed tab. Search does not replace source/import drafts, write a second persistent index or call a model/embedding provider. No dependency, third-party passage or `llmkit` code was added.
+- Root `utils/retrieval-eval.mjs` gains `--mode text`; default position mode and its recorded baseline are unchanged. The passage suite uses 45 comments plus 114 guide sections, with 28 manual English/German keyword, paraphrase, filter and no-answer cases. Input hashes, exact source locations and precision/recall/MRR/nDCG at 1/3/6 are recorded in Markdown/JSON.
+- Initial passage precision@1 is 0.900, recall@3 0.950 and MRR@3 0.917. All eighteen direct keyword cases rank a relevant passage first. Both paraphrases miss at rank one, and two of eight no-answer cases return ordinary chess passages sharing words with unsupported requests. The benchmark records these limitations instead of treating keyword matches as proof or semantic understanding.
+- Ten new unit scenarios cover source locators/revisions, tokenization/chunking, independently calculated BM25, scoped statistics, edits/deletions, result detachment, literal excerpts and CLI/report reproducibility. Eight browser scenarios cover import/reload and repeated/root navigation, provider-free guides, hostile text, drafts, delayed guide work/deletion, stale actions, help policy and German phone layout. [Design and results](TEXT-SEARCH.md) document the boundary and remaining work.
+- Validation: `npm run check`, a fresh build and the full mock-provider unit/gateway suite pass (321 passed, one opt-in live test skipped). Full Playwright passes (174 passed, one opt-in live-model test skipped); all eight search scenarios pass again after final result-title/metadata-bound polish, as do the ten new unit scenarios. The full run caught two missing language-label translations, which were corrected before the passing run. Browser runs used isolated output with tracing off; CI settings are unchanged. Desktop/German phone layouts were inspected without overflow or interface-language gaps. Both CLI modes reproduce their recorded JSON; all 75 checked local documentation links exist.
+
+### Deviations
+
+- Split 8.3 so the lexical baseline can be measured and used before embedding ingestion. Existing separately configured provider helpers remain disconnected from search; 8.3.2 must add scope/local-only enforcement, model/dimension/version records and measured dense retrieval. Hybrid ranking and model-generated citations remain 8.4/8.6. The parent item remains open.
+- The small current corpus uses an in-memory JavaScript index; server SQLite/browser persistence remains 7.6. Imported annotation language is not guessed, so undetermined notes remain searchable in either language. This is keyword lookup without stemming or semantic translation.
+
+### Insights
+
+- Reusing source-aware occurrence IDs solves the same-board/different-note problem for explicit passage navigation. Position matching alone cannot select a note named in the question.
+- Strong direct-keyword results coexist with poor paraphrase performance and false positives on unsupported requests sharing chess words. The lexical baseline gives later embedding/reranking work concrete failures to compare against.
+- Lazily compiling shared authored guides must never capture an old private annotation list; combine their completion with the current account/library state and recheck active render requests.
+
+---
+
 ## 2026-10-23 — Labelled position-retrieval benchmark
 
 TODO items: 8.8.

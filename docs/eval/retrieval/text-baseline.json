@@ -1,0 +1,3798 @@
+{
+  "schemaVersion": 1,
+  "suite": "kibitz-text-retrieval",
+  "suiteVersion": 1,
+  "retriever": "local-bm25-v1",
+  "corpusHash": "fdc2addafd0b1275ff93f821c54737847af4706cb194686ee12cd96ffac734f0",
+  "casesHash": "10d0afe264f20aa26ca22112224bb87562cc1300f0852feac1cb9977fbebf1c5",
+  "cutoffs": [
+    1,
+    3,
+    6
+  ],
+  "counts": {
+    "queries": 28,
+    "passages": 159,
+    "annotations": 45,
+    "guides": 114
+  },
+  "summary": {
+    "overall": [
+      {
+        "k": 1,
+        "queries": 28,
+        "answerable": 20,
+        "unanswerable": 8,
+        "precision": 0.9,
+        "recall": 0.8083333333333333,
+        "mrr": 0.9,
+        "ndcg": 0.9,
+        "falsePositiveRate": 0.25
+      },
+      {
+        "k": 3,
+        "queries": 28,
+        "answerable": 20,
+        "unanswerable": 8,
+        "precision": 0.39999999999999997,
+        "recall": 0.95,
+        "mrr": 0.9166666666666666,
+        "ndcg": 0.925,
+        "falsePositiveRate": 0.25
+      },
+      {
+        "k": 6,
+        "queries": 28,
+        "answerable": 20,
+        "unanswerable": 8,
+        "precision": 0.19999999999999998,
+        "recall": 0.95,
+        "mrr": 0.9166666666666666,
+        "ndcg": 0.925,
+        "falsePositiveRate": 0.25
+      }
+    ],
+    "byGroup": {
+      "annotation": [
+        {
+          "k": 1,
+          "queries": 9,
+          "answerable": 9,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 0.9444444444444444,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 9,
+          "answerable": 9,
+          "unanswerable": 0,
+          "precision": 0.37037037037037046,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 9,
+          "answerable": 9,
+          "unanswerable": 0,
+          "precision": 0.18518518518518523,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "guide": [
+        {
+          "k": 1,
+          "queries": 9,
+          "answerable": 9,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 0.8518518518518517,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 9,
+          "answerable": 9,
+          "unanswerable": 0,
+          "precision": 0.48148148148148145,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 9,
+          "answerable": 9,
+          "unanswerable": 0,
+          "precision": 0.24074074074074073,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "paraphrase": [
+        {
+          "k": 1,
+          "queries": 2,
+          "answerable": 2,
+          "unanswerable": 0,
+          "precision": 0,
+          "recall": 0,
+          "mrr": 0,
+          "ndcg": 0,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 2,
+          "answerable": 2,
+          "unanswerable": 0,
+          "precision": 0.16666666666666666,
+          "recall": 0.5,
+          "mrr": 0.16666666666666666,
+          "ndcg": 0.25,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 2,
+          "answerable": 2,
+          "unanswerable": 0,
+          "precision": 0.08333333333333333,
+          "recall": 0.5,
+          "mrr": 0.16666666666666666,
+          "ndcg": 0.25,
+          "falsePositiveRate": null
+        }
+      ],
+      "no-answer": [
+        {
+          "k": 1,
+          "queries": 8,
+          "answerable": 0,
+          "unanswerable": 8,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0.25
+        },
+        {
+          "k": 3,
+          "queries": 8,
+          "answerable": 0,
+          "unanswerable": 8,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0.25
+        },
+        {
+          "k": 6,
+          "queries": 8,
+          "answerable": 0,
+          "unanswerable": 8,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0.25
+        }
+      ]
+    },
+    "byLanguage": {
+      "en": [
+        {
+          "k": 1,
+          "queries": 20,
+          "answerable": 14,
+          "unanswerable": 6,
+          "precision": 0.9285714285714286,
+          "recall": 0.8452380952380952,
+          "mrr": 0.9285714285714286,
+          "ndcg": 0.9285714285714286,
+          "falsePositiveRate": 0.3333333333333333
+        },
+        {
+          "k": 3,
+          "queries": 20,
+          "answerable": 14,
+          "unanswerable": 6,
+          "precision": 0.4047619047619047,
+          "recall": 1,
+          "mrr": 0.9523809523809524,
+          "ndcg": 0.9642857142857143,
+          "falsePositiveRate": 0.3333333333333333
+        },
+        {
+          "k": 6,
+          "queries": 20,
+          "answerable": 14,
+          "unanswerable": 6,
+          "precision": 0.20238095238095236,
+          "recall": 1,
+          "mrr": 0.9523809523809524,
+          "ndcg": 0.9642857142857143,
+          "falsePositiveRate": 0.3333333333333333
+        }
+      ],
+      "de": [
+        {
+          "k": 1,
+          "queries": 8,
+          "answerable": 6,
+          "unanswerable": 2,
+          "precision": 0.8333333333333334,
+          "recall": 0.7222222222222222,
+          "mrr": 0.8333333333333334,
+          "ndcg": 0.8333333333333334,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 3,
+          "queries": 8,
+          "answerable": 6,
+          "unanswerable": 2,
+          "precision": 0.38888888888888884,
+          "recall": 0.8333333333333334,
+          "mrr": 0.8333333333333334,
+          "ndcg": 0.8333333333333334,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 6,
+          "queries": 8,
+          "answerable": 6,
+          "unanswerable": 2,
+          "precision": 0.19444444444444442,
+          "recall": 0.8333333333333334,
+          "mrr": 0.8333333333333334,
+          "ndcg": 0.8333333333333334,
+          "falsePositiveRate": 0
+        }
+      ]
+    }
+  },
+  "results": [
+    {
+      "id": "mate-san-en",
+      "language": "en",
+      "group": "annotation",
+      "text": "Qxf7",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/11/comment/1/text/0-51",
+          "grade": 2,
+          "reason": "The Opera note explicitly names Qxf7."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/11/comment/1/text/0-51",
+          "sourceId": "source:classic:ex-opera",
+          "documentId": "game:classic:ex-opera",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/11",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 11,
+          "fen": "rn1qkbnr/ppp2ppp/8/4p3/2B1P3/5Q2/PPP2PPP/RNB1K2R b KQkq - 1 6",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 236,
+            "end": 287,
+            "unit": "utf-16"
+          },
+          "score": 3.8448133866666416,
+          "matched": [
+            "qxf7"
+          ],
+          "excerpt": {
+            "text": "Development with a threat: Qxf7 mate is in the air.",
+            "start": 0,
+            "end": 51
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "mate-san-de",
+      "language": "de",
+      "group": "annotation",
+      "text": "Dxf7",
+      "options": {
+        "language": "de",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/11/comment/1/text/0-51",
+          "grade": 2,
+          "reason": "German queen notation should find the English SAN in an imported note."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/11/comment/1/text/0-51",
+          "sourceId": "source:classic:ex-opera",
+          "documentId": "game:classic:ex-opera",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/11",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 11,
+          "fen": "rn1qkbnr/ppp2ppp/8/4p3/2B1P3/5Q2/PPP2PPP/RNB1K2R b KQkq - 1 6",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 236,
+            "end": 287,
+            "unit": "utf-16"
+          },
+          "score": 3.8448133866666416,
+          "matched": [
+            "qxf7"
+          ],
+          "excerpt": {
+            "text": "Development with a threat: Qxf7 mate is in the air.",
+            "start": 0,
+            "end": 51
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "lucena-bridge",
+      "language": "en",
+      "group": "annotation",
+      "text": "bridge fourth rank",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3/comment/1/text/0-62",
+          "grade": 2,
+          "reason": "The Lucena note describes blocking checks on the fourth rank."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3/comment/1/text/0-62",
+          "sourceId": "source:classic:st-lucena",
+          "documentId": "game:classic:st-lucena",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3",
+          "gameId": "st-lucena",
+          "collection": "classic",
+          "ply": 3,
+          "fen": "1K6/1P2k3/8/8/3R4/8/r7/8 b - - 3 2",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 204,
+            "end": 266,
+            "unit": "utf-16"
+          },
+          "score": 9.721939604217994,
+          "matched": [
+            "bridge",
+            "fourth",
+            "rank"
+          ],
+          "excerpt": {
+            "text": "The bridge: the rook will block the checks on the fourth rank.",
+            "start": 0,
+            "end": 62
+          }
+        },
+        {
+          "id": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/1/comment/0/text/0-67",
+          "sourceId": "source:classic:st-philidor",
+          "documentId": "game:classic:st-philidor",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/1",
+          "gameId": "st-philidor",
+          "collection": "classic",
+          "ply": 1,
+          "fen": "4k3/7R/1r6/3KP3/8/8/8/8 w - - 1 2",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 148,
+            "end": 215,
+            "unit": "utf-16"
+          },
+          "score": 2.480814095126542,
+          "matched": [
+            "rank"
+          ],
+          "excerpt": {
+            "text": "Keep the rook on the sixth rank: the white king can't come forward.",
+            "start": 0,
+            "end": 67
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "philidor-sixth",
+      "language": "en",
+      "group": "annotation",
+      "text": "sixth rank",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/1/comment/0/text/0-67",
+          "grade": 2,
+          "reason": "The Philidor defence note names the sixth rank."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/1/comment/0/text/0-67",
+          "sourceId": "source:classic:st-philidor",
+          "documentId": "game:classic:st-philidor",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/1",
+          "gameId": "st-philidor",
+          "collection": "classic",
+          "ply": 1,
+          "fen": "4k3/7R/1r6/3KP3/8/8/8/8 w - - 1 2",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 148,
+            "end": 215,
+            "unit": "utf-16"
+          },
+          "score": 5.3967624009055735,
+          "matched": [
+            "sixth",
+            "rank"
+          ],
+          "excerpt": {
+            "text": "Keep the rook on the sixth rank: the white king can't come forward.",
+            "start": 0,
+            "end": 67
+          }
+        },
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3/comment/1/text/0-62",
+          "sourceId": "source:classic:st-lucena",
+          "documentId": "game:classic:st-lucena",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3",
+          "gameId": "st-lucena",
+          "collection": "classic",
+          "ply": 3,
+          "fen": "1K6/1P2k3/8/8/3R4/8/r7/8 b - - 3 2",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 204,
+            "end": 266,
+            "unit": "utf-16"
+          },
+          "score": 2.9013790631157628,
+          "matched": [
+            "rank"
+          ],
+          "excerpt": {
+            "text": "The bridge: the rook will block the checks on the fourth rank.",
+            "start": 0,
+            "end": 62
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "saavedra-stalemate",
+      "language": "en",
+      "group": "annotation",
+      "text": "Saavedra stalemate",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/10/comment/0/text/0-50",
+          "grade": 2,
+          "reason": "Both notes discuss the stalemate idea, at different plies."
+        },
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/11/comment/1/text/0-53",
+          "grade": 2,
+          "reason": "Both notes discuss the stalemate idea, at different plies."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/11/comment/1/text/0-53",
+          "sourceId": "source:classic:st-saavedra",
+          "documentId": "game:classic:st-saavedra",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/11",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 11,
+          "fen": "2R5/8/8/8/3r4/8/2K5/k7 b - - 0 6",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 279,
+            "end": 332,
+            "unit": "utf-16"
+          },
+          "score": 2.7461943667922175,
+          "matched": [
+            "stalemate"
+          ],
+          "excerpt": {
+            "text": "The rook avoids the stalemate and threatens Ra8 mate.",
+            "start": 0,
+            "end": 53
+          }
+        },
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/10/comment/0/text/0-50",
+          "sourceId": "source:classic:st-saavedra",
+          "documentId": "game:classic:st-saavedra",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/10",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 10,
+          "fen": "8/2P5/8/8/3r4/8/2K5/k7 w - - 9 6",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 218,
+            "end": 268,
+            "unit": "utf-16"
+          },
+          "score": 2.606767424514313,
+          "matched": [
+            "stalemate"
+          ],
+          "excerpt": {
+            "text": "Rc4+ is ready: after c8=Q, Rc4+ Qxc4 is stalemate.",
+            "start": 0,
+            "end": 50
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.5,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.6666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 2,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "second-note",
+      "language": "en",
+      "group": "annotation",
+      "text": "second arrival",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5/comment/1/text/0-48",
+          "grade": 2,
+          "reason": "The second note is a separate passage despite equal board EPDs."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5/comment/1/text/0-48",
+          "sourceId": "source:library:repeat",
+          "documentId": "game:library:repeat",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 5,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 85,
+            "end": 133,
+            "unit": "utf-16"
+          },
+          "score": 3.4381302052416456,
+          "matched": [
+            "second",
+            "arrival"
+          ],
+          "excerpt": {
+            "text": "Second arrival: this note belongs to move three.",
+            "start": 0,
+            "end": 48
+          }
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1/comment/0/text/0-34",
+          "sourceId": "source:library:repeat",
+          "documentId": "game:library:repeat",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 26,
+            "end": 60,
+            "unit": "utf-16"
+          },
+          "score": 1.6517549834619973,
+          "matched": [
+            "arrival"
+          ],
+          "excerpt": {
+            "text": "First arrival: develop the knight.",
+            "start": 0,
+            "end": 34
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "first-note",
+      "language": "en",
+      "group": "annotation",
+      "text": "first arrival",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1/comment/0/text/0-34",
+          "grade": 2,
+          "reason": "The first arrival must retain its own passage."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1/comment/0/text/0-34",
+          "sourceId": "source:library:repeat",
+          "documentId": "game:library:repeat",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 26,
+            "end": 60,
+            "unit": "utf-16"
+          },
+          "score": 3.912153263326026,
+          "matched": [
+            "first",
+            "arrival"
+          ],
+          "excerpt": {
+            "text": "First arrival: develop the knight.",
+            "start": 0,
+            "end": 34
+          }
+        },
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5/comment/1/text/0-48",
+          "sourceId": "source:library:repeat",
+          "documentId": "game:library:repeat",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/5",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 5,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 5 3",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 85,
+            "end": 133,
+            "unit": "utf-16"
+          },
+          "score": 1.4516171320627125,
+          "matched": [
+            "arrival"
+          ],
+          "excerpt": {
+            "text": "Second arrival: this note belongs to move three.",
+            "start": 0,
+            "end": 48
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "en-passant-note",
+      "language": "en",
+      "group": "annotation",
+      "text": "en passant d6",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0/comment/0/text/0-35",
+          "grade": 2,
+          "reason": "An initial-position comment can be retrieved."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0/comment/0/text/0-35",
+          "sourceId": "source:library:en-passant",
+          "documentId": "game:library:en-passant",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0",
+          "gameId": "en-passant",
+          "collection": "library",
+          "ply": 0,
+          "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 22",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 78,
+            "end": 113,
+            "unit": "utf-16"
+          },
+          "score": 7.244055213172753,
+          "matched": [
+            "en",
+            "passant",
+            "d6"
+          ],
+          "excerpt": {
+            "text": "White can capture en passant on d6.",
+            "start": 0,
+            "end": 35
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "castling-note",
+      "language": "en",
+      "group": "annotation",
+      "text": "castling rights",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:library:castling@d28665e0ca7f8e40ebf23cbfc5669c20b9a1df809b9d61b43c1c733f08510ff4/ply/0/comment/0/text/0-39",
+          "grade": 2,
+          "reason": "The source comment names castling rights."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:castling@d28665e0ca7f8e40ebf23cbfc5669c20b9a1df809b9d61b43c1c733f08510ff4/ply/0/comment/0/text/0-39",
+          "sourceId": "source:library:castling",
+          "documentId": "game:library:castling",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:castling@d28665e0ca7f8e40ebf23cbfc5669c20b9a1df809b9d61b43c1c733f08510ff4/ply/0",
+          "gameId": "castling",
+          "collection": "library",
+          "ply": 0,
+          "fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 10",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 79,
+            "end": 118,
+            "unit": "utf-16"
+          },
+          "score": 4.786690172641489,
+          "matched": [
+            "castling",
+            "rights"
+          ],
+          "excerpt": {
+            "text": "Both sides retain both castling rights.",
+            "start": 0,
+            "end": 39
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "iqp-en",
+      "language": "en",
+      "group": "guide",
+      "text": "blockade attacking pieces",
+      "options": {
+        "language": "en",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:iqp:en@4ad5c25c4e467fea3fb4a3ed99317e9bcab6b0cedf2a9418791e7ba0ca875fbd/plans/text/0-133",
+          "grade": 2,
+          "reason": "The authored IQP plan describes blockade and reducing attacking pieces."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:iqp:en@4ad5c25c4e467fea3fb4a3ed99317e9bcab6b0cedf2a9418791e7ba0ca875fbd/plans/text/0-133",
+          "sourceId": "source:guide:iqp",
+          "documentId": "guide:iqp:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "iqp",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 133,
+            "unit": "utf-16"
+          },
+          "score": 8.951394970861546,
+          "matched": [
+            "blockade",
+            "attacking",
+            "pieces"
+          ],
+          "excerpt": {
+            "text": "The owner seeks piece activity and a well-supported advance. The opponent tries to blockade the pawn and reduce the attacking pieces.",
+            "start": 0,
+            "end": 133
+          }
+        },
+        {
+          "id": "guide:kid:en@5c4c71ae64b931b9dcf8a84df17adcbcc53d8b440e044e0b89f05d8bddf10418/idea/text/0-95",
+          "sourceId": "source:guide:kid",
+          "documentId": "guide:kid:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "kid",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 95,
+            "unit": "utf-16"
+          },
+          "score": 1.7919920442006199,
+          "matched": [
+            "pieces"
+          ],
+          "excerpt": {
+            "text": "Black lets White build a broad centre and prepares to challenge it with pieces and pawn breaks.",
+            "start": 0,
+            "end": 95
+          }
+        },
+        {
+          "id": "guide:ruy-lopez:en@84afe7fbe24cee342f34229dfb965ed3a588415d7896aeadcccf7d43ac1998dd/plans/text/0-141",
+          "sourceId": "source:guide:ruy-lopez",
+          "documentId": "guide:ruy-lopez:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "ruy-lopez",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 141,
+            "unit": "utf-16"
+          },
+          "score": 1.696252415094713,
+          "matched": [
+            "pieces"
+          ],
+          "excerpt": {
+            "text": "White improves the pieces before choosing a central or kingside expansion. Black develops harmoniously and looks for a freeing central break.",
+            "start": 0,
+            "end": 141
+          }
+        },
+        {
+          "id": "guide:french:en@11fc0fe4a9665ca3dc67486cb64b8310199d78c6b3e1c9deadf3ce36ecba359d/plans/text/0-127",
+          "sourceId": "source:guide:french",
+          "documentId": "guide:french:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "french",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 127,
+            "unit": "utf-16"
+          },
+          "score": 1.6521190535821306,
+          "matched": [
+            "pieces"
+          ],
+          "excerpt": {
+            "text": "White can use space to improve the pieces. Black challenges the pawn centre and seeks useful work for the light-squared bishop.",
+            "start": 0,
+            "end": 127
+          }
+        },
+        {
+          "id": "guide:maroczy:en@c29b6972324f48f4c7b3f100ef1f134c5ad906b4ded991d81fbbdff49a9bfe81/plans/text/0-129",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 129,
+            "unit": "utf-16"
+          },
+          "score": 1.6521190535821306,
+          "matched": [
+            "pieces"
+          ],
+          "excerpt": {
+            "text": "White improves pieces while keeping control. Black seeks exchanges, active squares and a prepared freeing break against the bind.",
+            "start": 0,
+            "end": 129
+          }
+        },
+        {
+          "id": "guide:open-games:en@ab00b390974b0ff7c7920ab5de05c5aadb40a96428e79e6a85e65535083a94f6/plans/text/0-143",
+          "sourceId": "source:guide:open-games",
+          "documentId": "guide:open-games:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "open-games",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 143,
+            "unit": "utf-16"
+          },
+          "score": 1.6521190535821306,
+          "matched": [
+            "pieces"
+          ],
+          "excerpt": {
+            "text": "White seeks active pieces and a supported central expansion. Black develops with threats against the centre and prepares to contest open files.",
+            "start": 0,
+            "end": 143
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 6,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "iqp-de",
+      "language": "de",
+      "group": "guide",
+      "text": "Isolani blockieren",
+      "options": {
+        "language": "de",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:iqp:de@aa145f1481c215bc882159a9aeedff72e536c7b9582338669f76ce3635422339/plans/text/0-165",
+          "grade": 2,
+          "reason": "The German IQP plan contains both concepts."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:iqp:de@aa145f1481c215bc882159a9aeedff72e536c7b9582338669f76ce3635422339/plans/text/0-165",
+          "sourceId": "source:guide:iqp",
+          "documentId": "guide:iqp:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "iqp",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 165,
+            "unit": "utf-16"
+          },
+          "score": 6.911669825414334,
+          "matched": [
+            "isolani",
+            "blockieren"
+          ],
+          "excerpt": {
+            "text": "Die Seite mit dem Isolani sucht Figurenaktivität und einen gut vorbereiteten Vorstoß. Der Gegner versucht, den Bauern zu blockieren und Angriffsfiguren abzutauschen.",
+            "start": 0,
+            "end": 165
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "carlsbad-en",
+      "language": "en",
+      "group": "guide",
+      "text": "minority attack queenside",
+      "options": {
+        "language": "en",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:carlsbad:en@34a2655e2cecf04cb400e9c20c6f2ab8395b216572aeb0c2c948aa81d6791e30/plans/text/0-153",
+          "grade": 2,
+          "reason": "The Carlsbad plan explicitly describes a minority attack."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:carlsbad:en@34a2655e2cecf04cb400e9c20c6f2ab8395b216572aeb0c2c948aa81d6791e30/plans/text/0-153",
+          "sourceId": "source:guide:carlsbad",
+          "documentId": "guide:carlsbad:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "carlsbad",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 153,
+            "unit": "utf-16"
+          },
+          "score": 8.252906852915444,
+          "matched": [
+            "minority",
+            "attack",
+            "queenside"
+          ],
+          "excerpt": {
+            "text": "A minority attack can create a pawn target on the queenside. The other side seeks active pieces and central or kingside counterplay; preparation matters.",
+            "start": 0,
+            "end": 153
+          }
+        },
+        {
+          "id": "guide:slav:en@5eb10714d66ac2c1a9059dfc105632680f857e042718401d644d56f22af0a8b3/structure/text/0-128",
+          "sourceId": "source:guide:slav",
+          "documentId": "guide:slav:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "slav",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 128,
+            "unit": "utf-16"
+          },
+          "score": 5.607608701581137,
+          "matched": [
+            "minority",
+            "attack"
+          ],
+          "excerpt": {
+            "text": "Exchanges can create symmetry, an isolated pawn or a minority-attack structure. The opening name alone does not choose the plan.",
+            "start": 0,
+            "end": 128
+          }
+        },
+        {
+          "id": "guide:carlsbad:en@34a2655e2cecf04cb400e9c20c6f2ab8395b216572aeb0c2c948aa81d6791e30/structure/text/0-109",
+          "sourceId": "source:guide:carlsbad",
+          "documentId": "guide:carlsbad:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "carlsbad",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 109,
+            "unit": "utf-16"
+          },
+          "score": 3.1200082556840623,
+          "matched": [
+            "minority"
+          ],
+          "excerpt": {
+            "text": "The pattern may occur with colours reversed. Use the pawn placement to identify the minority and the targets.",
+            "start": 0,
+            "end": 109
+          }
+        },
+        {
+          "id": "guide:sicilian:en@cc465ec9471023229a4f8525d6a19569fe158686aa9e0fd93029556630980fd5/plans/text/0-150",
+          "sourceId": "source:guide:sicilian",
+          "documentId": "guide:sicilian:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "sicilian",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 150,
+            "unit": "utf-16"
+          },
+          "score": 2.71412393373703,
+          "matched": [
+            "queenside"
+          ],
+          "excerpt": {
+            "text": "White uses development and central space for activity. Black seeks counterplay on central and queenside lines; the exact variation decides the timing.",
+            "start": 0,
+            "end": 150
+          }
+        },
+        {
+          "id": "guide:kid-chain:en@0d60f181f2009ba64aefed1b391d25fe1e327d7913eed6da66e4322e8de144c0/plans/text/0-146",
+          "sourceId": "source:guide:kid-chain",
+          "documentId": "guide:kid-chain:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "kid-chain",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 146,
+            "unit": "utf-16"
+          },
+          "score": 2.401686635018985,
+          "matched": [
+            "queenside"
+          ],
+          "excerpt": {
+            "text": "White often has room for queenside play. Black looks for kingside counterplay, while both sides watch for a central opening that changes the race.",
+            "start": 0,
+            "end": 146
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 5,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "carlsbad-de",
+      "language": "de",
+      "group": "guide",
+      "text": "Minoritätsangriff Damenflügel",
+      "options": {
+        "language": "de",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:carlsbad:de@d432f103e0d2b9360675c84bb1f63f7f84eef117f2c670024b7f66689174824a/plans/text/0-187",
+          "grade": 2,
+          "reason": "The same authored plan is searchable in German."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:carlsbad:de@d432f103e0d2b9360675c84bb1f63f7f84eef117f2c670024b7f66689174824a/plans/text/0-187",
+          "sourceId": "source:guide:carlsbad",
+          "documentId": "guide:carlsbad:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "carlsbad",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 187,
+            "unit": "utf-16"
+          },
+          "score": 6.428676748017541,
+          "matched": [
+            "minoritatsangriff",
+            "damenflugel"
+          ],
+          "excerpt": {
+            "text": "Ein Minoritätsangriff kann am Damenflügel ein Bauernziel schaffen. Die andere Seite sucht aktive Figuren und Gegenspiel im Zentrum oder am Königsflügel; die Vorbereitung ist entscheidend.",
+            "start": 0,
+            "end": 187
+          }
+        },
+        {
+          "id": "guide:slav:de@826e4bfc25a904ec92b4c76d3320cb045ebfe992baea1f911afc666b022a1c1b/structure/text/0-159",
+          "sourceId": "source:guide:slav",
+          "documentId": "guide:slav:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "slav",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 159,
+            "unit": "utf-16"
+          },
+          "score": 3.059213691317296,
+          "matched": [
+            "minoritatsangriff"
+          ],
+          "excerpt": {
+            "text": "Abtausche können Symmetrie, einen isolierten Bauern oder eine Struktur für einen Minoritätsangriff schaffen. Der Eröffnungsname allein bestimmt den Plan nicht.",
+            "start": 0,
+            "end": 159
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 2,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "sicilian-exchange",
+      "language": "en",
+      "group": "guide",
+      "text": "c-pawn d-pawn Sicilian",
+      "options": {
+        "language": "en",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:sicilian:en@cc465ec9471023229a4f8525d6a19569fe158686aa9e0fd93029556630980fd5/structure/text/0-130",
+          "grade": 2,
+          "reason": "This section states which central pawns an open Sicilian trades."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:sicilian:en@cc465ec9471023229a4f8525d6a19569fe158686aa9e0fd93029556630980fd5/structure/text/0-130",
+          "sourceId": "source:guide:sicilian",
+          "documentId": "guide:sicilian:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "sicilian",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 130,
+            "unit": "utf-16"
+          },
+          "score": 7.657047714775073,
+          "matched": [
+            "c",
+            "pawn",
+            "d",
+            "sicilian"
+          ],
+          "excerpt": {
+            "text": "An open Sicilian often trades Black’s c-pawn for White’s d-pawn. Closed and other Sicilian systems have different pawn structures.",
+            "start": 0,
+            "end": 130
+          }
+        },
+        {
+          "id": "guide:caro-kann:en@fd7fa0407afc9155655608415102b1b709ff9ee2908032c7f5d5154b195f6946/idea/text/0-100",
+          "sourceId": "source:guide:caro-kann",
+          "documentId": "guide:caro-kann:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "caro-kann",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 100,
+            "unit": "utf-16"
+          },
+          "score": 4.236359299295743,
+          "matched": [
+            "c",
+            "pawn",
+            "d"
+          ],
+          "excerpt": {
+            "text": "Black supports the central d-pawn with the c-pawn, keeping a route out for the light-squared bishop.",
+            "start": 0,
+            "end": 100
+          }
+        },
+        {
+          "id": "guide:hanging-pawns:en@4519269ead3ce31c9eefaf11990800ff4c94db6dbd2075706642980351675a80/structure/text/0-98",
+          "sourceId": "source:guide:hanging-pawns",
+          "documentId": "guide:hanging-pawns:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "hanging-pawns",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 98,
+            "unit": "utf-16"
+          },
+          "score": 4.126535085103915,
+          "matched": [
+            "c",
+            "pawn",
+            "d"
+          ],
+          "excerpt": {
+            "text": "After one pawn advances or is exchanged, reassess the newly exposed squares and any isolated pawn.",
+            "start": 0,
+            "end": 98
+          }
+        },
+        {
+          "id": "guide:hanging-pawns:en@4519269ead3ce31c9eefaf11990800ff4c94db6dbd2075706642980351675a80/idea/text/0-78",
+          "sourceId": "source:guide:hanging-pawns",
+          "documentId": "guide:hanging-pawns:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "hanging-pawns",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 78,
+            "unit": "utf-16"
+          },
+          "score": 4.000945549175665,
+          "matched": [
+            "c",
+            "pawn",
+            "d"
+          ],
+          "excerpt": {
+            "text": "The connected central pawns have no neighbouring b- or e-pawn to support them.",
+            "start": 0,
+            "end": 78
+          }
+        },
+        {
+          "id": "guide:slav:en@5eb10714d66ac2c1a9059dfc105632680f857e042718401d644d56f22af0a8b3/idea/text/0-122",
+          "sourceId": "source:guide:slav",
+          "documentId": "guide:slav:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "slav",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 122,
+            "unit": "utf-16"
+          },
+          "score": 3.9626233221646547,
+          "matched": [
+            "c",
+            "pawn",
+            "d"
+          ],
+          "excerpt": {
+            "text": "Black supports the central d-pawn with the c-pawn. The placement of the e-pawn changes the light-squared bishop’s freedom.",
+            "start": 0,
+            "end": 122
+          }
+        },
+        {
+          "id": "guide:iqp:en@4ad5c25c4e467fea3fb4a3ed99317e9bcab6b0cedf2a9418791e7ba0ca875fbd/idea/text/0-83",
+          "sourceId": "source:guide:iqp",
+          "documentId": "guide:iqp:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "iqp",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 83,
+            "unit": "utf-16"
+          },
+          "score": 3.2884498899595345,
+          "matched": [
+            "pawn",
+            "d"
+          ],
+          "excerpt": {
+            "text": "Without a pawn on an adjacent file, the d-pawn cannot be supported by another pawn.",
+            "start": 0,
+            "end": 83
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 6,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "french-base",
+      "language": "de",
+      "group": "guide",
+      "text": "Kettenbasis Bauernhebel",
+      "options": {
+        "language": "de",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:french-chain:de@595754de3837a498dabe69c550377fa93ab791fe644871c21c26cb26b9b1935b/plans/text/0-193",
+          "grade": 2,
+          "reason": "The locked French plan names the chain base and pawn break."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:french-chain:de@595754de3837a498dabe69c550377fa93ab791fe644871c21c26cb26b9b1935b/plans/text/0-193",
+          "sourceId": "source:guide:french-chain",
+          "documentId": "guide:french-chain:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "french-chain",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 193,
+            "unit": "utf-16"
+          },
+          "score": 5.771106140700264,
+          "matched": [
+            "kettenbasis",
+            "bauernhebel"
+          ],
+          "excerpt": {
+            "text": "Weiß kann den Raum hinter dem vorgeschobenen e-Bauern nutzen. Schwarz sucht Druck auf die Kettenbasis und einen vorbereiteten Bauernhebel; beide Seiten brauchen Wege für eingeschränkte Figuren.",
+            "start": 0,
+            "end": 193
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "hanging-support",
+      "language": "en",
+      "group": "guide",
+      "text": "neighbouring b e pawn support",
+      "options": {
+        "language": "en",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:hanging-pawns:en@4519269ead3ce31c9eefaf11990800ff4c94db6dbd2075706642980351675a80/idea/text/0-78",
+          "grade": 2,
+          "reason": "The definition identifies the missing neighbouring support pawns."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:hanging-pawns:en@4519269ead3ce31c9eefaf11990800ff4c94db6dbd2075706642980351675a80/idea/text/0-78",
+          "sourceId": "source:guide:hanging-pawns",
+          "documentId": "guide:hanging-pawns:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "hanging-pawns",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 78,
+            "unit": "utf-16"
+          },
+          "score": 13.478909739718627,
+          "matched": [
+            "neighbouring",
+            "b",
+            "e",
+            "pawn",
+            "support"
+          ],
+          "excerpt": {
+            "text": "The connected central pawns have no neighbouring b- or e-pawn to support them.",
+            "start": 0,
+            "end": 78
+          }
+        },
+        {
+          "id": "guide:slav:en@5eb10714d66ac2c1a9059dfc105632680f857e042718401d644d56f22af0a8b3/idea/text/0-122",
+          "sourceId": "source:guide:slav",
+          "documentId": "guide:slav:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "slav",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 122,
+            "unit": "utf-16"
+          },
+          "score": 2.9467208907880194,
+          "matched": [
+            "e",
+            "pawn"
+          ],
+          "excerpt": {
+            "text": "Black supports the central d-pawn with the c-pawn. The placement of the e-pawn changes the light-squared bishop’s freedom.",
+            "start": 0,
+            "end": 122
+          }
+        },
+        {
+          "id": "guide:french:en@11fc0fe4a9665ca3dc67486cb64b8310199d78c6b3e1c9deadf3ce36ecba359d/idea/text/0-114",
+          "sourceId": "source:guide:french",
+          "documentId": "guide:french:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "french",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 114,
+            "unit": "utf-16"
+          },
+          "score": 2.8703642868393615,
+          "matched": [
+            "e",
+            "pawn"
+          ],
+          "excerpt": {
+            "text": "Black supports a central foothold with the e-pawn, accepting a restricted light-squared bishop for a solid centre.",
+            "start": 0,
+            "end": 114
+          }
+        },
+        {
+          "id": "guide:slav:en@5eb10714d66ac2c1a9059dfc105632680f857e042718401d644d56f22af0a8b3/plans/text/0-121",
+          "sourceId": "source:guide:slav",
+          "documentId": "guide:slav:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "slav",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 121,
+            "unit": "utf-16"
+          },
+          "score": 2.8631096036323913,
+          "matched": [
+            "support"
+          ],
+          "excerpt": {
+            "text": "White develops pressure in the centre. Black balances solid support with active development and a prepared central break.",
+            "start": 0,
+            "end": 121
+          }
+        },
+        {
+          "id": "guide:kid:en@5c4c71ae64b931b9dcf8a84df17adcbcc53d8b440e044e0b89f05d8bddf10418/structure/text/0-108",
+          "sourceId": "source:guide:kid",
+          "documentId": "guide:kid:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "kid",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 108,
+            "unit": "utf-16"
+          },
+          "score": 2.7866268278219652,
+          "matched": [
+            "support"
+          ],
+          "excerpt": {
+            "text": "A locked centre can support play on opposite wings. An exchanged or open centre requires different handling.",
+            "start": 0,
+            "end": 108
+          }
+        },
+        {
+          "id": "guide:d-pawn:en@10680a005e592eb0b7d8cd9addd09ebe99936e0b88464046ed43083d50411d76/structure/text/0-138",
+          "sourceId": "source:guide:d-pawn",
+          "documentId": "guide:d-pawn:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "d-pawn",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 138,
+            "unit": "utf-16"
+          },
+          "score": 2.6870423434862505,
+          "matched": [
+            "e",
+            "pawn"
+          ],
+          "excerpt": {
+            "text": "The c- and e-pawns determine whether the centre stays compact or opens. A familiar piece setup does not guarantee the same pawn structure.",
+            "start": 0,
+            "end": 138
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 6,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "maroczy-en",
+      "language": "en",
+      "group": "guide",
+      "text": "Maroczy",
+      "options": {
+        "language": "en",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:maroczy:en@c29b6972324f48f4c7b3f100ef1f134c5ad906b4ded991d81fbbdff49a9bfe81/idea/text/0-82",
+          "grade": 2,
+          "reason": "An accent-insensitive title lookup retrieves all three guide sections."
+        },
+        {
+          "id": "guide:maroczy:en@c29b6972324f48f4c7b3f100ef1f134c5ad906b4ded991d81fbbdff49a9bfe81/plans/text/0-129",
+          "grade": 2,
+          "reason": "An accent-insensitive title lookup retrieves all three guide sections."
+        },
+        {
+          "id": "guide:maroczy:en@c29b6972324f48f4c7b3f100ef1f134c5ad906b4ded991d81fbbdff49a9bfe81/structure/text/0-85",
+          "grade": 2,
+          "reason": "An accent-insensitive title lookup retrieves all three guide sections."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:maroczy:en@c29b6972324f48f4c7b3f100ef1f134c5ad906b4ded991d81fbbdff49a9bfe81/structure/text/0-85",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 85,
+            "unit": "utf-16"
+          },
+          "score": 3.1200082556840623,
+          "matched": [
+            "maroczy"
+          ],
+          "excerpt": {
+            "text": "Space can restrict the opponent, but advancing too quickly may release that pressure.",
+            "start": 0,
+            "end": 85
+          }
+        },
+        {
+          "id": "guide:maroczy:en@c29b6972324f48f4c7b3f100ef1f134c5ad906b4ded991d81fbbdff49a9bfe81/idea/text/0-82",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 82,
+            "unit": "utf-16"
+          },
+          "score": 2.7866268278219652,
+          "matched": [
+            "maroczy"
+          ],
+          "excerpt": {
+            "text": "White’s c4- and e4-pawns control central space after the d-pawn has left its file.",
+            "start": 0,
+            "end": 82
+          }
+        },
+        {
+          "id": "guide:maroczy:en@c29b6972324f48f4c7b3f100ef1f134c5ad906b4ded991d81fbbdff49a9bfe81/plans/text/0-129",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:en",
+          "kind": "guide",
+          "language": "en",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 129,
+            "unit": "utf-16"
+          },
+          "score": 2.71412393373703,
+          "matched": [
+            "maroczy"
+          ],
+          "excerpt": {
+            "text": "White improves pieces while keeping control. Black seeks exchanges, active squares and a prepared freeing break against the bind.",
+            "start": 0,
+            "end": 129
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.3333333333333333,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 3,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 3,
+          "relevant": 3,
+          "precision": 0.5,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "maroczy-de",
+      "language": "de",
+      "group": "guide",
+      "text": "Maroczy",
+      "options": {
+        "language": "de",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:maroczy:de@330f6f0b4b97a8f583b01742486ad993ee8849ccc7acd7af6a3ecdc6037aa041/idea/text/0-105",
+          "grade": 2,
+          "reason": "The German guide title also has the accent."
+        },
+        {
+          "id": "guide:maroczy:de@330f6f0b4b97a8f583b01742486ad993ee8849ccc7acd7af6a3ecdc6037aa041/plans/text/0-156",
+          "grade": 2,
+          "reason": "The German guide title also has the accent."
+        },
+        {
+          "id": "guide:maroczy:de@330f6f0b4b97a8f583b01742486ad993ee8849ccc7acd7af6a3ecdc6037aa041/structure/text/0-89",
+          "grade": 2,
+          "reason": "The German guide title also has the accent."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:maroczy:de@330f6f0b4b97a8f583b01742486ad993ee8849ccc7acd7af6a3ecdc6037aa041/structure/text/0-89",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 89,
+            "unit": "utf-16"
+          },
+          "score": 2.9926754636082054,
+          "matched": [
+            "maroczy"
+          ],
+          "excerpt": {
+            "text": "Raum kann den Gegner einschränken; zu schnelle Vorstöße können diesen Druck jedoch lösen.",
+            "start": 0,
+            "end": 89
+          }
+        },
+        {
+          "id": "guide:maroczy:de@330f6f0b4b97a8f583b01742486ad993ee8849ccc7acd7af6a3ecdc6037aa041/idea/text/0-105",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 105,
+            "unit": "utf-16"
+          },
+          "score": 2.731831178707428,
+          "matched": [
+            "maroczy"
+          ],
+          "excerpt": {
+            "text": "Die weißen Bauern c4 und e4 kontrollieren Raum im Zentrum, nachdem der d-Bauer seine Linie verlassen hat.",
+            "start": 0,
+            "end": 105
+          }
+        },
+        {
+          "id": "guide:maroczy:de@330f6f0b4b97a8f583b01742486ad993ee8849ccc7acd7af6a3ecdc6037aa041/plans/text/0-156",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 156,
+            "unit": "utf-16"
+          },
+          "score": 2.581809298423008,
+          "matched": [
+            "maroczy"
+          ],
+          "excerpt": {
+            "text": "Weiß verbessert die Figuren und hält die Kontrolle aufrecht. Schwarz sucht Abtausch, aktive Felder und einen vorbereiteten Befreiungsstoß gegen die Klammer.",
+            "start": 0,
+            "end": 156
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.3333333333333333,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 3,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 3,
+          "relevant": 3,
+          "precision": 0.5,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "bridge-paraphrase",
+      "language": "en",
+      "group": "paraphrase",
+      "text": "How can I shelter the king from rook checks in a winning rook ending?",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3/comment/1/text/0-62",
+          "grade": 2,
+          "reason": "Building the Lucena bridge shelters the king from checks; the question avoids the source wording."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/1/comment/0/text/0-67",
+          "sourceId": "source:classic:st-philidor",
+          "documentId": "game:classic:st-philidor",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/1",
+          "gameId": "st-philidor",
+          "collection": "classic",
+          "ply": 1,
+          "fen": "4k3/7R/1r6/3KP3/8/8/8/8 w - - 1 2",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 148,
+            "end": 215,
+            "unit": "utf-16"
+          },
+          "score": 5.168066810202124,
+          "matched": [
+            "can",
+            "king",
+            "rook"
+          ],
+          "excerpt": {
+            "text": "Keep the rook on the sixth rank: the white king can't come forward.",
+            "start": 0,
+            "end": 67
+          }
+        },
+        {
+          "id": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/3/comment/1/text/0-61",
+          "sourceId": "source:classic:st-philidor",
+          "documentId": "game:classic:st-philidor",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-philidor@f8d83d553b01fb01858a368fe57d834a0f2cf90178d454247baa48e9256ff882/ply/3",
+          "gameId": "st-philidor",
+          "collection": "classic",
+          "ply": 3,
+          "fen": "4k3/7R/4P3/3K4/8/8/8/1r6 w - - 1 3",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 228,
+            "end": 289,
+            "unit": "utf-16"
+          },
+          "score": 4.475837385974879,
+          "matched": [
+            "shelter",
+            "king"
+          ],
+          "excerpt": {
+            "text": "Now the pawn has left the king no shelter: check from behind.",
+            "start": 0,
+            "end": 61
+          }
+        },
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3/comment/1/text/0-62",
+          "sourceId": "source:classic:st-lucena",
+          "documentId": "game:classic:st-lucena",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3",
+          "gameId": "st-lucena",
+          "collection": "classic",
+          "ply": 3,
+          "fen": "1K6/1P2k3/8/8/3R4/8/r7/8 b - - 3 2",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 204,
+            "end": 266,
+            "unit": "utf-16"
+          },
+          "score": 4.472786364480596,
+          "matched": [
+            "rook",
+            "checks"
+          ],
+          "excerpt": {
+            "text": "The bridge: the rook will block the checks on the fourth rank.",
+            "start": 0,
+            "end": 62
+          }
+        },
+        {
+          "id": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0/comment/0/text/0-35",
+          "sourceId": "source:library:en-passant",
+          "documentId": "game:library:en-passant",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:en-passant@641e90f32d6bbff0483fc05b22dbb42f2cd5e6f6815f45098776e0c3dbfc6793/ply/0",
+          "gameId": "en-passant",
+          "collection": "library",
+          "ply": 0,
+          "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 22",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 78,
+            "end": 113,
+            "unit": "utf-16"
+          },
+          "score": 2.9013790631157628,
+          "matched": [
+            "can"
+          ],
+          "excerpt": {
+            "text": "White can capture en passant on d6.",
+            "start": 0,
+            "end": 35
+          }
+        },
+        {
+          "id": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/34/comment/1/text/0-107",
+          "sourceId": "source:classic:cl-century",
+          "documentId": "game:classic:cl-century",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:cl-century@4a1466666d13f6b433131b2b56cc1fc7df1cd965958044069dbe69b121fc35bb/ply/34",
+          "gameId": "cl-century",
+          "collection": "classic",
+          "ply": 34,
+          "fen": "r3r1k1/pp3pbp/1qp1b1p1/2B5/2BP4/Q1n2N2/P4PPP/3R1K1R w - - 4 18",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 370,
+            "end": 477,
+            "unit": "utf-16"
+          },
+          "score": 2.262204497971135,
+          "matched": [
+            "checks"
+          ],
+          "excerpt": {
+            "text": "The famous queen sacrifice: the bishop takes on c4 with check, and a windmill of discovered checks follows.",
+            "start": 0,
+            "end": 107
+          }
+        },
+        {
+          "id": "game:classic:cl-rotlewi-rubinstein@6dae5952bde4de83cf878e756c779a9582de2803476ac42d34553c672ae275e1/ply/40/comment/0/text/0-33",
+          "sourceId": "source:classic:cl-rotlewi-rubinstein",
+          "documentId": "game:classic:cl-rotlewi-rubinstein",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:cl-rotlewi-rubinstein@6dae5952bde4de83cf878e756c779a9582de2803476ac42d34553c672ae275e1/ply/40",
+          "gameId": "cl-rotlewi-rubinstein",
+          "collection": "classic",
+          "ply": 40,
+          "fen": "2rr2k1/1b2qppp/pb2p3/1p2P3/1P3Pn1/P1NB4/1B2Q1PP/R4R1K w - - 3 21",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 323,
+            "end": 356,
+            "unit": "utf-16"
+          },
+          "score": 1.6655244201244843,
+          "matched": [
+            "king"
+          ],
+          "excerpt": {
+            "text": "Both bishops aim at White's king.",
+            "start": 0,
+            "end": 33
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 6,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "iqp-paraphrase",
+      "language": "de",
+      "group": "paraphrase",
+      "text": "Wie stoppt man einen freistehenden Zentralbauern durch Figuren?",
+      "options": {
+        "language": "de",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [
+        {
+          "id": "guide:iqp:de@aa145f1481c215bc882159a9aeedff72e536c7b9582338669f76ce3635422339/plans/text/0-165",
+          "grade": 2,
+          "reason": "The isolated-pawn plan explains blockading with pieces using different wording."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "guide:nimzo:de@4054c969b09876741dc28020e51efe9021a334811f84df4260955948743bdba2/idea/text/0-110",
+          "sourceId": "source:guide:nimzo",
+          "documentId": "guide:nimzo:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "nimzo",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 110,
+            "unit": "utf-16"
+          },
+          "score": 4.39922586130969,
+          "matched": [
+            "einen",
+            "durch"
+          ],
+          "excerpt": {
+            "text": "Schwarz beeinflusst das weiße Bauernzentrum durch schnelle Entwicklung und Druck auf einen zentralen Springer.",
+            "start": 0,
+            "end": 110
+          }
+        },
+        {
+          "id": "guide:iqp:de@aa145f1481c215bc882159a9aeedff72e536c7b9582338669f76ce3635422339/idea/text/0-100",
+          "sourceId": "source:guide:iqp",
+          "documentId": "guide:iqp:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "iqp",
+          "locator": {
+            "format": "guide",
+            "section": "idea",
+            "start": 0,
+            "end": 100,
+            "unit": "utf-16"
+          },
+          "score": 4.135949745251375,
+          "matched": [
+            "einen",
+            "durch"
+          ],
+          "excerpt": {
+            "text": "Ohne Bauern auf einer Nachbarlinie kann der d-Bauer nicht durch einen anderen Bauern gedeckt werden.",
+            "start": 0,
+            "end": 100
+          }
+        },
+        {
+          "id": "guide:ruy-lopez:de@a07ad25f8112d3ca341801870c5192ae53f2c79db33006783ed4aac3b30adb54/plans/text/0-164",
+          "sourceId": "source:guide:ruy-lopez",
+          "documentId": "guide:ruy-lopez:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "ruy-lopez",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 164,
+            "unit": "utf-16"
+          },
+          "score": 3.035030524572531,
+          "matched": [
+            "einen",
+            "figuren"
+          ],
+          "excerpt": {
+            "text": "Weiß verbessert die Figuren vor einer Ausdehnung im Zentrum oder am Königsflügel. Schwarz entwickelt sich harmonisch und sucht einen befreienden Zentrumsdurchbruch.",
+            "start": 0,
+            "end": 164
+          }
+        },
+        {
+          "id": "guide:d-pawn:de@c9c846465ade9fbf966f5626d4623076f9855ef1543ac80e53a92542c676122f/plans/text/0-158",
+          "sourceId": "source:guide:d-pawn",
+          "documentId": "guide:d-pawn:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "d-pawn",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 158,
+            "unit": "utf-16"
+          },
+          "score": 2.785021854802306,
+          "matched": [
+            "einen",
+            "figuren"
+          ],
+          "excerpt": {
+            "text": "Weiß stimmt die Figuren vor einer Ausdehnung aufeinander ab. Schwarz kämpft um das Zentrum und sucht aktives Spiel, statt einen Aufbau mechanisch zu kopieren.",
+            "start": 0,
+            "end": 158
+          }
+        },
+        {
+          "id": "guide:maroczy:de@330f6f0b4b97a8f583b01742486ad993ee8849ccc7acd7af6a3ecdc6037aa041/plans/text/0-156",
+          "sourceId": "source:guide:maroczy",
+          "documentId": "guide:maroczy:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "maroczy",
+          "locator": {
+            "format": "guide",
+            "section": "plans",
+            "start": 0,
+            "end": 156,
+            "unit": "utf-16"
+          },
+          "score": 2.785021854802306,
+          "matched": [
+            "einen",
+            "figuren"
+          ],
+          "excerpt": {
+            "text": "Weiß verbessert die Figuren und hält die Kontrolle aufrecht. Schwarz sucht Abtausch, aktive Felder und einen vorbereiteten Befreiungsstoß gegen die Klammer.",
+            "start": 0,
+            "end": 156
+          }
+        },
+        {
+          "id": "guide:ruy-lopez:de@a07ad25f8112d3ca341801870c5192ae53f2c79db33006783ed4aac3b30adb54/structure/text/0-166",
+          "sourceId": "source:guide:ruy-lopez",
+          "documentId": "guide:ruy-lopez:de",
+          "kind": "guide",
+          "language": "de",
+          "occurrenceId": null,
+          "gameId": null,
+          "collection": null,
+          "ply": null,
+          "fen": null,
+          "guideId": "ruy-lopez",
+          "locator": {
+            "format": "guide",
+            "section": "structure",
+            "start": 0,
+            "end": 166,
+            "unit": "utf-16"
+          },
+          "score": 2.581809298423008,
+          "matched": [
+            "durch"
+          ],
+          "excerpt": {
+            "text": "Das Zentrum kann geschlossen bleiben oder durch Abtausch geöffnet werden. Ein Läufer-Springer-Tausch verändert das Verhältnis zwischen Bauernschwächen und Läuferpaar.",
+            "start": 0,
+            "end": 166
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 6,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "no-quantum-en",
+      "language": "en",
+      "group": "no-answer",
+      "text": "quantum tunnelling",
+      "options": {
+        "language": "en",
+        "kind": "all",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "no-quantum-de",
+      "language": "de",
+      "group": "no-answer",
+      "text": "Quantenverschränkung",
+      "options": {
+        "language": "de",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "wrong-language",
+      "language": "en",
+      "group": "no-answer",
+      "text": "Isolani",
+      "options": {
+        "language": "en",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "wrong-collection",
+      "language": "en",
+      "group": "no-answer",
+      "text": "Qxf7",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "wrong-kind",
+      "language": "en",
+      "group": "no-answer",
+      "text": "Lucena",
+      "options": {
+        "language": "en",
+        "kind": "guide",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "stopwords-only",
+      "language": "de",
+      "group": "no-answer",
+      "text": "the und für",
+      "options": {
+        "language": "de",
+        "kind": "all",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "unsupported-quantum-knight",
+      "language": "en",
+      "group": "no-answer",
+      "text": "quantum knight teleportation",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [
+        {
+          "id": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1/comment/0/text/0-34",
+          "sourceId": "source:library:repeat",
+          "documentId": "game:library:repeat",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:repeat@b22daa2c53f3c23917a268b75f1e38a00ef089d0e92faa0d34c6f0b6a08630a9/ply/1",
+          "gameId": "repeat",
+          "collection": "library",
+          "ply": 1,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 26,
+            "end": 60,
+            "unit": "utf-16"
+          },
+          "score": 2.175754705016863,
+          "matched": [
+            "knight"
+          ],
+          "excerpt": {
+            "text": "First arrival: develop the knight.",
+            "start": 0,
+            "end": 34
+          }
+        },
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/31/comment/6/text/0-51",
+          "sourceId": "source:classic:ex-opera",
+          "documentId": "game:classic:ex-opera",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/31",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 31,
+          "fen": "1Q2kb1r/p2n1ppp/4q3/4p1B1/4P3/8/PPP2PPP/2KR4 b k - 1 16",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 654,
+            "end": 705,
+            "unit": "utf-16"
+          },
+          "score": 2.037138902667983,
+          "matched": [
+            "knight"
+          ],
+          "excerpt": {
+            "text": "A queen sacrifice that deflects the knight from d7.",
+            "start": 0,
+            "end": 51
+          }
+        },
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/23/comment/5/text/0-53",
+          "sourceId": "source:classic:ex-opera",
+          "documentId": "game:classic:ex-opera",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/23",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 23,
+          "fen": "r3kb1r/p2nqppp/5n2/1B2p1B1/4P3/1Q6/PPP2PPP/2KR3R b kq - 2 12",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 544,
+            "end": 597,
+            "unit": "utf-16"
+          },
+          "score": 1.9151274777078333,
+          "matched": [
+            "knight"
+          ],
+          "excerpt": {
+            "text": "The rook joins the attack on the pinned knight on d7.",
+            "start": 0,
+            "end": 53
+          }
+        },
+        {
+          "id": "game:classic:cl-legal@60be8e9b1bf4c497faff565f4d12fe95a1bfd7d704adab36b3280113838677c5/ply/9/comment/0/text/0-59",
+          "sourceId": "source:classic:cl-legal",
+          "documentId": "game:classic:cl-legal",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:cl-legal@60be8e9b1bf4c497faff565f4d12fe95a1bfd7d704adab36b3280113838677c5/ply/9",
+          "gameId": "cl-legal",
+          "collection": "classic",
+          "ply": 9,
+          "fen": "rn1qkbnr/ppp2p1p/3p2p1/4N3/2B1P1b1/2N5/PPPP1PPP/R1BQK2R b KQkq - 0 5",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 140,
+            "end": 199,
+            "unit": "utf-16"
+          },
+          "score": 1.8069055398716853,
+          "matched": [
+            "knight"
+          ],
+          "excerpt": {
+            "text": "The knight leaves f3 although it seems pinned to the queen.",
+            "start": 0,
+            "end": 59
+          }
+        },
+        {
+          "id": "game:classic:ex-immortal@bf1d23c5045ef002a0989bcee2c9f307688475d8f6c2b178512c89132db858d2/ply/43/comment/3/text/0-73",
+          "sourceId": "source:classic:ex-immortal",
+          "documentId": "game:classic:ex-immortal",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:ex-immortal@bf1d23c5045ef002a0989bcee2c9f307688475d8f6c2b178512c89132db858d2/ply/43",
+          "gameId": "ex-immortal",
+          "collection": "classic",
+          "ply": 43,
+          "fen": "r1bk2nr/p2p1pNp/n2B1Q2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b - - 2 22",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 577,
+            "end": 650,
+            "unit": "utf-16"
+          },
+          "score": 1.6234288585007357,
+          "matched": [
+            "knight"
+          ],
+          "excerpt": {
+            "text": "A final queen sacrifice: the knight on g8 must take and the bishop mates.",
+            "start": 0,
+            "end": 73
+          }
+        },
+        {
+          "id": "game:classic:cl-evergreen@76c5816a6f31d8aa33687891d3fc07e99b1c7252e00db66ed8b006104474815e/ply/37/comment/1/text/0-76",
+          "sourceId": "source:classic:cl-evergreen",
+          "documentId": "game:classic:cl-evergreen",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:cl-evergreen@76c5816a6f31d8aa33687891d3fc07e99b1c7252e00db66ed8b006104474815e/ply/37",
+          "gameId": "cl-evergreen",
+          "collection": "classic",
+          "ply": 37,
+          "fen": "1r2k1r1/pbppnp1p/1bn2P2/7q/Q7/B1PB1N2/P4PPP/3RR1K1 b - - 2 19",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 367,
+            "end": 443,
+            "unit": "utf-16"
+          },
+          "score": 1.5449883087879228,
+          "matched": [
+            "knight"
+          ],
+          "excerpt": {
+            "text": "A quiet move with a mating idea: Black may take the knight on f3 with check.",
+            "start": 0,
+            "end": 76
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 6,
+          "returned": 6,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        }
+      ]
+    },
+    {
+      "id": "unsupported-proof",
+      "language": "en",
+      "group": "no-answer",
+      "text": "Syzygy proof rook draw",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "all",
+        "limit": 6
+      },
+      "judgements": [],
+      "ranked": [
+        {
+          "id": "game:classic:st-reti@166eae4e47d51d2877cc5187683c8c4d6f209ae71b6c58660cd376a69312b2a2/ply/7/comment/1/text/0-34",
+          "sourceId": "source:classic:st-reti",
+          "documentId": "game:classic:st-reti",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-reti@166eae4e47d51d2877cc5187683c8c4d6f209ae71b6c58660cd376a69312b2a2/ply/7",
+          "gameId": "st-reti",
+          "collection": "classic",
+          "ply": 7,
+          "fen": "8/8/2k5/8/5K1p/8/8/8 b - - 1 4",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 262,
+            "end": 296,
+            "unit": "utf-16"
+          },
+          "score": 3.8448133866666416,
+          "matched": [
+            "draw"
+          ],
+          "excerpt": {
+            "text": "In the square of the pawn: a draw.",
+            "start": 0,
+            "end": 34
+          }
+        },
+        {
+          "id": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/23/comment/5/text/0-53",
+          "sourceId": "source:classic:ex-opera",
+          "documentId": "game:classic:ex-opera",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:ex-opera@43dafffaf4b0889d414501892d09c35efdb13f4f5df6a463521f5a20def5335e/ply/23",
+          "gameId": "ex-opera",
+          "collection": "classic",
+          "ply": 23,
+          "fen": "r3kb1r/p2nqppp/5n2/1B2p1B1/4P3/1Q6/PPP2PPP/2KR3R b kq - 2 12",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 544,
+            "end": 597,
+            "unit": "utf-16"
+          },
+          "score": 1.6655244201244843,
+          "matched": [
+            "rook"
+          ],
+          "excerpt": {
+            "text": "The rook joins the attack on the pinned knight on d7.",
+            "start": 0,
+            "end": 53
+          }
+        },
+        {
+          "id": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/43/comment/2/text/0-57",
+          "sourceId": "source:classic:cl-steinitz-bardeleben",
+          "documentId": "game:classic:cl-steinitz-bardeleben",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:cl-steinitz-bardeleben@ad78786bd54132b5ff641ad9309ebacc9bde50258cd0d7ff84f80803bdde5d38/ply/43",
+          "gameId": "cl-steinitz-bardeleben",
+          "collection": "classic",
+          "ply": 43,
+          "fen": "r1r1k3/pp1qR2p/5pp1/3p2N1/6Q1/8/PP3PPP/2R3K1 b - - 0 22",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 501,
+            "end": 558,
+            "unit": "utf-16"
+          },
+          "score": 1.5714073013648338,
+          "matched": [
+            "rook"
+          ],
+          "excerpt": {
+            "text": "The rook cannot be taken: every capture loses to a check.",
+            "start": 0,
+            "end": 57
+          }
+        },
+        {
+          "id": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3/comment/1/text/0-62",
+          "sourceId": "source:classic:st-lucena",
+          "documentId": "game:classic:st-lucena",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-lucena@f913c66dda81db9413b19ff4306c2dc6cfaebf8891f166dec1ba59c98a83eb14/ply/3",
+          "gameId": "st-lucena",
+          "collection": "classic",
+          "ply": 3,
+          "fen": "1K6/1P2k3/8/8/3R4/8/r7/8 b - - 3 2",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 204,
+            "end": 266,
+            "unit": "utf-16"
+          },
+          "score": 1.5714073013648338,
+          "matched": [
+            "rook"
+          ],
+          "excerpt": {
+            "text": "The bridge: the rook will block the checks on the fourth rank.",
+            "start": 0,
+            "end": 62
+          }
+        },
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/13/comment/2/text/0-44",
+          "sourceId": "source:classic:st-saavedra",
+          "documentId": "game:classic:st-saavedra",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/13",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 13,
+          "fen": "2R5/8/8/8/r7/1K6/8/k7 b - - 2 7",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 346,
+            "end": 390,
+            "unit": "utf-16"
+          },
+          "score": 1.5714073013648338,
+          "matched": [
+            "rook"
+          ],
+          "excerpt": {
+            "text": "Attacking the rook and threatening Rc1 mate.",
+            "start": 0,
+            "end": 44
+          }
+        },
+        {
+          "id": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/11/comment/1/text/0-53",
+          "sourceId": "source:classic:st-saavedra",
+          "documentId": "game:classic:st-saavedra",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:classic:st-saavedra@e3493a8cc86a2943a9beec12a74a7c725ca9135801bea39d872715cca1177cc1/ply/11",
+          "gameId": "st-saavedra",
+          "collection": "classic",
+          "ply": 11,
+          "fen": "2R5/8/8/8/3r4/8/2K5/k7 b - - 0 6",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 279,
+            "end": 332,
+            "unit": "utf-16"
+          },
+          "score": 1.4873581786690124,
+          "matched": [
+            "rook"
+          ],
+          "excerpt": {
+            "text": "The rook avoids the stalemate and threatens Ra8 mate.",
+            "start": 0,
+            "end": 53
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        },
+        {
+          "k": 6,
+          "returned": 6,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": true
+        }
+      ]
+    }
+  ]
+}

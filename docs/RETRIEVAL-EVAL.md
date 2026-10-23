@@ -2,6 +2,8 @@
 
 TODO 8.8 establishes a repeatable offline baseline for the existing `similarPositions()` retriever. The [recorded report](eval/retrieval/baseline.md) and [JSON results](eval/retrieval/baseline.json) measure relevance before text indexing and hybrid ranking. The [tutor-answer evaluation](../site/eval/README.md) measures a different stage.
 
+TODO 8.3.1 subsequently adds the separate [lexical passage benchmark](TEXT-SEARCH.md#measured-baseline), selected with `just retrieval-eval --mode text`. Its source passages, query set and relevance unit differ from the position suite; the default position baseline remains unchanged.
+
 ## Running
 
 From the repository root, with the site's npm dependencies installed:
@@ -56,4 +58,4 @@ Add original or appropriately sourced fixtures and manually reviewed labels, inc
 
 `runRetrievalBenchmark({ name, retrieve })` accepts future retrieval adapters over the same snapshots and candidate IDs. An adapter receives question text, language, FEN, relevance unit and current-game exclusion. Gold judgements, query IDs and evaluation groups—including the no-answer label—are withheld. It returns ordered occurrence records, which the scorer projects to the relevance unit. Passage retrieval will need an annotation/passage unit and text-specific cases.
 
-This small authored development suite is not a held-out generalisation estimate. Text/embedding comparisons, reranking, ownership filters, deletion/update benchmarks, graph synthesis, entailment and latency/cost studies remain later work. Chess correctness and teaching quality need separate checks. Next is TODO 8.3: a lexical passage baseline, then measured dense/hybrid comparisons.
+This small authored development suite is not a held-out generalisation estimate. The [lexical passage baseline](TEXT-SEARCH.md) followed in 8.3.1. Dense/hybrid comparisons, reranking, ownership filters, deletion/update benchmarks, graph synthesis, entailment and latency/cost studies remain later work. Chess correctness and teaching quality need separate checks.

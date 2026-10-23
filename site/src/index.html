@@ -258,7 +258,7 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .choice button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .choice button:disabled { color: var(--muted); background: var(--surface-2); cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
-textarea, input[type="text"], input[type="url"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+textarea, input[type="text"], input[type="search"], input[type="url"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
 textarea { resize: vertical; min-height: 44px; }
 .hint { font-size: 13px; color: var(--muted); }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; }
@@ -327,6 +327,11 @@ table.counts .g { font: 700 13px var(--font-mono); color: var(--c); display: inl
 
 /* Library */
 .lib-list { display: flex; flex-direction: column; gap: 8px; }
+.study-search { margin: 12px 0; }
+.study-search label { flex: 1; min-width: 130px; }
+.study-hit { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; min-width: 0; overflow-wrap: anywhere; }
+.study-hit p { margin: 6px 0; }
+.study-passage { white-space: pre-wrap; }
 .game { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
 .game .title { font-weight: 600; overflow-wrap: anywhere; }
 .game .meta { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
@@ -518,6 +523,21 @@ a.ext { color: var(--accent); font-size: 14px; }
 
     <div class="pane" data-pane="library" hidden>
       <div class="row"><h2 style="margin-right:auto">Games library</h2><span class="hint" id="libWhere"></span></div>
+      <section class="study-search" aria-labelledby="studySearchTitle">
+        <h3 id="studySearchTitle">Search study text</h3>
+        <p class="hint" id="studySearchLocked" hidden>Study text is hidden while you play. Choose Full engine help or finish the game to search.</p>
+        <div id="studySearchControls">
+          <p class="hint">Search comments and study notes by keyword. Results are source text, not checked advice.</p>
+          <label for="studyQuery" class="sr-only">Study text keywords</label>
+          <input type="search" id="studyQuery" maxlength="500" placeholder="Try isolated pawn, blockade or Qxf7" autocomplete="off">
+          <div class="row" style="margin-top:8px">
+            <label for="studySource">Search in<select id="studySource"><option value="all">All study text</option><option value="library">My annotations</option><option value="classic">Classic annotations</option><option value="guide">Study notes</option></select></label>
+            <label for="studyLanguage">Text language<select id="studyLanguage"><option value="ui">Interface language</option><option value="all">Any language</option><option value="en">English</option><option value="de">Deutsch</option></select></label>
+          </div>
+        </div>
+        <p class="hint" id="studySearchStatus" role="status" aria-live="polite"></p>
+        <div id="studySearchResults" class="lib-list"></div>
+      </section>
       <div class="row">
         <input type="text" id="libSearch" placeholder="Search player, opening, result" style="flex:1;min-width:160px">
         <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button></div>
@@ -669,7 +689,8 @@ import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChall
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions, librarySourceContext } from './library.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
-import { openingGuidePath, openingGuides, openingGuideContext } from './opening-guides.js';
+import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './opening-guides.js';
+import { annotationPassages, guidePassages, buildTextIndex, searchText } from './text-search.js';
 import { namedContinuations, namedOpeningContext } from './opening-variations.js';
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
@@ -1190,7 +1211,7 @@ function updateGraphCursor() {
   const N = S.nodes.length, W = 600; const x = 8 + (W - 16) * (N <= 1 ? 0 : S.cursor / (N - 1));
   g._cur.setAttribute('x1', x); g._cur.setAttribute('x2', x);
 }
-function renderAll() { scheduleSave(); updateGraphCursor(); syncBoard(); renderMoves(); renderPlayers(); renderEval(); renderControls(); showFlag(); renderOpening(); renderCoachCtx(); renderReading(); renderReviewHeader(); renderAspectPicker(); renderInteresting(); }
+function renderAll() { scheduleSave(); updateGraphCursor(); syncBoard(); renderMoves(); renderPlayers(); renderEval(); renderControls(); showFlag(); renderOpening(); renderCoachCtx(); renderReading(); renderStudySearch(); renderReviewHeader(); renderAspectPicker(); renderInteresting(); }
 function renderOpening() {
   const op = openingAt(S.cursor) || openingAt(last());
   // Opening names (eco.json) and a game's own title are data; the fallbacks are ours.
@@ -1580,6 +1601,9 @@ const DrillReviews = createDrillStore(browserStorage());
 let DRILL = null, drillGround = null, drillDeckKey = '', drillDeck = [];
 const libraryCache = new Map(); // collection + id -> exact input key and immutable snapshot promise
 let LIBRARY_RECORDS = new Map(), libraryIndexGen = 0;
+let TEXT_INDEX = null, TEXT_NOTES = [], TEXT_GUIDES = [], guideTextPromise = null, guideTextError = false;
+/** Rebuild from the current account's records only; static authored guides may be shared locally. */
+function rebuildTextIndex() { TEXT_INDEX = buildTextIndex([...TEXT_NOTES, ...TEXT_GUIDES]); }
 /** Content and provenance, rather than update timestamps, invalidate source-aware records. */
 function librarySnapshot(g, collection) {
   const key = `${collection}:${g.id}`, input = JSON.stringify([g.pgn, g.provenance, g.kind]);
@@ -1593,7 +1617,7 @@ function onLibChange() {
   const ids = new Set(items.map(({ g, collection }) => `${collection}:${g.id}`));
   for (const id of libraryCache.keys()) if (!ids.has(id)) libraryCache.delete(id);
   // Never expose deleted/replaced records while hashing their replacements.
-  INDEX = K.buildPositionIndex([]); LIBRARY_RECORDS = new Map();
+  INDEX = K.buildPositionIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null;
   const records = [], keys = new Set();
   for (const [source, collection] of [['library', [...Lib.games.values()]], ['classic', EXAMPLES]]) for (const g of collection) {
     const key = `${source}:${g.id}`; keys.add(key);
@@ -1611,8 +1635,9 @@ function onLibChange() {
     if (gen !== libraryIndexGen) return; // an older load must not resurrect changed/deleted sources
     LIBRARY_RECORDS = new Map(entries.map(e => [`${e.collection}:${e.g.id}`, e]));
     INDEX = K.buildPositionIndex(entries.filter(e => e.snapshot).map(({ g, collection, snapshot }) => ({ ...g, collection, sourceSnapshot: snapshot, positions: indexedLibraryPositions(snapshot, g.cls) })));
+    TEXT_NOTES = entries.filter(e => e.snapshot).flatMap(e => annotationPassages(e.snapshot)); rebuildTextIndex();
     // Evidence readiness must not replace an open source form and erase an unsaved correction.
-    refreshLibraryEvidence(); renderReading();
+    refreshLibraryEvidence(); renderReading(); renderStudySearch();
   });
   return Lib.indexed;
 }
@@ -2067,8 +2092,9 @@ function storedScore(cp) {
   if (Math.abs(cp) < 9000) return { cp };
   return { mate: Math.sign(cp) * Math.max(1, Math.round((10000 - Math.abs(cp)) / 10)) };
 }
-function openGame(g, ply = null) {
+function openGame(g, ply = null, valid = () => true) {
   const go = () => {
+    if (!valid()) return;
     const checked = readGame(Chess, g.pgn);
     if (checked.error) { toast(checked.error); return; }
     const h = checked.headers;
@@ -2080,11 +2106,57 @@ function openGame(g, ply = null) {
     for (let i = 1; i < S.nodes.length; i++) if (!S.nodes[i].cls) classifyNode(i);
     renderAll(); renderReview(); openTab(g.reviewed ? 'review' : 'game');
   };
-  if (S.playing && S.nodes.length > 1) confirmBox('Leave the current game? It will be saved as unfinished.', 'Open game', () => { CHAT.returnGame = captureBoard(); saveCurrentGame({ quiet: true, result: '*' }); go(); });
+  if (S.playing && S.nodes.length > 1) confirmBox('Leave the current game? It will be saved as unfinished.', 'Open game', () => { if (!valid()) return; CHAT.returnGame = captureBoard(); saveCurrentGame({ quiet: true, result: '*' }); go(); });
   else go();
 }
 
 // ---------------------------------------------------------------- Library UI
+/** Local passages are readable data, never advice applied to the current position or model prompts. */
+function renderStudySearch() {
+  const body = $('#studySearchResults'), status = $('#studySearchStatus'), allowed = showEngine();
+  $('#studySearchLocked').hidden = allowed; $('#studySearchControls').hidden = !allowed;
+  body.replaceChildren(); status.textContent = '';
+  if (!allowed || paneHidden('library')) return;
+  const query = $('#studyQuery').value.trim();
+  if (!query) { status.textContent = 'Enter keywords to search annotations and study notes.'; return; }
+  if (!TEXT_INDEX) { status.textContent = 'Indexing study text…'; return; }
+  const source = $('#studySource').value, language = $('#studyLanguage').value === 'ui' ? LANG : $('#studyLanguage').value;
+  const gen = S.gen, libraryGen = libraryIndexGen;
+  if ((source === 'all' || source === 'guide') && !TEXT_GUIDES.length) {
+    if (guideTextError) {
+      status.textContent = 'Study notes could not be prepared.';
+      body.append(el('button', { class: 'btn small', onclick: () => { guideTextPromise = null; guideTextError = false; renderStudySearch(); } }, 'Retry study notes'));
+      return;
+    }
+    status.textContent = 'Preparing study notes…';
+    guideTextPromise ||= guidePassages(authoredGuideTexts()).then(passages => { TEXT_GUIDES = passages; if (TEXT_INDEX) rebuildTextIndex(); }).catch(() => { guideTextError = true; });
+    guideTextPromise.then(() => { if (gen === S.gen && libraryGen === libraryIndexGen && query === $('#studyQuery').value.trim()) renderStudySearch(); });
+    return;
+  }
+  const options = { language, kind: source === 'guide' ? 'guide' : source === 'all' ? 'all' : 'annotation', collection: ['library', 'classic'].includes(source) ? source : 'all' };
+  const hits = searchText(TEXT_INDEX, query, options);
+  status.textContent = hits.length ? `${hits.length} study text results` : 'No matching study text. Try another keyword.';
+  for (const { passage: p, excerpt } of hits) {
+    const entry = p.kind === 'annotation' ? LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`) : null;
+    const g = entry?.g, occurrence = entry?.snapshot?.occurrences.find(o => o.id === p.occurrenceId);
+    const card = el('article', { class: 'study-hit', 'data-passage-id': p.id, 'data-kind': p.kind },
+      el('h4', { translate: 'no' }, String(g?.title || p.title).slice(0, 240)), el('p', { class: 'hint' }, p.kind === 'guide' ? 'Study note' : 'Game annotation'),
+      g && (g.white || g.black) ? el('p', { class: 'hint', translate: 'no' }, `${String(g.white || '?').slice(0, 120)} – ${String(g.black || '?').slice(0, 120)}`) : null,
+      el('p', { class: 'study-excerpt', translate: 'no' }, (excerpt.start ? '…' : '') + excerpt.text + (excerpt.end < p.text.length ? '…' : '')),
+      el('details', {}, el('summary', {}, 'Read passage and source'), el('p', { class: 'study-passage', translate: 'no' }, p.text),
+        el('p', {}, el('span', {}, 'Source:'), ' ', el('span', { translate: 'no' }, p.sourceTitle || p.title)),
+        el('p', {}, el('span', {}, 'Annotation licence as supplied'), ': ', p.licence ? el('span', { translate: 'no' }, p.licence) : el('span', {}, 'Not supplied'))));
+    if (p.kind === 'guide') card.append(el('p', { class: 'hint' }, { idea: 'Idea', plans: 'Typical plans', structure: 'Pawn structures' }[p.locator.section]));
+    else {
+      const valid = () => showEngine() && gen === S.gen && libraryGen === libraryIndexGen && query === $('#studyQuery').value.trim() && source === $('#studySource').value && entry === LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`)
+        && entry?.snapshot?.document.revision === p.revision && TEXT_INDEX?.documents.some(d => d.passage.id === p.id);
+      if (g && occurrence) card.append(el('p', { translate: p.ply ? 'no' : null, class: 'hint' }, p.ply ? occurrence.label : 'Starting position'),
+        el('button', { class: 'btn small', onclick: () => { if (valid()) openGame(g, p.ply, valid); } }, 'Open annotated position'));
+    }
+    body.append(card);
+  }
+}
+
 const SOURCE_FIELDS = [['title', 'Source title', 240], ['author', 'Source author or curator', 160], ['url', 'Source URL', 2048], ['score', 'Score licence as supplied', 160], ['annotations', 'Annotation licence as supplied', 160]];
 const SOURCE_ORIGINS = { imported: 'Imported PGN', played: 'Played in Kibitz', board: 'Saved from the board', builtin: 'Built-in collection', legacy: 'Legacy record: provenance not supplied' };
 let sourceFormId = 0;
@@ -2134,6 +2206,7 @@ function sourceDetails(g) {
   return box;
 }
 function renderLibrary() {
+  renderStudySearch();
   const q = $('#libSearch').value.trim().toLowerCase();
   const filt = $('#libFilter [aria-pressed="true"]')?.dataset.v || 'all';
   $('#libWhere').textContent = Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
@@ -3714,6 +3787,9 @@ $('#chatUndo').addEventListener('click', () => submitChat('undo'));
 $('#coachInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#coachSend').click(); } });
 $('#coachStop').addEventListener('click', cancelChat);
 $('#libSearch').addEventListener('input', renderLibrary);
+$('#studyQuery').addEventListener('input', renderStudySearch);
+$('#studySource').addEventListener('change', renderStudySearch);
+$('#studyLanguage').addEventListener('change', renderStudySearch);
 $('#btnImport').addEventListener('click', importPGN);
 $('#importSourceFields').append(sourceFields(makeProvenance('imported')));
 $('#btnSaveCurrent').addEventListener('click', () => saveCurrentGame());

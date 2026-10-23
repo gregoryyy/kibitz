@@ -3,6 +3,33 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Local study-text search (TODO 8.3.1) -----------------------------------------------------
+  'Search study text': 'Studientexte durchsuchen',
+  'Study text is hidden while you play. Choose Full engine help or finish the game to search.': 'Studientexte sind während der Partie ausgeblendet. Wähle volle Engine-Hilfe oder beende die Partie, um zu suchen.',
+  'Search comments and study notes by keyword. Results are source text, not checked advice.': 'Durchsuche Kommentare und Studiennotizen nach Stichwörtern. Ergebnisse sind Quellentexte, keine geprüften Empfehlungen.',
+  'Study text keywords': 'Stichwörter für Studientexte',
+  'Try isolated pawn, blockade or Qxf7': 'Zum Beispiel Isolani, Blockade oder Dxf7',
+  'Search in': 'Suchen in',
+  'All study text': 'Alle Studientexte',
+  'My annotations': 'Meine Kommentare',
+  'Classic annotations': 'Kommentare der Klassiker',
+  'Study notes': 'Studiennotizen',
+  'Text language': 'Textsprache',
+  'Interface language': 'Sprache der Oberfläche',
+  'Any language': 'Alle Sprachen',
+  'English': 'Englisch',
+  'Deutsch': 'Deutsch',
+  'Enter keywords to search annotations and study notes.': 'Gib Stichwörter ein, um Kommentare und Studiennotizen zu durchsuchen.',
+  'Indexing study text…': 'Studientexte werden indiziert…',
+  'Preparing study notes…': 'Studiennotizen werden vorbereitet…',
+  'Study notes could not be prepared.': 'Die Studiennotizen konnten nicht vorbereitet werden.',
+  'Retry study notes': 'Studiennotizen erneut laden',
+  '{n} study text results': '{n} Fundstellen in Studientexten',
+  'No matching study text. Try another keyword.': 'Kein passender Studientext. Probiere ein anderes Stichwort.',
+  'Study note': 'Studiennotiz',
+  'Game annotation': 'Partiekommentar',
+  'Read passage and source': 'Textstelle und Quelle lesen',
+  'Open annotated position': 'Kommentierte Stellung öffnen',
   // --- Source-aware library records (TODO 7.1) --------------------------------------------------
   'Source and licences (optional)': 'Quelle und Lizenzen (optional)',
   'Source and licences': 'Quelle und Lizenzen',

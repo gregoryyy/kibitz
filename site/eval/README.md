@@ -2,6 +2,8 @@
 
 For the separate offline position-retrieval benchmark (TODO 8.8), use `just retrieval-eval`; see [method and recorded results](../../docs/RETRIEVAL-EVAL.md). It needs no browser, engine search or provider.
 
+For the [lexical passage baseline](../../docs/TEXT-SEARCH.md) (8.3.1), use `just retrieval-eval --mode text`. It searches comments and authored guides with passage-level gold, including paraphrase and unsupported-request cases.
+
 Reference positions for measuring how well a language model coaches (TODO 3.8). Each position comes with a quick question and the key points a good answer should hit. The results per provider and model are in [docs/eval/](../../docs/eval/README.md).
 
 ## How a run works
