@@ -149,3 +149,19 @@ Show each piece's relationships to the other pieces as small dots in the four co
 - **Chess meaning:** compute the relationships from the displayed position through chess rules and board features; the model can explain them. Define geometric attacks/defence versus legal captures before implementation, especially for pinned pieces, kings and pawn diagonals. Decide whether indirect or x-ray relationships are excluded or shown separately. A high defender count alone does not establish that a piece is tactically safe.
 - **Builds on:** board rendering and annotations (4.2–4.4), pure attack/defence features in `knowledge.js`, tactical lessons (6.2), accessibility (10.5) and mobile layout (10.6). During a game, respect the live-help setting.
 - **Open questions:** dot size, spacing and overflow on crowded or small boards; distinguishing relationships without colour alone; dismissing transient details; and the right-click/mobile gesture design above.
+
+## 10. Position similarity by aspect
+
+Find positions that are similar in the respect the player wants to study. The closest example for pawn structure may be quite different from the closest example for a tactical combination, piece activity or an endgame plan.
+
+- **What it looks like:** “Find positions like this” offers an aspect such as opening, pawn structure, tactics, king safety, piece activity or endgame technique. Results say why they match and what differs; each opens the source game or lesson at the relevant position.
+- **A family of similarity measures:** investigate a score or distance parameterised by aspect, using explicit feature groups and weights before trying a learned conditional embedding. Keep exact-position matches separate from analogies. The existing tutor aspects (3.2) can suggest a retrieval profile, but are not themselves a complete chess-similarity taxonomy.
+- **Examples:**
+  - Match an isolated-pawn structure despite different minor-piece squares.
+  - Find the same deflection-and-mate idea despite a different-looking board.
+  - Compare attack/defence relationships and piece roles, including the information behind the four-corner display (idea 9).
+  - Retrieve a relevant rook-ending technique, accounting for material, king placement, side to move and draw-rule state.
+- **Checks:** similar appearance or equal engine scores do not establish that the same move or plan works. Validate any advice in the current position and label exact, structural and thematic matches distinctly. Respect the live-help setting during a game.
+- **Research:** [aspect-conditioned position similarity](research/position-similarity.md), including prior chess retrieval work, candidate distances, conditional metric learning and an evaluation plan. This is an investigation, not a selected or implemented metric.
+- **Builds on:** position/pattern retrieval (8.1–8.5), retrieval evaluation (8.8), the reference library (7), curriculum examples (6) and piece relationships (idea 9).
+- **Open questions:** which aspects and default weights are useful; whether the task needs a mathematical metric or a relevance score; colour/board symmetries; multi-aspect requests; and how experts and learners judge similarity under each aspect.
