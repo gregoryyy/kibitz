@@ -7,6 +7,32 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Repertoire recall with spaced reviews
+
+TODO items: 5.4.
+
+### Implementation notes
+
+- Added pure, JSDoc-typed `drills.js`: one recall card per repertoire-side EPD, merging shared prefixes, repeated positions and transpositions. Every saved choice at a position is accepted; a matching stored route supplies one automatic opponent reply. chess.js validates input and replay, including castling and underpromotion.
+- The Openings repertoire panel starts sessions of up to 20 new/due positions, with overdue reviews first. A separate chessground board supports click/drag and typed SAN/coordinates, a starting-square hint, answer reveal and explicit next/stop controls. The underlying game, scratch board, clock and library stay intact. Builder answers are hidden during practice; reduced live help, repertoire changes and game-generation changes invalidate the session and pending promotion callbacks.
+- Grades describe repertoire recall, not engine strength: illegal input does not count as a miss; a legal unsaved move records a recall mistake and leaves the question in place. Hints and reveals are tracked separately from clean recall. Current-card totals show completed recalls, clean answers, mistakes and hints, with session results and the next review date.
+- Deterministic intervals are one day, three days, then doubling up to 180 days for clean recalls. A starting-square hint keeps at least a one-day interval; a miss or reveal schedules a ten-minute retry. Card identity includes repertoire id, side, EPD and the sorted accepted choices. Renaming lines/notes preserves progress, while adding/removing choices creates a new question; unchanged positions retain their history.
+- Versioned browser-local `kibitz.repertoireReviews` is separate from games/repertoires. Writes validate before publishing to memory; quota/storage failure keeps the answered card and completed attempt for retry without double-counting. Corrupt or unknown-version progress stays untouched with drills disabled, while repertoire editing remains available. Statistics ignore old keys that no longer match current cards.
+- Nine unit scenarios cover merging/identity, answer legality and replies, castling/promotion, queue priority/caps, interval progression, malformed input and storage rollback. Eleven browser scenarios cover both sides, reload, hints/reveal, due ordering, failed-save retry, corrupt progress, live-help restrictions, edited choices, promotion, a stale callback after a game replacement, and German phone input/layout. Desktop and phone layouts were inspected; no provider, dependency or external service was added.
+- Validation after integration with the merged coach-tool fixes: `npm run check`, a fresh build and mock-provider unit tests pass (281 passed, one opt-in live test skipped). The full Playwright run passes (141 passed, one live-model test skipped), including all eleven drill scenarios, repertoire/explorer coverage, provider-error recovery and restricted-help explanations. Changed architecture, design, TODO, DONE and site README PDFs regenerated locally.
+
+### Deviations
+
+- Review positions individually, rather than requiring exact replay of one route: a transposed position can have several valid saved choices. The representative route retains its full FEN for move numbering and its stored reply; the schedule belongs to the position and choices.
+- The scheduler uses explicit fixed rules, not a fitted memory model. It covers opening recall only; the shared puzzle/lesson scheduler (9.4), adaptive explanations (5.5) and cloud progress remain separate. Completed reviews survive reloads; unfinished sessions are not resumed. Obsolete progress keys remain stored but do not transfer grades to edited choices; progress storage is bounded to 50,000 entries.
+
+### Insights
+
+- A repertoire answer can be a perfectly sound chess alternative yet fail a recall task. Keeping those verdicts separate prevents the trainer from teaching that an unsaved move is a blunder.
+- Review identity must follow both the position and the accepted choices. An edited name should not erase learning, while changed answers must not inherit a previous question's completion.
+
+---
+
 ## 2026-10-23 — Keep the coach's Stockfish tools available after provider errors
 
 TODO items: fixes to 4.11.3, 4.11.6.

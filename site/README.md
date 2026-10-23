@@ -17,6 +17,8 @@ npm test                 # AI gateway tests, then feature detection + retrieval 
 npm run test:e2e         # Playwright end-to-end tests in the installed Chrome (own server, mock AI provider)
 ```
 
+In **Openings**, choose a saved White or Black repertoire and press **Review due moves** to practise new or due positions. Play on the drill board or type SAN/coordinates; the saved opponent reply follows automatically. Any saved choice at that position is accepted, including transpositions. A starting-square hint counts as help, and a legal move outside your repertoire counts as a recall miss rather than a chess judgement. Review dates and recall/help statistics stay in this browser. The drill leaves your game intact and follows its live-help setting; switch to Analyse to train without a running game.
+
 ## Layout
 
 ```
@@ -36,6 +38,7 @@ src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded wh
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/openings.js       Reference-game position graph: continuations, record counts/results and sample occurrences
 src/repertoire.js     Legal chosen opening lines, game/scratch path capture, position-based choices and browser storage
+src/drills.js         Repertoire recall cards, legal replies, review queue, deterministic intervals and atomic progress storage
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
 src/tutor.js          Coach comments: aspects and their prompts, what the coach sees mid-game, the check of its moves, the cache
 src/coach-tools.js    Gateway tool capability policy per provider/model, honest fallback notices and runtime engine instructions

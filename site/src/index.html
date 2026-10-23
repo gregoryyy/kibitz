@@ -225,6 +225,15 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .repertoire-line .rep-note { white-space: pre-wrap; }
 #repChoices { margin: 10px 0; }
 #repControls, #repForm, #repLinesEditor, #repLineForm { display: grid; gap: 12px; }
+#drillPanel, #drillSession { display: grid; gap: 12px; }
+#drillPanel { border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+#drillPanel p { margin: 0; }
+#drillMove { flex: 1; min-width: 0; width: auto; }
+#drillPlayed:empty { display: none; }
+#drillBoardWrap { position: relative; width: min(100%, 420px); aspect-ratio: 1; }
+#drillBoard { width: 100%; height: 100%; }
+#drillPosition, #drillLineName { overflow-wrap: anywhere; }
+#drillFeedback { margin: 0; }
 .tabs .count { font: 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
 .pane { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .pane h2, .settings h2 { font: 600 18px/1.2 var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
@@ -527,6 +536,22 @@ a.ext { color: var(--accent); font-size: 14px; }
             <div class="row"><button class="btn small" id="repSave" type="submit">Create repertoire</button><button class="btn small ghost danger" id="repDelete" type="button" hidden>Delete repertoire</button></div>
           </form>
           <div id="repDeleteConfirm" hidden><p>Delete this repertoire and all its lines?</p><div class="row"><button class="btn small danger" id="repDeleteYes" type="button">Delete repertoire</button><button class="btn small" id="repDeleteNo" type="button">Keep</button></div></div>
+          <section id="drillPanel" hidden aria-label="Repertoire drill">
+            <h3>Repertoire drill</h3>
+            <p class="hint">Recall your saved choices on a separate board. Other legal moves may also be sound.</p>
+            <p class="hint" id="drillReadError" hidden>Saved review progress could not be read. Existing data has been kept; drills are disabled.</p>
+            <p class="hint" id="drillStats" role="status"></p>
+            <p class="hint" id="drillHistory"></p>
+            <div id="drillIdle"><button class="btn primary" id="drillStart" type="button">Review due moves</button><p class="hint" id="drillDue"></p></div>
+            <div id="drillSession" hidden>
+              <p id="drillPosition" tabindex="-1"></p><p id="drillLineName" translate="no"></p>
+              <div id="drillBoardWrap"><div id="drillBoard" aria-label="Repertoire practice board"></div><div id="drillPromo" class="promo" hidden></div></div>
+              <form id="drillMoveForm"><div class="field"><label for="drillMove">Your repertoire move (SAN or coordinates)</label><div class="row"><input id="drillMove" type="text" maxlength="30" autocomplete="off" spellcheck="false" translate="no" aria-describedby="drillFeedback"><button class="btn primary" id="drillSubmit" type="submit">Check move</button></div></div></form>
+              <div class="row"><button class="btn small" id="drillHint" type="button">Hint: starting square</button><button class="btn small" id="drillReveal" type="button">Show answer</button></div>
+              <p id="drillFeedback" role="status" aria-live="polite"></p><p id="drillPlayed" class="mono" translate="no"></p>
+              <div class="row"><button class="btn small" id="drillRetry" type="button" hidden>Retry saving progress</button><button class="btn primary" id="drillNext" type="button" disabled>Next position</button><button class="btn ghost" id="drillStop" type="button">End review</button></div>
+            </div>
+          </section>
           <div id="repLinesEditor" hidden>
             <h3>Chosen lines</h3>
             <div id="repChoices" class="row"></div>
@@ -619,6 +644,7 @@ import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChall
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
+import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
 import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
 import { TOOL_NAMES, ENGINE_TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
 import { toolModelKey, toolsUnsupported, toolInstructions, withToolInstructions, TOOL_FALLBACK } from './coach-tools.js';
@@ -1490,6 +1516,8 @@ let OPENING_INDEX = buildOpeningIndex([]);
 const openingCache = new Map(); // source + id -> {pgn, record}; invalidate on content, not timestamps
 const Repertoires = createRepertoireStore(Chess, browserStorage());
 let repSelected = store.get('repertoireSelected', ''), repRendered = '', repEditing = null, repIndex = new Map();
+const DrillReviews = createDrillStore(browserStorage());
+let DRILL = null, drillGround = null, drillDeckKey = '', drillDeck = [];
 function gamePositions(g) {
   try {
     const c = new Chess(); c.loadPgn(g.pgn);
@@ -1612,6 +1640,7 @@ function saveRepertoires(items) {
 }
 function renderRepertoires() {
   const allowed = showEngine(); $('#repertoirePanel').hidden = !allowed;
+  if (DRILL && (!allowed || DRILL.gen !== S.gen || DRILL.rep !== repSelected || DRILL.revision !== Repertoires.revision)) stopDrill(false);
   if (!allowed) {
     if (repRendered) {
       repRendered = ''; $('#repSelect').replaceChildren(); $('#repForm').reset(); resetRepertoireLine();
@@ -1658,6 +1687,7 @@ function renderRepertoires() {
         } }, 'Edit line'), remove)));
     }
   }
+  renderRepertoireDrill(selected);
   if (!selected) return;
   const board = currentRepertoireLine();
   $('#repUseBoard').disabled = !board?.ucis.length;
@@ -1706,6 +1736,152 @@ $('#repLineForm').addEventListener('submit', e => {
 $('#repCopy').addEventListener('click', () => {
   const selected = selectedRepertoire(); if (showEngine() && selected) copyText(repertoirePgn(Chess, selected), 'Repertoire copied as PGN');
 });
+
+// ---------------------------------------------------------------- Repertoire drills (TODO 5.4)
+/** Cache legally replayed cards by repertoire revision; repeated board renders do not replay every line. */
+function repertoireCards(selected) {
+  const key = `${Repertoires.revision}:${selected?.id || ''}`;
+  if (key !== drillDeckKey) { drillDeckKey = key; drillDeck = selected ? buildDrillCards(Chess, selected) : []; }
+  return drillDeck;
+}
+/** Render local review counts. Only current cards count; removed/changed choices cannot retain a grade. */
+function renderRepertoireDrill(selected) {
+  $('#drillPanel').hidden = !selected;
+  $('#repForm').hidden = !!DRILL; $('#repLinesEditor').hidden = !selected || !!DRILL;
+  if (!selected) return;
+  const cards = repertoireCards(selected), records = DrillReviews.records, now = Date.now();
+  const fresh = cards.filter(c => !records.has(c.key)).length;
+  const due = cards.filter(c => records.has(c.key) && records.get(c.key).due <= now).length;
+  $('#drillStats').textContent = `New: ${fresh} · due: ${due} · reviewed: ${cards.length - fresh}`;
+  $('#drillStats').hidden = !!DRILL; $('#drillHistory').hidden = !!DRILL;
+  const totals = cards.reduce((sum, card) => {
+    const record = records.get(card.key);
+    for (const key of ['reviews', 'clean', 'mistakes', 'hints']) sum[key] += record?.[key] || 0;
+    return sum;
+  }, { reviews: 0, clean: 0, mistakes: 0, hints: 0 });
+  $('#drillHistory').textContent = `Completed recalls: ${totals.reviews} · clean: ${totals.clean} · mistakes: ${totals.mistakes} · hints: ${totals.hints}`;
+  $('#drillReadError').hidden = !DrillReviews.unreadable;
+  $('#drillIdle').hidden = !!DRILL; $('#drillSession').hidden = !DRILL;
+  $('#drillStart').disabled = DrillReviews.unreadable || !fresh && !due;
+  const future = cards.map(c => records.get(c.key)?.due).filter(d => d > now);
+  $('#drillDue').textContent = !cards.length ? 'Save a line containing a move for your side to begin.'
+    : fresh || due ? 'Up to 20 positions per session. Completed recalls are saved in this browser.'
+      : `Nothing due. Next review: ${new Date(Math.min(...future)).toLocaleString(LANG)}.`;
+  if (DRILL) renderDrillQuestion();
+}
+/** Check the captured repertoire/game before any answer or promotion callback can change the session. */
+function activeDrill() {
+  return DRILL && showEngine() && DRILL.gen === S.gen && DRILL.rep === repSelected && DRILL.revision === Repertoires.revision;
+}
+function canAnswerDrill() { return activeDrill() && DRILL.index < DRILL.cards.length && !DRILL.answer; }
+// Touch players can use the board immediately; do not open a software keyboard on every new card.
+function focusDrillQuestion() { (matchMedia('(pointer: fine)').matches ? $('#drillMove') : $('#drillPosition')).focus(); }
+/** Destroy the independent board; main game, clock, scratch and library are never edited by a drill. */
+function stopDrill(render = true) {
+  DRILL = null; drillGround?.destroy(); drillGround = null;
+  $('#drillBoard').replaceChildren(); $('#drillPromo').replaceChildren(); $('#drillPromo').hidden = true; $('#drillSession').hidden = true;
+  for (const id of ['drillPosition', 'drillLineName', 'drillFeedback', 'drillPlayed']) $(`#${id}`).textContent = '';
+  $('#drillMove').value = '';
+  if (render) { renderRepertoires(); $('#drillStart').focus(); }
+}
+/** Render the current captured question, or a completed-session summary, without disclosing future choices. */
+function renderDrillQuestion() {
+  if (!activeDrill()) return;
+  const done = DRILL.index >= DRILL.cards.length, card = DRILL.cards[DRILL.index];
+  $('#drillBoardWrap').hidden = done; $('#drillMoveForm').hidden = done;
+  $('#drillHint').hidden = done; $('#drillReveal').hidden = done;
+  $('#drillNext').hidden = done; $('#drillRetry').hidden = !DRILL.answer || DRILL.saved || done;
+  $('#drillNext').disabled = !DRILL.saved;
+  for (const id of ['drillMove', 'drillSubmit', 'drillHint', 'drillReveal']) $(`#${id}`).disabled = done || !!DRILL.answer || id === 'drillHint' && DRILL.hints > 0;
+  $('#drillLineName').textContent = card?.name || '';
+  $('#drillPosition').textContent = done ? `Review complete: ${DRILL.clean} clean recalls, ${DRILL.helped} with help or mistakes.`
+    : `Position ${DRILL.index + 1} of ${DRILL.cards.length} · ${card.color === 'w' ? 'White' : 'Black'} to move · move ${card.fen.split(' ')[5]}`;
+  $('#drillFeedback').textContent = DRILL.message;
+  $('#drillPlayed').textContent = DRILL.answer ? lineText(playLine(Chess, card.fen, DRILL.answer.ucis)) : '';
+  if (done) { drillGround?.stop(); return; }
+  const fen = DRILL.answer?.fen || card.fen, c = new Chess(fen), last = DRILL.answer?.ucis.at(-1);
+  const config = { fen, orientation: card.color === 'w' ? 'white' : 'black', turnColor: c.turn() === 'w' ? 'white' : 'black',
+    check: c.inCheck(), lastMove: last ? [last.slice(0, 2), last.slice(2, 4)] : undefined,
+    movable: { free: false, color: DRILL.answer ? undefined : card.color === 'w' ? 'white' : 'black', dests: DRILL.answer ? new Map() : dests(fen), events: { after: drillBoardMove } },
+    premovable: { enabled: false }, drawable: { enabled: false }, animation: { enabled: false } };
+  if (!drillGround) drillGround = Chessground($('#drillBoard'), config); else drillGround.set(config);
+  drillGround.setAutoShapes(DRILL.hints && !DRILL.answer ? [...new Set(card.choices.map(c => c.uci.slice(0, 2)))].map(orig => ({ orig, brush: 'green' })) : []);
+}
+/** Persist once, retaining the exact completed attempt for a retry if storage is unavailable. */
+function saveDrillAnswer() {
+  if (!activeDrill() || !DRILL.answer || DRILL.saved) return;
+  const card = DRILL.cards[DRILL.index], error = DrillReviews.record(card.key, DRILL.result, DRILL.reviewAt);
+  DRILL.saved = !error;
+  if (error) DRILL.message = 'Review progress could not be saved. Retry before continuing; your completed attempt is still here.';
+  else {
+    const record = DrillReviews.records.get(card.key);
+    DRILL.message = record.grade === 'good' ? 'Correct recall. Review scheduled.' : record.grade === 'hard' ? 'Saved choice found with a hint. Review scheduled.' : 'Recall needs another try. Review scheduled in 10 minutes.';
+  }
+  renderRepertoireDrill(selectedRepertoire());
+}
+/** Check SAN/UCI recall; a legal alternative is a repertoire miss, never a verdict about its chess quality. */
+function answerDrill(input, revealed = false) {
+  if (!canAnswerDrill()) return;
+  const card = DRILL.cards[DRILL.index], result = checkDrillMove(Chess, card, input);
+  if (result.kind === 'invalid') DRILL.message = 'Enter a legal move for this practice position.';
+  else if (result.kind === 'outside') {
+    DRILL.mistakes++; DRILL.message = 'Legal, but not one of your saved choices here. Try again.';
+  } else {
+    DRILL.answer = result; DRILL.reviewAt = Date.now();
+    DRILL.result = { mistakes: DRILL.mistakes, hints: DRILL.hints, revealed };
+    saveDrillAnswer(); $('#drillNext').focus(); return;
+  }
+  renderDrillQuestion();
+}
+/** Board moves and promotion choices share the same checked path as keyboard input. */
+function drillBoardMove(orig, dest) {
+  if (!canAnswerDrill()) return;
+  const session = DRILL, card = DRILL.cards[DRILL.index], piece = new Chess(card.fen).get(orig);
+  const play = promotion => {
+    if (DRILL !== session || !canAnswerDrill() || DRILL.cards[DRILL.index] !== card) return;
+    $('#drillPromo').hidden = true; answerDrill(orig + dest + (promotion || ''));
+  };
+  if (piece?.type !== 'p' || !['1', '8'].includes(dest[1])) { play(''); return; }
+  const box = $('#drillPromo'), choices = el('div', { class: 'box cg-wrap' });
+  for (const [p, name] of [['q', 'queen'], ['r', 'rook'], ['b', 'bishop'], ['n', 'knight']]) choices.append(el('button', { type: 'button', 'aria-label': 'Promote to ' + name, onclick: () => play(p) }, el('piece', { class: `${name} ${card.color === 'w' ? 'white' : 'black'}` })));
+  box.replaceChildren(choices); box.hidden = false;
+  box.onclick = e => { if (e.target === box) { box.hidden = true; renderDrillQuestion(); } };
+}
+$('#drillStart').addEventListener('click', () => {
+  if (!showEngine() || Repertoires.unreadable || DrillReviews.unreadable || DRILL) return;
+  const selected = selectedRepertoire(); if (!selected) return;
+  const cards = drillQueue(repertoireCards(selected), DrillReviews.records, Date.now());
+  if (!cards.length) { renderRepertoireDrill(selected); return; }
+  DRILL = { rep: selected.id, revision: Repertoires.revision, gen: S.gen, cards, index: 0, answer: null, saved: false,
+    mistakes: 0, hints: 0, clean: 0, helped: 0, message: 'Recall a saved move. You can also type it below.' };
+  $('#repDeleteConfirm').hidden = true; $('#drillMove').value = '';
+  renderRepertoires(); $('#drillPanel').scrollIntoView({ block: 'nearest' }); focusDrillQuestion();
+});
+$('#drillMoveForm').addEventListener('submit', e => {
+  e.preventDefault(); if (!canAnswerDrill()) return;
+  const input = $('#drillMove'), card = DRILL.cards[DRILL.index];
+  const move = parseMoveInput(Chess, card.fen, LANG === 'de' ? germanSanToSan(input.value) : input.value);
+  if (move.error) { DRILL.message = 'Enter a legal move for this practice position.'; renderDrillQuestion(); return; }
+  answerDrill(move.from + move.to + (move.promotion || '')); input.value = '';
+});
+$('#drillHint').addEventListener('click', () => {
+  if (!canAnswerDrill() || DRILL.hints) return;
+  DRILL.hints = 1; DRILL.message = `Try a piece on: ${[...new Set(DRILL.cards[DRILL.index].choices.map(c => c.uci.slice(0, 2)))].join(', ')}.`;
+  renderDrillQuestion();
+});
+$('#drillReveal').addEventListener('click', () => { if (canAnswerDrill()) answerDrill(DRILL.cards[DRILL.index].choices[0].uci, true); });
+$('#drillNext').addEventListener('click', () => {
+  if (!activeDrill() || !DRILL.saved) return;
+  if (!DRILL.result.mistakes && !DRILL.result.hints && !DRILL.result.revealed) DRILL.clean++; else DRILL.helped++;
+  DRILL.index++; DRILL.answer = null; DRILL.saved = false; DRILL.mistakes = 0; DRILL.hints = 0;
+  DRILL.message = DRILL.index === DRILL.cards.length ? 'Completed recalls have been saved. You can end this review.' : 'Recall a saved move. You can also type it below.';
+  $('#drillMove').value = ''; renderRepertoireDrill(selectedRepertoire());
+  if (DRILL.index < DRILL.cards.length) focusDrillQuestion(); else $('#drillStop').focus();
+});
+$('#drillRetry').addEventListener('click', saveDrillAnswer);
+$('#drillStop').addEventListener('click', () => stopDrill());
+new ResizeObserver(() => drillGround?.redrawAll()).observe($('#drillBoardWrap'));
+setInterval(() => { if (!paneHidden('openings') && showEngine() && !Repertoires.unreadable) renderRepertoireDrill(selectedRepertoire()); }, 60_000);
 
 function currentRecord(extra = {}) {
   const names = playerNames();
