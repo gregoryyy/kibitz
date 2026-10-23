@@ -217,6 +217,14 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .explorer-move summary { cursor: pointer; color: var(--muted); }
 .explorer-examples { display: grid; gap: 5px; margin-top: 8px; }
 .explorer-examples button { text-align: left; white-space: normal; }
+#repertoirePanel { border-top: 1px solid var(--line); padding-top: 14px; }
+#repertoirePanel h3 { font-size: 16px; }
+.repertoire-list { display: grid; gap: 10px; margin-top: 14px; }
+.repertoire-line { border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-wrap: anywhere; }
+.repertoire-line h4 { margin: 0 0 8px; }
+.repertoire-line .rep-note { white-space: pre-wrap; }
+#repChoices { margin: 10px 0; }
+#repControls, #repForm, #repLinesEditor, #repLineForm { display: grid; gap: 12px; }
 .tabs .count { font: 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
 .pane { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .pane h2, .settings h2 { font: 600 18px/1.2 var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
@@ -507,6 +515,34 @@ a.ext { color: var(--accent); font-size: 14px; }
         <p class="hint">Try continuations on the scratch board, then go back or return to your game.</p>
       </div>
       <div id="explorerBody" aria-live="polite"></div>
+      <section id="repertoirePanel" hidden>
+        <h3>Repertoire builder</h3>
+        <p class="hint">Choose lines for White or Black. Repertoires are saved in this browser, separately from your games.</p>
+        <p class="hint" id="repReadError" hidden>Saved repertoires could not be read. Existing data has been kept; changes are disabled.</p>
+        <div id="repControls">
+          <div class="field"><label for="repSelect">Repertoire</label><select id="repSelect"></select></div>
+          <form id="repForm">
+            <div class="field"><label for="repName">Repertoire name</label><input type="text" id="repName" required maxlength="100" translate="no"></div>
+            <div class="field"><label for="repColor">Your side</label><select id="repColor"><option value="w">White</option><option value="b">Black</option></select></div>
+            <div class="row"><button class="btn small" id="repSave" type="submit">Create repertoire</button><button class="btn small ghost danger" id="repDelete" type="button" hidden>Delete repertoire</button></div>
+          </form>
+          <div id="repDeleteConfirm" hidden><p>Delete this repertoire and all its lines?</p><div class="row"><button class="btn small danger" id="repDeleteYes" type="button">Delete repertoire</button><button class="btn small" id="repDeleteNo" type="button">Keep</button></div></div>
+          <div id="repLinesEditor" hidden>
+            <h3>Chosen lines</h3>
+            <div id="repChoices" class="row"></div>
+            <form id="repLineForm">
+              <div class="field"><label for="repLineName">Line name</label><input type="text" id="repLineName" required maxlength="100" translate="no"></div>
+              <div class="field"><label for="repMoves">Moves (SAN or PGN mainline)</label><textarea id="repMoves" required rows="3" maxlength="100000" translate="no" spellcheck="false"></textarea></div>
+              <p class="hint">Standard-start lines only, up to 200 plies. Each saved line includes both sides' moves.</p>
+              <div class="row"><button class="btn small ghost" id="repUseBoard" type="button">Use board line</button><span class="hint" id="repBoardHint"></span></div>
+              <div class="field"><label for="repNote">Line notes</label><textarea id="repNote" rows="2" maxlength="2000" translate="no"></textarea></div>
+              <div class="row"><button class="btn small primary" id="repLineSave" type="submit">Save line</button><button class="btn small ghost" id="repLineCancel" type="button" hidden>Cancel edit</button><button class="btn small ghost" id="repCopy" type="button">Copy repertoire as PGN</button></div>
+              <p class="hint" id="repMsg" role="status"></p>
+            </form>
+            <div id="repLines" class="repertoire-list"></div>
+          </div>
+        </div>
+      </section>
     </div>
 
     <div class="pane" data-pane="reading" hidden>
@@ -582,6 +618,7 @@ import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
+import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
 import { TOOL_NAMES, ENGINE_TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
 import { CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames } from './chat.js';
@@ -1450,6 +1487,8 @@ const EXAMPLES = classicGames();
 let INDEX = K.buildPositionIndex([]);
 let OPENING_INDEX = buildOpeningIndex([]);
 const openingCache = new Map(); // source + id -> {pgn, record}; invalidate on content, not timestamps
+const Repertoires = createRepertoireStore(Chess, browserStorage());
+let repSelected = store.get('repertoireSelected', ''), repRendered = '', repEditing = null, repIndex = new Map();
 function gamePositions(g) {
   try {
     const c = new Chess(); c.loadPgn(g.pgn);
@@ -1489,6 +1528,7 @@ function onLibChange() {
 
 // ---------------------------------------------------------------- Opening explorer (TODO 5.2)
 function renderOpeningExplorer() {
+  renderRepertoires();
   const body = $('#explorerBody'), allowed = showEngine();
   $('#explorerLocked').hidden = allowed; $('#explorerControls').hidden = !allowed;
   // Clear previously rendered moves even when the panel is closed: no stale suggestions behind
@@ -1525,9 +1565,13 @@ function exploreMove(uci, fen) {
   if (!showEngine() || fen !== (SCRATCH ? scratchFen() : nodeFen())) return;
   // Recheck after the click. A continuation is a scratch variation, never a live game move.
   const step = playLine(Chess, fen, [uci]); if (!step) return;
-  const start = SCRATCH ? SCRATCH.start : fen, before = SCRATCH ? SCRATCH.sans.slice(0, SCRATCH.i) : [];
-  const line = playLine(Chess, start, [...before, ...step.sans]);
-  if (line) openScratch(line, { free: true, title: 'Opening explorer' });
+  // The prefix is already checked. Keep it in full when extending a long saved repertoire line;
+  // playLine's 40-ply bound applies to model-proposed lines, not to the player's saved choices.
+  const line = SCRATCH ? {
+    start: SCRATCH.start, sans: [...SCRATCH.sans.slice(0, SCRATCH.i), ...step.sans],
+    ucis: [...SCRATCH.ucis.slice(0, SCRATCH.i), ...step.ucis], fens: [...SCRATCH.fens.slice(0, SCRATCH.i + 1), step.fens[1]],
+  } : step;
+  openScratch(line, { free: true, title: 'Opening explorer' });
 }
 async function openExplorerGame(ref, fen) {
   if (!showEngine() || fen !== actionState().fen) return;
@@ -1546,6 +1590,121 @@ async function openExplorerGame(ref, fen) {
   loadLine(game.line.start, game.line.sans, record, game.comments, { gameId: record.id, cursor: ref.ply, nags: game.nags, preserveChat: true });
   openTab('openings');
 }
+
+// ---------------------------------------------------------------- Repertoire builder (TODO 5.3)
+function selectedRepertoire() { return Repertoires.items.find(r => r.id === repSelected); }
+function currentRepertoireLine() { return boardRepertoireLine(Chess, S.start, S.nodes.slice(1, S.cursor + 1).map(n => n.uci), SCRATCH); }
+function resetRepertoireLine() {
+  repEditing = null; $('#repLineForm').reset(); $('#repMsg').textContent = '';
+  $('#repLineSave').textContent = 'Save line'; $('#repLineCancel').hidden = true;
+}
+function saveRepertoires(items) {
+  if (!showEngine()) return false;
+  const error = Repertoires.save(items);
+  if (error) {
+    toast(error === 'storage' ? 'Repertoire changes could not be saved. Browser storage may be full or unavailable.'
+      : error === 'unreadable' ? 'Saved repertoires could not be read. Existing data has been kept; changes are disabled.'
+        : 'Check repertoire names and legal lines. Limits: 32 repertoires, 128 lines each, 200 plies per line.');
+    return false;
+  }
+  return true;
+}
+function renderRepertoires() {
+  const allowed = showEngine(); $('#repertoirePanel').hidden = !allowed;
+  if (!allowed) {
+    if (repRendered) {
+      repRendered = ''; $('#repSelect').replaceChildren(); $('#repForm').reset(); resetRepertoireLine();
+      $('#repLines').replaceChildren(); $('#repChoices').replaceChildren(); $('#repDeleteConfirm').hidden = true;
+    }
+    return;
+  }
+  if (paneHidden('openings')) return;
+  $('#repReadError').hidden = !Repertoires.unreadable; $('#repControls').hidden = Repertoires.unreadable;
+  if (Repertoires.unreadable) return;
+  const items = Repertoires.items;
+  if (repSelected && !items.some(r => r.id === repSelected)) repSelected = '';
+  const selected = items.find(r => r.id === repSelected), key = `${Repertoires.revision}:${repSelected}`;
+  if (key !== repRendered) {
+    repRendered = key; resetRepertoireLine(); $('#repDeleteConfirm').hidden = true;
+    const select = $('#repSelect');
+    select.replaceChildren(el('option', { value: '' }, 'New repertoire…'), ...items.map(r => el('option', { value: r.id, translate: 'no' }, `${r.name} · ${t(r.color === 'w' ? 'White' : 'Black')}`)));
+    select.value = repSelected; $('#repName').value = selected?.name || ''; $('#repColor').value = selected?.color || 'w';
+    $('#repSave').textContent = selected ? 'Save repertoire' : 'Create repertoire';
+    $('#repDelete').hidden = !selected; $('#repLinesEditor').hidden = !selected;
+    $('#repCopy').disabled = !selected?.lines.length;
+    repIndex = selected ? repertoireIndex(Chess, selected) : new Map();
+    const list = $('#repLines'); list.replaceChildren();
+    if (selected && !selected.lines.length) list.append(el('p', { class: 'empty-note' }, 'No chosen lines yet. Enter a mainline or capture the board line.'));
+    for (const saved of selected?.lines || []) {
+      const line = repertoireLine(Chess, saved.moves);
+      const remove = el('button', { class: 'btn small ghost danger', type: 'button', onclick: () => {
+        if (!showEngine()) return;
+        const confirm = el('span', { class: 'row' }, el('span', {}, 'Remove this line?'),
+          el('button', { class: 'btn small danger', type: 'button', onclick: () => {
+            const current = selectedRepertoire(); if (!current) return;
+            if (saveRepertoires(Repertoires.items.map(r => r.id === current.id ? { ...r, lines: r.lines.filter(l => l.id !== saved.id) } : r))) renderRepertoires();
+          } }, 'Remove line'), el('button', { class: 'btn small', type: 'button', onclick: () => confirm.replaceWith(remove) }, 'Keep'));
+        remove.replaceWith(confirm);
+      } }, 'Remove line');
+      list.append(el('article', { class: 'repertoire-line', 'data-line-id': saved.id }, el('h4', { translate: 'no' }, saved.name),
+        el('p', { class: 'mono', translate: 'no' }, lineText(line)), saved.note ? el('p', { class: 'rep-note', translate: 'no' }, saved.note) : null,
+        el('div', { class: 'row' }, el('button', { class: 'btn small', type: 'button', onclick: () => {
+          if (showEngine()) openScratch(line, { free: true, title: 'Repertoire line' });
+        } }, 'Open line'), el('button', { class: 'btn small ghost', type: 'button', onclick: () => {
+          if (!showEngine()) return;
+          repEditing = saved.id; $('#repLineName').value = saved.name; $('#repMoves').value = lineText(line); $('#repNote').value = saved.note;
+          $('#repMsg').textContent = ''; $('#repLineSave').textContent = 'Save changes'; $('#repLineCancel').hidden = false; $('#repLineName').focus();
+        } }, 'Edit line'), remove)));
+    }
+  }
+  if (!selected) return;
+  const board = currentRepertoireLine();
+  $('#repUseBoard').disabled = !board?.ucis.length;
+  $('#repBoardHint').textContent = board?.ucis.length ? `Board line: ${board.ucis.length} plies, up to the displayed move.` : 'Show a connected line from the standard start to capture it.';
+  const fen = actionState().fen, choices = repertoireChoices(Chess, repIndex, selected.color, fen);
+  $('#repChoices').replaceChildren(...(choices.length ? [el('span', { class: 'hint' }, 'Your chosen moves here:'), ...choices.map(m =>
+    el('button', { class: 'btn small', type: 'button', translate: 'no', onclick: () => exploreMove(m.uci, fen) }, m.san))] : []));
+}
+$('#repSelect').addEventListener('change', () => {
+  repSelected = $('#repSelect').value; store.set('repertoireSelected', repSelected); renderRepertoires();
+});
+$('#repForm').addEventListener('submit', e => {
+  e.preventDefault(); if (!showEngine()) return;
+  const name = $('#repName').value.trim(); if (!name) return;
+  const current = selectedRepertoire(), id = current?.id || crypto.randomUUID();
+  const next = { id, name, color: $('#repColor').value, lines: current?.lines || [] };
+  const items = current ? Repertoires.items.map(r => r.id === id ? next : r) : [...Repertoires.items, next];
+  if (!saveRepertoires(items)) return;
+  repSelected = id; store.set('repertoireSelected', id); renderRepertoires(); toast('Repertoire saved in this browser.');
+});
+$('#repDelete').addEventListener('click', () => { if (showEngine()) $('#repDeleteConfirm').hidden = false; });
+$('#repDeleteNo').addEventListener('click', () => { $('#repDeleteConfirm').hidden = true; });
+$('#repDeleteYes').addEventListener('click', () => {
+  if (!saveRepertoires(Repertoires.items.filter(r => r.id !== repSelected))) return;
+  repSelected = ''; store.set('repertoireSelected', ''); renderRepertoires();
+});
+$('#repUseBoard').addEventListener('click', () => {
+  if (!showEngine()) return;
+  const line = currentRepertoireLine();
+  if (line?.ucis.length) { $('#repMoves').value = lineText(line); $('#repMsg').textContent = 'Board line copied into the editor. Save it when ready.'; }
+});
+$('#repLineCancel').addEventListener('click', resetRepertoireLine);
+$('#repLineForm').addEventListener('submit', e => {
+  e.preventDefault(); if (!showEngine()) return;
+  const current = selectedRepertoire(), line = repertoireLine(Chess, $('#repMoves').value), name = $('#repLineName').value.trim();
+  if (!current || !name) return;
+  if (!line?.ucis.length) { $('#repMsg').textContent = 'Enter a legal standard-start mainline of 1–200 plies. Nothing was saved.'; return; }
+  if (current.lines.some(l => l.id !== repEditing && l.moves.join(' ') === line.ucis.join(' '))) {
+    $('#repMsg').textContent = 'This line is already in this repertoire. Edit the saved line instead.'; return;
+  }
+  const saved = { id: repEditing || crypto.randomUUID(), name, note: $('#repNote').value, moves: line.ucis };
+  const lines = repEditing ? current.lines.map(l => l.id === repEditing ? saved : l) : [...current.lines, saved];
+  if (!saveRepertoires(Repertoires.items.map(r => r.id === current.id ? { ...r, lines } : r))) return;
+  renderRepertoires(); $('#repMsg').textContent = 'Line saved in this browser.';
+});
+$('#repCopy').addEventListener('click', () => {
+  const selected = selectedRepertoire(); if (showEngine() && selected) copyText(repertoirePgn(Chess, selected), 'Repertoire copied as PGN');
+});
 
 function currentRecord(extra = {}) {
   const names = playerNames();

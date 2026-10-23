@@ -54,9 +54,11 @@ The [LLM and symbolic design overview](docs/AI-DESIGN.md) maps the mechanisms ac
 
 [Research notes](docs/research/README.md) cover AI use cases in milestones 5–7, the current Stockfish integration, text/structured/graph RAG, and neurosymbolic approaches to chess and other games.
 
-The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library, opening explorer and reading suggestions.
+The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library, opening explorer, repertoire builder and reading suggestions.
 
 The **Openings** tab explores recorded continuations from the classics and your saved/imported games. It shows counts and results for the selected collection, with sample games at each move. Try a continuation on the scratch board and step back to explore another branch. During play it follows the help setting and needs Full engine help.
+
+The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. Drills are planned in TODO 5.4.
 
 The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
 

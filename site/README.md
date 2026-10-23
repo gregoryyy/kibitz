@@ -34,6 +34,8 @@ src/knowledge.js      Pure functions, no DOM:
 src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded when cross-origin isolated), job queue,
                       cancel by tag, time-capped depth searches; rejects all jobs if it dies
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
+src/openings.js       Reference-game position graph: continuations, record counts/results and sample occurrences
+src/repertoire.js     Legal chosen opening lines, game/scratch path capture, position-based choices and browser storage
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
 src/tutor.js          Coach comments: aspects and their prompts, what the coach sees mid-game, the check of its moves, the cache
 src/browser-llm.js    The in-browser model (wllama): loads on consent, streams answers, one request at a time, unloads when idle
