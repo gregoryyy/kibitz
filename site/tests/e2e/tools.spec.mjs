@@ -1,6 +1,6 @@
 // Engine tools for the coach (TODO 4.11): the loop runs in the page, on its own Stockfish, with the
 // mock provider calling tools when a question asks it to ([mock:tool], [mock:loop], [mock:bad-tool]).
-import { test, expect, open } from './fixtures.mjs';
+import { test, expect, open, openSettings, closeSettings } from './fixtures.mjs';
 
 const record = page => {
   const bodies = [];
@@ -23,6 +23,7 @@ test('the coach calls a tool: the page runs it on Stockfish, sends the result ba
   await expect(a).toContainText('Mock coach used a tool and read:');
   expect(bodies).toHaveLength(2);
   expect(bodies[0].tools).toEqual(expect.arrayContaining(['analyse', 'try_move', 'threats', 'compare', 'find_mate', 'find_motifs', 'search_library', 'load_game', 'setup']));
+  expect(bodies[0].messages[0].content).toContain('Stockfish evaluation tools are available');
   const toolMsg = bodies[1].messages.at(-1);
   expect(toolMsg.role).toBe('tool');
   const result = JSON.parse(toolMsg.content);
@@ -71,6 +72,7 @@ test('no engine tools in a game with less help: library and board tools cannot r
 
 test('a provider that refuses tools: the page asks again without them, and stops offering them', async ({ page }) => {
   const bodies = [];
+  await page.addInitScript(() => localStorage.setItem('kibitz.lang', JSON.stringify('de')));
   await page.route('**/api/ai/sample', async r => {
     const body = r.request().postDataJSON(); bodies.push(body);
     if (body.tools) return r.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_rejected', message: 'The AI provider rejected the request: "m" does not support tools' } }) });
@@ -78,9 +80,120 @@ test('a provider that refuses tools: the page asks again without them, and stops
   });
   await open(page);
   await page.locator('#modeAnalyse').click();
-  await expect(await ask(page, 'First')).toContainText('Mock coach');
-  await expect(await ask(page, 'Second')).toContainText('Mock coach');
+  await expect(await ask(page, 'What is the main plan for the side to move here, and why?')).toContainText('Mock coach');
+  await expect(await ask(page, "Explain the idea behind Stockfish's best move in this position.")).toContainText('Mock coach');
   expect(bodies.map(b => !!b.tools)).toEqual([true, false, false]);
+  await expect(page.locator('#chat .msg.coach .tool-notice')).toHaveCount(2);
+  await expect(page.locator('#chat .msg.coach .tool-notice').first()).toContainText('Dieses Modell kann keine Werkzeuge aufrufen');
+  expect(await page.evaluate(() => [...window.__kibitz.I18N_GAPS])).toEqual([]);
+  expect(bodies[1].messages[0].content).toContain('This model cannot call tools');
+  await expect(page.locator('#chat .msg.coach').last().locator('.evidence')).toHaveCount(0);
+});
+
+/** A temporary service failure must not turn off the existing Stockfish tools for later questions. */
+test('a transient provider error preserves Stockfish access on the next question', async ({ page }) => {
+  const bodies = [];
+  await page.route('**/api/ai/sample', r => {
+    const body = r.request().postDataJSON(); bodies.push(body);
+    if (bodies.length === 1) return r.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_error', message: 'Temporary service error' } }) });
+    return r.continue();
+  });
+  await open(page); await page.locator('#modeAnalyse').click();
+  await ask(page, 'Evaluate this position.');
+  await expect(page.locator('#chat .msg.coach').last()).toHaveAttribute('data-error', 'provider_error');
+  const answer = await ask(page, 'Please ask Stockfish. [mock:tool]');
+  await expect(answer.locator('.evidence summary')).toHaveText('Stockfish checked one thing for this answer');
+  expect(bodies.every(b => b.tools?.includes('analyse'))).toBe(true);
+});
+
+/** A rejected parameter is not evidence that the model lacks function calling. */
+test('an unrelated request rejection does not silently fall back or disable engine tools', async ({ page }) => {
+  const bodies = [];
+  await page.route('**/api/ai/sample', r => {
+    const body = r.request().postDataJSON(); bodies.push(body);
+    if (bodies.length === 1) return r.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_rejected', message: 'Invalid effort parameter' } }) });
+    return r.continue();
+  });
+  await open(page); await page.locator('#modeAnalyse').click();
+  await ask(page, 'Check the position.');
+  await expect(page.locator('#chat .msg.coach').last()).toContainText('Invalid effort parameter');
+  expect(bodies).toHaveLength(1);
+  await expect((await ask(page, 'Try again. [mock:tool]')).locator('.evidence')).toHaveCount(1);
+});
+
+/** Quick and chat tasks may use different models; one model's limitations must not affect the other. */
+test('an unsupported quick model does not disable the chat model Stockfish tools', async ({ page }) => {
+  await page.route('**/api/ai/status', async r => {
+    const response = await r.fetch(), status = await response.json();
+    await r.fulfill({ json: { ...status, models: { ...status.models, quick: 'text-only-model' } } });
+  });
+  const bodies = [];
+  await page.route('**/api/ai/sample', r => {
+    const body = r.request().postDataJSON(); bodies.push(body);
+    if (body.task === 'quick' && body.tools) return r.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_rejected', message: 'This model does not support tools' } }) });
+    return r.continue();
+  });
+  await open(page); await page.locator('#modeAnalyse').click();
+  await page.locator('#coachChips .chip').first().click();
+  await expect(page.locator('#chat .msg.coach').last()).toContainText('Mock coach');
+  await expect(page.locator('#coachStop')).toBeHidden();
+  await expect((await ask(page, 'Use Stockfish now. [mock:tool]')).locator('.evidence')).toHaveCount(1);
+  expect(bodies.filter(b => b.task === 'chat').every(b => b.tools?.includes('analyse'))).toBe(true);
+});
+
+test('a refreshed model selection restores tools without reloading the page', async ({ page }) => {
+  let model = 'text-only-model';
+  await page.route('**/api/ai/status', async r => {
+    const response = await r.fetch(), status = await response.json();
+    await r.fulfill({ json: { ...status, model, models: { quick: model, chat: model, review: model } } });
+  });
+  await page.route('**/api/ai/sample', r => {
+    if (model === 'text-only-model' && r.request().postDataJSON().tools) return r.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_rejected', message: 'This model does not support tools' } }) });
+    return r.continue();
+  });
+  await open(page); await page.locator('#modeAnalyse').click();
+  await ask(page, 'First question.'); model = 'mock';
+  await openSettings(page); await expect(page.locator('#coachModels')).toContainText('mock'); await closeSettings(page);
+  await expect((await ask(page, 'Use the selected model. [mock:tool]')).locator('.evidence')).toHaveCount(1);
+});
+
+/** An explicit successful connection test lets the same model be tried again after reconfiguration. */
+test('testing the connection retries tool support for the same model', async ({ page }) => {
+  const bodies = [];
+  await page.route('**/api/ai/sample', r => {
+    const body = r.request().postDataJSON(); bodies.push(body);
+    if (bodies.length === 1) return r.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_rejected', message: 'This model does not support tools' } }) });
+    return r.continue();
+  });
+  await open(page); await page.locator('#modeAnalyse').click();
+  await ask(page, 'First question.'); await ask(page, 'Second question.');
+  expect(bodies.map(b => !!b.tools)).toEqual([true, false, false]);
+  await openSettings(page); await page.locator('#btnTestAi').click();
+  await expect(page.locator('#testAiMsg')).toContainText('Connected'); await closeSettings(page);
+  const answer = await ask(page, 'Retry tools after reconnecting. [mock:tool]');
+  await expect(answer.locator('.evidence')).toHaveCount(1); await expect(answer.locator('.tool-notice')).toHaveCount(0);
+});
+
+/** A late capability error belongs to the original route, not a newly selected model. */
+test('a late rejection from the previous model cannot trigger a fallback on the new model', async ({ page }) => {
+  let model = 'previous-model', pending;
+  const bodies = [];
+  await page.route('**/api/ai/status', async r => {
+    const response = await r.fetch(), status = await response.json();
+    await r.fulfill({ json: { ...status, model, models: { quick: model, chat: model, review: model } } });
+  });
+  await page.route('**/api/ai/sample', r => {
+    bodies.push(r.request().postDataJSON());
+    if (bodies.length === 1) { pending = r; return; }
+    return r.continue();
+  });
+  await open(page); await page.locator('#modeAnalyse').click();
+  await page.locator('#coachInput').fill('Ask the engine.'); await page.locator('#coachSend').click();
+  await expect.poll(() => !!pending).toBe(true); model = 'mock';
+  await openSettings(page); await expect(page.locator('#coachModels')).toContainText('mock'); await closeSettings(page);
+  await pending.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_rejected', message: 'This model does not support tools' } }) });
+  await expect(page.locator('#coachStop')).toBeHidden(); expect(bodies).toHaveLength(1);
+  await expect((await ask(page, 'Use this model. [mock:tool]')).locator('.evidence')).toHaveCount(1);
 });
 
 test('a supplied legal line is not labelled as engine evidence; only confirmed motifs are returned', async ({ page }) => {
