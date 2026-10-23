@@ -82,3 +82,30 @@ test('a provider that refuses tools: the page asks again without them, and stops
   await expect(await ask(page, 'Second')).toContainText('Mock coach');
   expect(bodies.map(b => !!b.tools)).toEqual([true, false, false]);
 });
+
+test('a supplied legal line is not labelled as engine evidence; only confirmed motifs are returned', async ({ page }) => {
+  const bodies = record(page);
+  await open(page);
+  await page.locator('#modeAnalyse').click();
+  const fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  const a = await ask(page, `Check this line [mock:action:find_motifs ${JSON.stringify({ fen, line: ['e4', 'e5'] })}]`);
+  const result = JSON.parse(bodies[1].messages.at(-1).content);
+  expect(result.line.map(r => r.status)).toEqual(['no pattern', 'no pattern']);
+  expect(result.line.every(r => r.motifs.length === 0)).toBe(true);
+  await a.locator('.evidence summary').click();
+  await expect(a.locator('.evidence li')).toContainText('e4 (no pattern) e5 (no pattern)');
+});
+
+test('the tool shows a legal mate as confirmed even though Stockfish has no PV after checkmate', async ({ page }) => {
+  const bodies = record(page);
+  await open(page);
+  await page.locator('#modeAnalyse').click();
+  const fen = 'r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3';
+  const a = await ask(page, `Check this mate [mock:action:find_motifs ${JSON.stringify({ fen, line: ['Nf6', 'Qxf7#'] })}]`);
+  const result = JSON.parse(bodies[1].messages.at(-1).content);
+  expect(result.line[1].status).toBe('confirmed');
+  expect(result.line[1].payoff).toBe('checkmate');
+  expect(result.line[1].motifs).toContain('Qxf7# is checkmate');
+  await a.locator('.evidence summary').click();
+  await expect(a.locator('.evidence li')).toContainText('Qxf7# is checkmate');
+});

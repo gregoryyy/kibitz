@@ -6,13 +6,13 @@
 // engine(fen, {depth, lines}) -> Promise<{depth, lines: [{score: {cp} | {mate}, pv: [uci]}]}>, scores
 // from White's point of view, as the page keeps them.
 
-import { moveMotifs, scoreToCp } from './knowledge.js';
+import { moveMotifs, lineMotifs, material, epd, scoreToCp } from './knowledge.js';
 import { playLine } from './annotations.js';
 import { flipSide } from './modes.js';
 import { CHAT_TOOLS } from './chat.js';
 import { checkPosition } from './play.js';
 
-export const CAPS = { depth: 18, lines: 5, compare: 5, mate: 7, lineMoves: 12, rounds: 4, calls: 6 };
+export const CAPS = { depth: 18, lines: 5, compare: 5, mate: 7, lineMoves: 12, rounds: 4, calls: 6, motifSearches: 12, motifPlies: 6, motifMs: 15_000 };
 const DEFAULT_DEPTH = 14;
 
 const fenProp = { type: 'string', description: 'The position as a FEN. Use the current position\'s FEN from the context unless you mean another position.' };
@@ -44,7 +44,7 @@ export const TOOLS = {
     schema: { type: 'object', additionalProperties: false, required: ['fen', 'n'], properties: { fen: fenProp, n: { type: 'integer', minimum: 1, maximum: CAPS.mate } } },
   },
   find_motifs: {
-    description: 'The tactical motifs (forks, pins, sacrifices, mates, ...) of each move of a line, from the motif detectors.',
+    description: 'Tactical motifs of a line, checked against Stockfish before and after each candidate move. Only sound motifs with a payoff in a short best-reply line are returned. Unchecked or refuted patterns are withheld; a legal supplied line alone is not engine evidence.',
     schema: { type: 'object', additionalProperties: false, required: ['fen', 'line'], properties: {
       fen: fenProp, line: { type: 'array', minItems: 1, maxItems: CAPS.lineMoves, items: { type: 'string' }, description: 'Moves in SAN or UCI, played in turn from the position.' },
     } },
@@ -111,29 +111,89 @@ function numbered(Chess, fen, ucis, max = 10) {
   const text = line.sans.map((san, k) => { const [, side, , , , num] = line.fens[k].split(' '); return side === 'w' ? `${num}. ${san}` : k === 0 ? `${num}... ${san}` : san; }).join(' ');
   return { text, sans: line.sans, fens: line.fens, ucis: line.ucis };
 }
-// Motifs along a line (TODO 4.11.2): the detectors run on every move. In the engine's own lines a
-// motif is backed by the line's evaluation; elsewhere it's reported only for moves of a line that
-// doesn't lose (for the side making it) by more than half a pawn against the best.
-function motifsAlong(Chess, line, upTo = 6) {
-  const out = [];
-  for (let k = 0; k < Math.min(upTo, line.sans.length); k++) {
-    for (const m of moveMotifs(Chess, line.fens[k], line.ucis[k])) out.push(`${m.why}`);
-  }
-  return [...new Set(out)].slice(0, 6);
-}
 const moverCp = (score, side) => { const cp = scoreToCp(score); return side === 'w' ? cp : -cp; };
+
+// One bounded verifier per tool, shared by its lines. No search is needed for a terminal board;
+// other results need an exact score, a legal PV and at least depth 6. Cache by EPD, including misses.
+function motifVerifier(Chess, engine) {
+  const cache = new Map(), evidence = [], started = Date.now();
+  let searches = 0;
+  const seed = (fen, a) => { cache.set(epd(fen), a); };
+  const read = async fen => {
+    const c = new Chess(fen);
+    if (c.isCheckmate()) return { cp: c.turn() === 'w' ? -10_000 : 10_000, line: playLine(Chess, fen, []), terminal: true };
+    if (c.isDraw()) return { cp: 0, line: playLine(Chess, fen, []), terminal: true };
+    const key = epd(fen);
+    if (!cache.has(key)) {
+      if (searches >= CAPS.motifSearches || Date.now() - started >= CAPS.motifMs) return null;
+      searches++;
+      cache.set(key, await engine(fen, { depth: DEFAULT_DEPTH, lines: 1 }));
+    }
+    const a = cache.get(key), l = a?.lines?.[0], score = l?.score;
+    if (!l || !Number.isFinite(a.depth) || a.depth < 6 || l.bound || !(Number.isFinite(score?.cp) || (Number.isInteger(score?.mate) && score.mate !== 0))) return null;
+    const line = playLine(Chess, fen, (l.pv || []).slice(0, CAPS.motifPlies));
+    if (!line?.sans.length) return null;
+    return { cp: Number.isFinite(score.cp) ? score.cp : scoreToCp(score), line, terminal: false };
+  };
+  const check = async line => {
+    const combinations = lineMotifs(Chess, line.start, line.ucis);
+    const rows = [];
+    for (let k = 0; k < line.sans.length; k++) {
+      const candidates = [...moveMotifs(Chess, line.fens[k], line.ucis[k]), ...(combinations[k] || [])];
+      const row = { move: line.sans[k], motifs: [], status: 'no pattern', reason: '', continuation: '', lossInPawns: null, payoff: '' };
+      rows.push(row);
+      if (!candidates.length) continue;
+      const sign = line.fens[k].split(' ')[1] === 'w' ? 1 : -1;
+      const after = await read(line.fens[k + 1]);
+      // A legal mate on the board is conclusive even when the worker returns no terminal PV.
+      const before = after?.terminal && sign * after.cp === 10_000 ? after : await read(line.fens[k]);
+      if (!before || !after) { row.status = 'unverified'; row.reason = 'Engine evidence unavailable within the search budget.'; continue; }
+      const loss = sign * (before.cp - after.cp);
+      row.lossInPawns = Math.max(0, loss) / 100;
+      row.status = 'refuted';
+      if (loss > 50) { row.reason = 'The move loses more than half a pawn against the best move.'; continue; }
+      const bestReply = playLine(Chess, line.fens[k], [line.ucis[k], ...after.line.ucis.slice(0, CAPS.motifPlies - 1)]);
+      const end = new Chess(bestReply.fens.at(-1));
+      const balance = fen => { const m = material(new Chess(fen)); return sign * (m.w - m.b); };
+      const gain = balance(end.fen()) - balance(line.fens[k]);
+      if (end.isCheckmate() && end.turn() !== line.fens[k].split(' ')[1]) row.payoff = 'checkmate';
+      else if (gain > 0) row.payoff = 'material gain within the continuation';
+      else if (sign * after.cp >= 100) {
+        const horizon = await read(end.fen());
+        if (horizon && sign * horizon.cp >= 100 && sign * (after.cp - horizon.cp) <= 50) row.payoff = gain < 0 ? 'engine confirms compensation for the material' : 'engine confirms a positional advantage';
+      }
+      if (!row.payoff) { row.status = 'unverified'; row.reason = 'No payoff established within the short continuation.'; continue; }
+      // Multi-move labels require the supplied reply and follow-up to match the engine's PV.
+      row.motifs = [...new Set(candidates.filter(m => !m.span || line.ucis.slice(k + 1, k + m.span).every((u, j) => u === after.line.ucis[j])).map(m => m.why))];
+      if (!row.motifs.length) { row.status = 'unverified'; row.reason = 'The supplied combination is not the engine continuation.'; continue; }
+      row.status = 'confirmed';
+      row.continuation = numbered(Chess, line.fens[k], bestReply.ucis, CAPS.motifPlies).text;
+      evidence.push(bestReply.sans);
+    }
+    return rows;
+  };
+  return { seed, check, evidence };
+}
+const motifSummary = checks => [...new Set(checks.flatMap(r => r.motifs))].slice(0, 12);
 
 // Runs a checked tool call: {result} (JSON for the model) plus `lines`: the SAN sequences it showed,
 // so the answer check (tutor.js checkAnswer) can back the moves the coach quotes from it.
 export async function runTool(Chess, engine, { name, args }) {
   const side = args.fen.split(' ')[1];
+  const verifier = motifVerifier(Chess, engine);
   if (name === 'analyse') {
     const a = await engine(args.fen, { depth: args.depth, lines: args.lines });
     const lines = (a?.lines || []).slice(0, args.lines).map(l => ({ l, n: numbered(Chess, args.fen, l.pv) }));
+    verifier.seed(args.fen, a);
+    const checked = [];
+    for (const { l, n } of lines) {
+      const motifChecks = await verifier.check(playLine(Chess, args.fen, n.sans));
+      checked.push({ eval: fmt(l.score), moves: n.text, motifs: motifSummary(motifChecks), motifChecks });
+    }
     const gap = lines.length > 1 ? moverCp(lines[0].l.score, side) - moverCp(lines[1].l.score, side) : 0;
     return {
-      result: { fen: args.fen, depth: a?.depth ?? 0, sideToMove: side === 'w' ? 'White' : 'Black', onlyMove: gap >= 150,
-        lines: lines.map(({ l, n }) => ({ eval: fmt(l.score), moves: n.text, motifs: motifsAlong(Chess, n) })) },
+      result: { fen: args.fen, depth: a?.depth ?? 0, sideToMove: side === 'w' ? 'White' : 'Black', onlyMove: gap >= 150 && moverCp(lines[0].l.score, side) >= -50,
+        lines: checked },
       lines: lines.map(({ n }) => n.sans),
     };
   }
@@ -142,11 +202,13 @@ export async function runTool(Chess, engine, { name, args }) {
     const [best, reply] = await Promise.all([engine(args.fen, { depth: DEFAULT_DEPTH, lines: 1 }), engine(after, { depth: DEFAULT_DEPTH, lines: 1 })]);
     const b = best?.lines[0], r = reply?.lines[0];
     const bestLine = b ? numbered(Chess, args.fen, b.pv, 6) : null, refute = r ? numbered(Chess, after, r.pv, 6) : null;
+    verifier.seed(after, reply);
+    const replyChecks = refute ? await verifier.check(playLine(Chess, after, refute.sans)) : [];
     const loss = b && r ? moverCp(b.score, side) - moverCp(r.score, side) : null;
     return {
       result: { move: args.move, evalAfter: r ? fmt(r.score) : '?', best: bestLine?.sans[0] ?? null, bestEval: b ? fmt(b.score) : '?', lossInPawns: loss === null ? null : Math.max(0, loss) / 100,
         verdict: loss === null ? 'unknown' : loss <= 30 ? 'about as good as the best move' : loss <= 100 ? 'playable but worse' : 'a mistake: it loses material or position',
-        bestLine: bestLine?.text ?? '', reply: refute?.text ?? '', replyMotifs: refute ? motifsAlong(Chess, refute, 2) : [] },
+        bestLine: bestLine?.text ?? '', reply: refute?.text ?? '', replyMotifs: motifSummary(replyChecks), motifChecks: replyChecks },
       lines: [[args.move, ...(refute?.sans || [])], bestLine?.sans || []],
     };
   }
@@ -155,8 +217,10 @@ export async function runTool(Chess, engine, { name, args }) {
     if (!flipped) return { result: { threat: null, why: 'no threat can be read from this position' }, lines: [] };
     const a = await engine(flipped, { depth: DEFAULT_DEPTH, lines: 1 });
     const l = a?.lines[0], n = l ? numbered(Chess, flipped, l.pv, 6) : null;
+    verifier.seed(flipped, a);
+    const checks = n ? await verifier.check(playLine(Chess, flipped, n.sans)) : [];
     return {
-      result: { side: side === 'w' ? 'Black' : 'White', threat: n?.sans[0] ?? null, line: n?.text ?? '', evalIfAllowed: l ? fmt(l.score) : '?', motifs: n ? motifsAlong(Chess, n, 3) : [] },
+      result: { side: side === 'w' ? 'Black' : 'White', threat: n?.sans[0] ?? null, line: n?.text ?? '', evalIfAllowed: l ? fmt(l.score) : '?', motifs: motifSummary(checks), motifChecks: checks },
       lines: n ? [n.sans] : [],
     };
   }
@@ -180,7 +244,7 @@ export async function runTool(Chess, engine, { name, args }) {
   // find_motifs
   const line = playLine(Chess, args.fen, args.line);
   return {
-    result: { line: line.sans.map((san, k) => ({ move: san, motifs: moveMotifs(Chess, line.fens[k], line.ucis[k]).map(m => m.why) })) },
-    lines: [line.sans],
+    result: { line: await verifier.check(line), note: 'Only confirmed motifs are returned. Refuted or unverified moves are not evidence; continuations come from Stockfish.' },
+    lines: verifier.evidence,
   };
 }

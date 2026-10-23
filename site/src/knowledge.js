@@ -17,7 +17,9 @@ export const TAG_LABELS = {
   'bishop-pair': 'Bishop pair', 'pawn-endgame': 'King and pawn ending', 'rook-endgame': 'Rook ending',
   'rook-pawn-vs-rook': 'Rook + pawn vs rook', ocb: 'Opposite-coloured bishops',
   'minor-endgame': 'Minor-piece ending', 'queen-endgame': 'Queen ending', 'rook-vs-minor': 'Rook vs minor piece',
-  fork: 'Fork', pin: 'Pin', 'discovered-attack': 'Discovered attack', 'back-rank': 'Back-rank weakness',
+  fork: 'Fork', pin: 'Pin', skewer: 'Skewer', 'discovered-attack': 'Discovered attack', 'double-check': 'Double check',
+  deflection: 'Deflection', decoy: 'Decoy', overloading: 'Overloading', interference: 'Interference',
+  'removing-defender': 'Removing the defender', zwischenzug: 'Zwischenzug', 'back-rank': 'Back-rank weakness',
   'hanging-piece': 'Loose / hanging piece', promotion: 'Promotion', sacrifice: 'Sacrifice',
   'greek-gift': 'Bishop sacrifice on h7/h2', 'king-attack': 'Attack on the king', mate: 'Checkmate pattern',
   calculation: 'Calculation & blunder-checking', planning: 'Planning & imbalances', 'king-activity': 'King activity',
@@ -239,7 +241,8 @@ export function positionFeatures(chess, ctx = {}) {
 export function moveMotifs(Chess, fen, uci) {
   const out = [];
   if (!uci) return out;
-  const c = new Chess(fen);
+  let c; try { c = new Chess(fen); } catch { return out; }
+  const before = new Chess(fen);
   let mv;
   try { mv = c.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] || 'q' }); } catch { return out; }
   const me = mv.color, them = me === 'w' ? 'b' : 'w';
@@ -252,14 +255,40 @@ export function moveMotifs(Chess, fen, uci) {
   if (mv.promotion) add('promotion', `${mv.san} promotes`);
   if (mv.captured === undefined && /x/.test(mv.san) === false && ['b', 'n', 'r', 'q'].includes(mv.piece) && c.isAttacked(mv.to, them)) {
     const defended = c.attackers(mv.to, me).length > 0;
-    if (!defended) add('sacrifice', `${mv.san} puts a piece en prise on purpose`);
+    if (!defended) add('sacrifice', `${mv.san} offers an undefended ${pieceName(mv.piece)}`);
   }
   if (mv.piece === 'b' && mv.captured === 'p' && (mv.to === 'h7' || mv.to === 'h2') && c.inCheck()) add('greek-gift', `${mv.san} is the classic bishop sacrifice`);
   // Fork: the moved piece attacks two or more valuable enemy pieces (or king + piece).
   const targets = pieces(c).filter(p => p.color === them && (p.type === 'k' || VAL[p.type] > VAL[mv.piece] || (VAL[p.type] >= 3 && c.attackers(p.square, them).length === 0)) && attacksFrom(c, mv.to, p.square));
   if (targets.length >= 2 && !c.isCheckmate()) add('fork', `${mv.san} attacks ${targets.map(t => pieceName(t.type) + ' ' + t.square).join(' and ')}`);
-  // Discovered attack: a piece behind the moved one now attacks something.
-  if (c.inCheck() && !attacksFrom(c, mv.to, pieces(c).find(p => p.type === 'k' && p.color === them).square)) add('discovered-attack', `${mv.san} uncovers a check`);
+  // Discovered attacks include attacks on material, not just checks.
+  const enemies = pieces(c).filter(p => p.color === them);
+  const king = enemies.find(p => p.type === 'k');
+  if (king && c.attackers(king.square, me).length >= 2) add('double-check', `${mv.san} gives double check`);
+  for (const target of enemies.filter(p => p.type === 'k' || VAL[p.type] >= 3)) {
+    const newly = c.attackers(target.square, me).filter(s => s !== mv.to && !before.attackers(target.square, me).includes(s));
+    if (newly.length) add('discovered-attack', `${mv.san} uncovers an attack on the ${pieceName(target.type)} on ${target.square}`);
+    const defenders = before.attackers(target.square, them);
+    if (c.attackers(target.square, them).length || !c.attackers(target.square, me).length) continue;
+    if (mv.captured && defenders.includes(mv.to)) add('removing-defender', `${mv.san} removes the defender of the ${pieceName(target.type)} on ${target.square}`);
+    else if (defenders.some(s => c.get(s)?.color === them && 'brq'.includes(c.get(s).type))) add('interference', `${mv.san} cuts the defence of the ${pieceName(target.type)} on ${target.square}`);
+  }
+  // Skewer: the moved slider attacks a more valuable enemy in front of another enemy piece.
+  if ('brq'.includes(mv.piece)) {
+    const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+    for (const [df, dr] of dirs) {
+      if ((mv.piece === 'b' && !(df && dr)) || (mv.piece === 'r' && df && dr)) continue;
+      const ray = [];
+      for (let f = FILES.indexOf(mv.to[0]) + df, r = +mv.to[1] + dr; f >= 0 && f < 8 && r >= 1 && r <= 8; f += df, r += dr) {
+        const p = c.get(FILES[f] + r);
+        if (!p) continue;
+        if (p.color === me) break;
+        ray.push({ ...p, square: FILES[f] + r });
+        if (ray.length === 2) break;
+      }
+      if (ray.length === 2 && (ray[0].type === 'k' || VAL[ray[0].type] > VAL[ray[1].type]) && VAL[ray[1].type] >= 3) add('skewer', `${mv.san} skewers the ${pieceName(ray[0].type)} on ${ray[0].square} to the ${pieceName(ray[1].type)} on ${ray[1].square}`);
+    }
+  }
   // Hanging piece: the move captures an undefended piece.
   if (mv.captured && VAL[mv.captured] >= 3) {
     const before = new Chess(fen);
@@ -272,6 +301,30 @@ export function moveMotifs(Chess, fen, uci) {
     if (k && c.attackers(k.square, me).length) add('king-attack', 'Direct pressure on the king');
   }
   return out;
+}
+
+// Candidates that need a reply and a follow-up. These describe the concrete line only; tools
+// must check its moves and the evaluation before claiming that the tactic works.
+export function lineMotifs(Chess, fen, ucis) {
+  let c; try { c = new Chess(fen); } catch { return []; }
+  const rows = [];
+  for (const uci of ucis) {
+    try { rows.push({ before: new Chess(c.fen()), move: c.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] || 'q' }), after: new Chess(c.fen()) }); }
+    catch { return []; }
+  }
+  return rows.map((a, i) => {
+    const b = rows[i + 1], d = rows[i + 2], out = [];
+    if (!b || !d) return out;
+    const add = (tag, why) => out.push({ tag, weight: 4, why, span: 3 });
+    const forced = a.after.inCheck() || (b.move.captured && b.move.to === a.move.to);
+    if (forced && d.move.captured && a.before.get(d.move.to)?.color === b.move.color && a.before.attackers(d.move.to, b.move.color).includes(b.move.from) && !b.after.attackers(d.move.to, b.move.color).length) {
+      add('deflection', `${a.move.san} deflects the defender from ${b.move.from}, allowing ${d.move.san}`);
+      if (a.before.attackers(a.move.to, b.move.color).includes(b.move.from)) add('overloading', `The defender on ${b.move.from} cannot cover both ${a.move.to} and ${d.move.to}`);
+    }
+    if (a.move.piece !== 'p' && b.move.captured && b.move.to === a.move.to && ((d.move.captured && d.move.to === b.move.to) || d.after.isCheckmate())) add('decoy', `${a.move.san} draws the ${pieceName(b.move.piece)} to ${b.move.to} before ${d.move.san}`);
+    if (a.after.inCheck() && !a.move.captured && d.move.captured && VAL[d.move.captured] >= 3 && a.before.moves({ verbose: true }).some(m => m.to === d.move.to && m.captured === d.move.captured) && !a.before.attackers(d.move.to, b.move.color).length) add('zwischenzug', `${a.move.san} inserts a check before ${d.move.san}`);
+    return out;
+  });
 }
 function pieceName(t) { return { p: 'pawn', n: 'knight', b: 'bishop', r: 'rook', q: 'queen', k: 'king' }[t]; }
 function attacksFrom(c, from, to) {

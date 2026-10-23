@@ -124,7 +124,7 @@ Status: `[ ]` open, `[x]` done. Tags:
   - [x] 4.10.3 Coach tools for both (with 4.8.3): `move`, `goto`, `setup` taking pieces and squares, `undo`. Every call is checked with chess.js, every board change can be undone in one step, and none of them touches saved games or the library
   - [x] 4.10.4 After each change the engine re-analyses, and the coach's next answer is about the new position (async results checked against the FEN)
   - [x] 4.10.5 Tests: moves and setups through the mock provider, illegal or hostile requests (impossible positions, moves for the engine's side, setup during a game), undo
-- [ ] 4.11 Engine tools for the coach: the model asks, and Stockfish and the motif detectors answer *(added)*
+- [x] 4.11 Engine tools for the coach: the model asks, and Stockfish and the motif detectors answer *(added)*
   - [x] 4.11.1 Tools:
     - `analyse(fen, depth, lines)`: the top lines in SAN, with evaluations
     - `try_move(fen, move)`: does this move work, and what refutes it (`go searchmoves`)
@@ -132,7 +132,7 @@ Status: `[ ]` open, `[x]` done. Tags:
     - `compare(fen, moves)`
     - `find_mate(fen, n)`
     - `find_motifs(fen, line)`: `moveMotifs` on every move of a line
-  - [ ] 4.11.2 Pattern search over lines: the detectors run over every move of the top lines, and a motif counts only when the engine's evaluation confirms it pays off within a few moves. A large gap between the first and second line flags an "only move". The detectors grow to cover the themes in 6.2. Done: the detectors run along the tools' lines (`motifsAlong`), and `analyse` flags an "only move" when the second line is 1.5 pawns worse. Remaining: the evaluation check per motif, and more detectors (6.2)
+  - [x] 4.11.2 Pattern search over lines: detectors inspect every move, with before/after engine evaluations and a short best-reply continuation confirming material gain, mate or sustained positional compensation. Unverified and refuted patterns are withheld. Candidate detectors cover the tactical themes in 6.2, including skewers, double checks, deflection, decoy, overloading, interference, removing a defender and checking zwischenzugs. A 1.5-pawn gap flags an "only move" when the best move still holds. Checks share an EPD cache and a search/time budget; see DONE.md for the conservative limits
   - [x] 4.11.3 Tool calling in the gateway for every provider: Claude tool use, and function calling for OpenAI, Mistral and Ollama. One mechanism also serves the load tools (4.8.3) and the board tools (4.10.3); today the gateway uses JSON-schema output instead (2.7). Models without tools fall back to a standard analysis run up front, which the model only explains
   - [x] 4.11.4 Where the engine runs: in the page, with the gateway handing each tool call to the page and waiting for the result, or on the server, where the npm Stockfish build also runs in Node. Decide on latency, cost and hosted load (10.1). Each answer gets a cap on tool calls and engine time. Decided: in the page. The page asks the gateway for one model turn at a time and runs each tool call on its own Stockfish
   - [x] 4.11.5 Tool arguments are untrusted: FENs and moves are checked with chess.js, and depth, time and line count are capped. Every line the model quotes must come from a tool result (3.4). The tool results are kept with the answer, so the chat can show the evidence

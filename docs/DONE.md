@@ -7,6 +7,31 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Engine-confirmed tactical patterns
+
+TODO items: 4.11.2; completes 4.11.
+
+### Implementation notes
+
+- Pattern detection now separates geometric candidates from confirmed tactics. `tools.js` checks the engine's best evaluation before and after each candidate move, from the mover's perspective. A move losing over half a pawn against the best is refuted. Missing, shallow (below depth 6), bounded or illegal engine results never confirm a motif.
+- A short engine continuation must show a material gain, legal mate, or a positional advantage/compensation that a fresh evaluation still confirms at its six-ply horizon. Legal mates are conclusive even when the engine returns no terminal PV. Confirmation details, losses, continuations and reasons for abstaining travel back to the model.
+- The checks apply to `analyse`, `try_move` replies, `threats` and `find_motifs`. The latter no longer passes an arbitrary supplied legal line to the answer checker as engine evidence; it supplies only confirmed continuations. A gap of 1.5 pawns marks an only move only if the best move still holds.
+- `knowledge.js` adds candidate detectors for skewers, double checks, discoveries against material, interference and removing defenders. Concrete three-ply sequences identify deflection, overloaded defenders, decoys and checking zwischenzugs. Combination labels require the supplied reply/follow-up to match the engine's continuation.
+- Each tool shares an EPD cache across its lines, with at most twelve additional searches and no new search after fifteen seconds. Individual searches retain the page's five-second cap. The page checks cancellation and game generation before and after every engine search, including searches inside one tool.
+- Tests cover sound and poisoned forks for both colors, score validity, large scores without display clamping, terminal mates, cooperative supplied lines, bounds and the new detectors. Browser regressions exercise the model/tool round trip and evidence display with the mock provider.
+
+### Deviations
+
+- These are conservative detectors and finite-depth checks, not an exhaustive tactics solver. Long combinations, positional sacrifices without a stable short horizon, non-checking zwischenzugs and candidates beyond the search budget stay unverified. The broader lesson curriculum in 6.2 remains open.
+- No live model evaluation was run; all provider tests use mocks. No dependencies were added.
+
+### Insights
+
+- A legal line can contain a losing fork or a cooperative reply. Legality alone must never turn a model's proposed continuation into engine evidence.
+- A display-clamped evaluation can conceal a large loss in an already winning position. Pattern checks use the full centipawn value.
+
+---
+
 ## 2026-10-22 — Chat context, library loading and board control
 
 TODO items: 4.8, 4.9, 4.10 (milestone 4, part 2b).
