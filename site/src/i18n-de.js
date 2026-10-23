@@ -3,6 +3,26 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Named opening continuations (TODO 5.6) ----------------------------------------------------
+  'Named opening continuations': 'Benannte Eröffnungsfortsetzungen',
+  'Opening continuations could not be loaded.': 'Die Eröffnungsfortsetzungen konnten nicht geladen werden.',
+  'Loading opening continuations…': 'Eröffnungsfortsetzungen werden geladen…',
+  'Retry opening catalogue': 'Eröffnungskatalog erneut laden',
+  'Current opening:': 'Aktuelle Eröffnung:',
+  'Earlier in this line:': 'Früher in dieser Variante:',
+  'No exact opening name here.': 'Für diese genaue Stellung gibt es hier keinen Eröffnungsnamen.',
+  'Hover or focus to preview. In analysis, try a scratch line; during play, click to make your move.': 'Zeige zur Vorschau mit der Maus darauf oder fokussiere den Zug. In der Analyse entsteht eine Variante; während der Partie spielst du den Zug per Klick.',
+  'Opening names come from the catalogue; game frequencies are shown in the explorer.': 'Eröffnungsnamen stammen aus dem Katalog; Spielhäufigkeiten stehen im Explorer.',
+  'To play a continuation, return to the current position and wait for your turn.': 'Kehre zum Spielen einer Fortsetzung zur aktuellen Stellung zurück und warte, bis du am Zug bist.',
+  'No named continuations here. Try another position.': 'Hier gibt es keine benannten Fortsetzungen. Versuche eine andere Stellung.',
+  'Preview: {move}': 'Vorschau: {move}',
+  'Play this move in your game': 'Diesen Zug in deiner Partie spielen',
+  'Try this move on the scratch board': 'Diesen Zug auf dem Variantenbrett ausprobieren',
+  '· 1 more ply to this name': '· Noch 1 Halbzug bis zu diesem Namen',
+  '· {n} more plies to this name': '· Noch {n} Halbzüge bis zu diesem Namen',
+  'Named opening variation': 'Benannte Eröffnungsvariante',
+  'About this opening': 'Über diese Eröffnung',
+  'Explain this opening and its named continuations for the position on the board. Use the supplied study notes and check concrete ideas with Stockfish.': 'Erkläre diese Eröffnung und ihre benannten Fortsetzungen für die Stellung auf dem Brett. Nutze die Lernnotizen und prüfe konkrete Ideen mit Stockfish.',
   // --- Opening study notes (TODO 5.5); guide prose is bilingual in opening-guides.js. -------------
   'Opening ideas': 'Eröffnungsideen',
   'Kibitz study notes: typical plans, not a recommendation for the next move.': 'Kibitz-Lernnotizen: typische Pläne, keine Empfehlung für den nächsten Zug.',

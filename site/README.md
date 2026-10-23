@@ -21,6 +21,8 @@ In **Openings**, choose a saved White or Black repertoire and press **Review due
 
 **Opening ideas** shows original study notes for twelve opening families and seven pawn patterns, in English or German. A guide explains the idea, typical plans and possible structures; separate pattern notes reflect the pawns currently on the board. Guides follow transpositions and scratch variations, identifying earlier opening matches as background. **Discuss these ideas** gives the coach the same notes alongside permitted Stockfish evidence. Static guides need no provider. During a game they require Full engine help, following the explorer's policy; unsupported/endgame positions show an empty state instead of a guessed explanation.
 
+**Named opening continuations** shows the current opening/ECO and legal next moves towards nearby named variations, including transpositions. A distance label distinguishes a later destination from an immediate name; these names do not rank move strength or frequency. Hover or focus previews the position after a move. Click or Enter extends a scratch line in analysis, or plays your next move at the current live position with Full help. Existing scratch lines stay separate from the game. **About this opening** gives the coach the actual position, quoted names and study notes; concrete advice still needs Stockfish. Browsing works without a provider and includes retry if the local catalogue fails to load. Off, Flag mistakes and Eval + mistakes hide the panel during play.
+
 ## Layout
 
 ```
@@ -40,6 +42,7 @@ src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded wh
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/openings.js       Reference-game position graph: continuations, record counts/results and sample occurrences
 src/opening-guides.js Original bilingual study notes, visible-route/EPD matching, current pawn patterns and quoted coach context
+src/opening-variations.js Build-time named-destination graph, checked position queries and quoted catalogue context
 src/repertoire.js     Legal chosen opening lines, game/scratch path capture, position-based choices and browser storage
 src/drills.js         Repertoire recall cards, legal replies, review queue, deterministic intervals and atomic progress storage
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
@@ -52,7 +55,9 @@ src/play.js           Game-end rules, timeouts, clocks, the opponent's search, t
 src/pgn.js            NAGs: reads them from PGN movetext (chess.js drops them), glyphs for display
 src/notation.js       Typed moves (SAN or coordinates) and moves in words for screen readers
 data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position,
-                      and dist/openings.json (every named line with its moves, for "start from an opening").
+                      dist/openings.json (every named line with its moves, for "start from an opening"),
+                      and dist/opening-variations.json (named destinations of legal next moves by position).
+                      Data/compiler changes rebuild these outputs automatically; build:eco forces regeneration.
 scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
@@ -100,7 +105,7 @@ The page runs as a Claude artifact and uses `window.claude.use(name)`:
 | `db` + `user` | Library at `data/users/<id>/kibitz/{games,books}` (private per user) | Falls back to `localStorage` |
 | `downloads` | Save .pgn files | Falls back to copying the PGN |
 
-Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; vendored files are published alongside the page (`sf.wasm` as `application/wasm`), and so are `eco.json` and `openings.json`.
+Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; vendored files are published alongside the page (`sf.wasm` as `application/wasm`), and so are `eco.json`, `openings.json` and `opening-variations.json`.
 
 Outside an artifact, `use('sample')` returns `localSample()`, a function with the same signature that streams from the local AI gateway (`/api/ai/sample`). The prompts and `contextFor()` are unchanged. The library still falls back to `localStorage`; a server-side store is planned (TODO 7.6).
 

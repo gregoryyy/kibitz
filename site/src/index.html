@@ -54,6 +54,7 @@ header.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; pad
 main { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr); gap: 24px; max-width: 1320px; margin: 0 auto; align-items: start; }
 @media (max-width: 940px) { main { grid-template-columns: minmax(0, 1fr); } }
 .boardcol { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+@media (min-width: 941px) { body:has([data-pane="openings"]:not([hidden])) .boardcol { position: sticky; top: 12px; } }
 .board-context { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .board-context strong { color: var(--accent); }
 .board-context .game-title { min-width: 0; overflow-wrap: anywhere; }
@@ -227,6 +228,12 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .opening-guide h4 { margin: 6px 0; }
 .opening-guide dt { font-weight: 600; margin-top: 8px; }
 .opening-guide dd { margin: 4px 0; }
+#namedOpeningBody { display: grid; gap: 10px; padding-top: 12px; }
+#namedOpeningBody > p { margin: 0; }
+.named-opening-list { display: grid; gap: 10px; max-height: min(340px, 45vh); overflow-y: auto; overscroll-behavior: contain; padding: 3px; }
+.named-opening-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.named-opening-names { min-width: 0; overflow-wrap: anywhere; }
+.named-opening-names p { margin: 0 0 4px; }
 #repChoices { margin: 10px 0; }
 #repControls, #repForm, #repLinesEditor, #repLineForm { display: grid; gap: 12px; }
 #drillPanel, #drillSession { display: grid; gap: 12px; }
@@ -522,6 +529,10 @@ a.ext { color: var(--accent); font-size: 14px; }
     <div class="pane" data-pane="openings" hidden>
       <h2>Opening explorer</h2>
       <p class="hint" id="explorerLocked" hidden>Opening continuations are hidden while you play. Choose Full engine help or finish the game to explore.</p>
+      <details id="openingVariations" open hidden>
+        <summary>Named opening continuations</summary>
+        <div id="namedOpeningBody"></div>
+      </details>
       <section id="openingGuidePanel" hidden aria-label="Opening ideas">
         <h3>Opening ideas</h3>
         <p class="hint">Kibitz study notes: typical plans, not a recommendation for the next move.</p>
@@ -653,6 +664,7 @@ import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChall
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext } from './opening-guides.js';
+import { namedContinuations, namedOpeningContext } from './opening-variations.js';
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
 import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
@@ -849,6 +861,24 @@ const ANA = new Map(); // epd -> {depth, lines:[{score(white pov), pv}], best}
 const TUTOR = { cache: lruCache(100, store.get('tutorCache', [])), ctl: null, seen: new WeakSet(),
   challenge: null, posed: 0, progress: store.get('challengeProgress', {}) }; // challenges (TODO 3.9.3): the open one, results per theme
 let ECO = {};
+let NAMED_OPENINGS = null, namedRequest = null, namedError = false;
+/** Load immutable catalogue data once; redraw against the current game, never a captured old position. */
+function loadNamedOpenings() {
+  if (namedRequest) return namedRequest;
+  namedError = false;
+  namedRequest = (async () => {
+    try {
+      const response = await fetch('opening-variations.json');
+      if (!response.ok) throw new Error('catalogue unavailable');
+      const data = await response.json();
+      if (data?.version !== 1 || !data.positions || typeof data.positions !== 'object' || Array.isArray(data.positions)) throw new Error('invalid catalogue');
+      NAMED_OPENINGS = data;
+    } catch { namedError = true; NAMED_OPENINGS = null; }
+    finally { namedRequest = null; renderOpeningExplorer(); renderOpeningQuestion(); }
+  })();
+  return namedRequest;
+}
+loadNamedOpenings();
 fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); })
   .catch(() => toast('Opening names could not be loaded. Everything else still works.'));
 function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth, tc: S.tc, startKind: S.startPick.kind, startOpening: S.startPick.opening, startFen: S.startPick.fen, aspects: S.aspects, commentWhen: S.commentWhen, quickInBrowser: S.quickInBrowser, lines: S.lines, window: S.window }); }
@@ -942,12 +972,13 @@ function canMove() {
   if (S.mode === 'analysis') return true;
   return S.playing && S.cursor === last() && turnOf(nodeFen()) === S.userColor && !S.thinking;
 }
-let previewing = false; // a game reference's position is on the board (previewPosition)
-function syncBoard() {
+let previewing = false, namedPreview = null; // previews never change game/scratch state
+function syncBoard(refreshOpenings = true) {
+  namedPreview = null;
   if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
   // A scratch board stays until the game moves on or changes under it (a move, navigation, a load).
   if (SCRATCH && (SCRATCH.gen !== S.gen || SCRATCH.cursor !== S.cursor || SCRATCH.nodes !== S.nodes.length)) closeScratch(false);
-  if (SCRATCH) return syncScratch();
+  if (SCRATCH) return syncScratch(refreshOpenings);
   const fen = nodeFen(); const n = S.nodes[S.cursor]; const c = new Chess(fen);
   const turn = turnOf(fen) === 'w' ? 'white' : 'black';
   const mov = canMove();
@@ -958,9 +989,10 @@ function syncBoard() {
   });
   // The eval bar turns with the board: White's part grows from White's side.
   $('#evalbar').classList.toggle('flipped', S.orientation === 'black');
-  drawShapes(); renderOpeningExplorer();
+  drawShapes(); if (refreshOpenings) renderOpeningExplorer();
 }
 function drawShapes() {
+  if (previewing) return;
   if (SCRATCH) return cg.setAutoShapes(scratchShapes());
   const shapes = [];
   const i = S.cursor, n = S.nodes[i];
@@ -1567,6 +1599,8 @@ function onLibChange() {
 
 // ---------------------------------------------------------------- Opening explorer (TODO 5.2)
 function renderOpeningExplorer() {
+  if (namedPreview) { endPreview(); return; }
+  renderNamedOpenings();
   renderOpeningGuidePanel();
   renderRepertoires();
   const body = $('#explorerBody'), allowed = showEngine();
@@ -1601,6 +1635,56 @@ function renderOpeningExplorer() {
       el('details', {}, el('summary', {}, `Games after ${m.san}`), sample)));
   }
 }
+/** Catalogue moves keep their own meaning: scratch exploration in analysis, an actual move in play. */
+function renderNamedOpenings() {
+  const body = $('#namedOpeningBody'), allowed = showEngine();
+  $('#openingVariations').hidden = !allowed;
+  if (!allowed) { body.replaceChildren(); return; }
+  if (paneHidden('openings')) return;
+  body.replaceChildren();
+  if (!NAMED_OPENINGS) {
+    body.append(el('p', { class: 'hint' }, namedError ? 'Opening continuations could not be loaded.' : 'Loading opening continuations…'));
+    if (namedError) body.append(el('button', { class: 'btn small', onclick: () => { loadNamedOpenings(); renderNamedOpenings(); } }, 'Retry opening catalogue'));
+    return;
+  }
+  const fen = actionState().fen, gen = S.gen, scratch = SCRATCH, mode = S.mode;
+  const live = S.mode === 'play' && S.playing && !SCRATCH;
+  const valid = () => showEngine() && S.gen === gen && S.mode === mode && SCRATCH === scratch
+    && actionState().fen === fen && live === (S.mode === 'play' && S.playing && !SCRATCH);
+  const data = namedContinuations(Chess, NAMED_OPENINGS, fen), study = openingStudy();
+  const current = ECO[K.epd(fen)] || (data.current[0] && [data.current[0].eco, data.current[0].name]);
+  if (current || study.opening) {
+    const name = current || [study.opening.eco, study.opening.name];
+    body.append(el('p', { id: 'namedOpeningCurrent' }, el('span', {}, current ? 'Current opening: ' : 'Earlier in this line: '), el('span', { translate: 'no' }, `${name[0]} ${name[1]}`)));
+  } else body.append(el('p', { id: 'namedOpeningCurrent', class: 'hint' }, K.epd(fen) === K.epd(START) ? 'Starting position' : 'No exact opening name here.'));
+  body.append(el('p', { class: 'hint' }, 'Hover or focus to preview. In analysis, try a scratch line; during play, click to make your move.'),
+    el('p', { class: 'hint' }, 'Opening names come from the catalogue; game frequencies are shown in the explorer.'));
+  if (live && !canMove()) body.append(el('p', { class: 'hint' }, 'To play a continuation, return to the current position and wait for your turn.'));
+  if (!data.moves.length) { body.append(el('p', { class: 'empty-note' }, 'No named continuations here. Try another position.')); return; }
+  const list = el('div', { class: 'named-opening-list' }); body.append(list);
+  for (const move of data.moves) {
+    const token = {}, label = `${fen.split(' ')[5]}${turnOf(fen) === 'w' ? '.' : '…'} ${move.san}`;
+    const show = () => {
+      if (!valid() || namedPreview === token) return;
+      previewPosition({ fen: move.fen, lastMove: [move.uci.slice(0, 2), move.uci.slice(2, 4)] }, `Preview: ${label}`);
+      namedPreview = token;
+    };
+    // Restore the board without replacing the focused row: Tab must reach the next move.
+    const hide = () => { if (namedPreview === token) { namedPreview = null; endPreview(false); } };
+    const play = () => {
+      if (!valid()) return;
+      hide();
+      if (live) {
+        if (canMove()) playMove({ from: move.uci.slice(0, 2), to: move.uci.slice(2, 4), promotion: move.uci[4] });
+      } else exploreMove(move.uci, fen, 'Named opening variation');
+    };
+    const names = el('div', { class: 'named-opening-names' });
+    for (const n of move.names) names.append(el('p', {}, el('span', { translate: 'no' }, `${n.eco} ${n.name}`), n.plies ? el('span', { class: 'hint' }, n.plies === 1 ? ' · 1 more ply to this name' : ` · ${n.plies} more plies to this name`) : null));
+    // Actual pointer movement previews; scroll-induced mouseenter must not override keyboard focus.
+    list.append(el('div', { class: 'named-opening-row', 'data-uci': move.uci, onmousemove: show, onmouseleave: hide },
+      el('button', { class: 'btn small named-opening-move', translate: 'no', title: live ? 'Play this move in your game' : 'Try this move on the scratch board', disabled: live && !canMove(), onfocus: show, onblur: hide, onclick: play }, label), names));
+  }
+}
 /** Use only the displayed game/scratch route; a setup cannot inherit another position's opening. */
 function openingStudy(i = S.cursor, scratch = scratchFacts(), lang = LANG) {
   return openingGuides(Chess, ECO, openingGuidePath(S.nodes.slice(0, i + 1).map(n => n.fen), scratch), lang);
@@ -1633,7 +1717,7 @@ function renderOpeningGuidePanel() {
     askCoach('Explain the ideas and typical plans of this opening for the position on the board. Use the study notes as background and check concrete moves with Stockfish.');
   } }, 'Discuss these ideas'));
 }
-function exploreMove(uci, fen) {
+function exploreMove(uci, fen, title = 'Opening explorer') {
   if (!showEngine() || fen !== (SCRATCH ? scratchFen() : nodeFen())) return;
   // Recheck after the click. A continuation is a scratch variation, never a live game move.
   const step = playLine(Chess, fen, [uci]); if (!step) return;
@@ -1643,7 +1727,7 @@ function exploreMove(uci, fen) {
     start: SCRATCH.start, sans: [...SCRATCH.sans.slice(0, SCRATCH.i), ...step.sans],
     ucis: [...SCRATCH.ucis.slice(0, SCRATCH.i), ...step.ucis], fens: [...SCRATCH.fens.slice(0, SCRATCH.i + 1), step.fens[1]],
   } : step;
-  openScratch(line, { free: true, title: 'Opening explorer' });
+  openScratch(line, { free: true, title });
 }
 async function openExplorerGame(ref, fen) {
   if (!showEngine() || fen !== actionState().fen) return;
@@ -2305,10 +2389,19 @@ const QUICK = [
 function renderChips() {
   const box = $('#coachChips'); box.replaceChildren();
   for (const [l, q] of QUICK) box.append(el('button', { class: 'chip', disabled: !COACH.sample, onclick: () => askCoach(q, { task: 'quick' }) }, l));
+  box.append(el('button', { class: 'chip', id: 'aboutOpening', onclick: () => {
+    if (!CHAT.general && engineView(S) === 'all' && NAMED_OPENINGS) askCoach('Explain this opening and its named continuations for the position on the board. Use the supplied study notes and check concrete ideas with Stockfish.', { task: 'quick' });
+  } }, 'About this opening'));
+  renderOpeningQuestion();
   // Challenges are checked by the engine, so they work without a language model too.
   box.append(el('button', { class: 'chip', id: 'btnChallenge', title: 'The coach asks, you answer; the engine checks', onclick: () => startChallenge(S.cursor) }, 'Challenge me'));
 }
+function renderOpeningQuestion() {
+  const button = $('#aboutOpening');
+  if (button) button.disabled = !COACH.sample || CHAT.general || engineView(S) !== 'all' || !NAMED_OPENINGS;
+}
 function renderCoachCtx() {
+  renderOpeningQuestion();
   $('#boardMode').textContent = S.mode === 'play' ? (S.playing ? 'Current game' : 'Finished game') : 'Review & analysis';
   $('#boardGame').textContent = positionLabel();
   $('#boardReturn').hidden = !CHAT.returnGame;
@@ -2338,6 +2431,8 @@ function contextFor(i, { view = 'all', scratch = null } = {}) {
   if (view === 'all') {
     const guides = openingGuideContext(study);
     if (guides) lines.push(guides);
+    const names = namedOpeningContext(namedContinuations(Chess, NAMED_OPENINGS, fen));
+    if (names) lines.push(names);
   }
   lines.push(`Player: ${LEVELS[S.level]}${S.mode === 'play' ? `, playing ${S.userColor === 'w' ? 'White' : 'Black'} against Stockfish set to about ${S.elo} Elo, ${styleOf(S.style).label.toLowerCase()} style` : ', analysing a game'}.`);
   if (S.meta?.white) lines.push(`Game: ${quote(S.meta.white, 80)} vs ${quote(S.meta.black, 80)}${S.meta.result ? ', result ' + quote(S.meta.result, 10) : ''}.`);
@@ -3041,6 +3136,7 @@ let SCRATCH = null; // {start, sans, ucis, fens, i, free, title, gen, cursor, no
 function whatIfAllowed() { return showEngine(); }
 function openScratch(line, { i = line.sans.length, free = whatIfAllowed(), title = 'Line from the coach' } = {}) {
   if (!line) return;
+  namedPreview = null;
   if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
   SCRATCH = { ...line, i: Math.max(0, Math.min(line.sans.length, i)), free, title, gen: S.gen, cursor: S.cursor, nodes: S.nodes.length };
   sanShape = null;
@@ -3059,12 +3155,12 @@ function stepScratch(d) {
   if (k < 0 || k > SCRATCH.sans.length) return;
   SCRATCH.i = k; syncScratch(); renderScratch(); analyseScratch();
 }
-function syncScratch() {
+function syncScratch(refreshOpenings = true) {
   const fen = scratchFen(), c = new Chess(fen), turn = turnOf(fen) === 'w' ? 'white' : 'black';
   const can = SCRATCH.free && !c.isGameOver(), u = SCRATCH.ucis[SCRATCH.i - 1];
   cg.set({ fen, orientation: S.orientation, turnColor: turn, check: c.inCheck() ? turn : false, lastMove: u ? [u.slice(0, 2), u.slice(2, 4)] : undefined,
     movable: { color: can ? turn : undefined, dests: can ? dests(fen) : new Map() } });
-  drawShapes(); renderOpeningExplorer();
+  drawShapes(); if (refreshOpenings) renderOpeningExplorer();
 }
 function scratchShapes() {
   const fen = scratchFen(), a = anaOf(fen), shapes = [];
@@ -3154,13 +3250,14 @@ function showMarks(fen, shown) {
 // A position shown on the board for a moment (a game reference under the pointer); the game itself
 // is untouched, and anything that redraws the board (syncBoard) ends the preview.
 function previewPosition(p, caption) {
+  namedPreview = null;
   previewing = true;
   cg.set({ fen: p.fen, lastMove: p.lastMove || undefined, check: false, movable: { color: undefined, dests: new Map() } });
   cg.setAutoShapes([]);
   $('.board-outer').classList.add('previewing');
   const cap = $('#boardPreview'); cap.textContent = caption; cap.hidden = false;
 }
-function endPreview() { if (previewing) syncBoard(); }
+function endPreview(refreshOpenings = true) { if (previewing) syncBoard(refreshOpenings !== false); }
 /**
  * Attach mouse/keyboard navigation to a move in a validated line (TODO 4.3).
  * Hover/focus previews the position BEFORE the move; click/Enter/Space opens a scratch

@@ -156,13 +156,13 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 5.3 Repertoire builder: named White/Black repertoires with editable standard-start lines and notes, capture from the game/scratch board up to the displayed move, position-based chosen moves, confirmed removal and PGN copy. Validated browser-local storage is separate from games; live-help restrictions apply
 - [x] 5.4 Repertoire drill with spaced repetition: browser-local due/new position reviews for White and Black, accepting all saved choices at transpositions, with automatic opponent replies, board/keyboard input, hints/reveal, recall statistics and deterministic review intervals. A separate drill board preserves the game; live-help restrictions apply *(added)*
 - [x] 5.5 Opening explanations: original English/German guides for twelve opening families and seven pawn patterns, covering ideas, typical plans and possible structures. EPD/visible-route matching follows transpositions and scratch branches; current pawn patterns are separate from opening background. Guides display without a provider and enter permitted coach context as quoted study notes; concrete moves still require engine evidence. Live-help restrictions apply
-- [ ] 5.6 Opening variations at the board: which opening this is, and the named continuations from here *(added)*
-  - [ ] 5.6.1 Panel with the current line's name and ECO code, and each next move that leads to a named variation, with that variation's name. Built from the Lichess lines already in `openings.json`; how often each move is played comes with the explorer (5.2)
-  - [ ] 5.6.2 Hovering a move shows it on the board; clicking plays it in analysis, or as the next move in a game
-  - [ ] 5.6.3 Matched by position, not move order, so transpositions find the right name
-  - [ ] 5.6.4 During a game the panel follows the live-help setting (off: hidden until the game ends), so it doesn't hint at moves
-  - [ ] 5.6.5 Chat: the coach gets the opening and its continuations in the context, and a quick question "About this opening". Questions like "what's the idea of 6. Bg5?" are answered from the engine's lines, and from the opening explanations once 5.5 exists
-  - [ ] 5.6.6 Tests: continuations for known positions, transpositions, hidden during play, the context sent to the coach
+- [x] 5.6 Opening variations at the board: current opening and legal moves towards named destinations from the CC0 catalogue
+  - [x] 5.6.1 Current name/ECO and each next move's three nearest named destinations, compiled from the same lines as `openings.json`. Deeper names show the remaining plies; frequencies stay in the reference-game explorer (5.2)
+  - [x] 5.6.2 Hover/focus previews the position after the move. Click/Enter extends a scratch line in analysis; at the current live position it plays a normal player move, with turn/clock/engine-reply guards
+  - [x] 5.6.3 EPD matching joins transpositions and preserves side/castling/en-passant rights. SAN and full move numbers come from the query FEN
+  - [x] 5.6.4 Restricted live help (off, flags, eval) clears the panel, including while closed. Full help allows browsing; historical/opponent-turn moves cannot be played. Held actions recheck game, position and permission
+  - [x] 5.6.5 Permitted coach context includes quoted catalogue metadata alongside 5.5 study notes. "About this opening" asks about the actual displayed position; General chess/restricted help omit names. Concrete advice still requires Stockfish evidence
+  - [x] 5.6.6 Unit/browser coverage: known/deeper destinations, transpositions, rights/counters, malformed data, preview/keyboard cleanup, scratch/live actions, stale actions/loading, help policy, coach context and German phone layout
 
 ## 6. Tactics and strategy curriculum
 
