@@ -60,6 +60,25 @@ TODO items: 4.8, 4.9, 4.10 (milestone 4, part 2b).
 
 ---
 
+## 2026-10-22 — Consistent primer filenames
+
+TODO items: none directly; documentation upkeep.
+
+### Implementation notes
+
+- The primer source, HTML and PDF share the `Primer_v01` basename. The build script reads and writes in `docs/primer/`, with the same prefix for intermediate Markdown files.
+- Updated the primer README and the links in ARCH.md and ROAD.md for the PDF's location in `docs/primer/`.
+
+### Deviations
+
+- No planned feature changed.
+
+### Insights
+
+- One basename in the build script keeps source and output names aligned.
+
+---
+
 ## 2026-10-22 — Engine tools for the coach: the model asks, Stockfish answers
 
 TODO items: 4.11.1, 4.11.3, 4.11.4, 4.11.5, 4.11.6; 4.11.2 in part (milestone 4, part 2a).

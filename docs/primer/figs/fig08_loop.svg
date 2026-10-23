@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" width="720" height="330" font-family="Helvetica, 'Helvetica Neue', Arial, sans-serif" role="img" aria-labelledby="t d">
+<title id="t">The loop</title><desc id="d">A cycle: the board position goes to the engine, the engine's facts pass a valve set by the help setting into the model, the model's answer passes the checker, the player reads it and decides the move, which changes the board.</desc>
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#1E2A30" stroke-width="1.2"/></marker><marker id="arrm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#5E6E76" stroke-width="1.2"/></marker><marker id="arrr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#F3533A" stroke-width="1.4"/></marker><marker id="arrb" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0.5 L7,4 L0,7.5" fill="none" stroke="#004C8C" stroke-width="1.4"/></marker></defs>
+<rect width="720" height="330" fill="#FFFFFF"/>
+<text x="24.0" y="30.0" font-size="16" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">The loop</text>
+<text x="24.0" y="46.0" font-size="8.5" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">The engine produces facts, the model turns them into words, the checker verifies the words, the player decides.</text>
+<rect x="40.0" y="130.0" width="130.0" height="64.0" rx="6" fill="#FFFFFF" stroke="#1E2A30" stroke-width="1.2"/>
+<text x="105.0" y="147.0" font-size="9.5" fill="#1E2A30" font-weight="bold" text-anchor="middle" font-style="">Board</text>
+<text x="105.0" y="161.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">position (FEN)</text>
+<text x="105.0" y="171.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">the exact state</text>
+<rect x="220.0" y="70.0" width="150.0" height="64.0" rx="6" fill="#FFFFFF" stroke="#F3533A" stroke-width="1.2"/>
+<text x="295.0" y="87.0" font-size="9.5" fill="#F3533A" font-weight="bold" text-anchor="middle" font-style="">Engine</text>
+<text x="295.0" y="101.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">Stockfish: lines, scores,</text>
+<text x="295.0" y="111.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">motifs, themes</text>
+<text x="295.0" y="121.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">deterministic</text>
+<rect x="420.0" y="70.0" width="150.0" height="64.0" rx="6" fill="#FFFFFF" stroke="#004C8C" stroke-width="1.2"/>
+<text x="495.0" y="87.0" font-size="9.5" fill="#004C8C" font-weight="bold" text-anchor="middle" font-style="">Model</text>
+<text x="495.0" y="101.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">Claude: plans, reasons,</text>
+<text x="495.0" y="111.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">lessons</text>
+<text x="495.0" y="121.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">generation</text>
+<rect x="420.0" y="200.0" width="150.0" height="64.0" rx="6" fill="#FFFFFF" stroke="#F3533A" stroke-width="1.2"/>
+<text x="495.0" y="217.0" font-size="9.5" fill="#F3533A" font-weight="bold" text-anchor="middle" font-style="">Checker</text>
+<text x="495.0" y="231.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">chess.js + engine lines</text>
+<text x="495.0" y="241.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">backed / unlisted / wrong</text>
+<rect x="220.0" y="200.0" width="150.0" height="64.0" rx="6" fill="#FFFFFF" stroke="#1E2A30" stroke-width="1.2"/>
+<text x="295.0" y="217.0" font-size="9.5" fill="#1E2A30" font-weight="bold" text-anchor="middle" font-style="">Player</text>
+<text x="295.0" y="231.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">reads, asks, decides</text>
+<text x="295.0" y="241.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">the move</text>
+<line x1="170.0" y1="150.0" x2="220.0" y2="112.0" stroke="#1E2A30" stroke-width="1.3" marker-end="url(#arr)"/>
+<text x="176.0" y="122.0" font-size="6.6" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">position</text>
+<line x1="370.0" y1="102.0" x2="420.0" y2="102.0" stroke="#F3533A" stroke-width="1.6" marker-end="url(#arrr)"/>
+<polygon points="388,94 402,102 388,110" fill="#FFFFFF" stroke="#F3533A" stroke-width="1"/>
+<polygon points="402,94 388,102 402,110" fill="#FFFFFF" stroke="#F3533A" stroke-width="1" transform="translate(0,0)"/>
+<text x="395.0" y="90.0" font-size="6.6" fill="#F3533A" font-weight="normal" text-anchor="middle" font-style="">help setting</text>
+<text x="395.0" y="124.0" font-size="6.2" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">Off · Flag mistakes · Full</text>
+<text x="395.0" y="133.0" font-size="6.6" fill="#F3533A" font-weight="bold" text-anchor="middle" font-style="">facts first</text>
+<line x1="495.0" y1="134.0" x2="495.0" y2="200.0" stroke="#004C8C" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="500.0" y="170.0" font-size="6.6" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">answer (text)</text>
+<line x1="420.0" y1="232.0" x2="370.0" y2="232.0" stroke="#F3533A" stroke-width="1.6" marker-end="url(#arrr)"/>
+<text x="395.0" y="226.0" font-size="6.6" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">marked</text>
+<text x="395.0" y="248.0" font-size="6.6" fill="#5E6E76" font-weight="normal" text-anchor="middle" font-style="">answer</text>
+<line x1="220.0" y1="232.0" x2="170.0" y2="180.0" stroke="#1E2A30" stroke-width="1.3" marker-end="url(#arr)"/>
+<text x="176.0" y="214.0" font-size="6.6" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">move</text>
+<path d="M330,200 C360,160 400,150 440,134" fill="none" stroke="#5E6E76" stroke-width="0.9" marker-end="url(#arrm)" stroke-dasharray="2 2"/>
+<text x="352.0" y="166.0" font-size="6.4" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">question</text>
+<text x="600.0" y="86.0" font-size="8.5" fill="#1E2A30" font-weight="bold" text-anchor="start" font-style="">Three guarantees</text>
+<text x="600.0" y="100.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">Facts come from the engine,</text>
+<text x="600.0" y="109.5" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">never from the model's memory.</text>
+<text x="600.0" y="128.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">Every move the model names is</text>
+<text x="600.0" y="137.5" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">checked before the player sees it.</text>
+<text x="600.0" y="156.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">The player decides; the model</text>
+<text x="600.0" y="165.5" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">recommends.</text>
+<text x="600.0" y="196.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">Planned: the model asks the</text>
+<text x="600.0" y="206.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">engine through tools, within</text>
+<text x="600.0" y="216.0" font-size="6.8" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="">caps, read-only, traceable.</text>
+<text x="24.0" y="310.0" font-size="7" fill="#5E6E76" font-weight="normal" text-anchor="start" font-style="italic">Replace the engine by a scheduler, a rules engine or a billing system and the loop is unchanged.</text>
+</svg>
