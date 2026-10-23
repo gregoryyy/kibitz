@@ -1,6 +1,6 @@
 # Source-aware library records
 
-TODO 7.1 establishes the records needed for RAG. `site/src/library.js` compiles a saved PGN into a versioned source, game document, shared positions, game occurrences, annotations and an optional study/problem record. Existing exact-position/pawn retrieval consumes these records. Text search, embeddings, citation resolution and retrieval evaluation remain TODO 8.
+TODO 7.1 establishes the records needed for RAG. `site/src/library.js` compiles a saved PGN into a versioned source, game document, shared positions, game occurrences, annotations and an optional study/problem record. Existing exact-position/pawn retrieval consumes these records. The [offline retrieval benchmark](RETRIEVAL-EVAL.md) (8.8) measures that index; text search, embeddings and citation resolution remain TODO 8.
 
 ## Records and identities
 
@@ -61,7 +61,7 @@ The Library import form accepts optional source fields for its batch. Each user 
 
 Compiled snapshots are derived data, not a second persistent copy of the library. The cache keys on the exact PGN, provenance and kind, not timestamps. SHA-256 uses Web Crypto in the browser/Node. While replacements are compiled, the previous position index is cleared; a library generation guard prevents late work from restoring changed/deleted records. Source-edit actions recheck their target record before writing. Source fields reach coach retrieval context through bounded `quote()` data and are rendered as text; only validated source URLs become links.
 
-This slice adds no provider calls, dependency, external corpus, engine evaluation or storage service. SQLite/IndexedDB (7.6), deduplication (7.2), lexical/vector indexing (8.3), validated answer citations (8.6) and labelled retrieval benchmarks (8.8) remain separate work.
+This slice adds no provider calls, dependency, external corpus, engine evaluation or storage service. SQLite/IndexedDB (7.6), deduplication (7.2), lexical/vector indexing (8.3) and validated answer citations (8.6) remain separate work. Labelled retrieval benchmarks followed in [8.8](RETRIEVAL-EVAL.md).
 
 ## Checks
 

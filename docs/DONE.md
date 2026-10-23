@@ -7,6 +7,33 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Labelled position-retrieval benchmark
+
+TODO items: 8.8.
+
+### Implementation notes
+
+- Added an offline benchmark over the production `buildPositionIndex()`/`similarPositions()` path. It compiles thirteen packaged classics/studies and eight original fixtures through `library.js`: 21 source-aware documents, 481 indexed occurrences and 45 annotations, with no user library, provider, Stockfish search, network or new dependency.
+- Twenty-four manually labelled English/German queries cover exact positions, transpositions, repeated occurrences and specific notes, structural analogies, current-game exclusions and six no-answer requests. Castling/en-passant/side identity, changed counters and a same-pawn position in check are explicit cases. Gold references resolve to revision-bound source/document/occurrence IDs; missing/excluded/duplicate/wrong-position labels fail validation.
+- Pure scoring reports precision, recall, MRR and graded nDCG at 1/3/6. Short lists divide precision by k; duplicates consume slots without extra credit. Document-level analogies and occurrence-level requests use distinct relevance units. No-answer cases use a separate false-positive denominator instead of improving relevance means.
+- Root `utils/retrieval-eval.mjs`, `just retrieval-eval` and `npm run eval:retrieval` print deterministic Markdown/JSON and write only with explicit `--out`. Checked-in reports include corpus/case hashes, per-query FENs, expected and retrieved references, and class/language summaries. Future adapters receive no gold judgements, evaluation groups or case IDs; unknown/mismatched returned occurrences fail scoring.
+- Initial answerable-query precision@1 is 0.833, recall@3 0.861 and MRR@3 0.852. All twelve exact/transposition cases find a relevant result first. Requested repetition-game notes rank behind other games sharing an early board. Four of six no-answer cases receive pawn-only analogies. Structural ranking finds relevant IQP games but also includes the checked distractor and underranks the closest rook placement. These limitations are recorded without changing production retrieval.
+- Eight new unit scenarios independently check metric arithmetic, short/duplicate/no-answer handling, legal gold/source locators, stale/invalid labels, adapter isolation/reference validation, report reproducibility and the root CLI from another working directory. The [method](RETRIEVAL-EVAL.md) documents interpretation, extension and remaining evaluations.
+- Validation: `npm run check`, a fresh build and the full mock-provider unit/gateway suite pass (311 passed, one opt-in live test skipped). The gateway suite ran with loopback sockets available. Direct/just CLI runs reproduce the checked-in JSON byte-for-byte; the npm command and external-working-directory/output-path tests pass. All 49 local documentation links checked exist. No UI change, so Playwright was not rerun.
+
+### Deviations
+
+- This is a small authored development benchmark, not a held-out claim about retrieval quality. Text/embedding retrieval, passage-level relevance, graph synthesis, ownership/deletion tests and latency/cost measurements remain later slices. Engine correctness, citation entailment and teaching quality are separate measurements. The page is unchanged, so no new browser scenario is needed.
+- `llmkit` supplied inspiration for independent scoring/test oracles only. No code, fixtures, runtime dependency or integration was imported, and that repository was not changed.
+
+### Insights
+
+- Same EPD does not imply the same requested source or occurrence. Correct position identity can still return the wrong note when a query names a game or a later arrival.
+- Pawn equality also joins pawnless positions and tactically incompatible boards. Exact-only query intent and dynamic compatibility need to be explicit in future ranking/filtering.
+- Corpus review found an existing classic with the IQP signature; it belongs in the positive labels. Gold judgements must review actual candidates when a corpus expands, rather than assuming only new fixtures are relevant.
+
+---
+
 ## 2026-10-23 — Source-aware library records for RAG
 
 TODO items: 7.1.

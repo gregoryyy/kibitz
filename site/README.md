@@ -15,6 +15,7 @@ npm install
 npm run serve            # builds dist/ and serves it with the AI gateway at http://127.0.0.1:8765/
 npm test                 # AI gateway tests, then feature detection + retrieval checks (Node)
 npm run test:e2e         # Playwright end-to-end tests in the installed Chrome (own server, mock AI provider)
+npm run eval:retrieval   # offline labelled position-retrieval benchmark; no provider or build needed
 ```
 
 In **Openings**, choose a saved White or Black repertoire and press **Review due moves** to practise new or due positions. Play on the drill board or type SAN/coordinates; the saved opponent reply follows automatically. Any saved choice at that position is accepted, including transpositions. A starting-square hint counts as help, and a legal move outside your repertoire counts as a recall miss rather than a chess judgement. Review dates and recall/help statistics stay in this browser. The drill leaves your game intact and follows its live-help setting; switch to Analyse to train without a running game.
