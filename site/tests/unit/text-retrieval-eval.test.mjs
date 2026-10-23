@@ -11,7 +11,15 @@ const run = runTextBenchmark();
 /** Exact passage IDs and locators distinguish notes even when the game boards repeat. */
 test('the recorded text baseline is reproducible, source-scoped and retains real lexical limitations', async () => {
   const report = await run, recorded = JSON.parse(await readFile(new URL('../../../docs/eval/retrieval/text-baseline.json', import.meta.url), 'utf8'));
-  assert.deepEqual(report, recorded); assert.deepEqual(await runTextBenchmark(), report);
+  // Math.log can differ in its last bits across V8/platform builds. Permit roundoff only
+  // for raw BM25 scores; keep every rank, source locator and evaluation metric exact.
+  const comparable = structuredClone(report);
+  for (const [i, result] of comparable.results.entries()) for (const [j, hit] of result.ranked.entries()) {
+    const expected = recorded.results[i]?.ranked[j]?.score;
+    assert.ok(Math.abs(hit.score - expected) <= 8 * Number.EPSILON * Math.max(1, Math.abs(expected)), `BM25 score: ${result.id}, rank ${j + 1}`);
+    hit.score = expected;
+  }
+  assert.deepEqual(comparable, recorded); assert.deepEqual(await runTextBenchmark(), report);
   assert.deepEqual(report.counts, { queries: 28, passages: 159, annotations: 45, guides: 114 });
   for (const q of report.results) for (const p of q.ranked) {
     assert.ok(p.sourceId && p.documentId); assert.equal(p.locator.unit, 'utf-16'); assert.ok(p.locator.end > p.locator.start);
