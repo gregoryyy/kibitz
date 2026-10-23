@@ -11,11 +11,15 @@
 //                           or {"error":{"code":"...","message":"..."}}
 //   POST /api/ai/structured {messages|prompt, format} -> {data, truncated, usage, mode, user} as JSON;
 //                           format names one of schema.mjs FORMATS, e.g. "annotations"
+//   GET  /api/ai/embeddings -> safe destination/configuration and opaque cookie scope
+//   POST /api/ai/embeddings {texts, fingerprint, scope} -> {vectors, metadata, usage, user}
+//                           explicit bounded batches; no server text/vector storage
 import crypto from 'crypto';
 import net from 'net';
 import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, providerReason, publicStatus, rateLimiter, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageLedger, userLedger } from './usage.mjs';
+import { createEmbeddingApi } from './embeddings.mjs';
 
 const MAX_BODY = 1_000_000;
 const SECURITY_HEADERS = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
@@ -26,8 +30,10 @@ export function createApi({
   config, provider = config.available ? createProvider(config) : null, makeProvider = createProvider, log = console,
   ledger = usageLedger({ tokensPerDay: config.tokensPerDay, prices: parsePrices(config.prices) }),
   users = userLedger({ tokensPerDay: config.userTokensPerDay, costPerDay: config.userCostPerDay, prices: parsePrices(config.prices) }),
+  embeddingConfig = undefined, embedder = undefined,
 }) {
   const allow = rateLimiter(config.ratePerMinute);
+  const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
   const status = uid => ({ ...publicStatus(config), usage: ledger.today(), user: users.today(uid), paid: paid() });
   // Counts a finished request for the server and the user; returns its usage with the cost.
@@ -41,6 +47,8 @@ export function createApi({
     try {
       checkHost(req);
       const uid = userOf(req, res);
+      if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
+      if (pathname === '/api/ai/embeddings' && req.method === 'POST') { checkPost(req); return json(res, 200, await embeddings.embed(uid, await readJson(req), res)); }
       if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid));
       if (pathname === '/api/ai/config' && req.method === 'POST') return await setConfig(req, res, uid);
       if (pathname === '/api/ai/test' && req.method === 'POST') return await testConnection(req, res, uid);
@@ -69,6 +77,7 @@ export function createApi({
     if (body?.provider !== undefined) next = switchProvider(next, body.provider);
     if (next !== config) {
       config = next; provider = config.available ? makeProvider(config) : null;
+      embeddings.policyChanged();
       log.info?.(`AI coach: ${config.available ? `${config.provider} / ${config.model}` : `off (${config.reason})`}${config.localOnly ? ', local only' : ''}`);
     }
     return json(res, 200, status(uid));

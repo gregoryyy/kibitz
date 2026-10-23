@@ -527,12 +527,25 @@ a.ext { color: var(--accent); font-size: 14px; }
         <h3 id="studySearchTitle">Search study text</h3>
         <p class="hint" id="studySearchLocked" hidden>Study text is hidden while you play. Choose Full engine help or finish the game to search.</p>
         <div id="studySearchControls">
-          <p class="hint">Search comments and study notes by keyword. Results are source text, not checked advice.</p>
+          <p class="hint">Search comments and study notes. Results are source text, not checked advice.</p>
           <label for="studyQuery" class="sr-only">Study text keywords</label>
           <input type="search" id="studyQuery" maxlength="500" placeholder="Try isolated pawn, blockade or Qxf7" autocomplete="off">
           <div class="row" style="margin-top:8px">
+            <label for="studyMethod">Search method<select id="studyMethod"><option value="keyword">Keywords</option><option value="dense">By meaning</option></select></label>
             <label for="studySource">Search in<select id="studySource"><option value="all">All study text</option><option value="library">My annotations</option><option value="classic">Classic annotations</option><option value="guide">Study notes</option></select></label>
             <label for="studyLanguage">Text language<select id="studyLanguage"><option value="ui">Interface language</option><option value="all">Any language</option><option value="en">English</option><option value="de">Deutsch</option></select></label>
+          </div>
+          <div id="studyDenseControls" hidden>
+            <p class="hint" id="studyDenseProvider"></p>
+            <p class="hint">Building sends the selected text to the embedding service. Searching sends your query. Vectors stay in memory until cleared or reloaded.</p>
+            <div class="row">
+              <button class="btn small" id="studyDenseBuild">Build semantic index</button>
+              <button class="btn small" id="studyDenseSearch">Search by meaning</button>
+              <button class="btn small" id="studyDenseClear">Clear semantic index</button>
+              <button class="btn small" id="studyDenseRefresh">Refresh embedding service</button>
+              <button class="btn small" id="studyDenseCancel" hidden>Cancel</button>
+            </div>
+            <div id="studyDenseMetadata" class="hint"></div>
           </div>
         </div>
         <p class="hint" id="studySearchStatus" role="status" aria-live="polite"></p>
@@ -692,6 +705,7 @@ import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPosit
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './opening-guides.js';
 import { annotationPassages, guidePassages, buildTextIndex, searchText } from './text-search.js';
+import { DenseSession, DENSE_LIMITS, embeddingIdentity, selectPassages } from './dense-search.js';
 import { namedContinuations, namedOpeningContext } from './opening-variations.js';
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
@@ -1599,6 +1613,7 @@ let DRILL = null, drillGround = null, drillDeckKey = '', drillDeck = [];
 const libraryCache = new Map(); // collection + id -> exact input key and immutable snapshot promise
 let LIBRARY_RECORDS = new Map(), libraryIndexGen = 0;
 let TEXT_INDEX = null, TEXT_NOTES = [], TEXT_GUIDES = [], guideTextPromise = null, guideTextError = false;
+const DENSE = { session: new DenseSession(requestEmbeddings), context: '', gen: S.gen, descriptor: null, loading: false, request: 0, busy: '', done: 0, total: 0, hits: null, query: '', message: '' };
 /** Rebuild from the current account's records only; static authored guides may be shared locally. */
 function rebuildTextIndex() { TEXT_INDEX = buildTextIndex([...TEXT_NOTES, ...TEXT_GUIDES]); }
 /** Content and provenance, rather than update timestamps, invalidate source-aware records. */
@@ -2111,11 +2126,15 @@ function openGame(g, ply = null, valid = () => true) {
 /** Local passages are readable data, never advice applied to the current position or model prompts. */
 function renderStudySearch() {
   const body = $('#studySearchResults'), status = $('#studySearchStatus'), allowed = showEngine();
+  syncDenseContext();
   $('#studySearchLocked').hidden = allowed; $('#studySearchControls').hidden = !allowed;
+  const method = $('#studyMethod').value;
+  $('#studyDenseControls').hidden = method !== 'dense';
+  if (method === 'dense') renderDenseControls();
   body.replaceChildren(); status.textContent = '';
   if (!allowed || paneHidden('library')) return;
   const query = $('#studyQuery').value.trim();
-  if (!query) { status.textContent = 'Enter keywords to search annotations and study notes.'; return; }
+  if (!query && method === 'keyword') { status.textContent = 'Enter keywords to search annotations and study notes.'; return; }
   if (!TEXT_INDEX) { status.textContent = 'Indexing study text…'; return; }
   const source = $('#studySource').value, language = $('#studyLanguage').value === 'ui' ? LANG : $('#studyLanguage').value;
   const gen = S.gen, libraryGen = libraryIndexGen;
@@ -2130,9 +2149,10 @@ function renderStudySearch() {
     guideTextPromise.then(() => { if (gen === S.gen && libraryGen === libraryIndexGen && query === $('#studyQuery').value.trim()) renderStudySearch(); });
     return;
   }
-  const options = { language, kind: source === 'guide' ? 'guide' : source === 'all' ? 'all' : 'annotation', collection: ['library', 'classic'].includes(source) ? source : 'all' };
-  const hits = searchText(TEXT_INDEX, query, options);
-  status.textContent = hits.length ? `${hits.length} study text results` : 'No matching study text. Try another keyword.';
+  const options = studyTextOptions();
+  if (method === 'dense' && (DENSE.busy || !DENSE.hits || DENSE.query !== query)) { status.textContent = DENSE.busy === 'build' ? `Embedding ${DENSE.done} of ${DENSE.total} passages…` : DENSE.busy === 'query' ? 'Searching by meaning…' : DENSE.message || 'Build an index of the selected text, then search by meaning.'; return; }
+  const hits = method === 'dense' ? DENSE.hits : searchText(TEXT_INDEX, query, options);
+  status.textContent = hits.length ? `${hits.length} study text results` : method === 'dense' ? 'No related study text. Try another query.' : 'No matching study text. Try another keyword.';
   for (const { passage: p, excerpt } of hits) {
     const entry = p.kind === 'annotation' ? LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`) : null;
     const g = entry?.g, occurrence = entry?.snapshot?.occurrences.find(o => o.id === p.occurrenceId);
@@ -2145,7 +2165,7 @@ function renderStudySearch() {
         el('p', {}, el('span', {}, 'Annotation licence as supplied'), ': ', p.licence ? el('span', { translate: 'no' }, p.licence) : el('span', {}, 'Not supplied'))));
     if (p.kind === 'guide') card.append(el('p', { class: 'hint' }, { idea: 'Idea', plans: 'Typical plans', structure: 'Pawn structures' }[p.locator.section]));
     else {
-      const valid = () => showEngine() && gen === S.gen && libraryGen === libraryIndexGen && query === $('#studyQuery').value.trim() && source === $('#studySource').value && entry === LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`)
+      const valid = () => showEngine() && gen === S.gen && libraryGen === libraryIndexGen && query === $('#studyQuery').value.trim() && source === $('#studySource').value && language === studyTextOptions().language && method === $('#studyMethod').value && entry === LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`)
         && entry?.snapshot?.document.revision === p.revision && TEXT_INDEX?.documents.some(d => d.passage.id === p.id);
       if (g && occurrence) card.append(el('p', { translate: p.ply ? 'no' : null, class: 'hint' }, p.ply ? occurrence.label : 'Starting position'),
         el('button', { class: 'btn small', onclick: () => { if (valid()) openGame(g, p.ply, valid); } }, 'Open annotated position'));
@@ -2153,6 +2173,95 @@ function renderStudySearch() {
     body.append(card);
   }
 }
+
+/** The same explicit source/language filters scope lexical lookup, ingestion and dense ranking. */
+function studyTextOptions() {
+  const source = $('#studySource').value;
+  return { language: $('#studyLanguage').value === 'ui' ? LANG : $('#studyLanguage').value, kind: source === 'guide' ? 'guide' : source === 'all' ? 'all' : 'annotation', collection: ['library', 'classic'].includes(source) ? source : 'all' };
+}
+/** Erase private vectors on source/account/policy changes, even while the Library tab is closed. */
+function syncDenseContext() {
+  const context = JSON.stringify([Lib.where, Lib.uid, libraryIndexGen, studyTextOptions(), $('#studyMethod').value, showEngine(), !!GATEWAY?.localOnly]);
+  const changed = context !== DENSE.context, gameChanged = DENSE.gen !== S.gen;
+  if (changed || gameChanged) {
+    DENSE.session.cancel(changed); DENSE.context = context; DENSE.gen = S.gen; DENSE.request++; DENSE.loading = false;
+    DENSE.busy = ''; DENSE.hits = null; DENSE.query = ''; DENSE.message = '';
+  }
+  const query = $('#studyQuery').value.trim();
+  if (DENSE.query && DENSE.query !== query) {
+    DENSE.session.cancel(false); DENSE.request++; DENSE.busy = ''; DENSE.hits = null; DENSE.query = ''; DENSE.message = '';
+  }
+}
+/** No automatic ingestion: checking status reveals the destination before an explicit action. */
+async function loadEmbeddingStatus() {
+  const r = await fetch('api/ai/embeddings', { cache: 'no-store' });
+  if (!r.ok) throw new Error('Embedding service unavailable');
+  const descriptor = await r.json(); embeddingIdentity(descriptor); return descriptor;
+}
+async function prepareDenseService() {
+  syncDenseContext(); const request = ++DENSE.request, context = DENSE.context, gen = S.gen;
+  DENSE.loading = true; renderStudySearch();
+  try {
+    const d = await loadEmbeddingStatus();
+    if (request === DENSE.request && context === DENSE.context && gen === S.gen) {
+      if (!d.available || DENSE.descriptor && embeddingIdentity(d) !== embeddingIdentity(DENSE.descriptor)) { DENSE.session.cancel(); DENSE.hits = null; DENSE.query = ''; }
+      DENSE.descriptor = d;
+    }
+  }
+  catch { if (request === DENSE.request) { DENSE.descriptor = null; DENSE.message = 'Semantic search needs a configured embedding provider.'; } }
+  finally { if (request === DENSE.request) { DENSE.loading = false; renderStudySearch(); } }
+}
+function renderDenseControls() {
+  const d = DENSE.descriptor, available = d?.available && (!GATEWAY?.localOnly || d.local), busy = !!DENSE.busy || DENSE.loading;
+  $('#studyDenseProvider').replaceChildren(d ? el('span', { translate: 'no' }, `${d.provider} · ${d.model}`) : el('span', {}, DENSE.loading ? 'Checking embedding service…' : 'Semantic search needs a configured embedding provider.'),
+    ...d && !available ? [el('span', {}, ' · ', (GATEWAY?.localOnly || d.localOnly) && !d.local ? 'Local-only mode blocks this embedding provider.' : 'Embedding provider unavailable.')] : []);
+  $('#studyDenseBuild').disabled = !available || busy || !TEXT_INDEX || (['all', 'guide'].includes($('#studySource').value) && !TEXT_GUIDES.length) || !showEngine();
+  $('#studyDenseSearch').disabled = !available || busy || !DENSE.session.index || !$('#studyQuery').value.trim() || !showEngine();
+  $('#studyDenseClear').disabled = !DENSE.session.index && !DENSE.busy;
+  $('#studyDenseCancel').hidden = !DENSE.busy;
+  $('#studyDenseRefresh').disabled = busy;
+  const index = DENSE.session.index, meta = $('#studyDenseMetadata'); meta.replaceChildren();
+  if (index) meta.append(el('p', {}, `Semantic index: ${index.passages.length} passages.`), el('details', {}, el('summary', {}, 'Embedding index details'),
+    el('p', { translate: 'no' }, `${index.metadata.provider} · ${index.metadata.model} · ${index.metadata.providerModel || '?'}`),
+    el('p', {}, `${index.metadata.dimensions} dimensions`), el('p', {}, index.metadata.revision ? el('span', { translate: 'no' }, index.metadata.revision) : 'Model revision not supplied.')));
+}
+/** Transport only the selected literal texts. Keys/endpoint selection remain on the gateway. */
+async function requestEmbeddings(texts, descriptor, signal) {
+  const r = await fetch('api/ai/embeddings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texts, fingerprint: descriptor.fingerprint, scope: descriptor.scope }), signal });
+  const j = await r.json();
+  if (!r.ok) throw Object.assign(new Error('Embedding request failed'), { code: j?.error?.code });
+  return j;
+}
+/** Build/search are separate explicit actions. Recheck destination, owner, sources and game after awaits. */
+async function runDenseAction(action) {
+  syncDenseContext();
+  if (!showEngine() || $('#studyMethod').value !== 'dense' || DENSE.busy || DENSE.loading || !TEXT_INDEX || (['all', 'guide'].includes($('#studySource').value) && !TEXT_GUIDES.length)) return;
+  const request = ++DENSE.request, context = DENSE.context, gen = S.gen, query = $('#studyQuery').value.trim();
+  const current = () => request === DENSE.request && context === DENSE.context && gen === S.gen && showEngine();
+  DENSE.busy = action; DENSE.hits = null; DENSE.message = ''; DENSE.query = action === 'query' ? query : ''; DENSE.done = 0; DENSE.total = 0; renderStudySearch();
+  try {
+    const descriptor = await loadEmbeddingStatus();
+    if (!current()) return;
+    const previous = DENSE.descriptor; DENSE.descriptor = descriptor;
+    if (!descriptor.available || GATEWAY?.localOnly && !descriptor.local) throw new Error('Unavailable');
+    if (!previous || embeddingIdentity(previous) !== embeddingIdentity(descriptor)) {
+      DENSE.session.cancel(); DENSE.message = 'Embedding service changed. Review the provider and build again.'; return;
+    }
+    if (action === 'build') {
+      const passages = selectPassages([...TEXT_NOTES, ...TEXT_GUIDES], studyTextOptions());
+      if (!passages.length || passages.length > DENSE_LIMITS.passages) { DENSE.message = 'Select 1–512 passages. Use the source and language filters.'; return; }
+      DENSE.total = passages.length; renderStudySearch();
+      await DENSE.session.build(passages, descriptor, (done, total) => { if (current()) { DENSE.done = done; DENSE.total = total; renderStudySearch(); } });
+      if (current()) DENSE.message = 'Semantic index ready. Enter a query and search by meaning.';
+    } else {
+      const hits = await DENSE.session.search(query, descriptor, studyTextOptions());
+      if (current()) DENSE.hits = hits;
+    }
+  } catch (e) {
+    if (current() && e?.name !== 'AbortError') { if (e.code === 'stale_embeddings') DENSE.session.cancel(); DENSE.message = 'Embedding request failed. Check the provider or rebuild the index.'; }
+  } finally { if (current()) { DENSE.busy = ''; renderStudySearch(); refreshGateway(); } }
+}
+function clearDenseIndex() { DENSE.request++; DENSE.session.cancel(); DENSE.busy = ''; DENSE.hits = null; DENSE.query = ''; DENSE.message = 'Semantic index cleared.'; renderStudySearch(); }
 
 const SOURCE_FIELDS = [['title', 'Source title', 240], ['author', 'Source author or curator', 160], ['url', 'Source URL', 2048], ['score', 'Score licence as supplied', 160], ['annotations', 'Annotation licence as supplied', 160]];
 const SOURCE_ORIGINS = { imported: 'Imported PGN', played: 'Played in Kibitz', board: 'Saved from the board', builtin: 'Built-in collection', legacy: 'Legacy record: provenance not supplied' };
@@ -2502,11 +2611,12 @@ async function gatewayPost(path, body) {
 }
 async function refreshGateway() {
   if (!GATEWAY) return;
-  try { const r = await fetch('api/ai/status'); if (r.ok) { GATEWAY = await r.json(); renderCoachSettings(); } } catch { /* keep the last status */ }
+  try { const r = await fetch('api/ai/status'); if (r.ok) { GATEWAY = await r.json(); renderCoachSettings(); renderStudySearch(); } } catch { /* keep the last status */ }
 }
 async function changeGateway(body) {
   try { GATEWAY = await gatewayPost('config', body); } catch (e) { toast(e.message || coachError(e)); }
   renderCoachSettings();
+  renderStudySearch();
   setCoach(GATEWAY?.available ? coachSample : null);
   if (!GATEWAY?.available) coachOffText(GATEWAY);
 }
@@ -3810,6 +3920,12 @@ $('#libSearch').addEventListener('input', renderLibrary);
 $('#studyQuery').addEventListener('input', renderStudySearch);
 $('#studySource').addEventListener('change', renderStudySearch);
 $('#studyLanguage').addEventListener('change', renderStudySearch);
+$('#studyMethod').addEventListener('change', () => { renderStudySearch(); if ($('#studyMethod').value === 'dense') prepareDenseService(); });
+$('#studyDenseBuild').addEventListener('click', () => runDenseAction('build'));
+$('#studyDenseSearch').addEventListener('click', () => runDenseAction('query'));
+$('#studyDenseClear').addEventListener('click', clearDenseIndex);
+$('#studyDenseRefresh').addEventListener('click', prepareDenseService);
+$('#studyDenseCancel').addEventListener('click', clearDenseIndex);
 $('#btnImport').addEventListener('click', importPGN);
 $('#importSourceFields').append(sourceFields(makeProvenance('imported')));
 $('#btnSaveCurrent').addEventListener('click', () => saveCurrentGame());

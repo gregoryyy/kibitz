@@ -1,8 +1,8 @@
-# Local study-text search
+# Study-text search
 
 TODO **8.3.1** provides a lexical baseline over actual source passages. In **Library → Search study text**, enter keywords, choose personal/classic annotations or authored study notes, and select a text language. Results show a literal excerpt, full passage and source/licence assertion. **Open annotated position** opens the precise source occurrence, including a study's initial note or a later arrival at a repeated board. Opening another game during play keeps the existing confirmation and return path.
 
-Search works without an AI provider. All text and queries stay in the browser. Restricted live-help settings hide and clear results, even when the Library tab is closed; Full engine help or analysis permits searching. Static source text is not checked advice for the position on the board. This slice does not add retrieved passages to model prompts or resolve model-generated citations; those remain 8.6.
+Default **Keywords** search works without an AI provider; its text and queries stay in the browser. TODO **8.3.2** adds optional **By meaning** search through explicit embedding requests, described below. Restricted live-help settings hide and clear results and vectors, even when the Library tab is closed; Full engine help or analysis permits searching. Static source text is not checked advice for the position on the board. Neither method adds retrieved passages to model prompts or resolves model-generated citations; those remain 8.6.
 
 ## Passages and source identity
 
@@ -25,7 +25,35 @@ Language, source kind and collection filters apply before term/document statisti
 
 Rebuilds immediately clear old annotation passages and results. The existing library generation guard rejects late source compilation after edits/deletions. Compiled authored guides are loaded lazily on the first applicable search and reused locally; their completion combines with the current library's notes. Source drafts remain outside the search renderer. Navigation rechecks help permission, game/library generation, query/source selection, source revision and current record before acting, including after a leave-game confirmation. chess.js replays the source game before loading it.
 
-The index is derived memory, not a second persistence format. Text rendering uses DOM text nodes, including imported titles/comments; no source text becomes HTML. Search makes no model calls, embedding requests or prompt changes.
+The lexical index is derived memory, not a second persistence format. Text rendering uses DOM text nodes, including imported titles/comments; no source text becomes HTML. Keyword search makes no model calls, embedding requests or prompt changes.
+
+## Explicit semantic search
+
+In **Library → Search study text**, choose a source/language and **By meaning**. The page fetches the embedding service's safe status and displays its provider/model. **Build semantic index** sends only that selection's title/body passages, in batches of sixteen, with a maximum of 512 passages. After building, enter a query and press **Search by meaning**. Selecting the method, changing filters and typing never upload passages or queries. Cancel/Clear aborts pending work and erases vectors. Keyword search remains the default.
+
+`DenseSession` in [`dense-search.js`](../site/src/dense-search.js) takes a detached source snapshot and publishes an index only after every batch succeeds. It normalises finite, nonzero vectors and ranks by cosine similarity with stable passage-ID ties. Results use the same literal excerpts, source/licence display and exact occurrence navigation as keywords. Positive cosine is a ranking rule, **not a calibrated relevance threshold**; a hit may be unrelated, as the benchmark shows. The UI does not present similarity as chess strength or confidence.
+
+Vectors live only in browser memory. Source edits/deletion, library/account selection, method/source/language changes and help/local-only policy changes cancel work and drop the index, even while Library is closed. Changing the game cancels pending actions/results while retaining a valid unchanged-source index. Typing cancels an old query without automatically replacing it. Generation checks reject late responses even when a provider ignores abort. Reloading requires rebuilding; no server vector cache, saved embedding index or background ingestion exists.
+
+Each index records configured provider/model, optional operator-supplied revision, provider-reported model, observed dimension, `title-text-v1` input version, opaque endpoint/configuration fingerprint and opaque cookie scope. Batch/query metadata must match; dimension or reported-model drift rejects results. A changed service/scope requires reviewing the destination and another explicit build. **EMBEDDING_REVISION is an assertion supplied by the operator**, not a verified model-weight digest. Mutable model aliases can change without a detectable name/dimension change; use immutable model versions where possible and rebuild after changing weights. Unknown revisions are displayed as unknown.
+
+### Gateway and configuration
+
+The stateless [`embeddings.mjs`](../site/server/embeddings.mjs) helper exposes GET/POST `/api/ai/embeddings`. GET returns safe configuration; POST accepts only `{texts, fingerprint, scope}` and returns vectors/metadata/usage. Existing Host, Origin, JSON and body bounds apply. The cookie scope partitions requests and cache identities; **it is not account authentication**. Library/account ownership and source filtering happen in the page before transport. This endpoint cannot look up any player's saved library. It does not log or persist text/vectors, and exposes no credentials or endpoint URL.
+
+Configure `.env` and restart the server:
+
+```dotenv
+EMBEDDING_PROVIDER=ollama
+EMBEDDING_MODEL=bge-m3:latest
+EMBEDDING_REVISION=
+```
+
+OpenAI and Mistral reuse that named provider's key/base URL independently of the chat provider. Local-only mode refuses cloud embeddings rather than silently redirecting them to the chat model. Ollama uses its allowlisted host; before sending text, `/api/show` must identify a local GGUF/Safetensors embedding model with an architecture and embedding capability. Remote/cloud aliases and unknown/older metadata fail closed. Turning local-only on aborts admitted cloud embedding work; late vectors are refused.
+
+Embedding calls share the gateway's server token budget, paid-provider user budgets and rate limiter. One active request per cookie and four overall bound concurrent work. Configure `AI_PRICES` for the embedding model to estimate costs; missing prices remain unknown. Missing provider usage is conservatively counted as UTF-8 input bytes plus one per text and marked estimated. Large builds may hit the shared per-minute limit and require retrying; no partial index is published. Completed provider work is counted even if the caller cancels or policy changes before delivery.
+
+The client requests float vectors and validates one indexed result per input, uniform dimensions and finite nonzero coordinates. Indexed embedding responses, float encoding and usage fields are documented by [OpenAI](https://developers.openai.com/api/reference/resources/embeddings/methods/create) and [Mistral](https://docs.mistral.ai/api/endpoint/embeddings). Literal title/body strings are embedding inputs, not generative prompts. They receive no instructions and are not wrapped in `quote()`; any future use in tutor prompts still requires `quote()` and citation validation. Explicit provider ingestion does not establish rights to redistribute imported annotations.
 
 ## Measured baseline
 
@@ -45,6 +73,29 @@ Initial precision@1 is **0.900**, recall@3 **0.950**, and MRR@3 **0.917**. All e
 
 These are small authored development cases, not a held-out generalisation estimate or chess/answer-quality measurement. They make lexical limitations visible before comparing embeddings. Corpus or label changes require manual relevance review, suite-version updates and regenerated reports. Passage rankings cannot be compared numerically with the position benchmark as if the two suites had the same queries or relevance unit.
 
+## Measured dense comparison
+
+`--mode dense` runs the same authored corpus, query filters, gold judgements and scoring through production `DenseSession` and the separately configured embedder. Alternate adapters receive no gold labels, case IDs or evaluation groups; returned IDs must resolve to the permitted corpus, and canonical source references are restored before scoring. The runner never reads a saved player library or auto-loads `.env`. Cloud providers additionally require `--allow-cloud`; tests use mock/fake clients only.
+
+```sh
+EMBEDDING_PROVIDER=ollama EMBEDDING_MODEL=bge-m3:latest \
+  EMBEDDING_REVISION=<installed-model-digest> \
+  node utils/retrieval-eval.mjs --mode dense --out docs/eval/retrieval/dense-bge-m3
+```
+
+On 2026-10-23, a manual local run used the already-installed **bge-m3**, Ollama 0.40.7 on Apple M1 Pro Metal, F16, 1024 dimensions. An isolated daemon on port 11435 had cloud use and model pruning disabled; no weights were downloaded. The [Markdown report](eval/retrieval/dense-bge-m3.md) and [JSON](eval/retrieval/dense-bge-m3.json) record the full supplied model digest and the same corpus/case hashes as BM25. Endpoints contribute to the opaque fingerprint; hardware/provider revisions may affect numerical results.
+
+| Measure | BM25 | bge-m3 cosine |
+| --- | ---: | ---: |
+| Precision@1, 20 answerable queries | 0.900 | 0.950 |
+| Recall@3, 20 answerable queries | 0.950 | 1.000 |
+| MRR@3, 20 answerable queries | 0.917 | 0.975 |
+| No-answer false positives, 8 queries | 0.250 | 1.000 |
+
+Both paraphrases now retrieve a relevant passage within three results; one ranks first. However, **all eight queries labelled no-answer return hits**, including unsupported quantum requests and requests without a supporting passage in the selected scope. Dense retrieval respects those source filters but can rank unrelated passages inside the allowed scope. The unchanged lexical gold also has an intent limitation: `wrong-language` labels German “Isolani” unanswerable in English guides, although the English isolated-pawn passage can be semantically useful. The reported 1.000 is therefore a false-positive rate against these fixed labels, not a universal semantic-error estimate. Review intent/relevance labels separately before calibrating abstention; the off-topic quantum and unsupported-proof cases remain unsupported. Improved recall does not justify feeding the top hit to the coach as evidence. These twenty-eight authored development queries are too small for a general quality claim; evaluate hybrid ranking and abstention on separate labels in 8.4.
+
+Unit tests cover independent cosine geometry, vector/identity validation, filtering before ingestion, bounded atomic builds, cancellation/deletion, fake provider contracts, cookie isolation, local-only transitions, budgets and report/reference validation. Browser regressions cover explicit uploads, paraphrase navigation at repeated positions, source/language changes, reload, stale/deleted work, provider/dimension changes, closed-tab policy changes and German phone controls.
+
 ## Remaining work
 
-TODO 8.3.2 connects the existing separately configured embedding-provider helpers to passage ingestion/search. That needs source/owner boundaries before provider calls, local-only enforcement, provider/model/version/dimension records, controlled reindex/deletion and a measured comparison. This PR intentionally performs no automatic embedding requests. Hybrid/reranked retrieval remains 8.4; model-requested retrieval and validated answer citations remain 8.6. SQLite/IndexedDB persistence and a larger sourced corpus remain 7.6/7.3.
+Hybrid/reranked retrieval, calibrated no-answer handling and combining text with chess features remain 8.4; model-requested retrieval and validated answer citations remain 8.6. SQLite/IndexedDB persistence and a larger sourced corpus remain 7.6/7.3. No dependency or code was imported from `llmkit`; it remains inspiration only.
