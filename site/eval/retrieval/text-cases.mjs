@@ -3,7 +3,8 @@ export const TEXT_SUITE_VERSION = 1;
 const annotation = (game, ply, collection = 'classic') => ({ kind: 'annotation', game, ply, collection });
 const guide = (id, language, section) => ({ kind: 'guide', guide: id, language, section });
 /** @typedef {{kind: string, game?: string, ply?: number, collection?: string, guide?: string, language?: string, section?: string}} Label */
-/** @type {Array<{id: string, language: string, text: string, kind: string, collection?: string, group?: string, expected: Label[], reason: string}>} */
+/** @typedef {{id: string, language: string, text: string, kind: string, collection?: string, group?: string, expected: Label[], reason: string, fen?: string, allTerms?: boolean}} TextCase */
+/** @type {TextCase[]} */
 export const TEXT_CASES = [
   { id: 'mate-san-en', language: 'en', text: 'Qxf7', kind: 'annotation', expected: [annotation('ex-opera', 11)], reason: 'The Opera note explicitly names Qxf7.' },
   { id: 'mate-san-de', language: 'de', text: 'Dxf7', kind: 'annotation', expected: [annotation('ex-opera', 11)], reason: 'German queen notation should find the English SAN in an imported note.' },

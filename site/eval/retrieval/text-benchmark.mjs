@@ -5,6 +5,8 @@ import { buildBenchmark } from './benchmark.mjs';
 import { scoreRanking, summariseRankings } from './score.mjs';
 import { TEXT_CASES, TEXT_SUITE_VERSION } from './text-cases.mjs';
 import { selectPassages } from '../../src/dense-search.js';
+import { Chess } from 'chess.js';
+import { checkPosition } from '../../src/play.js';
 
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
@@ -13,14 +15,15 @@ const digest = value => createHash('sha256').update(JSON.stringify(value)).diges
  * Gold selectors resolve independently of ranking; source/kind/language filters are the same
  * production search options. Every positive must exist inside its query's permitted scope.
  */
-export async function runTextBenchmark({ retrieve = null, retriever = 'local-bm25-v1' } = {}) {
+export async function runTextBenchmark({ retrieve = null, retriever = 'local-bm25-v1', cases = TEXT_CASES, suiteVersion = TEXT_SUITE_VERSION, suite = 'kibitz-text-retrieval' } = {}) {
   const { snapshots } = await buildBenchmark();
   const passages = [...[...snapshots.values()].flatMap(annotationPassages), ...await guidePassages(authoredGuideTexts())];
   const index = buildTextIndex(passages), ids = new Set(), cutoffs = [1, 3, 6];
   const corpus = new Map(passages.map(p => [p.id, p])), results = [];
-  for (const q of TEXT_CASES) {
+  for (const q of cases) {
     if (ids.has(q.id) || !q.reason) throw new Error('Invalid text benchmark query');
     ids.add(q.id);
+    if (q.fen && checkPosition(Chess, q.fen).error) throw new Error('Invalid query board');
     const judgements = q.expected.flatMap(label => {
       const found = passages.filter(p => p.kind === label.kind && (p.kind === 'annotation'
         ? p.gameId === label.game && p.ply === label.ply && p.collection === label.collection
@@ -28,7 +31,7 @@ export async function runTextBenchmark({ retrieve = null, retriever = 'local-bm2
       if (!found.length || found.some(p => q.language !== 'all' && p.language !== 'und' && p.language !== q.language || q.kind !== 'all' && p.kind !== q.kind || q.collection && p.collection !== q.collection)) throw new Error(`Invalid text gold: ${q.id}`);
       return found.map(p => ({ id: p.id, grade: 2, reason: q.reason }));
     });
-    const options = { language: q.language, kind: q.kind, collection: q.collection || 'all', limit: 6 };
+    const options = { language: q.language, kind: q.kind, collection: q.collection || 'all', limit: 6, ...(q.fen ? { fen: q.fen } : {}), ...(q.allTerms !== undefined ? { allTerms: q.allTerms } : {}) };
     // Alternate rankers receive only corpus text and the production query/filter contract;
     // never gold judgements, evaluation groups or case IDs.
     const hits = retrieve ? await retrieve(structuredClone(passages), q.text, { ...options }) : searchText(index, q.text, options);
@@ -42,8 +45,8 @@ export async function runTextBenchmark({ retrieve = null, retriever = 'local-bm2
   }
   const summary = rows => cutoffs.map(k => ({ k, ...summariseRankings(rows.map(r => r.scores.find(s => s.k === k))) }));
   const by = field => Object.fromEntries([...new Set(results.map(r => r[field]))].map(value => [value, summary(results.filter(r => r[field] === value))]));
-  return { schemaVersion: 1, suite: 'kibitz-text-retrieval', suiteVersion: TEXT_SUITE_VERSION, retriever,
-    corpusHash: digest(passages), casesHash: digest(TEXT_CASES), cutoffs,
+  return { schemaVersion: 1, suite, suiteVersion, retriever,
+    corpusHash: digest(passages), casesHash: digest(cases), cutoffs,
     counts: { queries: results.length, passages: passages.length, annotations: passages.filter(p => p.kind === 'annotation').length, guides: passages.filter(p => p.kind === 'guide').length },
     summary: { overall: summary(results), byGroup: by('group'), byLanguage: by('language') }, results };
 }
@@ -51,10 +54,11 @@ export async function runTextBenchmark({ retrieve = null, retriever = 'local-bm2
 /** Deterministic development report; metrics are reference relevance, not answer correctness. */
 export function renderTextReport(report) {
   const number = n => n === null ? '—' : n.toFixed(3);
-  const lines = [report.embedding ? '# Dense passage retrieval comparison' : '# Lexical passage retrieval baseline', '', `TODO ${report.embedding ? '8.3.2' : '8.3.1'}. Suite ${report.suiteVersion}; retriever \`${report.retriever}\`.`, '',
+  const hybrid = report.retriever.startsWith('hybrid-');
+  const lines = [hybrid ? '# Hybrid passage retrieval' : report.embedding ? '# Dense passage retrieval comparison' : '# Lexical passage retrieval baseline', '', `TODO ${hybrid ? '8.4' : report.embedding ? '8.3.2' : '8.3.1'}. Suite ${report.suiteVersion}; retriever \`${report.retriever}\`.`, '',
     `${report.counts.passages} passages: ${report.counts.annotations} original PGN comments and ${report.counts.guides} authored guide sections. ${report.counts.queries} manually labelled queries.`, '',
     `Corpus SHA-256: \`${report.corpusHash}\`.`, `Case SHA-256: \`${report.casesHash}\`.`, '',
-    report.embedding ? `Provider: \`${report.embedding.provider}\`; model: \`${report.embedding.model}\`; reported model: \`${report.embedding.providerModel || 'not reported'}\`; revision: \`${report.embedding.revision || 'not supplied'}\`; dimensions: ${report.embedding.dimensions}; input: \`${report.embedding.inputVersion}\`.` : 'Reproduce: `just retrieval-eval --mode text`. No provider, engine search, saved user data or network is used.', '',
+    hybrid ? 'The parent hybrid report records the explicitly configured embedding run used for these details.' : report.embedding ? `Provider: \`${report.embedding.provider}\`; model: \`${report.embedding.model}\`; reported model: \`${report.embedding.providerModel || 'not reported'}\`; revision: \`${report.embedding.revision || 'not supplied'}\`; dimensions: ${report.embedding.dimensions}; input: \`${report.embedding.inputVersion}\`.` : 'Reproduce: `just retrieval-eval --mode text`. No provider, engine search, saved user data or network is used.', '',
     'Precision uses k even for short lists. Relevance metrics average answerable queries only; no-answer false positives use a separate denominator. Gold is passage-level. This authored development suite does not measure semantic understanding, chess accuracy, answer faithfulness or generalisation.', '',
     '| Slice | k | Answerable | No answer | Precision@k | Recall@k | MRR@k | nDCG@k | No-answer false positives |', '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |'];
   const row = (label, s) => `| ${label} | ${s.k} | ${s.answerable} | ${s.unanswerable} | ${number(s.precision)} | ${number(s.recall)} | ${number(s.mrr)} | ${number(s.ndcg)} | ${number(s.falsePositiveRate)} |`;
@@ -72,6 +76,7 @@ export function renderTextReport(report) {
   }
   for (const q of report.results) {
     lines.push('', `## ${q.id}`, '', `${q.language}; ${q.group}. Keywords: ${q.text}.`, '', 'Expected:', '');
+    if (q.options.fen) lines.push(`Query FEN: \`${q.options.fen}\`. All terms required: ${!!q.options.allTerms}.`, '');
     if (!q.judgements.length) lines.push('No relevant passage in the permitted scope.');
     for (const j of q.judgements) lines.push(`- \`${j.id}\` — ${j.reason}`);
     lines.push('', '| Rank | Passage location |', '| ---: | --- |');

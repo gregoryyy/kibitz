@@ -192,8 +192,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [ ] 8.2 Pattern tags per position and move, from the motif and theme detectors *(prototype)*
 - [x] 8.3 Text index for annotations and lesson text; embeddings from a separately configured provider (OpenAI, Mistral or Ollama; Anthropic has no embeddings API)
   - [x] 8.3.1 Local lexical passage index: mainline comments with source/occurrence locators, bilingual authored guide sections, filtered BM25 Library search, exact annotated-position navigation and a 28-query [passage benchmark](TEXT-SEARCH.md)
-  - [x] 8.3.2 Explicit semantic indexing/search of selected passages, scoped in-memory vectors, local-only enforcement and provider/model/revision/dimension metadata. [Local bge-m3 comparison](eval/retrieval/dense-bge-m3.md) improves paraphrase recall but exposes uncalibrated no-answer false positives; hybrid ranking and abstention remain 8.4
-- [ ] 8.4 Hybrid retrieval: structural similarity, tag overlap and text embeddings, then re-ranking
+  - [x] 8.3.2 Explicit semantic indexing/search of selected passages, scoped in-memory vectors, local-only enforcement and provider/model/revision/dimension metadata. [Local bge-m3 comparison](eval/retrieval/dense-bge-m3.md) improves paraphrase recall but exposes uncalibrated no-answer false positives
+- [x] 8.4 [Hybrid retrieval](HYBRID-SEARCH.md): bounded rank fusion of BM25, dense, exact/pawn and feature-tag candidates; deterministic term/board reranking, visible match reasons and optional literal every-term filtering. [Measured comparison](eval/retrieval/hybrid-bge-m3.md) records recall/no-answer tradeoffs; semantic support and calibrated abstention are not established
 - [ ] 8.5 Fuzzy pawn-structure distance
 - [ ] 8.6 Retrieved items go into tutor and chat context with citations; the UI opens the cited game at that position
 - [x] 8.7 Treat retrieved text as untrusted: delimit it and never follow instructions inside it (imported PGN comments can carry prompt injection) *(added)*

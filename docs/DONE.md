@@ -7,6 +7,34 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Hybrid passage retrieval with explicit board intent
+
+TODO items: 8.4.
+
+### Implementation notes
+
+- Added pure, JSDoc-typed `hybrid-search.js`: up to twenty eligible candidates each from BM25, dense cosine, exact/nonempty-pawn relations and position-feature tag overlap. Reciprocal Rank Fusion uses constant sixty and stable passage IDs; raw scores never share a scale. Full literal term matches, then exact boards, rerank the fused candidates. Source/language/collection filters precede every channel, and dense IDs resolve to canonical local source records rather than provider-supplied metadata.
+- Chess.js checks source/query boards. Pawn analogies require matching turn, check and phase, and exclude pawnless positions. Annotation tags come from position features; authored guides contribute their known catalogue concept without an invented FEN. Generic phase/king-activity tags and imported prose claims do not create thematic boosts. Incompatible historical boards may still match text, but receive no board/tag boost. No engine or motif-verification claim is added.
+- Library adds optional **Combined** search with **Favor the current board**, **Require every search term** and **Why this result**. Default Keywords remains unchanged. The existing explicit Build/Search actions and stateless embedding route are reused; typing and option/board changes send nothing. Complete term matches and merely related text are distinguished. Every-term filtering checks normalised title/body spelling, including German move aliases; it is not semantic entailment or answer confidence.
+- Query intent captures the visible game/scratch FEN when board relevance is enabled. Main/scratch steps and option changes cancel old work/results while retaining valid source vectors; source/account/filter/policy changes keep their existing stricter invalidation. Held navigation rechecks board intent even without a new game generation. Board profiles/FENs stay local, and embedding requests carry only selected title/body strings or the entered query.
+- Root `utils/retrieval-eval.mjs --mode hybrid` records production fusion, dense/BM25 ablations and optional term-filter tradeoffs on the unchanged 159 authored passages/28 text queries. Query embeddings are reused across ablations. A separate ten-query board/intent suite has separate labels/hashes; its BM25 comparator applies the same explicit term constraints. No gold labels, case IDs or evaluation groups reach retrieval. Existing position/text/dense report formats and baselines are preserved.
+- A manual local bge-m3 run records the installed model digest, F16/1024 dimensions and [full JSON/Markdown comparison](eval/retrieval/hybrid-bge-m3.md). Hybrid text precision@1 is 0.900, recall@3 0.950, MRR@3 0.925 and labelled no-answer false positives 0.875. Dense alone has higher recall (1.000). Requiring every term reduces false positives to zero while dropping three of twenty answerable cases. The shared Isolani/language ambiguity is retained and documented. Both constrained BM25 and hybrid score 1.000 precision@1/recall@3 and zero no-answer false positives on the small separate board/intent suite; it demonstrates no ranking advantage.
+- Nine new unit/evaluation scenarios cover independent rank arithmetic, canonical sources, legal board/tag geometry, turn/check/phase/pawnless traps, literal filtering, scope violations, distinct benchmark labels, provider-work reuse, CLI opt-in and unchanged baseline reports. Seven browser scenarios cover real mock-gateway requests, precise repeated-note navigation, weak-vs-literal results, pending/held main/scratch-board work, source filtering and translated German phone controls. The shared PGN-load helper now accepts the German success message. An initial test expectation was corrected because the repeated knight loop legitimately returns to the annotated root board.
+- Validation: lint/types, a fresh build and the full mock-provider unit/gateway suite pass (348 passed, one opt-in live test skipped). Full Playwright passes (195 passed, one opt-in live-model test skipped); all seven hybrid scenarios pass again after final checkbox-layout and empty-result wording polish. The three hybrid evaluation scenarios pass after the final fair-comparator adjustment, whose recorded output also matches the offline run. The final German phone layout was inspected without overflow or untranslated controls. Hybrid Markdown matches its JSON, all 83 checked local documentation links resolve and `git diff --check` passes.
+
+### Deviations
+
+- This delivers bounded rank fusion and a deterministic reranker over existing chess signals, with no learned cross-encoder or calibrated semantic abstention. Material/piece-placement signatures, richer position/move motif tags and fuzzy pawn distance remain 8.1/8.2/8.5. Tutor prompts and citation validation remain 8.6. No dependency, external corpus or `llmkit` code was added.
+- Measurements use small authored development sets, not held-out evidence of generalisation or chess/answer quality. The real embedding run is a manual local evaluation; automatic tests use mock/fake providers only. Local-only, model metadata, budgets and source/licence assertions keep their existing semantics.
+
+### Insights
+
+- Fusion cannot repair unsupported evidence by itself and can lose the best individual retriever's paraphrase recall. Keep method ablations and no-answer rates visible rather than promoting an aggregate ranking score as confidence.
+- A literal all-terms requirement offers predictable empty results at a measurable recall cost. It does not replace semantic support labels or calibrated abstention; unchanged lexical-intent labels also need care when interpreting bilingual semantic matches.
+- Board relevance is query state, not just game identity. Cursor and scratch changes can occur without a new generation, so both asynchronous completion and held source actions must capture and recheck the intended board.
+
+---
+
 ## 2026-10-23 — Explicit passage embeddings and dense retrieval comparison
 
 TODO items: 8.3.2; completes 8.3.
