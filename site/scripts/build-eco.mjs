@@ -1,5 +1,6 @@
 import { Chess } from 'chess.js';
 import fs from 'fs';
+import { buildNamedOpenings } from '../src/opening-variations.js';
 const out = {};
 const named = []; // every named line with its moves, for starting a game from an opening
 let n=0;
@@ -21,4 +22,6 @@ const compact = Object.fromEntries(Object.entries(out).map(([k,v])=>[k,[v[0],v[1
 fs.writeFileSync(new URL('../dist/eco.json', import.meta.url), JSON.stringify(compact));
 named.sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]) || a[2].length - b[2].length);
 fs.writeFileSync(new URL('../dist/openings.json', import.meta.url), JSON.stringify(named));
+const variations = buildNamedOpenings(Chess, named);
+fs.writeFileSync(new URL('../dist/opening-variations.json', import.meta.url), JSON.stringify(variations));
 console.log(n, Object.keys(compact).length, fs.statSync(new URL('../dist/eco.json', import.meta.url)).size);

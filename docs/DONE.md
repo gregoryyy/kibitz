@@ -7,6 +7,33 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Named opening continuations at the board
+
+TODO items: 5.6.1–5.6.6.
+
+### Implementation notes
+
+- Added pure, JSDoc-typed `opening-variations.js`: compile the same CC0 Lichess rows as `openings.json` into a position graph during the build, then query by EPD in the browser. The current catalogue contains 3,865 lines and 7,983 positions (about 2.75 MB uncompressed). Data/compiler changes invalidate generated outputs; startup does not replay the full dataset.
+- The Openings panel shows the current name/ECO, or explicitly labelled earlier opening background, plus legal next moves and up to three nearby recorded named destinations per move. Deeper destinations state their remaining plies. Transposed arrivals inherit the target position's names; query-time chess.js validation preserves turn, castling/en-passant rights and the displayed move counters. Frequencies remain in the separate reference-game explorer.
+- Hover/focus previews the position after the move without changing the game, scratch line, engine evidence or coach query. The compact list scrolls independently, and the desktop board stays visible while browsing Openings. Preview cleanup preserves focused rows so Tab can reach the next move; actual pointer movement previews a row without scroll-induced mouseenter overriding keyboard focus.
+- Click/Enter extends a scratch line during analysis or on an existing scratch board. At the current live position with Full help, it plays a normal player move, including the existing clock and engine-reply path. Historical/opponent-turn buttons are disabled. Held actions recheck generation, mode, scratch identity, full FEN and permission before acting.
+- Off, Flag mistakes and Eval + mistakes clear rendered names even while the tab is closed, disable the opening quick question and omit catalogue context. General chess also omits it. Catalogue loading/retry redraws against the current game, including after a replacement position; failure leaves play and authored guides usable.
+- **About this opening** supplies bounded, quoted catalogue metadata alongside the 5.5 study notes and permitted Stockfish analysis. Names establish neither strength nor engine evidence; concrete advice still requires supplied engine lines or successful engine tools. Browsing works without a provider and does not modify games, the library or repertoires.
+- Seven unit scenarios cover real/deeper destinations, transpositions, counters, rights, castling, promotion, corrupt rows/edges, detached results and prompt quoting. Nine browser scenarios cover actual previewed piece placement, keyboard navigation, scratch/live clicks, help restrictions, held actions, delayed retry, coach context/evidence, hostile names and German phone layout. No dependency or external service was added.
+- Validation: `npm run check`, a fresh build and mock-provider unit/gateway tests pass (295 passed, one opt-in live test skipped). Full Playwright passes (157 passed, one live-model test skipped); all 41 opening/guide/explorer/repertoire/drill scenarios pass again after the final desktop visibility and language polish. Browser runs use isolated output folders with tracing off. Desktop and German phone layouts were inspected, local documentation links checked, and changed TODO, DONE, architecture, design and site README PDFs regenerated locally.
+
+### Deviations
+
+- Analysis clicks use the existing scratch board, preserving the loaded game; live clicks make actual moves. The help restriction covers all three reduced-help settings, consistently with the explorer and authored guides.
+- Each move displays at most three closest recorded destinations rather than every downstream catalogue name. A distance label makes clear that a later name needs further moves; the catalogue is neither exhaustive move coverage nor a recommendation ranking.
+
+### Insights
+
+- Equal EPDs can have different halfmove/fullmove counters. Revalidate and replay an edge from the query FEN rather than returning a catalogue's historical FEN, or previews and coach move numbers drift.
+- Restoring a preview must preserve the focused controls. Rebuilding their DOM during blur interrupts keyboard navigation; scroll-generated pointer-entry events can also replace the intended keyboard preview.
+
+---
+
 ## 2026-10-23 — Opening ideas and current pawn-structure notes
 
 TODO items: 5.5.
