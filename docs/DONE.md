@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Road idea: piece power in four corners
+
+TODO items: none; [ROAD 9](ROAD.md#9-piece-power-attacks-and-defence-in-four-corners) records a future feature.
+
+### Implementation notes
+
+- Captured the four corner dot counts: inbound/outbound attacks above, inbound/outbound defence below. Recorded always-visible and on-demand modes, details and highlights of the related pieces.
+- Kept the mobile gesture as a design question with long-press and Inspect-then-tap candidates. Recorded the conflict with existing right-click circles/arrows, plus accessibility, help settings and attack/defence semantics to settle.
+
+### Deviations
+
+- Planning only: no board feature is implemented and no implementation TODO is marked complete.
+
+### Insights
+
+- Inspection and manual annotation share the right-click gesture; their interaction needs an explicit design. Attack/defender counts also need a clear definition before they can serve as teaching aids.
+
+---
+
 ## 2026-10-23 — PDF tooling under root utilities
 
 TODO items: 0.12.

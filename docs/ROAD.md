@@ -128,3 +128,24 @@ A primer that accompanies the repo and follows one chess question through the pa
   - the format: Markdown in the repo, a PDF, or slides for a talk;
   - recorded answers from a real model versus live ones;
   - keeping the text in step with the code as it changes.
+
+## 9. Piece power: attacks and defence in four corners
+
+Show each piece's relationships to the other pieces as small dots in the four corners around it. Each dot represents one distinct related piece; these are counts, not material values or an engine evaluation.
+
+| Corner | Relationship | What the dots count |
+| --- | --- | --- |
+| Top left | Inbound attack | Enemy pieces attacking this piece. |
+| Top right | Outbound attack | Enemy pieces this piece attacks. |
+| Bottom left | Inbound defence | Friendly pieces defending this piece. |
+| Bottom right | Outbound defence | Friendly pieces this piece defends. |
+
+- **Two display modes:**
+  - **Always show:** display the dots on every piece. Right-click a piece for details and highlights of the particular pieces involved.
+  - **On demand:** keep the dots hidden until a piece is right-clicked, then show its dots, details and related-piece highlights.
+- **Details:** list the related pieces and their squares under the four relationship labels. Let the player select a relationship or an individual listed piece to highlight the corresponding pieces on the board. Keep the corner meanings consistent when the board is flipped, and show an explicit zero in the details when a corner has no dots.
+- **Mobile equivalent to explore:** press and hold a piece to inspect it, cancelling inspection if the gesture becomes a drag. An explicit Inspect toggle followed by a tap is another option, with a keyboard/screen-reader equivalent. Settle the gesture through touch testing so inspection and moving pieces do not interfere.
+- **Existing right-click behaviour:** right-click currently draws a highlighting circle; dragging with the drawing gesture supports arrows. Decide how inspection coexists with these annotations, for example an inspection mode, a modifier or a menu action for the existing circle. Preserve access to manual annotations.
+- **Chess meaning:** compute the relationships from the displayed position through chess rules and board features; the model can explain them. Define geometric attacks/defence versus legal captures before implementation, especially for pinned pieces, kings and pawn diagonals. Decide whether indirect or x-ray relationships are excluded or shown separately. A high defender count alone does not establish that a piece is tactically safe.
+- **Builds on:** board rendering and annotations (4.2–4.4), pure attack/defence features in `knowledge.js`, tactical lessons (6.2), accessibility (10.5) and mobile layout (10.6). During a game, respect the live-help setting.
+- **Open questions:** dot size, spacing and overflow on crowded or small boards; distinguishing relationships without colour alone; dismissing transient details; and the right-click/mobile gesture design above.
