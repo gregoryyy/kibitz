@@ -38,6 +38,7 @@ src/openings.js       Reference-game position graph: continuations, record count
 src/repertoire.js     Legal chosen opening lines, game/scratch path capture, position-based choices and browser storage
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
 src/tutor.js          Coach comments: aspects and their prompts, what the coach sees mid-game, the check of its moves, the cache
+src/coach-tools.js    Gateway tool capability policy per provider/model, honest fallback notices and runtime engine instructions
 src/browser-llm.js    The in-browser model (wllama): loads on consent, streams answers, one request at a time, unloads when idle
 src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
 src/play.js           Game-end rules, timeouts, clocks, the opponent's search, the weakened mode below 1320
@@ -80,6 +81,8 @@ tsconfig.json         tsc --checkJs over src/, server/, scripts/ (JSDoc types, n
 **Similar positions.** Every library game is replayed and indexed two ways: exact position (transpositions included) and pawn-structure signature (pawns only, from ply 12). Comments in imported PGNs are attached to their positions and passed to the coach. Matching is exact; fuzzy pawn-structure distance and theme-tag ranking are the obvious next steps.
 
 **Coach prompt.** `contextFor(i)` assembles: player level, moves so far, FEN + ASCII board, Stockfish lines in SAN, motifs, last-move rating and the engine's alternative, detected themes, retrieved books, and similar library positions. `RULES` holds the standing instructions.
+
+**Coach tools.** With a tool-capable gateway model, position chat in Analyse or with Full engine help can request fresh Stockfish evaluations, try/compare candidate moves and inspect threats or mates; the answer lists the engine evidence. During play, Off, Flag mistakes and Eval + mistakes withhold these tools; choosing **Full engine** enables them for the next question in the same conversation. The coach is instructed to explain this setting when asked about engine access. A model that explicitly rejects tool calling uses supplied context with a visible notice. This is tracked per provider/model. Switching models or successfully using **Test connection** allows tool support to be checked again; temporary provider errors do not disable the tools.
 
 ## Claude platform APIs (artifact runtime)
 

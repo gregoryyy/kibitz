@@ -244,6 +244,7 @@ export default {
   "The in-browser model isn't loaded yet: press Load above the chat. It runs on this machine and sends nothing anywhere.": 'Das Modell im Browser ist noch nicht geladen: Drück oben im Chat auf Laden. Es läuft auf diesem Rechner und sendet nichts nach außen.',
   'This model runs in the page; reload the page to use it.': 'Dieses Modell läuft in der Seite; lade die Seite neu, um es zu nutzen.',
   "The coach couldn't answer just now. Try again.": 'Der Coach konnte gerade nicht antworten. Versuch es noch einmal.',
+  'This model cannot call tools. This answer uses the supplied context and any engine analysis already provided; the model did not request an additional Stockfish search.': 'Dieses Modell kann keine Werkzeuge aufrufen. Diese Antwort nutzt den bereitgestellten Kontext und vorhandene Engine-Analysen; das Modell hat keine zusätzliche Stockfish-Suche angefordert.',
   'The in-browser model needs about {a} GB of memory; this device reports {b} GB. Use a smaller model (just offline model=qwen2.5-0.5b) or a provider in .env.': 'Das Modell im Browser braucht etwa {a} GB Speicher; dieses Gerät meldet {b} GB. Nimm ein kleineres Modell (just offline model=qwen2.5-0.5b) oder einen Anbieter in .env.',
   "The in-browser model didn't load: {e}": 'Das Modell im Browser wurde nicht geladen: {e}',
   'The in-browser model failed: {e}': 'Das Modell im Browser ist ausgefallen: {e}',

@@ -7,6 +7,32 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Keep the coach's Stockfish tools available after provider errors
+
+TODO items: fixes to 4.11.3, 4.11.6.
+
+### Implementation notes
+
+- Reproduced four browser regressions on the previous implementation: a temporary provider error or an unrelated rejected parameter silently turned off tools for the entire page; a tool-incompatible quick model disabled a capable chat model; changing the selected model did not restore access.
+- Replaced the global `TOOLS_OFF` switch with a page-local capability cache keyed by the actual provider/model for the request's task. Only an explicit tool/function-calling rejection enables fixed-context fallback. Other errors remain visible without changing capability state. A different model has its own state, and a successful connection test clears the tested model's cached rejection.
+- Added pure, JSDoc-typed `coach-tools.js` for route identity, conservative rejection detection and runtime instructions. Every tool-loop turn explicitly tells the model whether fresh Stockfish evaluation tools are offered, withheld by General chess/live-help context, or exhausted by the call budget. Responses may claim new analysis only after the engine tool returns evidence.
+- A follow-up report confirmed the refusal happened with Flag mistakes or Eval + mistakes. Runtime instructions now identify restricted live help as the reason searches are withheld and direct the player to Full engine help (Volle Engine), rather than suggesting the app lacks an engine interface. General chess receives its own explanation. Enabling Full help makes tools available in the existing conversation, even after a reply denying engine access; the app does not change the setting for the player.
+- A context-only gateway answer carries a visible translated notice. Fallback prompts describe the actual limitation; neither cached analysis nor a failed call is presented as a new model-requested search. Model changes invalidate in-flight tool work, so a late rejection cannot start a fallback against the newly selected model.
+- Four new unit cases cover capability identity, positive/negative error classification, runtime availability/budget instructions and preserving the first-turn security rules and tool/result order. Seven browser regressions cover enabling Full help after the reported refusal, transient failures during a live game with Full engine help, unrelated rejection, quick/chat isolation, model changes, explicit reconnection and a held rejection arriving after a model change. Restricted-help coverage checks all three settings (Flag mistakes, Eval + mistakes and Off). The existing unsupported-model case also checks the German notice and that it creates no Stockfish evidence.
+- Validation: `npm run check`, a clean build and mock-provider unit tests pass (272 passed, one opt-in live test skipped). The full Playwright suite passed before the help-explanation follow-up (127 passed, one live-model test skipped). All 42 affected chat, tool and security scenarios pass after that follow-up, including the reported denial followed by Full-help access. The missing restriction explanation fails its unit/browser checks before the change. Changed documentation PDFs regenerated locally.
+
+### Deviations
+
+- The reported live-game refusal follows the existing restricted-help policy; the independently reproduced provider-error bugs are separate. Model wording and tool choice are still model decisions. Tests use mocked providers and fake SDK clients; no live provider call was made.
+- General chess and restricted live help still withhold engine tools, and the in-browser/artifact providers still use supplied context. This does not broaden permissions or add a provider integration. The open repertoire-drill PR remains separate.
+
+### Insights
+
+- A rejected request is not evidence that a model lacks tool support. Capability state must follow the selected model and be based on an explicit capability failure.
+- Native tool schemas and runtime instructions serve different purposes: schemas define valid calls, while runtime instructions make the current engine access explicit. These instructions extend the standing rules rather than displacing the first-turn security contract.
+
+---
+
 ## 2026-10-23 — White and Black repertoire builder
 
 TODO items: 5.3.

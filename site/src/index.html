@@ -621,6 +621,7 @@ import { openingGame, buildOpeningIndex, openingContinuations } from './openings
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
 import { TOOL_NAMES, ENGINE_TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
+import { toolModelKey, toolsUnsupported, toolInstructions, withToolInstructions, TOOL_FALLBACK } from './coach-tools.js';
 import { CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames } from './chat.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
@@ -2068,6 +2069,7 @@ $('#btnTestAi').addEventListener('click', async () => {
       msg.textContent = `Working: ${PROVIDER_LABEL.browser}, ${GATEWAY.browser.name} on the ${BROWSER.model.status.gpu ? 'GPU' : 'CPU'}, ${Math.round(performance.now() - t0)} ms.`;
     } else {
       const r = await gatewayPost('test', {}); msg.textContent = `Connected: ${PROVIDER_LABEL[r.provider] || r.provider}, ${r.model}, ${r.ms} ms.`;
+      TOOLS_UNSUPPORTED.delete(toolModelKey({ provider: r.provider, model: r.model }));
     }
   } catch (e) { msg.textContent = 'Failed: ' + (e.message || coachError(e)); }
   refreshGateway();
@@ -2404,17 +2406,20 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   const view = engineView(S);
   const render = (text, check = null) => { if (!activeRun(run)) return; bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); pinMessage(bubble, run.label, run.board); const body = el('div'); renderRich(body, text, run.context?.fen || fen, check || (run.context ? checkFor(text, run.context) : null)); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
   try {
+    const toolKey = toolModelKey(GATEWAY, task);
     const history = (CHAT.general ? CHAT.generalTurns : chatTurns).slice(-8);
     const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${conversationContext(i, view, scratch)}\n\nQuestion: ${question}` }];
     const status = msg => { bubble.classList.add('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), msg); };
     const opts = { signal: ctl.signal, cache: false, task, onText: ({ text }) => text && render(text) };
     // Engine tools (TODO 4.11) where the engine's view is allowed anyway, never during a game with less help.
     const { text, truncated, usage, evidence = [] } = toolsUsable(task)
-      ? await sampleWithTools(turns, { ...opts, onStatus: status, run }) : await COACH.sample(turns, opts);
+      ? await sampleWithTools(turns, { ...opts, onStatus: status, run })
+      : await COACH.sample(TOOLS_UNSUPPORTED.has(toolKey) ? withToolInstructions(turns, TOOL_FALLBACK) : turns, opts);
     if (!activeRun(run)) { bubble.remove(); return; }
     const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
     render(full, run.context ? checkFor(full, run.context, evidence) : null);
     if (evidence.length) bubble.append(evidenceBox(evidence));
+    if (TOOLS_UNSUPPORTED.has(toolKey)) bubble.append(el('p', { class: 'check-note tool-notice' }, TOOL_FALLBACK));
     const note = usageNote(usage); if (note) bubble.append(note);
     const targetHistory = run.board ? chatTurns : CHAT.generalTurns;
     targetHistory.push({ role: 'user', content: `[${quote(run.label, 200)}] ${question}` }, { role: 'assistant', content: text });
@@ -2437,9 +2442,9 @@ function conversationContext(i, view, scratch) {
 // page's own engine (4.11.4): the gateway returns the model's tool calls, the page checks each call's
 // arguments, runs it and sends the results in the next request, for at most TOOL_CAPS.rounds rounds
 // and TOOL_CAPS.calls calls; the last round offers no tools, so the model has to answer.
-let TOOLS_OFF = false; // the provider refused a request with tools (a model without them): answer from the context
+const TOOLS_UNSUPPORTED = new Set(); // only confirmed unsupported provider/model routes; never a page-wide switch
 function toolsUsable(task) {
-  if (TOOLS_OFF || !GATEWAY?.available || GATEWAY.provider === 'browser' || typeof window.claude?.use === 'function') return false;
+  if (TOOLS_UNSUPPORTED.has(toolModelKey(GATEWAY, task)) || !GATEWAY?.available || GATEWAY.provider === 'browser' || typeof window.claude?.use === 'function') return false;
   return !(task === 'quick' && S.quickInBrowser && GATEWAY.browser); // routed to the in-browser model
 }
 async function toolEngine(fen, { depth, lines }) {
@@ -2450,28 +2455,34 @@ const TOOL_DOING = { analyse: 'Stockfish is analysing…', try_move: 'Stockfish 
 const CALL_ID = /^[A-Za-z0-9_-]{1,64}$/;
 async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
   const msgs = turns.slice(), evidence = [];
+  const toolKey = toolModelKey(GATEWAY, task);
+  const activeToolRun = () => activeRun(run) && toolModelKey(GATEWAY, task) === toolKey;
   const usage = { input: 0, output: 0, cost: 0 };
   const add = u => { usage.input += u?.input || 0; usage.output += u?.output || 0; usage.cost = typeof u?.cost === 'number' && usage.cost !== null ? usage.cost + u.cost : null; };
   let calls = 0;
   for (let round = 0; round <= TOOL_CAPS.rounds; round++) {
-    if (!activeRun(run)) throw { code: 'cancelled' };
+    if (!activeToolRun()) throw { code: 'cancelled' };
     const offer = round < TOOL_CAPS.rounds && calls < TOOL_CAPS.calls;
     const names = [...(!CHAT.general && engineView(S) === 'all' ? ENGINE_TOOL_NAMES : []), ...CHAT_TOOL_NAMES];
     let r;
-    try { r = await COACH.sample(msgs, { signal, cache: false, task, onText, ...(offer ? { tools: names } : {}) }); }
+    try { r = await COACH.sample(withToolInstructions(msgs, toolInstructions(names, offer, { general: CHAT.general })), { signal, cache: false, task, onText, ...(offer ? { tools: names } : {}) }); }
     catch (e) {
-      // A model without tools (some Ollama models) refuses the request: ask again without them.
-      if (round === 0 && ['provider_rejected', 'provider_error'].includes(e?.code)) { TOOLS_OFF = true; return { ...(await COACH.sample(turns, { signal, cache: false, task, onText })), evidence }; }
+      if (!activeToolRun()) throw { code: 'cancelled' };
+      // Fall back only for an explicit capability rejection, and only for this provider/model.
+      if (round === 0 && toolsUnsupported(e)) {
+        TOOLS_UNSUPPORTED.add(toolKey);
+        return { ...(await COACH.sample(withToolInstructions(turns, TOOL_FALLBACK), { signal, cache: false, task, onText })), evidence };
+      }
       throw e;
     }
-    if (!activeRun(run)) throw { code: 'cancelled' };
+    if (!activeToolRun()) throw { code: 'cancelled' };
     add(r.usage);
     // Only calls the gateway would accept back: known tools, sane ids. Others are dropped.
     const toolCalls = (r.toolCalls || []).filter(c => TOOL_NAMES.includes(c?.name) && CALL_ID.test(c?.id)).slice(0, TOOL_CAPS.calls);
     if (!offer || !toolCalls.length) return { ...r, usage: usage.input + usage.output ? usage : r.usage, evidence };
     msgs.push({ role: 'assistant', content: r.text || '', toolCalls: toolCalls.map(c => ({ id: c.id, name: c.name, input: c.input && typeof c.input === 'object' && !Array.isArray(c.input) && JSON.stringify(c.input).length <= 2000 ? c.input : {} })) });
     for (const c of toolCalls) {
-      if (!activeRun(run)) throw { code: 'cancelled' };
+      if (!activeToolRun()) throw { code: 'cancelled' };
       const isChat = CHAT_TOOL_NAMES.includes(c.name);
       const chk = ++calls > TOOL_CAPS.calls ? { ok: false, why: 'too many tool calls for one answer: answer with what you have' }
         : !names.includes(c.name) ? { ok: false, why: 'That tool is not available with the current help setting.' }
@@ -2486,9 +2497,9 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
       } else if (chk.ok) {
         onStatus?.(TOOL_DOING[c.name]);
         const out = await runTool(Chess, async (fen, opts) => {
-          if (!activeRun(run)) throw { code: 'cancelled' };
+          if (!activeToolRun()) throw { code: 'cancelled' };
           const result = await toolEngine(fen, opts);
-          if (!activeRun(run)) throw { code: 'cancelled' };
+          if (!activeToolRun()) throw { code: 'cancelled' };
           return result;
         }, chk);
         evidence.push({ name: chk.name, args: chk.args, result: out.result, lines: out.lines, starts: out.starts || [] });
@@ -2496,7 +2507,7 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
       } else result = { error: chk.why };
       msgs.push({ role: 'tool', toolCallId: c.id, content: JSON.stringify(result) });
     }
-    if (!activeRun(run)) throw { code: 'cancelled' };
+    if (!activeToolRun()) throw { code: 'cancelled' };
     if (toolCalls.some(c => CHAT_TOOL_NAMES.includes(c.name) && !c.name.startsWith('search_'))) msgs.push({ role: 'user', content: conversationContext(S.cursor, engineView(S), scratchFacts()) });
     onStatus?.('Thinking…');
   }
