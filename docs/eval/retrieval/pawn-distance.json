@@ -1,0 +1,1700 @@
+{
+  "schemaVersion": 1,
+  "suite": "kibitz-pawn-distance",
+  "suiteVersion": 1,
+  "retriever": "pawn-jaccard-v1",
+  "corpusHash": "231502b14a40b89b9a8a0e0408b4f8b92ec116255740bab280af004fb9290d3f",
+  "casesHash": "43472da7c646ce19a635d369f454337a2f8a8d9fdfe826af4d0801a3972eb125",
+  "cutoffs": [
+    1,
+    3,
+    6
+  ],
+  "counts": {
+    "queries": 8,
+    "passages": 10,
+    "annotations": 10,
+    "guides": 0
+  },
+  "summary": {
+    "overall": [
+      {
+        "k": 1,
+        "queries": 8,
+        "answerable": 5,
+        "unanswerable": 3,
+        "precision": 0.8,
+        "recall": 0.65,
+        "mrr": 0.8,
+        "ndcg": 0.8,
+        "falsePositiveRate": 0
+      },
+      {
+        "k": 3,
+        "queries": 8,
+        "answerable": 5,
+        "unanswerable": 3,
+        "precision": 0.39999999999999997,
+        "recall": 0.75,
+        "mrr": 0.8,
+        "ndcg": 0.8,
+        "falsePositiveRate": 0
+      },
+      {
+        "k": 6,
+        "queries": 8,
+        "answerable": 5,
+        "unanswerable": 3,
+        "precision": 0.2333333333333333,
+        "recall": 0.8,
+        "mrr": 0.8,
+        "ndcg": 0.8,
+        "falsePositiveRate": 0
+      }
+    ],
+    "byGroup": {
+      "overlap": [
+        {
+          "k": 1,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 0.25,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 0.75,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0.6666666666666666,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "turn": [
+        {
+          "k": 1,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "check": [
+        {
+          "k": 1,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "boundary": [
+        {
+          "k": 1,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 1,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "mrr": 1,
+          "ndcg": 1,
+          "falsePositiveRate": null
+        }
+      ],
+      "sparse": [
+        {
+          "k": 1,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0,
+          "recall": 0,
+          "mrr": 0,
+          "ndcg": 0,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 3,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0,
+          "recall": 0,
+          "mrr": 0,
+          "ndcg": 0,
+          "falsePositiveRate": null
+        },
+        {
+          "k": 6,
+          "queries": 1,
+          "answerable": 1,
+          "unanswerable": 0,
+          "precision": 0,
+          "recall": 0,
+          "mrr": 0,
+          "ndcg": 0,
+          "falsePositiveRate": null
+        }
+      ],
+      "no-answer": [
+        {
+          "k": 1,
+          "queries": 3,
+          "answerable": 0,
+          "unanswerable": 3,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 3,
+          "queries": 3,
+          "answerable": 0,
+          "unanswerable": 3,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 6,
+          "queries": 3,
+          "answerable": 0,
+          "unanswerable": 3,
+          "precision": null,
+          "recall": null,
+          "mrr": null,
+          "ndcg": null,
+          "falsePositiveRate": 0
+        }
+      ]
+    },
+    "byLanguage": {
+      "en": [
+        {
+          "k": 1,
+          "queries": 8,
+          "answerable": 5,
+          "unanswerable": 3,
+          "precision": 0.8,
+          "recall": 0.65,
+          "mrr": 0.8,
+          "ndcg": 0.8,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 3,
+          "queries": 8,
+          "answerable": 5,
+          "unanswerable": 3,
+          "precision": 0.39999999999999997,
+          "recall": 0.75,
+          "mrr": 0.8,
+          "ndcg": 0.8,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 6,
+          "queries": 8,
+          "answerable": 5,
+          "unanswerable": 3,
+          "precision": 0.2333333333333333,
+          "recall": 0.8,
+          "mrr": 0.8,
+          "ndcg": 0.8,
+          "falsePositiveRate": 0
+        }
+      ]
+    }
+  },
+  "results": [
+    {
+      "id": "dense-structure",
+      "language": "en",
+      "group": "overlap",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+      },
+      "judgements": [
+        {
+          "id": "game:library:same@a3fc7ba65abb7ae0004248908a93addabb5b7f87927454ac7c6b429d7e9a07f8/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+        },
+        {
+          "id": "game:library:missing-one@1e784c2aca62a710fa6639d424e60117ff03421b0f3027151a051e6b88c508e8/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+        },
+        {
+          "id": "game:library:advance-one@46876e0bd709fde79596c3d99f2f6d8930c6b07bcc82161e8e9fe4fcd41acc55/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+        },
+        {
+          "id": "game:library:advance-two@b50d2931b3cc37a0f0b72eefa58e10f1be773d3f9d25ba2b0f2bfbbd63773a8b/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:same@a3fc7ba65abb7ae0004248908a93addabb5b7f87927454ac7c6b429d7e9a07f8/ply/0/comment/0/text/0-22",
+          "sourceId": "source:library:same",
+          "documentId": "game:library:same",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:same@a3fc7ba65abb7ae0004248908a93addabb5b7f87927454ac7c6b429d7e9a07f8/ply/0",
+          "gameId": "same",
+          "collection": "library",
+          "ply": 0,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 99,
+            "end": 121,
+            "unit": "utf-16"
+          },
+          "score": 0.01639344262295082,
+          "matched": [],
+          "excerpt": {
+            "text": "Authored pawn diagram.",
+            "start": 0,
+            "end": 22
+          }
+        },
+        {
+          "id": "game:library:missing-one@1e784c2aca62a710fa6639d424e60117ff03421b0f3027151a051e6b88c508e8/ply/0/comment/0/text/0-22",
+          "sourceId": "source:library:missing-one",
+          "documentId": "game:library:missing-one",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:missing-one@1e784c2aca62a710fa6639d424e60117ff03421b0f3027151a051e6b88c508e8/ply/0",
+          "gameId": "missing-one",
+          "collection": "library",
+          "ply": 0,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/1PPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 106,
+            "end": 128,
+            "unit": "utf-16"
+          },
+          "score": 0.016129032258064516,
+          "matched": [],
+          "excerpt": {
+            "text": "Authored pawn diagram.",
+            "start": 0,
+            "end": 22
+          }
+        },
+        {
+          "id": "game:library:advance-one@46876e0bd709fde79596c3d99f2f6d8930c6b07bcc82161e8e9fe4fcd41acc55/ply/0/comment/0/text/0-22",
+          "sourceId": "source:library:advance-one",
+          "documentId": "game:library:advance-one",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:advance-one@46876e0bd709fde79596c3d99f2f6d8930c6b07bcc82161e8e9fe4fcd41acc55/ply/0",
+          "gameId": "advance-one",
+          "collection": "library",
+          "ply": 0,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 107,
+            "end": 129,
+            "unit": "utf-16"
+          },
+          "score": 0.015873015873015872,
+          "matched": [],
+          "excerpt": {
+            "text": "Authored pawn diagram.",
+            "start": 0,
+            "end": 22
+          }
+        },
+        {
+          "id": "game:library:advance-two@b50d2931b3cc37a0f0b72eefa58e10f1be773d3f9d25ba2b0f2bfbbd63773a8b/ply/0/comment/0/text/0-22",
+          "sourceId": "source:library:advance-two",
+          "documentId": "game:library:advance-two",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:advance-two@b50d2931b3cc37a0f0b72eefa58e10f1be773d3f9d25ba2b0f2bfbbd63773a8b/ply/0",
+          "gameId": "advance-two",
+          "collection": "library",
+          "ply": 0,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/PP6/2PPPPPP/RNBQKBNR w KQkq - 0 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 107,
+            "end": 129,
+            "unit": "utf-16"
+          },
+          "score": 0.015625,
+          "matched": [],
+          "excerpt": {
+            "text": "Authored pawn diagram.",
+            "start": 0,
+            "end": 22
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 0.25,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 3,
+          "relevant": 3,
+          "precision": 1,
+          "recall": 0.75,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 4,
+          "relevant": 4,
+          "precision": 0.6666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "black-turn",
+      "language": "en",
+      "group": "turn",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1"
+      },
+      "judgements": [
+        {
+          "id": "game:library:black@379ab1812c1701e73d0f9b9ebca078c49fe06e5ff34fddfc887b22cae7adde8c/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "Only the black-to-move source is dynamically compatible."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:black@379ab1812c1701e73d0f9b9ebca078c49fe06e5ff34fddfc887b22cae7adde8c/ply/0/comment/0/text/0-22",
+          "sourceId": "source:library:black",
+          "documentId": "game:library:black",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:black@379ab1812c1701e73d0f9b9ebca078c49fe06e5ff34fddfc887b22cae7adde8c/ply/0",
+          "gameId": "black",
+          "collection": "library",
+          "ply": 0,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/P7/1PPPPPPP/RNBQKBNR b KQkq - 0 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 101,
+            "end": 123,
+            "unit": "utf-16"
+          },
+          "score": 0.01639344262295082,
+          "matched": [],
+          "excerpt": {
+            "text": "Authored pawn diagram.",
+            "start": 0,
+            "end": 22
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "in-check",
+      "language": "en",
+      "group": "check",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "r1bqkbnr/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+      },
+      "judgements": [
+        {
+          "id": "game:library:checked@acdd3471f0c2b00efb1c1f74c24c130fded88d796e1662aca6a367732fac50cc/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "An exact checked diagram is relevant; quiet structures cannot substitute for it."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:checked@acdd3471f0c2b00efb1c1f74c24c130fded88d796e1662aca6a367732fac50cc/ply/0/comment/0/text/0-22",
+          "sourceId": "source:library:checked",
+          "documentId": "game:library:checked",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:checked@acdd3471f0c2b00efb1c1f74c24c130fded88d796e1662aca6a367732fac50cc/ply/0",
+          "gameId": "checked",
+          "collection": "library",
+          "ply": 0,
+          "fen": "r1bqkbnr/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 104,
+            "end": 126,
+            "unit": "utf-16"
+          },
+          "score": 0.01639344262295082,
+          "matched": [],
+          "excerpt": {
+            "text": "Authored pawn diagram.",
+            "start": 0,
+            "end": 22
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "quarter-boundary",
+      "language": "en",
+      "group": "boundary",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "4k3/8/8/8/8/8/PPPP4/4K3 w - - 0 1"
+      },
+      "judgements": [
+        {
+          "id": "game:library:boundary@82dc82a45b6cb249f7f0a6c13152fad342009f137b948c01f4f93c3413bce889/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "Three of four pawn squares remain; one missing pawn is a useful spatial analogy."
+        }
+      ],
+      "ranked": [
+        {
+          "id": "game:library:boundary@82dc82a45b6cb249f7f0a6c13152fad342009f137b948c01f4f93c3413bce889/ply/0/comment/0/text/0-22",
+          "sourceId": "source:library:boundary",
+          "documentId": "game:library:boundary",
+          "kind": "annotation",
+          "language": "und",
+          "occurrenceId": "game:library:boundary@82dc82a45b6cb249f7f0a6c13152fad342009f137b948c01f4f93c3413bce889/ply/0",
+          "gameId": "boundary",
+          "collection": "library",
+          "ply": 0,
+          "fen": "4k3/8/8/8/8/8/PPP5/4K3 w - - 0 1",
+          "guideId": null,
+          "locator": {
+            "format": "pgn",
+            "start": 79,
+            "end": 101,
+            "unit": "utf-16"
+          },
+          "score": 0.03278688524590164,
+          "matched": [],
+          "excerpt": {
+            "text": "Authored pawn diagram.",
+            "start": 0,
+            "end": 22
+          }
+        }
+      ],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 1,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.3333333333333333,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 1,
+          "relevant": 1,
+          "precision": 0.16666666666666666,
+          "recall": 1,
+          "reciprocalRank": 1,
+          "ndcg": 1,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "single-pawn-shift",
+      "language": "en",
+      "group": "sparse",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "4k3/8/8/8/8/5P2/8/4K3 w - - 0 1"
+      },
+      "judgements": [
+        {
+          "id": "game:library:single@d5b114cf2a1cce77428dbc717c3a30241ef6ef114d86fffcee432e3f26f5427e/ply/0/comment/0/text/0-22",
+          "grade": 2,
+          "reason": "A one-square advance in a one-pawn diagram is spatially nearby, although square-set overlap will miss it. No plan transfer is asserted."
+        }
+      ],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": 0,
+          "recall": 0,
+          "reciprocalRank": 0,
+          "ndcg": 0,
+          "falsePositive": null
+        }
+      ]
+    },
+    {
+      "id": "pawnless",
+      "language": "en",
+      "group": "no-answer",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "7k/8/8/8/8/8/8/K7 w - - 0 1"
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "unrelated",
+      "language": "en",
+      "group": "no-answer",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "4k3/8/p7/8/8/4PPPP/8/4K3 w - - 0 1"
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    },
+    {
+      "id": "wrong-turn-boundary",
+      "language": "en",
+      "group": "no-answer",
+      "text": "analogy",
+      "options": {
+        "language": "en",
+        "kind": "annotation",
+        "collection": "library",
+        "limit": 6,
+        "fen": "4k3/8/8/8/8/8/PPPP4/4K3 b - - 0 1"
+      },
+      "judgements": [],
+      "ranked": [],
+      "scores": [
+        {
+          "k": 1,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 3,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        },
+        {
+          "k": 6,
+          "returned": 0,
+          "relevant": 0,
+          "precision": null,
+          "recall": null,
+          "reciprocalRank": null,
+          "ndcg": null,
+          "falsePositive": false
+        }
+      ]
+    }
+  ],
+  "metric": {
+    "version": "pawn-square-jaccard-v1",
+    "nearby": 0.25
+  },
+  "baseline": {
+    "schemaVersion": 1,
+    "suite": "kibitz-pawn-distance",
+    "suiteVersion": 1,
+    "retriever": "pawn-exact-only-v1",
+    "corpusHash": "231502b14a40b89b9a8a0e0408b4f8b92ec116255740bab280af004fb9290d3f",
+    "casesHash": "43472da7c646ce19a635d369f454337a2f8a8d9fdfe826af4d0801a3972eb125",
+    "cutoffs": [
+      1,
+      3,
+      6
+    ],
+    "counts": {
+      "queries": 8,
+      "passages": 10,
+      "annotations": 10,
+      "guides": 0
+    },
+    "summary": {
+      "overall": [
+        {
+          "k": 1,
+          "queries": 8,
+          "answerable": 5,
+          "unanswerable": 3,
+          "precision": 0.4,
+          "recall": 0.25,
+          "mrr": 0.4,
+          "ndcg": 0.4,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 3,
+          "queries": 8,
+          "answerable": 5,
+          "unanswerable": 3,
+          "precision": 0.13333333333333333,
+          "recall": 0.25,
+          "mrr": 0.4,
+          "ndcg": 0.29385574520455127,
+          "falsePositiveRate": 0
+        },
+        {
+          "k": 6,
+          "queries": 8,
+          "answerable": 5,
+          "unanswerable": 3,
+          "precision": 0.06666666666666667,
+          "recall": 0.25,
+          "mrr": 0.4,
+          "ndcg": 0.27807600999842036,
+          "falsePositiveRate": 0
+        }
+      ],
+      "byGroup": {
+        "overlap": [
+          {
+            "k": 1,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 1,
+            "recall": 0.25,
+            "mrr": 1,
+            "ndcg": 1,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 3,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "mrr": 1,
+            "ndcg": 0.4692787260227565,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 6,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0.16666666666666666,
+            "recall": 0.25,
+            "mrr": 1,
+            "ndcg": 0.3903800499921017,
+            "falsePositiveRate": null
+          }
+        ],
+        "turn": [
+          {
+            "k": 1,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 3,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 6,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          }
+        ],
+        "check": [
+          {
+            "k": 1,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 1,
+            "recall": 1,
+            "mrr": 1,
+            "ndcg": 1,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 3,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0.3333333333333333,
+            "recall": 1,
+            "mrr": 1,
+            "ndcg": 1,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 6,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0.16666666666666666,
+            "recall": 1,
+            "mrr": 1,
+            "ndcg": 1,
+            "falsePositiveRate": null
+          }
+        ],
+        "boundary": [
+          {
+            "k": 1,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 3,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 6,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          }
+        ],
+        "sparse": [
+          {
+            "k": 1,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 3,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          },
+          {
+            "k": 6,
+            "queries": 1,
+            "answerable": 1,
+            "unanswerable": 0,
+            "precision": 0,
+            "recall": 0,
+            "mrr": 0,
+            "ndcg": 0,
+            "falsePositiveRate": null
+          }
+        ],
+        "no-answer": [
+          {
+            "k": 1,
+            "queries": 3,
+            "answerable": 0,
+            "unanswerable": 3,
+            "precision": null,
+            "recall": null,
+            "mrr": null,
+            "ndcg": null,
+            "falsePositiveRate": 0
+          },
+          {
+            "k": 3,
+            "queries": 3,
+            "answerable": 0,
+            "unanswerable": 3,
+            "precision": null,
+            "recall": null,
+            "mrr": null,
+            "ndcg": null,
+            "falsePositiveRate": 0
+          },
+          {
+            "k": 6,
+            "queries": 3,
+            "answerable": 0,
+            "unanswerable": 3,
+            "precision": null,
+            "recall": null,
+            "mrr": null,
+            "ndcg": null,
+            "falsePositiveRate": 0
+          }
+        ]
+      },
+      "byLanguage": {
+        "en": [
+          {
+            "k": 1,
+            "queries": 8,
+            "answerable": 5,
+            "unanswerable": 3,
+            "precision": 0.4,
+            "recall": 0.25,
+            "mrr": 0.4,
+            "ndcg": 0.4,
+            "falsePositiveRate": 0
+          },
+          {
+            "k": 3,
+            "queries": 8,
+            "answerable": 5,
+            "unanswerable": 3,
+            "precision": 0.13333333333333333,
+            "recall": 0.25,
+            "mrr": 0.4,
+            "ndcg": 0.29385574520455127,
+            "falsePositiveRate": 0
+          },
+          {
+            "k": 6,
+            "queries": 8,
+            "answerable": 5,
+            "unanswerable": 3,
+            "precision": 0.06666666666666667,
+            "recall": 0.25,
+            "mrr": 0.4,
+            "ndcg": 0.27807600999842036,
+            "falsePositiveRate": 0
+          }
+        ]
+      }
+    },
+    "results": [
+      {
+        "id": "dense-structure",
+        "language": "en",
+        "group": "overlap",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        },
+        "judgements": [
+          {
+            "id": "game:library:same@a3fc7ba65abb7ae0004248908a93addabb5b7f87927454ac7c6b429d7e9a07f8/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+          },
+          {
+            "id": "game:library:missing-one@1e784c2aca62a710fa6639d424e60117ff03421b0f3027151a051e6b88c508e8/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+          },
+          {
+            "id": "game:library:advance-one@46876e0bd709fde79596c3d99f2f6d8930c6b07bcc82161e8e9fe4fcd41acc55/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+          },
+          {
+            "id": "game:library:advance-two@b50d2931b3cc37a0f0b72eefa58e10f1be773d3f9d25ba2b0f2bfbbd63773a8b/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "Exact structure, one missing pawn and one/two advanced pawns are useful spatial references; the three-advance diagram is a distractor."
+          }
+        ],
+        "ranked": [
+          {
+            "id": "game:library:same@a3fc7ba65abb7ae0004248908a93addabb5b7f87927454ac7c6b429d7e9a07f8/ply/0/comment/0/text/0-22",
+            "sourceId": "source:library:same",
+            "documentId": "game:library:same",
+            "kind": "annotation",
+            "language": "und",
+            "occurrenceId": "game:library:same@a3fc7ba65abb7ae0004248908a93addabb5b7f87927454ac7c6b429d7e9a07f8/ply/0",
+            "gameId": "same",
+            "collection": "library",
+            "ply": 0,
+            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "guideId": null,
+            "locator": {
+              "format": "pgn",
+              "start": 99,
+              "end": 121,
+              "unit": "utf-16"
+            },
+            "score": 0.01639344262295082,
+            "matched": [],
+            "excerpt": {
+              "text": "Authored pawn diagram.",
+              "start": 0,
+              "end": 22
+            }
+          }
+        ],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 1,
+            "relevant": 1,
+            "precision": 1,
+            "recall": 0.25,
+            "reciprocalRank": 1,
+            "ndcg": 1,
+            "falsePositive": null
+          },
+          {
+            "k": 3,
+            "returned": 1,
+            "relevant": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "reciprocalRank": 1,
+            "ndcg": 0.4692787260227565,
+            "falsePositive": null
+          },
+          {
+            "k": 6,
+            "returned": 1,
+            "relevant": 1,
+            "precision": 0.16666666666666666,
+            "recall": 0.25,
+            "reciprocalRank": 1,
+            "ndcg": 0.3903800499921017,
+            "falsePositive": null
+          }
+        ]
+      },
+      {
+        "id": "black-turn",
+        "language": "en",
+        "group": "turn",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1"
+        },
+        "judgements": [
+          {
+            "id": "game:library:black@379ab1812c1701e73d0f9b9ebca078c49fe06e5ff34fddfc887b22cae7adde8c/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "Only the black-to-move source is dynamically compatible."
+          }
+        ],
+        "ranked": [],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          },
+          {
+            "k": 3,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          },
+          {
+            "k": 6,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          }
+        ]
+      },
+      {
+        "id": "in-check",
+        "language": "en",
+        "group": "check",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "r1bqkbnr/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        },
+        "judgements": [
+          {
+            "id": "game:library:checked@acdd3471f0c2b00efb1c1f74c24c130fded88d796e1662aca6a367732fac50cc/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "An exact checked diagram is relevant; quiet structures cannot substitute for it."
+          }
+        ],
+        "ranked": [
+          {
+            "id": "game:library:checked@acdd3471f0c2b00efb1c1f74c24c130fded88d796e1662aca6a367732fac50cc/ply/0/comment/0/text/0-22",
+            "sourceId": "source:library:checked",
+            "documentId": "game:library:checked",
+            "kind": "annotation",
+            "language": "und",
+            "occurrenceId": "game:library:checked@acdd3471f0c2b00efb1c1f74c24c130fded88d796e1662aca6a367732fac50cc/ply/0",
+            "gameId": "checked",
+            "collection": "library",
+            "ply": 0,
+            "fen": "r1bqkbnr/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            "guideId": null,
+            "locator": {
+              "format": "pgn",
+              "start": 104,
+              "end": 126,
+              "unit": "utf-16"
+            },
+            "score": 0.01639344262295082,
+            "matched": [],
+            "excerpt": {
+              "text": "Authored pawn diagram.",
+              "start": 0,
+              "end": 22
+            }
+          }
+        ],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 1,
+            "relevant": 1,
+            "precision": 1,
+            "recall": 1,
+            "reciprocalRank": 1,
+            "ndcg": 1,
+            "falsePositive": null
+          },
+          {
+            "k": 3,
+            "returned": 1,
+            "relevant": 1,
+            "precision": 0.3333333333333333,
+            "recall": 1,
+            "reciprocalRank": 1,
+            "ndcg": 1,
+            "falsePositive": null
+          },
+          {
+            "k": 6,
+            "returned": 1,
+            "relevant": 1,
+            "precision": 0.16666666666666666,
+            "recall": 1,
+            "reciprocalRank": 1,
+            "ndcg": 1,
+            "falsePositive": null
+          }
+        ]
+      },
+      {
+        "id": "quarter-boundary",
+        "language": "en",
+        "group": "boundary",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "4k3/8/8/8/8/8/PPPP4/4K3 w - - 0 1"
+        },
+        "judgements": [
+          {
+            "id": "game:library:boundary@82dc82a45b6cb249f7f0a6c13152fad342009f137b948c01f4f93c3413bce889/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "Three of four pawn squares remain; one missing pawn is a useful spatial analogy."
+          }
+        ],
+        "ranked": [],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          },
+          {
+            "k": 3,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          },
+          {
+            "k": 6,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          }
+        ]
+      },
+      {
+        "id": "single-pawn-shift",
+        "language": "en",
+        "group": "sparse",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "4k3/8/8/8/8/5P2/8/4K3 w - - 0 1"
+        },
+        "judgements": [
+          {
+            "id": "game:library:single@d5b114cf2a1cce77428dbc717c3a30241ef6ef114d86fffcee432e3f26f5427e/ply/0/comment/0/text/0-22",
+            "grade": 2,
+            "reason": "A one-square advance in a one-pawn diagram is spatially nearby, although square-set overlap will miss it. No plan transfer is asserted."
+          }
+        ],
+        "ranked": [],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          },
+          {
+            "k": 3,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          },
+          {
+            "k": 6,
+            "returned": 0,
+            "relevant": 0,
+            "precision": 0,
+            "recall": 0,
+            "reciprocalRank": 0,
+            "ndcg": 0,
+            "falsePositive": null
+          }
+        ]
+      },
+      {
+        "id": "pawnless",
+        "language": "en",
+        "group": "no-answer",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "7k/8/8/8/8/8/8/K7 w - - 0 1"
+        },
+        "judgements": [],
+        "ranked": [],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          },
+          {
+            "k": 3,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          },
+          {
+            "k": 6,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          }
+        ]
+      },
+      {
+        "id": "unrelated",
+        "language": "en",
+        "group": "no-answer",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "4k3/8/p7/8/8/4PPPP/8/4K3 w - - 0 1"
+        },
+        "judgements": [],
+        "ranked": [],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          },
+          {
+            "k": 3,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          },
+          {
+            "k": 6,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          }
+        ]
+      },
+      {
+        "id": "wrong-turn-boundary",
+        "language": "en",
+        "group": "no-answer",
+        "text": "analogy",
+        "options": {
+          "language": "en",
+          "kind": "annotation",
+          "collection": "library",
+          "limit": 6,
+          "fen": "4k3/8/8/8/8/8/PPPP4/4K3 b - - 0 1"
+        },
+        "judgements": [],
+        "ranked": [],
+        "scores": [
+          {
+            "k": 1,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          },
+          {
+            "k": 3,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          },
+          {
+            "k": 6,
+            "returned": 0,
+            "relevant": 0,
+            "precision": null,
+            "recall": null,
+            "reciprocalRank": null,
+            "ndcg": null,
+            "falsePositive": false
+          }
+        ]
+      }
+    ]
+  }
+}

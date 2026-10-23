@@ -6,6 +6,8 @@ TODO 8.3.1 subsequently adds the separate [lexical passage benchmark](TEXT-SEARC
 
 Explicit `--mode dense` and `--mode hybrid` comparisons followed in 8.3.2/8.4. They call the configured embedding provider on authored data, require `--allow-cloud` for cloud providers and never load `.env` or saved player data. The [hybrid report](HYBRID-SEARCH.md#measured-comparison) separates unchanged text queries, an every-term ablation and ten board/intent cases.
 
+TODO 8.5 adds an offline `--mode pawns` [spatial benchmark](PAWN-DISTANCE.md#reproducible-spatial-benchmark) with ten original diagrams/eight separate queries. It compares the production exact/fuzzy position component, including an intentional sparse false negative; its corpus, labels and relevance task are separate from this original position suite.
+
 ## Running
 
 From the repository root, with the site's npm dependencies installed:

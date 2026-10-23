@@ -7,6 +7,8 @@ Two independent options express intent:
 - **Favor the current board** adds exact-position, pawn and shared-feature signals for the visible game or scratch position. The FEN/features stay local; embedding queries contain only the entered text.
 - **Require every search term** keeps only passages whose title/body contains all normalised non-stopword query terms. This supports exact lookups and empty results. It can reject useful paraphrases and does not establish semantic support or chess correctness.
 
+TODO **8.5** adds **Include similar pawn structures**, enabled with board relevance. It permits at least 75% colour-specific pawn-square overlap and shows unmatched squares. It defaults off; [metric and spatial benchmark](PAWN-DISTANCE.md) record the definition and sparse-position limitations.
+
 Results distinguish complete term coverage from merely related text. **Why this result** shows which paths found the passage, any exact/pawn relation and shared feature labels. The existing literal text, source/licence and exact annotated-position navigation remain available. No result is added to a tutor prompt by this feature.
 
 ## Candidate channels and reranking
@@ -17,7 +19,7 @@ Results distinguish complete term coverage from merely related text. **Why this 
 | --- | --- |
 | Keywords | Existing title/body BM25, including German move-letter aliases. No positive score means no lexical candidate. |
 | Meaning | Cosine-ranked vectors from the current selected source index and identical embedding identity/dimensions. Returned IDs must belong to the eligible local corpus. |
-| Position | Exact EPD, including turn/castling/legal en-passant rights; otherwise identical **nonempty** pawn placement with matching turn, check state and phase. Pawnless positions do not gain a pawn-analogy signal. |
+| Position | Exact EPD, including turn/castling/legal en-passant rights; otherwise nonempty pawn placement with matching turn, check state and phase. Default distance is zero; 8.5 optionally permits Jaccard distance up to 0.25 and orders this channel by increasing distance. Pawnless positions do not gain a pawn-analogy signal. |
 | Feature tags | Jaccard overlap of current position-feature tags. Annotation tags come from legal FENs; an authored guide contributes its known catalogue concept. Generic phase/king-activity tags are omitted. An annotation with incompatible turn/check/phase receives no tag boost. |
 
 Imported titles, prose and claimed theme metadata cannot create board facts. Feature detection remains heuristic; no Stockfish search or tactical verification occurs here. Guides remain general background without an invented FEN. Source check/phase compatibility limits a board boost, not all text retrieval: an incompatible historical board can still be a relevant text result, without a matching-board badge.
@@ -63,4 +65,4 @@ A separate ten-query board/intent suite covers repeated first/second notes, QGD 
 
 This implements bounded fusion and deterministic reranking, without a learned cross-encoder or model-specific relevance threshold. Calibrated semantic abstention needs separately reviewed intent/support labels, source-family splits and held-out evaluation. The literal filter is not a substitute, and no similarity score is shown as confidence.
 
-Material/piece-placement signatures remain 8.1, richer per-position/move motif tags remain 8.2, fuzzy pawn distance remains 8.5, and tutor retrieval/citation validation remains 8.6. Current board features can select an analogy; engine evidence must still check any advice in the current position. Larger licensed corpora, persistence and source deduplication remain milestone 7.
+Material/piece-placement signatures remain 8.1, richer per-position/move motif tags remain 8.2, and tutor retrieval/citation validation remains 8.6. Optional [fuzzy pawn distance](PAWN-DISTANCE.md) followed in 8.5; the recorded 8.4 comparison retains its original policy. Current board features can select an analogy; engine evidence must still check any advice in the current position. Larger licensed corpora, persistence and source deduplication remain milestone 7.

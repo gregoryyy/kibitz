@@ -32,6 +32,8 @@ In **Library**, PGN imports accept optional source title, author/curator, URL an
 
 **Combined** search adds rank fusion and optional current-board relevance over exact/pawn/feature-tag signals. **Why this result** explains the match. **Require every search term** supports literal lookups with empty results; it can exclude paraphrases and does not verify an answer. Board and option changes cancel stale results without sending a replacement. [Hybrid design and results](../docs/HYBRID-SEARCH.md) record the measured ranking/recall tradeoffs; `just retrieval-eval --mode hybrid` runs the explicit provider comparison over authored data only.
 
+With board relevance enabled, **Include similar pawn structures** optionally admits at least 75% colour-specific pawn-square overlap. Match details show shared and unmatched squares; exact positions keep their own label. [Pawn distance and its limits](../docs/PAWN-DISTANCE.md) include an offline benchmark (`just retrieval-eval --mode pawns`) and the known miss when the only pawn advances one square. The option defaults off and sends no new request until Search.
+
 ## Layout
 
 ```

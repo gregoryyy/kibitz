@@ -7,6 +7,33 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Fuzzy pawn-structure distance
+
+TODO items: 8.5.
+
+### Implementation notes
+
+- Added pure, JSDoc-typed `pawn-distance.js`: bounded pawn-signature decoding into literal colour/square sets and Jaccard distance with shared/union counts plus detached directional difference lists. Empty/empty is zero at the feature level; retrieval separately refuses empty-pawn analogies. No colours, directions or board reflections are normalised, and no connecting move sequence is inferred.
+- Combined search adds optional **Include similar pawn structures** under explicit board relevance, defaulting off. Its fixed maximum distance is 0.25, equivalent to at least 75% shared colour/square tokens in their union. The position channel orders exact boards first, then compatible pawn candidates by increasing distance and stable ID; turn/check/phase, source/language/collection and literal-term constraints remain in force. Hybrid policy advances to `rrf-board-terms-v2` with the pawn metric version; embedding input/identity is unchanged.
+- **Why this result** distinguishes exact boards, identical pawns and similar structures, and shows shared counts plus current-only/source-only squares with pawn colours. Source navigation retains its exact legal occurrence, including FEN roots. Toggling the distance option cancels pending results and held actions without erasing valid source vectors or automatically uploading a query. Existing game/scratch/source/help-policy boundaries remain enforced; FEN/feature data stay local.
+- Root `utils/retrieval-eval.mjs --mode pawns` adds an offline component comparison over ten original source diagrams/eight manually labelled spatial queries. Both variants use the production profile/retrieval path and identical dynamic/source checks; no dense candidates or text matches supply filler. The adapter sees no gold labels or case IDs. The shared text runner now accepts explicit authored corpora/guide sets while preserving existing defaults and recorded baselines.
+- [Recorded JSON/Markdown](eval/retrieval/pawn-distance.md) gives precision@1 0.800 and recall@3 0.750 for fuzzy matching, versus 0.400/0.250 with exact pawn placement; both reject its three no-answer requests. The one-pawn single-square advance is deliberately relevant and remains missed because its square sets are disjoint. These constructed, shared-family development cases do not establish general retrieval quality, advice transfer or teaching benefit.
+- Eleven new unit/evaluation scenarios cover independent overlap/bit arithmetic, metric bounds on an enumerated feature universe, colour/empty/invalid cases, cutoff boundaries, graded ordering, dynamic eligibility, scope, detached explanations, canonical source locators, sparse misses and provider-free CLI/report reproduction. Six browser scenarios isolate structural candidates with orthogonal fake embeddings, then check explicit opt-in, exact source navigation, stale work/held actions, restricted help, deletion, scratch turn changes and translated German phone explanations.
+- Validation: lint/types, a fresh build and the full mock-provider unit/gateway suite pass (359 passed, one opt-in test skipped). All 201 browser scenarios pass across two runs, with one opt-in live-model skip: the initial full run stopped after case 190 with a disk-full reporter error; all 26 tools/tutor/UX cases then passed, covering every remaining case. All thirteen targeted hybrid/pawn scenarios also pass. The German phone layout was inspected without overflow or untranslated controls. Recorded pawn JSON/Markdown reproduce exactly, all 75 checked local documentation links resolve and the staged diff passes whitespace checks.
+
+### Deviations
+
+- Chose the transparent square-set overlap baseline from the similarity research; the cutoff is an explicit heuristic, not a tuned relevance threshold. A one-square and a distant relocation have the same feature cost, and a missing pawn is cheaper than moving it. Assignment/transport or learned distances need separate definitions, labels and evaluation.
+- The runtime consumer is Combined Library passage search. The older Reading/coach `similarPositions()` buckets and their original position benchmark remain unchanged; richer position-index work remains 8.1. Material/placement features, richer motif indexing and tutor retrieval/citations remain 8.1/8.2/8.6. No new provider, dependency, external corpus or `llmkit` code was added.
+
+### Insights
+
+- Distance zero on pawn features is not board identity, and empty pawn sets need an explicit retrieval eligibility rule. Rights and side still belong to the exact board key.
+- A graded overlap baseline recovers some useful structural neighbours while visibly missing sparse endings. Keep that failure in the labels rather than choosing a cutoff that hides it or presenting distance as confidence.
+- Fuzzy-match intent belongs in the same captured query state as board FEN and literal-term policy. Changing it can invalidate an asynchronous result or held source action without changing the game generation.
+
+---
+
 ## 2026-10-23 — Hybrid passage retrieval with explicit board intent
 
 TODO items: 8.4.

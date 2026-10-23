@@ -539,6 +539,8 @@ a.ext { color: var(--accent); font-size: 14px; }
           <div id="studyHybridControls" hidden>
             <p class="hint">Combine text matches and optional board relevance. Results may only be related to your question.</p>
             <label><input type="checkbox" id="studyBoardRelevance"> Favor the current board</label>
+            <label><input type="checkbox" id="studyNearbyPawns" disabled> Include similar pawn structures</label>
+            <p class="hint">Similar structures require at least 75% overlap of colour-specific pawn squares.</p>
             <label><input type="checkbox" id="studyAllTerms"> Require every search term</label>
             <p class="hint">Requiring terms checks their spelling in the title or passage, not whether the passage answers your question.</p>
           </div>
@@ -714,6 +716,7 @@ import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideText
 import { annotationPassages, guidePassages, searchText } from './text-search.js';
 import { DenseSession, DENSE_LIMITS, embeddingIdentity, selectPassages } from './dense-search.js';
 import { buildHybridIndex, searchHybrid, HYBRID_POLICY } from './hybrid-search.js';
+import { PAWN_DISTANCE_POLICY } from './pawn-distance.js';
 import { namedContinuations, namedOpeningContext } from './opening-variations.js';
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
@@ -2175,7 +2178,10 @@ function renderStudySearch() {
     if (evidence) card.append(el('p', { class: 'hint' }, evidence.complete ? 'Contains every search term; support is not verified.' : 'Related text; some search terms are absent.'),
       el('details', {}, el('summary', {}, 'Why this result'),
         el('p', {}, evidence.channels.includes('keywords') && evidence.channels.includes('meaning') ? 'Found by keywords and meaning' : evidence.channels.includes('keywords') ? 'Found by keywords' : evidence.channels.includes('meaning') ? 'Found by meaning' : 'Found by board features'),
-        evidence.board ? el('p', {}, evidence.board === 'exact' ? 'Same position, including turn and rights' : 'Same pawns with matching turn, check and phase') : null,
+        evidence.board ? el('p', {}, evidence.board === 'exact' ? 'Same position, including turn and rights' : evidence.board === 'near-pawns' ? 'Similar pawn structure' : 'Same pawns with matching turn, check and phase') : null,
+        evidence.pawn ? el('div', {}, el('p', {}, `Shared pawn squares: ${evidence.pawn.shared} of ${evidence.pawn.total}`),
+          el('p', {}, el('span', {}, 'Only on current board:'), ' ', pawnSquareList(evidence.pawn.onlyQuery)),
+          el('p', {}, el('span', {}, 'Only in source:'), ' ', pawnSquareList(evidence.pawn.onlySource))) : null,
         ...evidence.tags.map(tag => el('p', {}, K.TAG_LABELS[tag]))));
     if (p.kind === 'guide') card.append(el('p', { class: 'hint' }, { idea: 'Idea', plans: 'Typical plans', structure: 'Pawn structures' }[p.locator.section]));
     else {
@@ -2195,8 +2201,10 @@ function studyTextOptions() {
 }
 /** Capture board/filter intent separately: changing it cancels results but can retain source vectors. */
 function studyHybridContext() {
-  return $('#studyMethod').value === 'hybrid' ? JSON.stringify([$('#studyAllTerms').checked, $('#studyBoardRelevance').checked ? (SCRATCH ? scratchFen() : nodeFen()) : '']) : '';
+  return $('#studyMethod').value === 'hybrid' ? JSON.stringify([$('#studyAllTerms').checked, $('#studyBoardRelevance').checked ? (SCRATCH ? scratchFen() : nodeFen()) : '', $('#studyBoardRelevance').checked && $('#studyNearbyPawns').checked]) : '';
 }
+/** Literal validated colour/square tokens; this display does not pair pawns into legal moves. */
+function pawnSquareList(squares) { return squares.length ? el('span', { translate: 'no' }, squares.map(s => `${s[0] === 'w' ? '♙' : '♟'} ${s.slice(2)}`).join(', ')) : el('span', {}, 'None'); }
 /** Erase private vectors on source/account/policy changes, even while the Library tab is closed. */
 function syncDenseContext() {
   const context = JSON.stringify([Lib.where, Lib.uid, libraryIndexGen, studyTextOptions(), $('#studyMethod').value, showEngine(), !!GATEWAY?.localOnly]);
@@ -2238,6 +2246,7 @@ function renderDenseControls() {
   $('#studyDenseClear').disabled = !DENSE.session.index && !DENSE.busy;
   $('#studyDenseCancel').hidden = !DENSE.busy;
   $('#studyDenseRefresh').disabled = busy;
+  $('#studyNearbyPawns').disabled = !$('#studyBoardRelevance').checked;
   $('#studyDenseSearch').textContent = $('#studyMethod').value === 'hybrid' ? 'Search combined' : 'Search by meaning';
   const index = DENSE.session.index, meta = $('#studyDenseMetadata'); meta.replaceChildren();
   if (index) meta.append(el('p', {}, `Semantic index: ${index.passages.length} passages.`), el('details', {}, el('summary', {}, 'Embedding index details'),
@@ -2275,9 +2284,10 @@ async function runDenseAction(action) {
     } else {
       const hybrid = $('#studyMethod').value === 'hybrid', options = studyTextOptions();
       const fen = hybrid && $('#studyBoardRelevance').checked ? (SCRATCH ? scratchFen() : nodeFen()) : '', allTerms = $('#studyAllTerms').checked, index = HYBRID_INDEX;
+      const maxPawnDistance = fen && $('#studyNearbyPawns').checked ? PAWN_DISTANCE_POLICY.nearby : 0;
       const dense = await DENSE.session.search(query, descriptor, { ...options, ...(hybrid ? { limit: HYBRID_POLICY.candidates } : {}) });
       if (!current()) return;
-      const hits = hybrid ? searchHybrid(index, query, { ...options, dense, fen, allTerms }) : dense;
+      const hits = hybrid ? searchHybrid(index, query, { ...options, dense, fen, allTerms, maxPawnDistance }) : dense;
       if (current()) DENSE.hits = hits;
     }
   } catch (e) {
@@ -3946,6 +3956,7 @@ $('#studySource').addEventListener('change', renderStudySearch);
 $('#studyLanguage').addEventListener('change', renderStudySearch);
 $('#studyMethod').addEventListener('change', () => { renderStudySearch(); if ($('#studyMethod').value !== 'keyword') prepareDenseService(); });
 $('#studyBoardRelevance').addEventListener('change', renderStudySearch);
+$('#studyNearbyPawns').addEventListener('change', renderStudySearch);
 $('#studyAllTerms').addEventListener('change', renderStudySearch);
 $('#studyDenseBuild').addEventListener('click', () => runDenseAction('build'));
 $('#studyDenseSearch').addEventListener('click', () => runDenseAction('query'));

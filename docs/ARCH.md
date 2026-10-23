@@ -116,6 +116,8 @@ The existing flat local/account game documents gain an optional version-one prov
 
 **Hybrid retrieval** (`hybrid-search.js`, 8.4; [design and measured tradeoffs](HYBRID-SEARCH.md)) fuses up to twenty candidates each from BM25, dense, exact/nonempty-pawn and feature-tag channels using reciprocal ranks, then reranks complete term matches and exact boards. Board relevance is explicit: legal source FENs/current visible board supply profiles, with compatible turn/check/phase for analogies. Guides supply their catalogue concept rather than a fabricated board. An optional every-term constraint can return no passage; it is literal coverage rather than semantic support. Source IDs resolve to canonical local records, and query/filter/main/scratch-board changes invalidate pending results and held actions without automatically uploading a replacement. No learned reranker or calibrated confidence threshold is claimed.
 
+**Fuzzy pawn distance** (`pawn-distance.js`, 8.5; [definition and benchmark](PAWN-DISTANCE.md)) computes colour-specific pawn-square Jaccard distance. Combined search optionally admits up to 0.25 distance in its position channel, after the same dynamic/source eligibility checks. Exact boards remain distinct, and pawnless boards gain no analogy. The UI explains shared/unmatched squares; distance is neither a legal-move cost nor transferable-advice confidence. Default overlap remains exact. The legacy Reading/coach position buckets retain their earlier behaviour.
+
 The [offline retrieval benchmark](RETRIEVAL-EVAL.md) (8.8) replays a fixed, source-aware corpus through this production index. Manually labelled English/German queries distinguish exact matches, transpositions, requested occurrences, structural analogies and no-answer cases. It reports precision/recall/MRR/graded nDCG at 1/3/6 separately from no-answer false positives, with source revisions, corpus/case hashes and per-query rankings. It measures current retrieval limitations without a provider call or change to retrieval behaviour; it does not establish engine correctness or answer faithfulness.
 
 ### 3.3 Structured retrieval
@@ -127,7 +129,7 @@ Chess positions have structure that text embeddings would blur, so retrieval her
 - **Theme tags** from the detectors (IQP, Carlsbad, opposite castling, passed pawn, bishop pair, ...), which connect positions to books and lessons.
 - **Engine evaluations** are stored by EPD, from White's point of view, and shared by the board, the review and the coach.
 
-Planned: material and piece-placement signatures and fuzzy pawn-structure distance (8.1/8.5). Optional Combined Library search already fuses passage embeddings with current exact/pawn and feature-tag signals; richer signatures/motif indexing remain separate work.
+Planned: material and piece-placement signatures (8.1). Optional Combined Library search fuses passage embeddings with current exact/pawn and feature-tag signals, including opt-in fuzzy pawn distance (8.5); richer signatures/motif indexing remain separate work.
 
 The **opening explorer** (`openings.js`, 5.2) builds a separate EPD-keyed move graph from standard-start PGN mainlines in the reference collection. Transpositions join; each record contributes its first continuation at a position. Corpus filters, result counts and sample occurrences are explicit data queries. Continuation clicks use the scratch board and require the same help permission as engine analysis. This does not use a language model or an external explorer API.
 
