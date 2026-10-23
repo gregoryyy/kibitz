@@ -180,6 +180,14 @@ const GUIDES = [
   ] },
 ];
 
+/** Detached authored lesson text for local passage indexing, in both supported languages. */
+export function authoredGuideTexts() {
+  return GUIDES.flatMap(g => ['en', 'de'].map(language => {
+    const [title, idea, plans, structure] = g[language];
+    return { id: g.id, kind: g.kind, language, title, idea, plans, structure };
+  }));
+}
+
 /**
  * Capture the visible route only. An ancestor-rooted scratch line replaces the later game
  * path; a disconnected setup receives no opening history from the game behind it.

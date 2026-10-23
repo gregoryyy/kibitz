@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { runRetrievalBenchmark } from './benchmark.mjs';
+import { runTextBenchmark, renderTextReport } from './text-benchmark.mjs';
 
 const number = n => n === null ? '—' : n.toFixed(3);
 const cell = text => String(text).replaceAll('|', '\\|').replaceAll('\n', ' ');
@@ -39,10 +40,13 @@ export function renderRetrievalReport(report) {
  * @param {string[]} args Command-line arguments after the executable path.
  */
 export async function main(args) {
-  const { values } = parseArgs({ args, options: { out: { type: 'string' }, json: { type: 'boolean' }, help: { type: 'boolean' } }, strict: true });
-  if (values.help) { process.stdout.write('Usage: node utils/retrieval-eval.mjs [--json] [--out PATH_STEM]\n'); return; }
+  const { values } = parseArgs({ args, options: { mode: { type: 'string', default: 'position' }, out: { type: 'string' }, json: { type: 'boolean' }, help: { type: 'boolean' } }, strict: true });
+  if (values.help) { process.stdout.write('Usage: node utils/retrieval-eval.mjs [--mode position|text] [--json] [--out PATH_STEM]\n'); return; }
+  if (!['position', 'text'].includes(values.mode)) throw new Error('Unknown benchmark mode');
   if (values.out === '') throw new Error('--out needs a non-empty path stem');
-  const report = await runRetrievalBenchmark(), markdown = renderRetrievalReport(report), json = JSON.stringify(report, null, 2) + '\n';
+  const report = values.mode === 'text' ? await runTextBenchmark() : await runRetrievalBenchmark();
+  const markdown = values.mode === 'text' ? renderTextReport(report) : renderRetrievalReport(/** @type {Awaited<ReturnType<typeof runRetrievalBenchmark>>} */ (report));
+  const json = JSON.stringify(report, null, 2) + '\n';
   if (values.out) {
     await mkdir(path.dirname(values.out), { recursive: true });
     await writeFile(`${values.out}.json`, json);

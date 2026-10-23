@@ -4,6 +4,8 @@ Research date: **2026-10-23**. Repository audit: **`0176c62` on `main`**. These 
 
 Subsequent implementation: the [TODO 8.8 retrieval benchmark](../RETRIEVAL-EVAL.md) now records measured results for the production exact-position/pawn index. The research audit below retains its original scope and date.
 
+The [8.3.1 lexical passage baseline](../TEXT-SEARCH.md) adds local annotation/guide search and separately measured passage queries. Embedding/hybrid/graph comparisons remain future work.
+
 ## Reading order
 
 1. [AI use cases in milestones 5–7 and the Stockfish audit](milestones-5-7-ai.md): what the model should do, what rules and search should do, and which engine components Kibitz actually uses.
