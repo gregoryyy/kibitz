@@ -4,6 +4,12 @@
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
   'Discuss': 'Besprechen',
+  'Current game': 'Laufende Partie',
+  'Finished game': 'Beendete Partie',
+  'Review & analysis': 'Auswertung & Analyse',
+  'Full layout': 'Vollständige Ansicht',
+  'Pause this game for review? You can return to it here.': 'Diese Partie zur Auswertung pausieren? Du kannst hier zu ihr zurückkehren.',
+  'Pause and review': 'Pausieren und auswerten',
   'Current position': 'Aktuelle Stellung',
   'General chess': 'Allgemeine Schachfragen',
   'Return to my game': 'Zurück zu meiner Partie',

@@ -108,7 +108,7 @@ Guided paths that train a skill, not just answer questions.
 
 A primer that accompanies the repo and follows one chess question through the patterns in [ARCH.md](ARCH.md). Each step adds context and ends with what the coach can say at that point. The model stays the same, and the answer gets sharper as its context grows.
 
-- **Basis:** [A Gentle Primer on Neurosymbolic AI: Building a Chess Tutor](Primer_v01.pdf) (v01, October 2026). It is the Warsaw AI primer ("A Gentle Primer on Generative AI", 2026) adapted to this scenario, and it quotes the Opera Game flipbook. Part 1 covers the transformer, Part 2 the model's limits on the board and the engine and checker beside it, and Part 3 running such a system responsibly. What is still open is the hands-on part below.
+- **Basis:** [A Gentle Primer on Neurosymbolic AI: Building a Chess Tutor](primer/Primer_v01.pdf) (v01, October 2026). It is the Warsaw AI primer ("A Gentle Primer on Generative AI", 2026) adapted to this scenario, and it quotes the Opera Game flipbook. Part 1 covers the transformer, Part 2 the model's limits on the board and the engine and checker beside it, and Part 3 running such a system responsibly. What is still open is the hands-on part below.
 - **The scenario:** a club player has just played a move, and asks "What should I play now?"
 - **The steps:**
   1. The bare question with only the FEN: the model guesses, and names moves that are illegal or lose.

@@ -1,13 +1,15 @@
 # Architecture
 
-How Kibitz is built, and the ideas behind it. The plan is in [TODO.md](TODO.md), ideas beyond it in [ROAD.md](ROAD.md), and what was built, with its trade-offs, in [DONE.md](DONE.md). For a gentler introduction, from how a language model works to running such a system responsibly, see the [primer](Primer_v01.pdf); the [flipbook](flipbook/README.md) shows the app at work. Items that are planned but not built yet are marked with their TODO number.
+How Kibitz is built, and the ideas behind it. The plan is in [TODO.md](TODO.md), ideas beyond it in [ROAD.md](ROAD.md), and what was built, with its trade-offs, in [DONE.md](DONE.md). For a gentler introduction, from how a language model works to running such a system responsibly, see the [primer](primer/Primer_v01.pdf); the [flipbook](flipbook/README.md) shows the app at work. Items that are planned but not built yet are marked with their TODO number.
+
+The [research notes](research/README.md) examine AI responsibilities in milestones 5–7, Stockfish component use, retrieval methods and neurosymbolic game systems, distinguishing the current code from proposed experiments.
 
 ## Motivation
 
 The Kibitz repo uses a modern chess training app to demonstrate key concepts in LLM-based and neurosymbolic architecture. Chess suits this well:
 
-- **There is a ground truth.** Stockfish plays far above any human and its analysis can be checked, so every claim a language model makes can be measured against it. Where most domains have to trust the model or ask an expert, here a wrong move is visible at once.
-- **Calculation and explanation are different skills.** The engine is exact and silent, and the model is fluent but bad at calculating. The app needs both, which makes the division of labour between a symbolic and a neural system concrete instead of abstract.
+- **Rules and lines can be checked.** Legal moves and terminal game states have explicit rules. Stockfish supplies strong, finite-search evidence about continuations; its scores do not prove every strategic or explanatory claim. Those claims still need source support or chess-aware review.
+- **Calculation and explanation are different skills.** Stockfish combines neural evaluation with explicit search, while the language model puts checked evidence into words. Kibitz connects rules, search, features and sources to language rather than asking the language model to calculate from notation alone.
 - **The patterns are the ones production systems need.** Context control, retrieval, structured output, tool use, verification and agency under policy (section 3) all appear here, at a scale one person can read and run. The same shape fits other domains where a system of record knows the facts and a model explains them.
 - **It runs on one machine.** The engine, and even a small language model, run in the browser, so the whole architecture can be studied without cloud accounts or keys (section 4).
 
@@ -144,6 +146,8 @@ The page checks each call before it runs:
 The loop runs in the page, capped at four rounds and six calls per answer. A load analyses its new position before asking the model to explain it. The in-browser model and models that reject tools use fixed context; local commands such as `play e4`, `open the Opera Game`, `remove the queens` and `undo` work without tool support or an AI provider.
 
 The chat's Discuss control selects the current position or general chess. General questions keep their own history and send no board context. Each answer keeps a snapshot of the game and move it was about, with a button to revisit it in analysis. Leaving a running game keeps it in memory with a way back, including its clock; loads and scratch changes never write the saved library.
+
+Play and Study group the task tabs. Entering Review from a live game requires confirmation and pauses its snapshot; returning keeps the study's cursor and results so either session can be revisited. The board, dialogue and review identify their game and move. These paired sessions live in memory. On narrow screens the composer temporarily fits beside the board inside the visual viewport, following keyboard resizing; sending or choosing Full layout restores the normal arrangement.
 
 ### 3.6 Verification and guardrails
 
