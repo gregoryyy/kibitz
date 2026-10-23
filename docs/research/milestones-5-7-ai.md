@@ -30,7 +30,9 @@ Example: “Why is the minority attack relevant in this Carlsbad position?” sh
 
 Opening popularity, score in a historical sample and engine quality are different quantities. A move with a high sample win rate may reflect player strength or selection effects. Display the corpus and filters; do not turn those counts into an engine evaluation. Repetition scheduling needs no language model. A stored repertoire may deliberately select one move among several sound moves.
 
-**Current state:** 5.1 is implemented. [The ECO builder](../../site/scripts/build-eco.mjs) produces position names and named SAN lines from the bundled opening data. That data is not a frequency/win-rate explorer. The move graph, repertoire workflow and lesson passages above remain proposed work.
+**State at the audit baseline:** 5.1 is implemented. [The ECO builder](../../site/scripts/build-eco.mjs) produces position names and named SAN lines from the bundled opening data. That data is not a frequency/win-rate explorer. The move graph, repertoire workflow and lesson passages above were proposed work.
+
+**Implementation update, 2026-10-23:** [TODO 5.2](../TODO.md#5-opening-library) now has a local reference-game explorer in [`openings.js`](../../site/src/openings.js): transpositions, corpus filters, record counts/results, sample occurrences and scratch variations, subject to live-help settings. It needs no LLM. Repertoires, drills, explanations and the named-continuation panel remain planned.
 
 ## Milestone 6: curriculum
 

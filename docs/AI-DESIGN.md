@@ -1,6 +1,6 @@
 # LLM and symbolic design
 
-A brief map of the mechanisms combined across Kibitz's features. **Built** includes working prototypes; **Partial** distinguishes existing pieces from remaining work; **Planned** refers to [TODO](TODO.md); **Exploration** refers to [ROAD](ROAD.md). Application baseline: `1ce2f68`, 2026-10-23. Implementation details are in [ARCH](ARCH.md); background and research are linked below.
+A brief map of the mechanisms combined across Kibitz's features. **Built** includes working prototypes; **Partial** distinguishes existing pieces from remaining work; **Planned** refers to [TODO](TODO.md); **Exploration** refers to [ROAD](ROAD.md). Status updated 2026-10-23. Implementation details are in [ARCH](ARCH.md); background and research are linked below.
 
 ## The composition
 
@@ -29,7 +29,7 @@ flowchart LR
 | **Chat commands and “what if” — Built** | Local command parsing, typed library/board tools, legal scratch moves, reanalysis and undo. | Translate flexible requests into tool calls and explain their results. Plain commands also work without a model. |
 | **Board annotations and variations — Built** | Parse supported move lines and the bounded `board` grammar; check marks against the position before rendering. | Propose arrows, squares and explanations anchored to checked evidence; the renderer owns board changes. |
 | **Reading and similar games — Built/prototype** | Rank reference metadata/theme tags; retrieve games by exact EPD or pawn signature and classics by theme. | Explain why the returned reference fits. This retrieves metadata/positions, not book passages. |
-| **Opening library — Partial; 5** | Position-based names exist. Explorer move graphs, repertoire storage and drill scheduling are planned. | Explain retrieved opening plans and checked alternatives; counts, transpositions and scheduling stay explicit. |
+| **Opening library — Partial; 5** | Position-based names and the reference-game explorer exist, with transpositions, record counts/results and scratch branches. Repertoires and drill scheduling are planned. | The explorer needs no LLM. Authored plans and richer opening context remain planned; explanations use checked alternatives. |
 | **Lessons and progress — Planned; 6/9** | Existing challenges seed theme progress. Planned lessons combine authored examples, verified motifs, grading rules and eligible tablebase checks. | Adapt explanations and staged hints; diagnosis/lesson selection uses recorded attempts. Generated wording does not determine move correctness. |
 | **Library and richer RAG — Partial; 7/8** | PGN parsing, own games and bounded metadata search exist. Provenance, deduplication, text indexes, embeddings and hybrid reranking remain planned. | Map natural-language intent to validated queries, then synthesise retrieved evidence with citations. |
 | **Visible options, plans and piece power — Exploration; ROAD 1/2/4/9** | Candidate lines, attack/defence relations and bounded plan checks supply board evidence. Corner dots count actual relations. | Explain options and relationships. A proposed plan needs checking; a model does not invent the counts. |

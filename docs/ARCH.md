@@ -119,6 +119,8 @@ Chess positions have structure that text embeddings would blur, so retrieval her
 
 Planned: material and piece-placement signatures, fuzzy pawn-structure distance, and text embeddings for annotations and lesson text, combined with the structural keys in a hybrid ranking (8.1–8.5).
 
+The **opening explorer** (`openings.js`, 5.2) builds a separate EPD-keyed move graph from standard-start PGN mainlines in the reference collection. Transpositions join; each record contributes its first continuation at a position. Corpus filters, result counts and sample occurrences are explicit data queries. Continuation clicks use the scratch board and require the same help permission as engine analysis. This does not use a language model or an external explorer API.
+
 ### 3.4 Structured output
 
 Machine-facing output uses constrained formats: named JSON replies for structured requests, schemas for tool calls, and a small `board` grammar for marks in chat answers.
