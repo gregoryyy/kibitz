@@ -2175,7 +2175,12 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
         }
       } else if (chk.ok) {
         onStatus?.(TOOL_DOING[c.name]);
-        const out = await runTool(Chess, toolEngine, chk);
+        const out = await runTool(Chess, async (fen, opts) => {
+          if (!activeRun(run)) throw { code: 'cancelled' };
+          const result = await toolEngine(fen, opts);
+          if (!activeRun(run)) throw { code: 'cancelled' };
+          return result;
+        }, chk);
         evidence.push({ name: chk.name, args: chk.args, result: out.result, lines: out.lines });
         result = out.result;
       } else result = { error: chk.why };
@@ -2194,7 +2199,7 @@ function evidenceText(e) {
   if (e.name === 'threats') return r.threat ? `threat for ${r.side}: ${r.line} (${r.evalIfAllowed})` : `threats: ${r.why || 'none'}`;
   if (e.name === 'compare') return `compare: ${r.moves.map(m => `${m.move} ${m.eval}`).join(', ')}`;
   if (e.name === 'find_mate') return r.mate ? `mate in ${r.mate}: ${r.line}` : `find mate: ${r.note}`;
-  return `motifs: ${r.line.map(x => `${x.move}${x.motifs.length ? ` (${x.motifs.join('; ')})` : ''}`).join(' ')}`;
+  return `motifs: ${r.line.map(x => `${x.move}${x.motifs.length ? ` (${x.motifs.join('; ')}; ${x.payoff})` : ` (${x.status})`}`).join(' ')}`;
 }
 function evidenceBox(evidence) {
   return el('details', { class: 'evidence' },

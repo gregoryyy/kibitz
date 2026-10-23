@@ -88,3 +88,106 @@ test('compare, find_mate and find_motifs', async () => {
   assert.deepEqual(f.result.line.map(x => x.move), ['Nf6', 'Qxf7#']);
   assert.ok(f.result.line[1].motifs.some(x => /checkmate/.test(x)));
 });
+
+const FORK = 'r1r1k3/8/8/1N6/8/8/7K/8 w - - 0 1';
+const forkCall = () => checkToolCall(Chess, 'find_motifs', { fen: FORK, line: ['Nc7+'] });
+
+test('a geometric fork that loses to a capture is withheld and its supplied line is not engine evidence', async () => {
+  const c = new Chess(FORK); c.move('Nc7+');
+  const { engine, calls } = fakeEngine({
+    [key(FORK)]: { depth: 14, lines: [{ score: { cp: -500 }, pv: ['b5d6', 'e8d7'] }] },
+    [key(c.fen())]: { depth: 14, lines: [{ score: { cp: -1000 }, pv: ['c8c7'] }] },
+  });
+  const out = await runTool(Chess, engine, forkCall());
+  assert.equal(calls.length, 2);
+  assert.equal(out.result.line[0].status, 'refuted');
+  assert.equal(out.result.line[0].lossInPawns, 5);
+  assert.deepEqual(out.result.line[0].motifs, []);
+  assert.deepEqual(out.lines, []);
+});
+
+test('sound forks for either color carry evaluations and short engine continuations', async () => {
+  for (const [fen, move, reply, capture, cp] of [
+    ['r3k3/8/8/1N6/8/8/7K/8 w - - 0 1', 'b5c7', 'e8d7', 'c7a8', 300],
+    ['8/7k/8/8/1n6/8/8/R3K3 b - - 0 1', 'b4c2', 'e1d2', 'c2a1', -300],
+  ]) {
+    const c = new Chess(fen); c.move({ from: move.slice(0, 2), to: move.slice(2) });
+    const { engine } = fakeEngine({
+      [key(fen)]: { depth: 14, lines: [{ score: { cp }, pv: [move, reply, capture] }] },
+      [key(c.fen())]: { depth: 14, lines: [{ score: { cp }, pv: [reply, capture] }] },
+    });
+    const out = await runTool(Chess, engine, checkToolCall(Chess, 'find_motifs', { fen, line: [move] }));
+    assert.equal(out.result.line[0].status, 'confirmed');
+    assert.match(out.result.line[0].motifs.join(' '), /attacks.*rook/);
+    assert.match(out.result.line[0].payoff, /material gain/);
+    assert.equal(out.lines[0].length, 3);
+    assert.equal(out.result.line[0].lossInPawns, 0);
+  }
+});
+
+test('no score, shallow/bounded scores and illegal PVs never confirm a pattern', async () => {
+  for (const a of [
+    { depth: 0, lines: [] },
+    { depth: 5, lines: [{ score: { cp: 0 }, pv: ['c8c7'] }] },
+    { depth: 14, lines: [{ score: { cp: NaN }, pv: ['c8c7'] }] },
+    { depth: 14, lines: [{ score: { cp: 0 }, bound: 'lowerbound', pv: ['c8c7'] }] },
+    { depth: 14, lines: [{ score: { cp: 0 }, pv: ['a2a5'] }] },
+  ]) {
+    const out = await runTool(Chess, async () => a, forkCall());
+    assert.equal(out.result.line[0].status, 'unverified');
+    assert.deepEqual(out.result.line[0].motifs, []);
+    assert.deepEqual(out.lines, []);
+  }
+});
+
+test('large evaluations are not clamped when deciding whether a tactic loses material', async () => {
+  const after = new Chess(FORK); after.move('Nc7+');
+  const { engine } = fakeEngine({
+    [key(FORK)]: { depth: 14, lines: [{ score: { cp: 3000 }, pv: ['b5d6'] }] },
+    [key(after.fen())]: { depth: 14, lines: [{ score: { cp: 2000 }, pv: ['c8c7'] }] },
+  });
+  const out = await runTool(Chess, engine, forkCall());
+  assert.equal(out.result.line[0].status, 'refuted');
+  assert.equal(out.result.line[0].lossInPawns, 10);
+});
+
+test('a supplied combination must match the best-reply continuation, not merely be legal', async () => {
+  const fen = '3r3k/8/8/8/3q4/8/8/2RR3K w - - 0 1';
+  const after = new Chess(fen); after.move('Rc8');
+  const { engine } = fakeEngine({
+    [key(fen)]: { depth: 14, lines: [{ score: { cp: 300 }, pv: ['c1c8', 'h8h7', 'd1d4'] }] },
+    [key(after.fen())]: { depth: 14, lines: [{ score: { cp: 300 }, pv: ['h8h7', 'd1d4'] }] },
+  });
+  const out = await runTool(Chess, engine, checkToolCall(Chess, 'find_motifs', { fen, line: ['Rc8', 'Rxc8', 'Rxd4'] }));
+  assert.doesNotMatch(out.result.line[0].motifs.join(' '), /deflects|cannot cover/);
+  assert.ok(out.lines.every(l => l[1] !== 'Rxc8'), 'the supplied cooperation is never evidence');
+});
+
+test('a decoy matching the engine reply and mating follow-up is confirmed', async () => {
+  const fen = 'r6k/6pp/8/4Q3/8/8/7K/1R6 w - - 0 1';
+  const after = new Chess(fen); after.move('Qb8+');
+  const { engine } = fakeEngine({
+    [key(fen)]: { depth: 14, lines: [{ score: { mate: 2 }, pv: ['e5b8', 'a8b8', 'b1b8'] }] },
+    [key(after.fen())]: { depth: 14, lines: [{ score: { mate: 1 }, pv: ['a8b8', 'b1b8'] }] },
+  });
+  const out = await runTool(Chess, engine, checkToolCall(Chess, 'find_motifs', { fen, line: ['Qb8+', 'Raxb8', 'Rxb8#'] }));
+  assert.equal(out.result.line[0].status, 'confirmed');
+  assert.match(out.result.line[0].motifs.join(' '), /draws the rook to b8/);
+  assert.equal(out.result.line[0].payoff, 'checkmate');
+  assert.deepEqual(out.lines[0], ['Qb8+', 'Rxb8', 'Rxb8#']);
+});
+
+test('motif searches have a shared cap, and an ordinary legal line adds no engine evidence', async () => {
+  const quiet = await runTool(Chess, async () => { throw new Error('no candidate to check'); }, checkToolCall(Chess, 'find_motifs', { fen: START, line: ['e4', 'e5'] }));
+  assert.deepEqual(quiet.lines, []);
+  const c = new Chess(); c.loadPgn('1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6');
+  let calls = 0;
+  const engine = async fen => {
+    calls++;
+    const p = new Chess(fen), m = p.moves({ verbose: true })[0];
+    return { depth: 14, lines: [{ score: { cp: 300 }, pv: m ? [m.from + m.to + (m.promotion || '')] : [] }] };
+  };
+  const out = await runTool(Chess, engine, checkToolCall(Chess, 'find_motifs', { fen: c.fen(), line: ['Bg5', 'b5', 'Nxb5', 'cxb5', 'Bxb5+', 'Nbd7', 'O-O-O', 'Rd8', 'Rxd7', 'Rxd7', 'Rd1', 'Qe6'] }));
+  assert.equal(out.result.line.length, 12);
+  assert.ok(calls <= CAPS.motifSearches, `${calls} engine searches`);
+});

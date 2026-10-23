@@ -130,7 +130,7 @@ For answers the page must act on, such as arrows and highlighted squares on the 
 Instead of receiving a fixed context, the model asks the symbolic side questions (4.11, 4.8.3, 4.10.3):
 
 - **Engine tools:** `analyse`, `try_move` (compare a move with the best), `threats` (what the opponent would do if it were their move), `compare`, `find_mate`.
-- **Pattern tools:** `find_motifs` over a line.
+- **Pattern tools:** `find_motifs` over a line. The same verifier checks patterns in analysis and threat lines: before/after evaluations must lose no more than half a pawn against the best, with a payoff within six plies (material, mate or an advantage that persists at the horizon). Only confirmed motifs are returned. Combination labels also require the engine's reply and follow-up to match. A shared EPD cache, at most twelve additional searches, and a fifteen-second admission budget bound the checks; unresolved patterns stay unverified. A supplied legal line is never evidence by itself.
 - **Library tools:** search saved and classic games, search named openings, and load a game at a move, a FEN, a PGN or an opening line.
 - **Board tools:** make a move, navigate, set up pieces, and undo a board change. In analysis, moves and setups use the scratch board.
 

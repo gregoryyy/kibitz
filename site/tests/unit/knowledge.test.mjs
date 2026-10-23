@@ -92,6 +92,39 @@ test('moveMotifs stays quiet on ordinary moves and ignores bad input', () => {
   assert.deepEqual(K.moveMotifs(Chess, new Chess().fen(), ''), []);
 });
 
+test('motif candidates cover skewers, double checks, material discoveries, interference and removing defenders', () => {
+  const cases = [
+    ['4r3/8/4k3/8/8/8/8/R6K w - - 0 1', 'e1', 'skewer'],
+    ['4k3/8/q7/8/8/8/4B3/4R2K w - - 0 1', 'b5', 'double-check'],
+    ['q6k/8/8/8/8/8/B6K/R7 w - - 0 1', 'b3', 'discovered-attack'],
+    ['7k/8/2n5/8/3q4/5B2/8/3R3K w - - 0 1', 'c6', 'removing-defender'],
+    ['4r2k/8/8/8/8/5B2/4n3/4R2K w - - 0 1', 'e4', 'interference'],
+  ];
+  for (const [fen, to, tag] of cases) {
+    const c = new Chess(fen), m = c.moves({ verbose: true }).find(m => m.to === to);
+    assert.ok(m, `${tag}: legal move`);
+    const motifs = K.moveMotifs(Chess, fen, m.from + m.to);
+    assert.ok(tags(motifs).includes(tag), `${tag}: ${JSON.stringify(motifs)}`);
+    assert.ok(K.TAG_LABELS[tag]);
+  }
+  assert.deepEqual(K.moveMotifs(Chess, 'bad FEN', 'e2e4'), []);
+});
+
+test('line motifs identify concrete deflection, overloading, decoy and zwischenzug sequences', () => {
+  const cases = [
+    ['3r3k/8/8/8/3q4/8/8/2RR3K w - - 0 1', ['Rc8', 'Rxc8', 'Rxd4'], ['deflection', 'overloading']],
+    ['r6k/6pp/8/4Q3/8/8/7K/1R6 w - - 0 1', ['Qb8+', 'Raxb8', 'Rxb8#'], ['decoy']],
+    ['q3k3/8/8/8/8/8/7K/R4B2 w - - 0 1', ['Bb5+', 'Kd8', 'Rxa8+'], ['zwischenzug']],
+  ];
+  for (const [fen, sans, expected] of cases) {
+    const c = new Chess(fen), ucis = sans.map(s => { const m = c.move(s); return m.from + m.to; });
+    const motifs = K.lineMotifs(Chess, fen, ucis);
+    for (const tag of expected) assert.ok(tags(motifs[0]).includes(tag), `${tag}: ${JSON.stringify(motifs)}`);
+    assert.deepEqual(K.lineMotifs(Chess, fen, ucis.slice(0, 1)), [[]], 'a move alone does not establish a combination');
+  }
+  assert.deepEqual(K.lineMotifs(Chess, new Chess().fen(), ['e2e5']), []);
+});
+
 test('similarPositions finds the same position first, then the same pawn structure', () => {
   const positionsOf = pgn => {
     const c = new Chess(), out = [];
