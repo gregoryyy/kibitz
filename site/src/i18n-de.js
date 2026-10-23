@@ -3,6 +3,14 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Fuzzy pawn distance (TODO 8.5) ---------------------------------------------------------
+  'Include similar pawn structures': 'Ähnliche Bauernstrukturen einbeziehen',
+  'Similar structures require at least 75% overlap of colour-specific pawn squares.': 'Ähnliche Strukturen erfordern mindestens 75 % Überlappung der Bauernfelder bei gleicher Farbe.',
+  'Similar pawn structure': 'Ähnliche Bauernstruktur',
+  'Shared pawn squares: {shared} of {total}': 'Gemeinsame Bauernfelder: {shared} von {total}',
+  'Only on current board:': 'Nur auf dem aktuellen Brett:',
+  'Only in source:': 'Nur in der Quelle:',
+  'None': 'Keine',
   // --- Hybrid passage retrieval (TODO 8.4) ----------------------------------------------------
   'Combined': 'Kombiniert',
   'Combine text matches and optional board relevance. Results may only be related to your question.': 'Verbinde Texttreffer auf Wunsch mit der Brettstellung. Ergebnisse können lediglich thematisch zu deiner Frage passen.',

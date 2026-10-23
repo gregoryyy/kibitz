@@ -6,7 +6,7 @@
 #   just flipbook      render docs/flipbook/, a happy path through the app in screenshots
 #   just pdfs          a PDF next to every Markdown document (just pdf FILE for one)
 #   just eval          the tutor eval set against the coach, with a report in docs/eval/
-#   just retrieval-eval   position/text benchmarks; dense/hybrid explicitly call an embedding provider
+#   just retrieval-eval   position/text/pawns benchmarks; dense/hybrid explicitly call an embedding provider
 # Port and bind address can be overridden: KIBITZ_PORT=9000 just serve
 
 port := env_var_or_default("KIBITZ_PORT", "8765")
@@ -64,7 +64,7 @@ e2e: install
 eval ai="env" judge="none" model="" yes="": build
     node site/scripts/eval.mjs --ai {{ai}} --judge {{judge}} {{ if model != "" { "--model " + model } else { "" } }} {{ if yes != "" { "--yes" } else { "" } }}
 
-# Labelled retrieval benchmark; position/text are offline, dense/hybrid explicitly call a provider
+# Labelled retrieval benchmark; position/text/pawns are offline, dense/hybrid explicitly call a provider
 retrieval-eval *args: install
     node utils/retrieval-eval.mjs {{args}}
 
