@@ -3,6 +3,32 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Source-aware library records (TODO 7.1) --------------------------------------------------
+  'Source and licences (optional)': 'Quelle und Lizenzen (optional)',
+  'Source and licences': 'Quelle und Lizenzen',
+  'Source title': 'Titel der Quelle',
+  'Source author or curator': 'Autor oder Herausgeber der Quelle',
+  'Source URL': 'Quellen-URL',
+  'Score licence as supplied': 'Angegebene Lizenz der Zugfolge',
+  'Annotation licence as supplied': 'Angegebene Lizenz der Kommentare',
+  'Imported PGN': 'Importierte PGN',
+  'Played in Kibitz': 'In Kibitz gespielt',
+  'Saved from the board': 'Vom Brett gespeichert',
+  'Built-in collection': 'Mitgelieferte Sammlung',
+  'Legacy record: provenance not supplied': 'Älterer Eintrag: Herkunft nicht angegeben',
+  'Licences are recorded as supplied; blank fields mean not supplied.': 'Lizenzen werden wie angegeben gespeichert; leere Felder bedeuten „nicht angegeben“.',
+  'Source metadata is invalid or from a newer version. Stored data has been kept; this record is omitted from similar-position results.': 'Die Quellenangaben sind ungültig oder aus einer neueren Version. Die gespeicherten Daten bleiben erhalten; dieser Eintrag wird bei ähnlichen Stellungen nicht angezeigt.',
+  'This PGN could not be indexed. The stored record has been kept.': 'Diese PGN konnte nicht indiziert werden. Der gespeicherte Eintrag bleibt erhalten.',
+  '{n} position occurrences · {m} annotations': '{n} Stellungsvorkommen · {m} Kommentare und Bewertungen',
+  'Study position with a recorded line. Move legality is checked; the solution and stated result are unverified.': 'Studienstellung mit aufgezeichneter Variante. Die Züge sind auf Legalität geprüft; Lösung und angegebenes Ergebnis sind nicht verifiziert.',
+  'Not supplied': 'Nicht angegeben',
+  'Open source': 'Quelle öffnen',
+  'Save source details': 'Quellenangaben speichern',
+  'Source details saved.': 'Quellenangaben gespeichert.',
+  'Source details could not be saved.': 'Die Quellenangaben konnten nicht gespeichert werden.',
+  'Check the source fields and use an HTTP or HTTPS URL without credentials.': 'Prüfe die Quellenangaben und verwende eine HTTP- oder HTTPS-URL ohne Zugangsdaten.',
+  'Source metadata or PGN is invalid or unsupported. Stored games have been kept.': 'Die Quellenangaben oder PGN sind ungültig oder werden nicht unterstützt. Gespeicherte Partien bleiben erhalten.',
+  'Source:': 'Quelle:',
   // --- Named opening continuations (TODO 5.6) ----------------------------------------------------
   'Named opening continuations': 'Benannte Eröffnungsfortsetzungen',
   'Opening continuations could not be loaded.': 'Die Eröffnungsfortsetzungen konnten nicht geladen werden.',

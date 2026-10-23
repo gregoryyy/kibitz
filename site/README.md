@@ -23,6 +23,8 @@ In **Openings**, choose a saved White or Black repertoire and press **Review due
 
 **Named opening continuations** shows the current opening/ECO and legal next moves towards nearby named variations, including transpositions. A distance label distinguishes a later destination from an immediate name; these names do not rank move strength or frequency. Hover or focus previews the position after a move. Click or Enter extends a scratch line in analysis, or plays your next move at the current live position with Full help. Existing scratch lines stay separate from the game. **About this opening** gives the coach the actual position, quoted names and study notes; concrete advice still needs Stockfish. Browsing works without a provider and includes retry if the local catalogue fails to load. Off, Flag mistakes and Eval + mistakes hide the panel during play.
 
+In **Library**, PGN imports accept optional source title, author/curator, URL and separate score/annotation licences. **Source and licences** lets you inspect or correct a saved game's fields. Missing details stay not supplied; old records are readable without a storage rewrite, and future metadata stays intact. Similar-position notes now retain the exact game occurrence, including repeated boards and a study's initial position. Recorded study lines are checked for legality, with their result/solution still unverified. The [source-aware data model](../docs/LIBRARY.md) prepares these records for RAG; text/embedding search and answer citations remain planned.
+
 ## Layout
 
 ```
@@ -40,6 +42,7 @@ src/knowledge.js      Pure functions, no DOM:
 src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded when cross-origin isolated), job queue,
                       cancel by tag, time-capped depth searches; rejects all jobs if it dies
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
+src/library.js        Source assertions, revision-bound game/occurrence/annotation/study records and position-index adapter
 src/openings.js       Reference-game position graph: continuations, record counts/results and sample occurrences
 src/opening-guides.js Original bilingual study notes, visible-route/EPD matching, current pawn patterns and quoted coach context
 src/opening-variations.js Build-time named-destination graph, checked position queries and quoted catalogue context
@@ -52,7 +55,7 @@ src/browser-llm.js    The in-browser model (wllama): loads on consent, streams a
 src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
 src/play.js           Game-end rules, timeouts, clocks, the opponent's search, the weakened mode below 1320
                       Elo (calibrated), draw offers, start-position checks
-src/pgn.js            NAGs: reads them from PGN movetext (chess.js drops them), glyphs for display
+src/pgn.js            NAGs and original mainline comment locations, including repeated positions and initial notes
 src/notation.js       Typed moves (SAN or coordinates) and moves in words for screen readers
 data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position,
                       dist/openings.json (every named line with its moves, for "start from an opening"),
@@ -109,7 +112,7 @@ Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; 
 
 Outside an artifact, `use('sample')` returns `localSample()`, a function with the same signature that streams from the local AI gateway (`/api/ai/sample`). The prompts and `contextFor()` are unchanged. The library still falls back to `localStorage`; a server-side store is planned (TODO 7.6).
 
-Open `_test.html?debug` to get `window.__kibitz = { S, contextFor, ANA }` in the console.
+Open `_test.html?debug` to get `window.__kibitz` in the console, including `S`, `contextFor`, `ANA` and `libraryRecords()` for compiled source-aware records.
 
 ## Licences
 

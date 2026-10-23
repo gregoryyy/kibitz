@@ -7,6 +7,36 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Source-aware library records for RAG
+
+TODO items: 7.1.
+
+### Implementation notes
+
+- Added JSDoc-typed `library.js` with versioned provenance and a legal-PGN compiler for sources, game documents, shared EPD positions, full-FEN occurrences, original annotations and optional study/problem records. Existing account/browser game IDs stay intact. New imported records use UUIDs; collection-scoped model IDs keep built-ins and user games distinct.
+- SHA-256 of the stored PGN binds occurrence/annotation IDs to an exact source revision. A source-title correction preserves those IDs, while changed PGN changes its revision even with an unchanged timestamp. Position identity remains independent of counters and document versions; provenance and score licences belong to the occurrences rather than every game sharing the board.
+- PGN comments retain original UTF-16 ranges and their exact mainline ply, including initial notes and repeated positions. Nested variation comments are excluded from the passage index. Numeric glyphs retain source attribution and an unverified status. Custom FEN studies, including position-only imports and Black starts, keep their root and recorded legal line without claiming a verified solution/result.
+- Optional import fields and per-game **Source and licences** editors record title, author/curator, safe HTTP(S) URL and separate score/annotation licence assertions. Empty fields remain not supplied; no licence is inferred from a game's age or PGN headers. Built-ins identify the packaged collection and the project's authored-note licence, without inventing original historical score sources or rights.
+- Legacy records are interpreted without migration writes. Unknown versions, malformed envelopes and explicit null/false values remain untouched and excluded from similar-position results; a game save cannot replace them with defaults. Valid scores remain readable. Browser writes affect only the changed games/books collection, roll memory back on failure and retain failed source edits for retry.
+- Exact/pawn retrieval now consumes occurrence-specific notes and quoted source assertions. Cache invalidation uses exact PGN/provenance/kind rather than timestamps; index generations prevent delayed results from restoring deleted records. Held source edits recheck their target after asynchronous validation. Evidence completion refreshes counts without replacing an open source form or erasing unsaved input.
+- Opening/saving PGN now retains initial notes and separate comments at repeated full-FEN occurrences; old EPD-keyed current-game snapshots still have an export fallback. Unreadable scores are rejected before opening. Source text renders as text, validated source links use `noopener noreferrer`, and source statements enter coach context through bounded `quote()` data.
+- Eight unit scenarios and nine browser scenarios cover identities/revisions, locators/variations/Unicode, independent rights, old/future/malformed records, custom studies, repeated-note navigation and save round trips, failed writes/retry, late deletion, unsaved forms, hostile text and German phone controls. Desktop and phone forms were inspected. The [schema and lifecycle](LIBRARY.md), architecture, design overview and README describe the RAG boundary. No provider, dependency, external corpus or storage service was added.
+- Validation: `npm run check`, a fresh build and the mock-provider unit/gateway suite pass (303 passed, one opt-in live test skipped). The final full browser run passed 165 scenarios with one opt-in live-model skip; its one failure exposed a German built-in-title regression, which was fixed. Both language scenarios and all nine provenance scenarios then passed together (11 passed), covering all 166 enabled scenarios across full/focused verification. Browser runs use isolated artifact folders with tracing off. Documentation links were checked and changed schema, TODO, DONE, architecture, design and README PDFs regenerated locally.
+
+### Deviations
+
+- Source metadata extends the existing flat records; normalised snapshots are derived/cached rather than persisted as duplicate tables. SQLite/IndexedDB remains 7.6. This establishes the data contract without requiring that storage migration first.
+- The model indexes mainline comments and NAGs. Variations remain in the original stored PGN but do not produce indexed passages; current-board export still represents the mainline. Original historical-score provenance can remain unknown and needs later per-item audit/collection work in 7.3/7.4.
+- Lexical/vector search, deduplication, answer citation validation and labelled retrieval evaluation remain 8.3, 7.2, 8.6 and 8.8 respectively. A recorded source statement establishes attribution, not chess strength, source permission or a forced solution.
+
+### Insights
+
+- Shared position identity and evidence identity serve different purposes. Reducing comments to EPD had attached a later repeated-position note to an earlier game step; full-FEN occurrences and source ranges preserve the distinction while still joining transpositions for retrieval.
+- Provenance defaults must distinguish a missing field from malformed null/false data. Truthiness-based fallback can silently overwrite information that should have been retained.
+- Background indexing may legitimately finish while the player is editing a source. Refreshing its evidence summary separately preserves both the source snapshot and the unsaved form.
+
+---
+
 ## 2026-10-23 — Named opening continuations at the board
 
 TODO items: 5.6.1–5.6.6.

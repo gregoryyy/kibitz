@@ -2,6 +2,7 @@
 // (3.2.5), the reading list and the library. Pure data and retrieval, like knowledge.js: no DOM,
 // no globals. The game scores are historical record; the comments are ours. Tags use the
 // vocabulary of knowledge.js TAG_LABELS, so a position's features find the games that teach them.
+import { makeProvenance } from './library.js';
 
 // Each entry: id, title, white, black, event, date, result, tags, about (one line on what it
 // teaches), moment (the ply of its key moment), and either moves (from the start) or fen + moves (a study).
@@ -94,6 +95,9 @@ export const CLASSICS = [
 export function classicGames() {
   return CLASSICS.map(c => ({
     id: c.id, kind: 'example', title: c.title, white: c.white, black: c.black, date: c.date, result: c.result, tags: c.tags, about: c.about, moment: c.moment,
+    // This identifies the packaged collection, not a verified original publication of each score.
+    // The project's authored notes have its declared licence; original score rights remain unknown.
+    provenance: makeProvenance('builtin', { title: 'Kibitz classics collection', author: 'Kibitz contributors', url: 'https://github.com/gregoryyy/kibitz/blob/main/site/src/classics.js', annotations: 'GPL-3.0-or-later' }),
     pgn: [
       `[Event "${c.event}"]`, `[Date "${c.date}"]`, `[White "${c.white}"]`, `[Black "${c.black}"]`, `[Result "${c.result}"]`,
       ...(c.fen ? ['[SetUp "1"]', `[FEN "${c.fen}"]`] : []), '', c.moves,
