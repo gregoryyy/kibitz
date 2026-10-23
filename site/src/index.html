@@ -209,6 +209,14 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .desk.tools-collapsed .tabs button[aria-selected="true"] { border-bottom-color: transparent; color: var(--muted); }
 .tabs button { border: 0; background: transparent; padding: 10px 14px; cursor: pointer; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; font-size: 14px; }
 .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.explorer-list { display: grid; gap: 10px; margin-top: 12px; }
+.explorer-move { border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.explorer-move > .row { justify-content: space-between; flex-wrap: wrap; }
+.explorer-move .explorer-result { margin: 8px 0; }
+.explorer-move details { margin-top: 8px; }
+.explorer-move summary { cursor: pointer; color: var(--muted); }
+.explorer-examples { display: grid; gap: 5px; margin-top: 8px; }
+.explorer-examples button { text-align: left; white-space: normal; }
 .tabs .count { font: 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
 .pane { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .pane h2, .settings h2 { font: 600 18px/1.2 var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
@@ -416,6 +424,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <button role="tab" data-tab="review" aria-selected="false">Review</button>
       <button role="tab" data-tab="library" aria-selected="false">Library<span class="count" id="libCount"></span></button>
       <button role="tab" data-tab="reading" aria-selected="false">Reading</button>
+      <button role="tab" data-tab="openings" aria-selected="false">Openings</button>
       </div>
     </div>
 
@@ -487,6 +496,17 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg"></span></div>
       </details>
       <div class="row"><button class="btn small" id="btnSaveCurrent">Save current game</button><button class="btn small" id="btnExportAll">Copy all as PGN</button></div>
+    </div>
+
+    <div class="pane" data-pane="openings" hidden>
+      <h2>Opening explorer</h2>
+      <p class="hint" id="explorerLocked" hidden>Opening continuations are hidden while you play. Choose Full engine help or finish the game to explore.</p>
+      <div id="explorerControls">
+        <div class="field"><label for="explorerSource">Reference games</label><select id="explorerSource"><option value="all">All games</option><option value="classic">Classics</option><option value="library">My library</option></select></div>
+        <p class="hint">Standard-start games only. Counts describe this collection; each game record contributes its first continuation at a position.</p>
+        <p class="hint">Try continuations on the scratch board, then go back or return to your game.</p>
+      </div>
+      <div id="explorerBody" aria-live="polite"></div>
     </div>
 
     <div class="pane" data-pane="reading" hidden>
@@ -561,6 +581,7 @@ import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentR
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
+import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
 import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
 import { TOOL_NAMES, ENGINE_TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
 import { CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames } from './chat.js';
@@ -863,7 +884,7 @@ function syncBoard() {
   });
   // The eval bar turns with the board: White's part grows from White's side.
   $('#evalbar').classList.toggle('flipped', S.orientation === 'black');
-  drawShapes();
+  drawShapes(); renderOpeningExplorer();
 }
 function drawShapes() {
   if (SCRATCH) return cg.setAutoShapes(scratchShapes());
@@ -1427,6 +1448,8 @@ const Lib = {
 // The built-in classics (classics.js, TODO 7.3): in the library, the position index and the reading list.
 const EXAMPLES = classicGames();
 let INDEX = K.buildPositionIndex([]);
+let OPENING_INDEX = buildOpeningIndex([]);
+const openingCache = new Map(); // source + id -> {pgn, record}; invalidate on content, not timestamps
 function gamePositions(g) {
   try {
     const c = new Chess(); c.loadPgn(g.pgn);
@@ -1452,7 +1475,76 @@ function onLibChange() {
     if (!e || e.updatedAt !== (g.updatedAt || 0)) posCache.set(g.id, e = { updatedAt: g.updatedAt || 0, positions: gamePositions(g) });
     return { ...g, positions: e.positions };
   }));
-  renderLibrary(); renderReading();
+  const records = [], keys = new Set();
+  for (const [source, collection] of [['library', [...Lib.games.values()]], ['classic', EXAMPLES]]) for (const g of collection) {
+    const key = `${source}:${g.id}`; keys.add(key);
+    let entry = openingCache.get(key);
+    if (!entry || entry.pgn !== g.pgn) openingCache.set(key, entry = { pgn: g.pgn, record: openingGame(Chess, g, source) });
+    records.push(entry.record);
+  }
+  for (const key of openingCache.keys()) if (!keys.has(key)) openingCache.delete(key);
+  OPENING_INDEX = buildOpeningIndex(records);
+  renderLibrary(); renderReading(); renderOpeningExplorer();
+}
+
+// ---------------------------------------------------------------- Opening explorer (TODO 5.2)
+function renderOpeningExplorer() {
+  const body = $('#explorerBody'), allowed = showEngine();
+  $('#explorerLocked').hidden = allowed; $('#explorerControls').hidden = !allowed;
+  // Clear previously rendered moves even when the panel is closed: no stale suggestions behind
+  // a restricted help setting. The board and actions use the same guard again on activation.
+  if (!allowed) { body.replaceChildren(); return; }
+  if (paneHidden('openings')) return;
+  const fen = SCRATCH ? scratchFen() : nodeFen(), c = new Chess(fen);
+  const data = openingContinuations(Chess, OPENING_INDEX, fen, $('#explorerSource').value);
+  const recordsLabel = data.records === 1 ? '1 reference game record' : `${data.records} reference game records`;
+  body.replaceChildren(el('p', { class: 'hint', id: 'explorerPosition' }, `${c.turn() === 'w' ? 'White' : 'Black'} to move · move ${c.moveNumber()}`),
+    el('p', { class: 'hint', id: 'explorerSummary' }, `${recordsLabel} · ${data.games} reached this position`));
+  if (data.ended) body.append(el('p', { class: 'hint' }, `Records ending here: ${data.ended}.`));
+  if (!data.moves.length) { body.append(el('p', { class: 'empty-note' }, 'No recorded continuations here. Import games into your library or step back to another position.')); return; }
+  body.append(el('p', { class: 'hint' }, 'Results: White wins / draws / Black wins. Unknown results are listed separately.'));
+  const list = el('div', { class: 'explorer-list' }); body.append(list);
+  for (const m of data.moves) {
+    const share = Math.round(1000 * m.games / (data.games - data.ended)) / 10;
+    const sample = el('div', { class: 'explorer-examples' });
+    for (const ref of m.examples.slice(0, 8)) {
+      const g = ref.source === 'classic' ? EXAMPLES.find(g => g.id === ref.id) : Lib.games.get(ref.id);
+      if (g) sample.append(el('button', { class: 'btn small ghost', translate: 'no', onclick: () => openExplorerGame(ref, fen) },
+        `${g.white || '?'} – ${g.black || '?'}${g.date ? ', ' + g.date : ''}`));
+    }
+    if (m.examples.length > 8) sample.append(el('p', { class: 'hint' }, 'Showing the first 8 matching records.'));
+    list.append(el('section', { class: 'explorer-move', 'data-uci': m.uci },
+      el('div', { class: 'row' }, el('button', { class: 'btn small primary explorer-play', translate: 'no', onclick: () => exploreMove(m.uci, fen) }, m.san),
+        el('span', { class: 'hint' }, `${m.games === 1 ? '1 game record' : m.games + ' game records'} · ${share}% of continuations`)),
+      el('p', { class: 'explorer-result mono' }, `${m.white} / ${m.draw} / ${m.black}`),
+      m.unknown ? el('p', { class: 'hint' }, `Unknown results: ${m.unknown}.`) : null,
+      el('details', {}, el('summary', {}, `Games after ${m.san}`), sample)));
+  }
+}
+function exploreMove(uci, fen) {
+  if (!showEngine() || fen !== (SCRATCH ? scratchFen() : nodeFen())) return;
+  // Recheck after the click. A continuation is a scratch variation, never a live game move.
+  const step = playLine(Chess, fen, [uci]); if (!step) return;
+  const start = SCRATCH ? SCRATCH.start : fen, before = SCRATCH ? SCRATCH.sans.slice(0, SCRATCH.i) : [];
+  const line = playLine(Chess, start, [...before, ...step.sans]);
+  if (line) openScratch(line, { free: true, title: 'Opening explorer' });
+}
+async function openExplorerGame(ref, fen) {
+  if (!showEngine() || fen !== actionState().fen) return;
+  const find = () => ref.source === 'classic' ? EXAMPLES.find(g => g.id === ref.id) : Lib.games.get(ref.id);
+  const record = find(); if (!record) return;
+  const pgn = record.pgn, game = readGame(Chess, pgn); if (game.error) { toast(game.error); return; }
+  const gen = S.gen;
+  if (S.playing && S.nodes.length > 1) {
+    const leave = confirmChatLeave();
+    $('#chatConfirm button:last-child').focus(); // bring the prompt into view from a scrolled explorer
+    if (!(await leave)) return;
+  }
+  if (gen !== S.gen || fen !== actionState().fen || !showEngine() || find()?.pgn !== pgn) return;
+  cancelChat(); CHAT.undo.push(captureBoard()); CHAT.undo = CHAT.undo.slice(-20);
+  // loadLine keeps a return snapshot of a running game; sample navigation never saves or imports.
+  loadLine(game.line.start, game.line.sans, record, game.comments, { gameId: record.id, cursor: ref.ply, nags: game.nags, preserveChat: true });
+  openTab('openings');
 }
 
 function currentRecord(extra = {}) {
@@ -2511,7 +2603,7 @@ function syncScratch() {
   const can = SCRATCH.free && !c.isGameOver(), u = SCRATCH.ucis[SCRATCH.i - 1];
   cg.set({ fen, orientation: S.orientation, turnColor: turn, check: c.inCheck() ? turn : false, lastMove: u ? [u.slice(0, 2), u.slice(2, 4)] : undefined,
     movable: { color: can ? turn : undefined, dests: can ? dests(fen) : new Map() } });
-  drawShapes();
+  drawShapes(); renderOpeningExplorer();
 }
 function scratchShapes() {
   const fen = scratchFen(), a = anaOf(fen), shapes = [];
@@ -2786,6 +2878,7 @@ function openTab(name) {
   if (name === 'review') renderReview();
   if (name === 'library') renderLibrary();
   if (name === 'reading') renderReading();
+  if (name === 'openings') renderOpeningExplorer();
   store.set('tab', name);
 }
 // Reviewing a live game is an explicit pause. Keep both boards, including the review cursor and
@@ -2852,6 +2945,8 @@ modeHint(); renderProgress();
 $('#btnComment').addEventListener('click', () => commentOn(S.cursor));
 choice('#optLevel', S.level, v => { S.level = +v; saveSettings(); renderAll(); renderPlayers(); });
 choice('#libFilter', 'all', () => renderLibrary());
+$('#explorerSource').value = ['all', 'classic', 'library'].includes(store.get('explorerSource')) ? store.get('explorerSource') : 'all';
+$('#explorerSource').addEventListener('change', () => { store.set('explorerSource', $('#explorerSource').value); renderOpeningExplorer(); });
 function eloHint() {
   $('#eloLabel').textContent = S.elo;
   $('#eloHint').textContent = S.elo < 1000 ? 'Beginner: plays loose moves and misses tactics.' : S.elo < 1320 ? 'Casual club strength: makes occasional oversights.' : S.elo < 1800 ? 'Solid club player.' : S.elo < 2300 ? 'Strong club to expert level.' : 'Master strength and above.';

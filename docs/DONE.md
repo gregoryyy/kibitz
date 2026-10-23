@@ -7,6 +7,32 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Opening explorer from reference games
+
+TODO items: 5.2.
+
+### Implementation notes
+
+- Added pure `openings.js`: chess.js validates complete PGN mainlines, then builds an EPD-keyed position/move graph. Different move orders join at transpositions; side to move, castling and legal en-passant rights remain distinct. Each game record contributes its first continuation at a position, so repetitions do not inflate counts.
+- The new Openings tab shows recorded continuations, their frequency among available continuations, White/draw/Black result counts and unknown results separately. Filters choose the built-in classics, the player's library or both. Sample records open at the move following the matching position; records ending at a node are reported separately.
+- Clicking a continuation opens or extends a legal scratch variation. Stepping backwards, branching, closing it, navigating the game and changing the corpus refresh the explorer. Opening a sample during play asks first and retains a return snapshot; it checks the game generation, position, help permission and record content after confirmation. Exploring does not change the underlying game or saved library.
+- The explorer is available in analysis, after a game or with Full engine help. Restricted live-help modes clear previously rendered continuations even while the panel is closed; move/sample actions check the policy again.
+- Per-record PGN parsing is cached by source, id and content. Imports/deletions rebuild the graph; removed cache entries are dropped. The UI includes German translations and keyboard/mobile coverage. No provider, external service or dependency was added.
+- Tests cover transpositions, rights/counters, repeated positions, result provenance and unknown values, corrupt/empty/custom-start games, annotation variations, promotions and source identities. Browser coverage exercises scratch/backtracking, source filters, sample occurrences, live-game confirmation/return, live-help restrictions, import/delete refreshes, hostile metadata and German phone layout; the tab-group regression includes Openings.
+- Validation: `npm run check`, a fresh build and mock-provider unit tests pass (253 passed, one opt-in live test skipped). The full Playwright suite passes (106 passed, one live-model test skipped); all six explorer scenarios pass again after the final confirmation-focus refinement, including a phone viewport. Desktop/phone layouts inspected, 50 local document link paths checked, and changed documentation PDFs regenerated locally.
+
+### Deviations
+
+- This explorer counts the selected stored game records, not a population of online games. Repeated imports remain separate records until library deduplication (7.2). The built-in standard-start corpus is currently nine games; composed studies and custom-start fragments are excluded.
+- PGN mainlines supply the recorded moves; annotation variations do not contribute votes. These frequencies/results are not engine evaluations. Repertoires, drills, authored opening explanations and named-continuation browsing remain in 5.3–5.6.
+
+### Insights
+
+- A displayed move tree needs a position graph underneath it: transpositions merge, while a repeated position in one game should not count as another independent game.
+- Unknown outcomes and records ending at a position need their own accounting; otherwise continuation percentages and results give a misleading impression of the sample.
+
+---
+
 ## 2026-10-23 — Road idea: animated Primer website
 
 TODO items: none; [ROAD 11](ROAD.md#11-animated-primer-website) records a future feature.

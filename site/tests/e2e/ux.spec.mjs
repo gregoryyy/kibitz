@@ -17,7 +17,7 @@ const review = async page => {
 test('Play and Study are grouped; reviewing pauses a game, and both sessions survive a round trip', async ({ page }) => {
   await open(page);
   await expect(page.locator('.tab-group').first().getByRole('tab')).toHaveText(['Game', 'Coach']);
-  await expect(page.locator('.tab-group').last().getByRole('tab')).toHaveCount(3);
+  await expect(page.locator('.tab-group').last().getByRole('tab')).toHaveText(['Review', 'Library', 'Reading', 'Openings']);
   await page.locator('#optClock button[data-v="3+2"]').click();
   await play(page);
   const live = await pgn(page);

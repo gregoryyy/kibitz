@@ -3,6 +3,26 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Opening explorer (TODO 5.2) ---------------------------------------------------------------
+  'Openings': 'Eröffnungen',
+  'Opening explorer': 'Eröffnungsexplorer',
+  'Reference games': 'Referenzpartien',
+  'All games': 'Alle Partien',
+  'My library': 'Meine Bibliothek',
+  'Opening continuations are hidden while you play. Choose Full engine help or finish the game to explore.': 'Eröffnungsfortsetzungen sind während der Partie verborgen. Wähle die volle Engine-Hilfe oder beende die Partie, um sie zu erkunden.',
+  'Standard-start games only. Counts describe this collection; each game record contributes its first continuation at a position.': 'Nur Partien aus der Grundstellung. Die Zahlen beziehen sich auf diese Sammlung; jeder Partieeintrag zählt mit seiner ersten Fortsetzung einer Stellung.',
+  'Try continuations on the scratch board, then go back or return to your game.': 'Probiere Fortsetzungen auf dem Variantenbrett aus und gehe dann zurück oder kehre zu deiner Partie zurück.',
+  '{side} to move · move {n}': '{side} am Zug · Zug {n}',
+  '{n} reference game records · {m} reached this position': '{n} Referenzpartieeinträge · {m} an dieser Stellung',
+  '1 reference game record · {m} reached this position': '1 Referenzpartieeintrag · {m} an dieser Stellung',
+  'Records ending here: {n}.': 'Hier endende Partieeinträge: {n}.',
+  'No recorded continuations here. Import games into your library or step back to another position.': 'Hier sind keine Fortsetzungen gespeichert. Importiere Partien in deine Bibliothek oder gehe zu einer anderen Stellung zurück.',
+  'Results: White wins / draws / Black wins. Unknown results are listed separately.': 'Ergebnisse: Siege für Weiß / Remis / Siege für Schwarz. Unbekannte Ergebnisse werden getrennt aufgeführt.',
+  '{n} game records · {share}% of continuations': '{n} Partieeinträge · {share}% der Fortsetzungen',
+  '1 game record · {share}% of continuations': '1 Partieeintrag · {share}% der Fortsetzungen',
+  'Unknown results: {n}.': 'Unbekannte Ergebnisse: {n}.',
+  'Games after {move}': 'Partien nach {move}',
+  'Showing the first 8 matching records.': 'Die ersten 8 passenden Partieeinträge werden angezeigt.',
   'Discuss': 'Besprechen',
   'Current game': 'Laufende Partie',
   'Finished game': 'Beendete Partie',
