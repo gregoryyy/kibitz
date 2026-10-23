@@ -19,7 +19,7 @@ TODO items: 5.4.
 - Deterministic intervals are one day, three days, then doubling up to 180 days for clean recalls. A starting-square hint keeps at least a one-day interval; a miss or reveal schedules a ten-minute retry. Card identity includes repertoire id, side, EPD and the sorted accepted choices. Renaming lines/notes preserves progress, while adding/removing choices creates a new question; unchanged positions retain their history.
 - Versioned browser-local `kibitz.repertoireReviews` is separate from games/repertoires. Writes validate before publishing to memory; quota/storage failure keeps the answered card and completed attempt for retry without double-counting. Corrupt or unknown-version progress stays untouched with drills disabled, while repertoire editing remains available. Statistics ignore old keys that no longer match current cards.
 - Nine unit scenarios cover merging/identity, answer legality and replies, castling/promotion, queue priority/caps, interval progression, malformed input and storage rollback. Eleven browser scenarios cover both sides, reload, hints/reveal, due ordering, failed-save retry, corrupt progress, live-help restrictions, edited choices, promotion, a stale callback after a game replacement, and German phone input/layout. Desktop and phone layouts were inspected; no provider, dependency or external service was added.
-- Validation: `npm run check`, a fresh build and mock-provider unit tests pass (277 passed, one opt-in live test skipped). The full Playwright run passes (131 passed, one live-model test skipped); all 25 drill/repertoire/explorer cases pass after the final phone-layout and stale-promotion refinements. Changed architecture, design, TODO, DONE and site README PDFs regenerated locally.
+- Validation after integration with the merged coach-tool fixes: `npm run check`, a fresh build and mock-provider unit tests pass (281 passed, one opt-in live test skipped). The full Playwright run passes (141 passed, one live-model test skipped), including all eleven drill scenarios, repertoire/explorer coverage, provider-error recovery and restricted-help explanations. Changed architecture, design, TODO, DONE and site README PDFs regenerated locally.
 
 ### Deviations
 
@@ -30,6 +30,32 @@ TODO items: 5.4.
 
 - A repertoire answer can be a perfectly sound chess alternative yet fail a recall task. Keeping those verdicts separate prevents the trainer from teaching that an unsaved move is a blunder.
 - Review identity must follow both the position and the accepted choices. An edited name should not erase learning, while changed answers must not inherit a previous question's completion.
+
+---
+
+## 2026-10-23 — Keep the coach's Stockfish tools available after provider errors
+
+TODO items: fixes to 4.11.3, 4.11.6.
+
+### Implementation notes
+
+- Reproduced four browser regressions on the previous implementation: a temporary provider error or an unrelated rejected parameter silently turned off tools for the entire page; a tool-incompatible quick model disabled a capable chat model; changing the selected model did not restore access.
+- Replaced the global `TOOLS_OFF` switch with a page-local capability cache keyed by the actual provider/model for the request's task. Only an explicit tool/function-calling rejection enables fixed-context fallback. Other errors remain visible without changing capability state. A different model has its own state, and a successful connection test clears the tested model's cached rejection.
+- Added pure, JSDoc-typed `coach-tools.js` for route identity, conservative rejection detection and runtime instructions. Every tool-loop turn explicitly tells the model whether fresh Stockfish evaluation tools are offered, withheld by General chess/live-help context, or exhausted by the call budget. Responses may claim new analysis only after the engine tool returns evidence.
+- A follow-up report confirmed the refusal happened with Flag mistakes or Eval + mistakes. Runtime instructions now identify restricted live help as the reason searches are withheld and direct the player to Full engine help (Volle Engine), rather than suggesting the app lacks an engine interface. General chess receives its own explanation. Enabling Full help makes tools available in the existing conversation, even after a reply denying engine access; the app does not change the setting for the player.
+- A context-only gateway answer carries a visible translated notice. Fallback prompts describe the actual limitation; neither cached analysis nor a failed call is presented as a new model-requested search. Model changes invalidate in-flight tool work, so a late rejection cannot start a fallback against the newly selected model.
+- Four new unit cases cover capability identity, positive/negative error classification, runtime availability/budget instructions and preserving the first-turn security rules and tool/result order. Seven browser regressions cover enabling Full help after the reported refusal, transient failures during a live game with Full engine help, unrelated rejection, quick/chat isolation, model changes, explicit reconnection and a held rejection arriving after a model change. Restricted-help coverage checks all three settings (Flag mistakes, Eval + mistakes and Off). The existing unsupported-model case also checks the German notice and that it creates no Stockfish evidence.
+- Validation: `npm run check`, a clean build and mock-provider unit tests pass (272 passed, one opt-in live test skipped). The full Playwright suite passed before the help-explanation follow-up (127 passed, one live-model test skipped). All 42 affected chat, tool and security scenarios pass after that follow-up, including the reported denial followed by Full-help access. The missing restriction explanation fails its unit/browser checks before the change. Changed documentation PDFs regenerated locally.
+
+### Deviations
+
+- The reported live-game refusal follows the existing restricted-help policy; the independently reproduced provider-error bugs are separate. Model wording and tool choice are still model decisions. Tests use mocked providers and fake SDK clients; no live provider call was made.
+- General chess and restricted live help still withhold engine tools, and the in-browser/artifact providers still use supplied context. This does not broaden permissions or add a provider integration. The open repertoire-drill PR remains separate.
+
+### Insights
+
+- A rejected request is not evidence that a model lacks tool support. Capability state must follow the selected model and be based on an explicit capability failure.
+- Native tool schemas and runtime instructions serve different purposes: schemas define valid calls, while runtime instructions make the current engine access explicit. These instructions extend the standing rules rather than displacing the first-turn security contract.
 
 ---
 
