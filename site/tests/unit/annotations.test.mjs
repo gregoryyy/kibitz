@@ -1,5 +1,8 @@
-// Board annotations (TODO 4.2, 4.4, 4.7): the schema, the ```board block, lines in an answer, and
-// model output that is malformed or hostile.
+/**
+ * @file Pure annotation and move-link checks (TODO 4.2, 4.3, 4.4, 4.7).
+ * chess.js validates replay; supplied evidence determines verdicts separately from navigation.
+ * Malformed model output must never become a drawable mark or an illegal continuation.
+ */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
@@ -33,6 +36,7 @@ test('squares, ghosts and labels are checked too', () => {
   assert.equal(checkAnnotation(Chess, START, null).ok, false);
 });
 
+/** Replay keeps SAN/UCI and before/after FENs aligned; one illegal move rejects the entire line. */
 test('lines: every move legal in turn, in SAN or UCI', () => {
   const l = playLine(Chess, START, ['e4', 'e5', 'g1f3']);
   assert.deepEqual(l.sans, ['e4', 'e5', 'Nf3']);
@@ -67,20 +71,25 @@ test('hostile or malformed blocks draw nothing wrong', () => {
   assert.equal(ok.dropped[0].why, 'not a legal move here');
 });
 
+/**
+ * Connected clauses continue a variation; alternatives reset it and tool lines keep their starts.
+ * A legal link must retain an unsupported verdict, while an illegal suffix cannot become a link.
+ */
 test('lines in an answer: a run of checked moves becomes a line from the right position', () => {
   const fen = QH5;
   const text = 'Defend with 3... g6, and if 4. Qf3 then Nf6. The other try 3... Nf6?? loses to 4. Qxf7#.';
   const check = checkAnswer(Chess, text, { fen, lines: [['g7g6', 'h5f3', 'g8f6']], game: [] });
   const { moves, lines } = linesInAnswer(Chess, text, check.moves, { fen });
   // g6 from the position; "4. Qf3" continues after it, and "then Nf6" after that; "3... Nf6??" starts again.
-  assert.deepEqual(lines.map(l => l.sans), [['g6'], ['Qf3'], ['Nf6'], ['Nf6']]);
+  assert.deepEqual(lines.map(l => l.sans), [['g6'], ['Qf3'], ['Nf6'], ['Nf6'], ['Qxf7#']]);
   assert.equal(lines[0].start, new Chess(fen).fen());
   assert.equal(lines[1].start, lines[0].fens[1]);
   assert.equal(lines[2].start, lines[1].fens[1]);
   assert.equal(lines[3].start, new Chess(fen).fen());
   const qf3 = moves.find(m => m.san === 'Qf3');
   assert.deepEqual([qf3.line, qf3.ply], [1, 0]);
-  assert.equal(moves.find(m => m.san === 'Qxf7#').line, undefined, 'a move the check marks wrong is in no line');
+  assert.equal(moves.find(m => m.san === 'Qxf7#').status, 'invalid', 'legal navigation does not endorse an unsupported line');
+  assert.ok(moves.find(m => m.san === 'Qxf7#').line !== undefined, 'a legal but flagged variation can still be inspected');
   // A wrong move ends a line; the checked moves before it stay one
   const t2 = 'Then 3... Nf6 4. Qxf7# ends it.';
   const c2 = checkAnswer(Chess, t2, { fen, lines: [['g8f6', 'h5f7']], game: [] });
@@ -97,4 +106,46 @@ test('lines in an answer: a run of checked moves becomes a line from the right p
   // A wrong move breaks no line into something drawn
   const bad = checkAnswer(Chess, 'Play 3... Qxh5 now.', { fen, lines: [], game: [] });
   assert.equal(linesInAnswer(Chess, 'Play 3... Qxh5 now.', bad.moves, { fen }).lines.length, 0);
+});
+
+/** Move numbers distinguish repeated SAN occurrences; an ambiguous unnumbered mention stays unlinked. */
+test('numbered historical references resolve to their own occurrence, including a repeated move', () => {
+  const game = playLine(Chess, START, ['Nf3', 'Nf6', 'Ng1', 'Ng8', 'Nf3']);
+  const text = 'After **1. Nf3** the knight develops; **3. Nf3** returns to that square.';
+  const fen = game.fens.at(-1), prevFen = game.fens.at(-2);
+  const checked = checkAnswer(Chess, text, { fen, prevFen, game: game.sans });
+  const result = linesInAnswer(Chess, text, checked.moves, { fen, prevFen, game });
+  assert.deepEqual(result.lines.map(l => l.start), [game.fens[0], game.fens[4]]);
+  const ambiguous = 'Nf3 developed the knight.', marks = checkAnswer(Chess, ambiguous, { fen, prevFen, game: game.sans });
+  assert.equal(linesInAnswer(Chess, ambiguous, marks.moves, { fen, prevFen, game }).lines.length, 0);
+});
+
+/**
+ * A repeated move number starts an alternative, and a mismatched number rejects a candidate.
+ * Explicitly connected variation clauses must not silently switch back to the played mainline.
+ */
+test('move numbers reset alternatives instead of continuing the preceding sentence', () => {
+  const text = 'Try 1. e4 e5. Another option is 1. d4 d5.';
+  const checked = checkAnswer(Chess, text, { fen: START, lines: [['e2e4', 'e7e5'], ['d2d4', 'd7d5']] });
+  const result = linesInAnswer(Chess, text, checked.moves, { fen: START });
+  assert.deepEqual(result.lines.map(l => l.start), [START, START]);
+  const bad = 'Try 9. Nf3.';
+  const mark = checkAnswer(Chess, bad, { fen: START, lines: [['g1f3']] });
+  assert.equal(linesInAnswer(Chess, bad, mark.moves, { fen: START }).lines.length, 0);
+  const variation = 'Try 1. e4 c5; 2. Nf3 develops.';
+  const game = playLine(Chess, START, ['e4', 'e5', 'Nf3']);
+  const check = checkAnswer(Chess, variation, { fen: START, game: game.sans, extra: [['e4', 'c5', 'Nf3']] });
+  const linked = linesInAnswer(Chess, variation, check.moves, { fen: START, game });
+  assert.equal(linked.lines[1].start, playLine(Chess, START, ['e4', 'c5']).fens[2]);
+});
+
+/** Full FEN counters/side, rather than array indices, anchor fragments starting with Black at move 12. */
+test('historical black moves use the custom start move number and unicode ellipsis', () => {
+  const start = START.replace(' w ', ' b ').replace(' 0 1', ' 0 12');
+  const game = playLine(Chess, start, ['e5', 'Nf3', 'Nc6']);
+  const text = 'The line was 12… e5 13. Nf3.';
+  const fen = game.fens.at(-1), checked = checkAnswer(Chess, text, { fen, game: game.sans });
+  const result = linesInAnswer(Chess, text, checked.moves, { fen, game });
+  assert.equal(result.lines[0]?.start, start);
+  assert.deepEqual(result.lines[0]?.sans, ['e5', 'Nf3']);
 });
