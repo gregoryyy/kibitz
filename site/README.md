@@ -82,7 +82,7 @@ tsconfig.json         tsc --checkJs over src/, server/, scripts/ (JSDoc types, n
 
 **Coach prompt.** `contextFor(i)` assembles: player level, moves so far, FEN + ASCII board, Stockfish lines in SAN, motifs, last-move rating and the engine's alternative, detected themes, retrieved books, and similar library positions. `RULES` holds the standing instructions.
 
-**Coach tools.** With a tool-capable gateway model, position chat in Analyse or with Full engine help can request fresh Stockfish evaluations, try/compare candidate moves and inspect threats or mates; the answer lists the engine evidence. A model that explicitly rejects tool calling uses supplied context with a visible notice. This is tracked per provider/model. Switching models or successfully using **Test connection** allows tool support to be checked again; temporary provider errors do not disable the tools.
+**Coach tools.** With a tool-capable gateway model, position chat in Analyse or with Full engine help can request fresh Stockfish evaluations, try/compare candidate moves and inspect threats or mates; the answer lists the engine evidence. During play, Off, Flag mistakes and Eval + mistakes withhold these tools; choosing **Full engine** enables them for the next question in the same conversation. The coach is instructed to explain this setting when asked about engine access. A model that explicitly rejects tool calling uses supplied context with a visible notice. This is tracked per provider/model. Switching models or successfully using **Test connection** allows tool support to be checked again; temporary provider errors do not disable the tools.
 
 ## Claude platform APIs (artifact runtime)
 

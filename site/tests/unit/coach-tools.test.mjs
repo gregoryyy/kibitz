@@ -27,7 +27,13 @@ test('only explicit tool/function calling rejection permits a context-only fallb
 
 test('runtime instructions distinguish engine access, restricted context and the exhausted call budget', () => {
   assert.match(toolInstructions(['analyse', 'try_move', 'search_library'], true), /Stockfish evaluation tools are available/);
-  assert.match(toolInstructions(['search_library', 'load_game'], true), /No Stockfish evaluation tools are offered/);
+  const restricted = toolInstructions(['search_library', 'load_game'], true);
+  assert.match(restricted, /No Stockfish evaluation tools are offered/);
+  assert.match(restricted, /live-game help setting/);
+  assert.match(restricted, /Full engine/);
+  const general = toolInstructions(['search_library', 'load_game'], true, { general: true });
+  assert.match(general, /General chess/);
+  assert.doesNotMatch(general, /live-game help setting/);
   assert.match(toolInstructions(['analyse'], false), /budget is exhausted/);
   assert.match(TOOL_FALLBACK, /did not request an additional Stockfish search/);
 });

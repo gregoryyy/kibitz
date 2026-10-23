@@ -48,10 +48,14 @@ export function withToolInstructions(turns, instructions) {
  * from the dialogue so each round reflects its current permissions and remaining budget.
  * @param {string[]} names Tools actually offered to the provider.
  * @param {boolean} offer Whether the tool-call budget permits another call.
+ * @param {{general?: boolean}} [context] Whether the player selected General chess.
  * @returns {string} Trusted application instructions, not user/imported text.
  */
-export function toolInstructions(names, offer) {
+export function toolInstructions(names, offer, { general = false } = {}) {
   if (!offer) return 'The tool-call budget is exhausted. Answer using the supplied context and the tool results already returned. Do not claim to run another engine search.';
   if (names.includes('analyse')) return 'Stockfish evaluation tools are available in this request. You can request fresh analysis with analyse(fen, depth, lines), check a candidate with try_move(fen, move), or compare candidates with compare(fen, moves). Use the offered tools when the question needs more engine evidence. Do not say you cannot request Stockfish evaluations while these tools are offered. Report a new evaluation only after receiving its tool result; a failed call is not analysis evidence.';
-  return 'No Stockfish evaluation tools are offered in this request. Follow the supplied General chess or live-help context; do not claim to run a fresh engine search. Use only the offered library/board tools and any permitted context.';
+  const reason = general
+    ? 'The player selected General chess, so no board position or engine evaluation is supplied. Explain that fresh Stockfish requests are available in position chat with Full engine help or in analysis.'
+    : 'The live-game help setting withholds fresh engine searches. If asked about engine access, explain this setting rather than claiming the app has no Stockfish interface. The player can choose Full engine help (Volle Engine in German) to enable fresh evaluations during play. Do not change the setting or leave the game for them.';
+  return `No Stockfish evaluation tools are offered in this request. ${reason} Do not claim to run a fresh engine search. Use only the offered library/board tools and any permitted context.`;
 }

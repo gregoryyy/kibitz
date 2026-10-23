@@ -2465,7 +2465,7 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
     const offer = round < TOOL_CAPS.rounds && calls < TOOL_CAPS.calls;
     const names = [...(!CHAT.general && engineView(S) === 'all' ? ENGINE_TOOL_NAMES : []), ...CHAT_TOOL_NAMES];
     let r;
-    try { r = await COACH.sample(withToolInstructions(msgs, toolInstructions(names, offer)), { signal, cache: false, task, onText, ...(offer ? { tools: names } : {}) }); }
+    try { r = await COACH.sample(withToolInstructions(msgs, toolInstructions(names, offer, { general: CHAT.general })), { signal, cache: false, task, onText, ...(offer ? { tools: names } : {}) }); }
     catch (e) {
       if (!activeToolRun()) throw { code: 'cancelled' };
       // Fall back only for an explicit capability rejection, and only for this provider/model.

@@ -59,15 +59,37 @@ test('hostile tool arguments are refused and the model is told why; nothing runs
   await expect(a.locator('.evidence')).toHaveCount(0);
 });
 
-test('no engine tools in a game with less help: library and board tools cannot reveal Stockfish', async ({ page }) => {
+for (const help of ['flags', 'eval', 'off']) test(`no engine tools during live play with ${help} help: explain the restriction`, async ({ page }) => {
   const bodies = record(page);
   await open(page);
-  await page.locator('#optHelp button[data-v="flags"]').click();
+  await page.locator(`#optHelp button[data-v="${help}"]`).click();
   await page.locator('#btnNewGame').click();
   await ask(page, 'What now? [mock:tool]');
   expect(bodies).toHaveLength(1);
   expect(bodies[0].tools).not.toContain('analyse');
   expect(bodies[0].tools).toContain('load_game');
+  expect(bodies[0].messages[0].content).toContain('live-game help setting');
+  expect(bodies[0].messages[0].content).toContain('Full engine');
+});
+
+/** Earlier restricted-mode replies must not obscure tools enabled later in the same conversation. */
+test('enabling full help makes Stockfish available after a restricted live-game reply', async ({ page }) => {
+  const bodies = record(page);
+  const denial = 'Ich habe keinen Befehl, mit dem ich Stockfish direkt befragen kann.';
+  let replies = 0;
+  await page.route('**/api/ai/sample', r => ++replies === 1
+    ? r.fulfill({ contentType: 'application/x-ndjson', body: `${JSON.stringify({ text: denial })}\n${JSON.stringify({ done: true })}\n` })
+    : r.continue());
+  await open(page);
+  await page.locator('#optHelp button[data-v="flags"]').click();
+  await page.locator('#btnNewGame').click();
+  await expect(await ask(page, 'Can you ask Stockfish?')).toContainText(denial);
+  await page.locator('#optHelp button[data-v="full"]').click();
+  const answer = await ask(page, 'Ask Stockfish now. [mock:tool]');
+  expect(bodies[1].tools).toContain('analyse');
+  expect(bodies[1].messages[0].content).toContain('Stockfish evaluation tools are available');
+  expect(bodies[1].messages.some(m => m.role === 'assistant' && m.content === denial)).toBe(true);
+  await expect(answer.locator('.evidence summary')).toHaveText('Stockfish checked one thing for this answer');
 });
 
 test('a provider that refuses tools: the page asks again without them, and stops offering them', async ({ page }) => {
