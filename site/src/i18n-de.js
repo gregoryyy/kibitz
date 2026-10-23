@@ -3,6 +3,18 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Opening study notes (TODO 5.5); guide prose is bilingual in opening-guides.js. -------------
+  'Opening ideas': 'Eröffnungsideen',
+  'Kibitz study notes: typical plans, not a recommendation for the next move.': 'Kibitz-Lernnotizen: typische Pläne, keine Empfehlung für den nächsten Zug.',
+  'No study note matches this position yet. Load an opening or explore another position.': 'Zu dieser Stellung gibt es noch keine passende Lernnotiz. Lade eine Eröffnung oder erkunde eine andere Stellung.',
+  'Known opening position': 'Bekannte Eröffnungsstellung',
+  'Earlier in this line': 'Früher in dieser Variante',
+  'Pawn-structure pattern': 'Bauernstrukturmuster',
+  'Idea': 'Idee',
+  'Typical plans': 'Typische Pläne',
+  'Pawn structures': 'Bauernstrukturen',
+  'Discuss these ideas': 'Diese Ideen besprechen',
+  'Explain the ideas and typical plans of this opening for the position on the board. Use the study notes as background and check concrete moves with Stockfish.': 'Erkläre die Ideen und typischen Pläne dieser Eröffnung für die Stellung auf dem Brett. Nutze die Lernnotizen als Hintergrund und prüfe konkrete Züge mit Stockfish.',
   // --- Repertoire drills (TODO 5.4) ---------------------------------------------------------------
   'Repertoire drill': 'Repertoiretraining',
   'Repertoire practice board': 'Brett für das Repertoiretraining',

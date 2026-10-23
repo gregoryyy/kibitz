@@ -7,6 +7,32 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Opening ideas and current pawn-structure notes
+
+TODO items: 5.5.
+
+### Implementation notes
+
+- Added pure, JSDoc-typed `opening-guides.js` with original English/German notes for twelve opening families and seven pawn patterns. Each explains an idea, typical plans and possible structures. The static panel in Openings works without a provider and distinguishes known opening positions, earlier opening background and current pawn patterns.
+- EPD lookup preserves side/castling/en-passant rights while ignoring counters, so transpositions retrieve the same guide. The displayed game prefix and captured scratch FENs determine the route: an ancestor branch discards later game history; a disconnected setup inherits none. A direct match takes precedence over opening-prefix history. The generic name after only `1. e4` is not enough to classify an open game.
+- Structure notes use the existing board-feature detectors independently of the opening name, with at most two current patterns plus one opening-family guide. Exchanges can remove a pawn note while the earlier opening remains useful background. Unknown families, the initial position and endgames receive an explicit empty state rather than invented plans.
+- **Discuss these ideas** explicitly selects position chat. The same English study notes enter permitted position/commentary/study context through bounded `quote()` data, with instructions that they are general background and establish no engine evidence. Concrete moves/evaluations still need supplied Stockfish analysis or successful tool results. Opening context now follows the displayed scratch route rather than the game behind it.
+- Reduced live help clears rendered guides even while their tab is closed and omits them from prompts. General chess sends no guides. Held discussion buttons recheck game generation, full FEN and help permission; guides do not change the board, game, library or saved repertoire.
+- Seven unit scenarios cover the built ECO catalogue in both languages, transpositions/rights/counters, changing pawn structures, seven pattern matches, scratch route isolation, empty states and bounded prompt quoting. Seven browser scenarios cover static use without AI calls, discussion/tool evidence, scratch/setup context, transpositions/exchanges, all restricted help settings, stale actions and German phone layout.
+- Validation: `npm run check`, a fresh build and mock-provider unit tests pass (288 passed, one opt-in live test skipped). The seven guide scenarios and six existing explorer scenarios pass across focused runs, including an explicit check with the provider disabled. Desktop and German phone layouts were inspected without horizontal overflow; architecture, design, TODO and site README PDFs regenerated locally.
+
+### Deviations
+
+- This is an initial authored catalogue, not an explanation for every ECO entry: open games, Italian, Ruy Lopez, Sicilian, French, Caro-Kann, Queen's Gambit, Slav/Semi-Slav, King's Indian, Nimzo-Indian, English and queen-pawn systems. Supported structure patterns are IQP, hanging pawns, Carlsbad, French chain, King's Indian chain, Maróczy and Stonewall. Existing detectors are heuristics; general plans still require adaptation to the actual pieces and tactics.
+- No model, engine search, external service or new dependency is needed to retrieve/display a guide. Named continuation browsing remains TODO 5.6; text/embedding retrieval and a larger sourced library remain milestone 8/7 work. No third-party annotations or book passages were imported. Primary background cross-checks included the [Lichess French](https://lichess.org/opening/French_Defense) and [Sicilian](https://lichess.org/opening/Sicilian_Defense) pages; structure-based study is also described in the [author's introduction to Chess Structures](https://chess-structures.com/the-book/).
+
+### Insights
+
+- Opening names describe a route or a known position; they cannot establish which pawn structure exists now. Matching those two sources separately prevents a French Exchange position from receiving a locked-centre plan.
+- A scratch board needs its own visible history for retrieval just as it does for move links. Future moves in the underlying game must not choose a guide for the branch on screen.
+
+---
+
 ## 2026-10-23 — Repertoire recall with spaced reviews
 
 TODO items: 5.4.

@@ -19,6 +19,8 @@ npm run test:e2e         # Playwright end-to-end tests in the installed Chrome (
 
 In **Openings**, choose a saved White or Black repertoire and press **Review due moves** to practise new or due positions. Play on the drill board or type SAN/coordinates; the saved opponent reply follows automatically. Any saved choice at that position is accepted, including transpositions. A starting-square hint counts as help, and a legal move outside your repertoire counts as a recall miss rather than a chess judgement. Review dates and recall/help statistics stay in this browser. The drill leaves your game intact and follows its live-help setting; switch to Analyse to train without a running game.
 
+**Opening ideas** shows original study notes for twelve opening families and seven pawn patterns, in English or German. A guide explains the idea, typical plans and possible structures; separate pattern notes reflect the pawns currently on the board. Guides follow transpositions and scratch variations, identifying earlier opening matches as background. **Discuss these ideas** gives the coach the same notes alongside permitted Stockfish evidence. Static guides need no provider. During a game they require Full engine help, following the explorer's policy; unsupported/endgame positions show an empty state instead of a guessed explanation.
+
 ## Layout
 
 ```
@@ -37,6 +39,7 @@ src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded wh
                       cancel by tag, time-capped depth searches; rejects all jobs if it dies
 src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
 src/openings.js       Reference-game position graph: continuations, record counts/results and sample occurrences
+src/opening-guides.js Original bilingual study notes, visible-route/EPD matching, current pawn patterns and quoted coach context
 src/repertoire.js     Legal chosen opening lines, game/scratch path capture, position-based choices and browser storage
 src/drills.js         Repertoire recall cards, legal replies, review queue, deterministic intervals and atomic progress storage
 src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
