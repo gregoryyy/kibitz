@@ -7,8 +7,9 @@ Research date: **2026-10-23**. Repository audit: **`0176c62` on `main`**. These 
 1. [AI use cases in milestones 5–7 and the Stockfish audit](milestones-5-7-ai.md): what the model should do, what rules and search should do, and which engine components Kibitz actually uses.
 2. [RAG methods](rag-methods.md): ordinary text indexing, hybrid and structured retrieval, graph approaches, a proposed chess schema and an evaluation plan.
 3. [Neurosymbolic chess and other games](neurosymbolic-games.md): research on engine-grounded commentary, neural search, learned concepts and explicit logical systems, with experiments worth trying here.
+4. [Position similarity by aspect](position-similarity.md): candidate symbolic/dynamic distances, conditional metric learning and an aspect-specific evaluation plan.
 
-Read alongside the [architecture](../ARCH.md), [plan](../TODO.md) and [Primer](../Primer_v01.pdf). The Primer's editable sources are in the pending [primer-source PR #37](https://github.com/gregoryyy/kibitz/pull/37); its metadata and position-retrieval discussion is the starting point, rather than evidence that full-text/vector RAG is already implemented.
+Start with the brief [LLM and symbolic design overview](../AI-DESIGN.md) for a feature-level map. Read alongside the [architecture](../ARCH.md), [plan](../TODO.md) and [Primer](../primer/Primer_v01.pdf), whose [editable source](../primer/Primer_v01.md) is also available. The Primer's metadata and position-retrieval discussion is the starting point, rather than evidence that full-text/vector RAG is already implemented.
 
 ## Recommendations
 

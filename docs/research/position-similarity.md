@@ -1,6 +1,6 @@
 # Chess position similarity by aspect
 
-Research date: **2026-10-23**. Companion to [ROAD 10](../ROAD.md#10-position-similarity-by-aspect); informs TODO 8.1, 8.4, 8.5 and 8.8. Application audit: **`0176c62`**. This note proposes research and evaluation, not a selected metric, implementation or reproduced benchmark. The broader retrieval studies are in [research PR #41](https://github.com/gregoryyy/kibitz/pull/41).
+Research date: **2026-10-23**. Companion to [ROAD 10](../ROAD.md#10-position-similarity-by-aspect); informs TODO 8.1, 8.4, 8.5 and 8.8. Application audit: **`0176c62`**. This note proposes research and evaluation, not a selected metric, implementation or reproduced benchmark. See the [research index](README.md) for the broader retrieval studies and [design overview](../AI-DESIGN.md) for their place in the feature set.
 
 ## Similar in what respect?
 

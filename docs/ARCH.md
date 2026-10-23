@@ -2,7 +2,7 @@
 
 How Kibitz is built, and the ideas behind it. The plan is in [TODO.md](TODO.md), ideas beyond it in [ROAD.md](ROAD.md), and what was built, with its trade-offs, in [DONE.md](DONE.md). For a gentler introduction, from how a language model works to running such a system responsibly, see the [primer](primer/Primer_v01.pdf); the [flipbook](flipbook/README.md) shows the app at work. Items that are planned but not built yet are marked with their TODO number.
 
-The [research notes](research/README.md) examine AI responsibilities in milestones 5–7, Stockfish component use, retrieval methods and neurosymbolic game systems, distinguishing the current code from proposed experiments.
+For the brief feature-level map, see [LLM and symbolic design](AI-DESIGN.md). The [research notes](research/README.md) examine AI responsibilities in milestones 5–7, Stockfish component use, retrieval methods and neurosymbolic game systems, distinguishing the current code from proposed experiments.
 
 ## Motivation
 
@@ -18,18 +18,18 @@ The Kibitz repo uses a modern chess training app to demonstrate key concepts in 
 Kibitz is a neurosymbolic chess coach. Two very different kinds of system work together, and each does only what it's good at.
 
 - **The symbolic side calculates and checks.**
-  - Stockfish searches the position. Its evaluation is a small neural network (NNUE), but the search, the rules and everything built on them are exact.
+  - Stockfish combines NNUE neural evaluation with search over legal continuations. Rules have exact checks; finite-search scores and lines are bounded evidence.
   - chess.js knows the rules.
   - `knowledge.js` detects motifs (fork, pin, discovered attack, back rank, ...), pawn structures and position themes, and classifies moves by how much they change the winning chances.
-  - All of this is deterministic and can be tested, and it is right about concrete play.
+  - Rules, features and search results have separate tests. Features can be heuristic; tactical candidates need engine confirmation, which remains limited by the search budget.
 - **The neural side explains.** A language model (Claude, OpenAI, Mistral, Ollama, or a small model running in the browser) turns those facts into language a player at a given level can use: ideas, plans, what to watch for. It is good at language and teaching, and unreliable at calculating variations.
-- **The symbolic side has the last word.** The model only sees facts the engine produced, it is told to take every line from them, and its answer is checked against them afterwards (section 3.6). Moves it makes up are struck through for the player.
+- **The application controls evidence and actions.** The model receives permitted engine results, position facts and retrieved/user text. Its move lines must come from supplied evidence, and its answer is checked afterwards (section 3.6). Wrong moves are marked for the player; these checks do not prove every prose explanation.
 
 This split is also the user experience:
 
 - **The numbers come from the engine.** Evaluations, best moves, mistakes and the review are Stockfish's, shown directly: the eval bar, the flags, the review graph. The coach adds the "why".
 - **Help is a dial.** In a running game, the player decides how much the engine may reveal (help Off, Flag mistakes, Eval + mistakes, Full). The coach's view follows that setting, so asking it can't spoil the game (section 3.1).
-- **Trust is visible.** Moves the coach names are highlighted when they're backed by Stockfish's lines or the game, greyed when they're legal but unchecked, and struck through when they're wrong.
+- **Trust is visible.** Moves the coach names are highlighted when they're backed by Stockfish's lines or the game, greyed when they're legal but unchecked, and underlined in red when they're wrong.
 - **The coach is optional.** Without any language model, play, analysis, flags, review, library and reading suggestions all still work.
 
 ## 2. Where things run
@@ -121,11 +121,12 @@ Planned: material and piece-placement signatures, fuzzy pawn-structure distance,
 
 ### 3.4 Structured output
 
-For answers the page must act on, such as arrows and highlighted squares on the board, the model returns JSON instead of prose.
+Machine-facing output uses constrained formats: named JSON replies for structured requests, schemas for tool calls, and a small `board` grammar for marks in chat answers.
 
 - **Named formats only.** The page asks for a format by name (`/api/ai/structured`, `FORMATS` in `schema.mjs`) and can't send a schema of its own.
 - **Native first, then a fallback.** The gateway asks each provider for native JSON-schema output. If the provider rejects that, or the reply doesn't fit, it repeats the request with the schema in the instructions and parses the JSON out of the text (`completeJson()`).
 - **Validated twice.** The gateway validates every reply against the schema (`validate()`), including limits that strict provider modes can't express (lengths, patterns, item counts). The page checks every square against the position before drawing it (4.4).
+- **Chat marks.** `parseBoardBlock()` in `annotations.js` parses a bounded block of arrows, squares, ghost pieces and labels. The page checks these against the displayed position; normal chat prose is not required to be JSON.
 
 ### 3.5 Tool use
 
@@ -161,7 +162,7 @@ The model's output is untrusted.
   - invalid;
   - a bare square.
 
-  Moves joined only by move numbers must form a contiguous run of an engine line or the game. Claims like "the bishop on b5" are checked against the board. Invalid moves are struck through, and a note counts the wrong claims.
+  Moves joined only by move numbers must form a contiguous run of an engine line or the game. Claims like "the bishop on b5" are checked against the board. Invalid moves are underlined in red, and a note counts the wrong claims.
 - **Stale answers are dropped.** Every async step (engine, coach, review) checks that the game is still the one it started for (`S.gen`, the node, or the FEN) before showing anything.
 - **Limits** on input size, request rate and daily tokens, enforced in the gateway.
 

@@ -18,7 +18,7 @@ A passage can be relevant but wrong; a correct engine line can be a poor teachin
 
 ### Where the Primer and current code stand
 
-The [Primer](../Primer_v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. [knowledge.js](../../site/src/knowledge.js) currently implements:
+The [Primer](../primer/Primer_v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. [knowledge.js](../../site/src/knowledge.js) currently implements:
 
 - `retrieveLiterature`: weighted book metadata/theme/level matches, without book full text;
 - `buildPositionIndex` / `similarPositions`: exact EPD and exact pawn-signature buckets, with limits on structural matches;

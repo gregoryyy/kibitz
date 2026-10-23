@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Brief LLM and symbolic design overview
+
+TODO items: 0.13 (documentation).
+
+### Implementation notes
+
+- Added [AI-DESIGN.md](AI-DESIGN.md): component responsibilities, an evidence/tool/validation flow, and a feature matrix covering play, commentary, reviews, chat, board annotations, retrieval, openings, lessons and the recent ROAD ideas.
+- Outlined context engineering, bounded tool use, structured output, retrieval/provenance, verification, state isolation and runtime policy. Distinguished built/prototype behaviour, planned work and exploration, with explicit limits on what each check establishes.
+- Linked the overview from README, ARCH and the research index. Connected the position-similarity study to the index and repaired research links to the merged Primer sources/PDF.
+- Aligned ARCH's descriptions of finite-search evidence, output formats and wrong-move marking with the current implementation.
+- Validation: 71 local document links/heading targets checked; the overview renders as three PDF pages with its diagram. `npm run check`, a fresh build and mock-provider unit tests pass (243 passed, one opt-in live test skipped).
+
+### Deviations
+
+- Design documentation only: no app behaviour, dependencies or feature completion status changed. The overview refers to application baseline `1ce2f68` and keeps background explanations in the Primer and detailed mechanisms in ARCH/research.
+
+### Insights
+
+- The recurring design is evidence → permitted context → language/tool requests → validation → board/text. Each feature combines those steps differently; several useful features need no LLM.
+- Explicit rules, neural engine evaluations, heuristic features and retrieved statements have different authority. The design should retain those distinctions through generation and display.
+
+---
+
 ## 2026-10-23 — Road and research: position similarity by aspect
 
 TODO items: none completed; [ROAD 10](ROAD.md#10-position-similarity-by-aspect) informs 8.1, 8.4, 8.5 and 8.8.
