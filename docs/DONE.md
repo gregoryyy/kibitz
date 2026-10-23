@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Research: RAG, neurosymbolic games and milestones 5–7
+
+TODO items: 8.9 (research); informs milestones 5–8.
+
+### Implementation notes
+
+- Added [docs/research](research/README.md) with a milestone-by-milestone AI use-case analysis, a code audit of Stockfish integration, a retrieval-methods study and a primary-source review of neurosymbolic chess and other games.
+- The retrieval study covers source-aware passage ingestion, lexical/dense/hybrid search, reranking, structured chess queries, position/concept graphs, GraphRAG, LightRAG, HippoRAG, RAPTOR and LazyGraphRAG. It proposes a provenance-aware schema, staged delivery and separate retrieval/chess/teaching evaluations.
+- The games review covers engine-grounded and concept-guided commentary, Queen, ChessGPT, Maia-2, AlphaZero, MuZero, NNUE, TextWorld logical policies, DeepProbLog and shielding. It identifies concrete experiments rather than adopting new frameworks.
+- Linked the research from README, ARCH and TODO; clarified ARCH's distinction between explicit chess rules, finite engine search and claims about explanations.
+- Validation: `npm run check`, a fresh build and mock-provider unit tests pass (243 passed, one opt-in live test skipped). Checked local document links and rendered the research and updated documentation PDFs; no app/UI code changed.
+
+### Deviations
+
+- This is documentation and selective literature review, not a runtime implementation, systematic survey or reproduction of paper benchmarks. Milestones 5–8 retain their feature status; only the research item is marked complete.
+- No dependencies, datasets, model weights, embedding index or engine exports were added. The audit is pinned to `0176c62`; the pending Primer-source PR is linked separately.
+
+### Insights
+
+- Kibitz already uses a separate complete Stockfish analyst outside the opponent game. It does not call standalone NNUE, hidden representations, static evaluation traces or Syzygy. The embedding client helpers likewise do not constitute an implemented text-retrieval pipeline.
+- A legal position/move graph, a text-derived entity graph and a hierarchy of summaries solve different retrieval problems. Establish a labelled lexical/structural baseline before adding graph complexity.
+- Engine agreement, source grounding, explanation faithfulness and learner improvement need separate checks. Finite-depth analysis and a model judge should not be presented as universal chess truth.
 ## 2026-10-23 — Keep the game and the review, with the board visible while typing
 
 TODO items: 4.12.2, 4.12.3, 4.12.4; completes 4.12 and milestone 4 with 4.11.2.
