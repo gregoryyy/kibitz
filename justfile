@@ -71,15 +71,15 @@ flipbook ai="env" yes="": build
     node site/scripts/flipbook.mjs --ai {{ai}} {{ if yes != "" { "--yes" } else { "" } }}
 # --- Documents: Markdown → PDF (adapted from the OrgFab repo) ------------------------------------
 # pandoc (Markdown → standalone HTML, images and scripts embedded, math as MathML) + headless Chrome
-# (HTML → A4 PDF), typography from docs/pdf/style.css. Documents with ```mermaid blocks get
-# docs/pdf/mermaid.html, which draws the diagrams (pandoc downloads Mermaid once per build).
+# (HTML → A4 PDF), typography from utils/pdf/style.css. Documents with ```mermaid blocks get
+# utils/pdf/mermaid.html, which draws the diagrams (pandoc downloads Mermaid once per build).
 # Needs `brew install pandoc` and Google Chrome (CHROME=/path/to/chrome to use another).
 # Incremental: .pdfstamps/ records a hash of (source + build inputs) and of the PDF produced, so an
 # unchanged file is skipped; images are not hashed: after editing only an image, delete the PDF.
 
 chrome   := env_var_or_default("CHROME", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
-css      := justfile_directory() / "docs/pdf/style.css"
-mermaid  := justfile_directory() / "docs/pdf/mermaid.html"
+css      := justfile_directory() / "utils/pdf/style.css"
+mermaid  := justfile_directory() / "utils/pdf/mermaid.html"
 stampdir := justfile_directory() / ".pdfstamps"
 
 # The PDF keeps the source's full name (foo.md.pdf), so .gitignore can tell generated PDFs from others.

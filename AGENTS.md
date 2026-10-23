@@ -8,6 +8,7 @@ Everything for the app is in `site/`, a single npm project. The architecture is 
 - `site/src/`: the page (`index.html`, written as a Claude artifact body) and `knowledge.js`. These build into `site/dist/`; never edit `dist/`.
 - `site/server/`: the AI gateway. `site/scripts/serve.mjs --api` mounts it and loads `.env` from the repo root.
 - `site/tests/`, `site/server/*.test.mjs`: tests.
+- `utils/`: repository utilities, including PDF styles and Mermaid support in `utils/pdf/`.
 
 ## Stack
 
