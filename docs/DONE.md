@@ -7,6 +7,69 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Road idea: animated Primer website
+
+TODO items: none; [ROAD 11](ROAD.md#11-animated-primer-website) records a future feature.
+
+### Implementation notes
+
+- Added an animated Primer website idea, connected to the existing one-position tutorial and design overview. Its main scenes visualise the neurosymbolic evidence/tool/validation flow and RAG from query through matching/ranking to evidence and citations.
+- Recorded step/replay controls, inspectable intermediate state, reuse of the Primer sources, accessible/static presentation and reproducible traces. Planned retrieval extensions remain labelled as such.
+
+### Deviations
+
+- Planning only: no website or animation implemented and no implementation TODO marked complete.
+
+### Insights
+
+- The useful animation follows evidence between components, showing where chess facts, retrieved material and generated explanations come from and how they are checked.
+
+---
+
+## 2026-10-23 — Brief LLM and symbolic design overview
+
+TODO items: 0.13 (documentation).
+
+### Implementation notes
+
+- Added [AI-DESIGN.md](AI-DESIGN.md): component responsibilities, an evidence/tool/validation flow, and a feature matrix covering play, commentary, reviews, chat, board annotations, retrieval, openings, lessons and the recent ROAD ideas.
+- Outlined context engineering, bounded tool use, structured output, retrieval/provenance, verification, state isolation and runtime policy. Distinguished built/prototype behaviour, planned work and exploration, with explicit limits on what each check establishes.
+- Linked the overview from README, ARCH and the research index. Connected the position-similarity study to the index and repaired research links to the merged Primer sources/PDF.
+- Aligned ARCH's descriptions of finite-search evidence, output formats and wrong-move marking with the current implementation.
+- Validation: 71 local document links/heading targets checked; the overview renders as three PDF pages with its diagram. `npm run check`, a fresh build and mock-provider unit tests pass (243 passed, one opt-in live test skipped).
+
+### Deviations
+
+- Design documentation only: no app behaviour, dependencies or feature completion status changed. The overview refers to application baseline `1ce2f68` and keeps background explanations in the Primer and detailed mechanisms in ARCH/research.
+
+### Insights
+
+- The recurring design is evidence → permitted context → language/tool requests → validation → board/text. Each feature combines those steps differently; several useful features need no LLM.
+- Explicit rules, neural engine evaluations, heuristic features and retrieved statements have different authority. The design should retain those distinctions through generation and display.
+
+---
+
+## 2026-10-23 — Road and research: position similarity by aspect
+
+TODO items: none completed; [ROAD 10](ROAD.md#10-position-similarity-by-aspect) informs 8.1, 8.4, 8.5 and 8.8.
+
+### Implementation notes
+
+- Added the ROAD idea for a family of position similarity measures parameterised by the aspect being studied, with explained exact/structural/thematic matches.
+- Added [position-similarity research](research/position-similarity.md): primary chess-retrieval studies, conditional metric learning and chess-aware encoders, candidate symbolic/dynamic distances, a proposed weighted baseline and an aspect-specific evaluation plan.
+- Connected attack/defence graph features to the four-corner piece-power idea. Distinguished similarity scores, mathematical metrics, verification coverage and the validity of advice in the current position.
+
+### Deviations
+
+- Research and planning only. No weights or encoder selected, no similarity benchmark run, and no runtime feature or implementation TODO marked complete. The existing general research notes remain in PR #41.
+
+### Insights
+
+- Similar-looking positions and similar tactical solutions are different retrieval targets. The same pair can rank differently for pawn structure, piece activity and tactics.
+- Corner dot counts compress relationships; retrieval needs the underlying edges and roles to distinguish positions with equal counts. An aspect-specific score can be useful without being a strict metric on complete chess states.
+
+---
+
 ## 2026-10-23 — Road idea: piece power in four corners
 
 TODO items: none; [ROAD 9](ROAD.md#9-piece-power-attacks-and-defence-in-four-corners) records a future feature.

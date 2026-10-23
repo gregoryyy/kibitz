@@ -30,6 +30,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 0.10 Licensing: GPL-3.0 (required by Stockfish and chessground), `LICENSE` file, third-party notices. GPL-3.0-or-later.
 - [x] 0.11 Fix `.gitignore`: `tests/out/` only matches at the repo root; use `**/tests/out/`
 - [x] 0.12 Keep repository utilities under root `utils/`; move the PDF tooling to `utils/pdf/` and update its references. *(added)*
+- [x] 0.13 Document the LLM and symbolic design across features in a brief [design overview](AI-DESIGN.md), distinguishing built behaviour, planned features and ROAD explorations. *(added)*
 
 ## 1. Play against the engine
 

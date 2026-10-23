@@ -50,7 +50,7 @@ npm run serve          # builds, then serves dist/ with the AI gateway on port 8
 
 ## AI coach
 
-How the engine and the language model work together, and the AI patterns behind it, is explained in [ARCH.md](docs/ARCH.md).
+The [LLM and symbolic design overview](docs/AI-DESIGN.md) maps the mechanisms across the features. [ARCH.md](docs/ARCH.md) gives the implementation details.
 
 [Research notes](docs/research/README.md) cover AI use cases in milestones 5–7, the current Stockfish integration, text/structured/graph RAG, and neurosymbolic approaches to chess and other games.
 
