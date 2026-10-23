@@ -1861,10 +1861,16 @@ async function runReview() {
   if (!ctl.stop) { S.reviewDone = true; if (S.gameId || S.mode === 'play') saveCurrentGame({ quiet: true }); }
   renderAll(); renderReview(); refreshAnalysis();
 }
-function keyMoments(limit = 5) {
+/**
+ * Select the largest classified win-probability drops, then return them in game order.
+ * @param {number} [limit=5] Maximum number of moments.
+ * @param {Pick<typeof S, 'nodes'>} [state=S] Live game or captured review state.
+ * @returns {{i: number, drop: number, n: typeof S.nodes[number]}[]} One-based move indices.
+ */
+function keyMoments(limit = 5, state = S) {
   const out = [];
-  for (let i = 1; i < S.nodes.length; i++) {
-    const n = S.nodes[i];
+  for (let i = 1; i < state.nodes.length; i++) {
+    const n = state.nodes[i];
     if (['mistake', 'blunder', 'inaccuracy'].includes(n.cls) && n.wpB != null) out.push({ i, drop: n.wpB - n.wpA, n });
   }
   return out.sort((a, b) => b.drop - a.drop).slice(0, limit).sort((a, b) => a.i - b.i);
@@ -1892,7 +1898,8 @@ function renderReview() {
     })));
   } else body.append(el('p', { class: 'empty-note' }, 'No inaccuracies, mistakes or blunders found at this depth.'));
   const sumBox = el('div', { class: 'summary', id: 'summaryBox' });
-  if (S.summary) renderRich(sumBox, S.summary); else sumBox.append(el('span', { class: 'empty-note' }, 'The coach can turn these numbers into a short write-up: how the opening went, what decided the game, and what to practise.'));
+  if (S.summary) { const context = answerContext(last(), 'all', null, S, { review: true }); renderRich(sumBox, S.summary, context.fen, checkFor(S.summary, context)); }
+  else sumBox.append(el('span', { class: 'empty-note' }, 'The coach can turn these numbers into a short write-up: how the opening went, what decided the game, and what to practise.'));
   body.append(el('div', { class: 'row' }, el('h3', { style: 'margin-right:auto' }, 'Coach summary'), el('button', { class: 'btn small primary', id: 'btnSummary', onclick: writeSummary, disabled: !COACH.sample }, S.summary ? 'Rewrite' : 'Write summary')));
   body.append(sumBox);
 }
@@ -2375,7 +2382,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   if (!COACH.sample) return; // the dialogue says why (#coachOff)
   if (atNode !== null && atNode !== S.cursor) goTo(atNode);
   const i = atNode ?? S.cursor, gen = S.gen;
-  const fen = S.nodes[i].fen;
+  const fen = S.nodes[i].fen, requestedFen = actionState().fen;
   // Own tag, so moving around the board (which cancels 'live' analysis) doesn't starve the coach.
   if (!CHAT.general && !anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'coach');
   if (S.gen !== gen) return;
@@ -2383,10 +2390,11 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   // A line on the scratch board (TODO 4.5): the coach gets it with Stockfish's view at its end.
   const scratch = scratchFacts();
   if (!CHAT.general && scratch && engineView(S) === 'all' && terminalCp(scratch.end) === null) await analyse(scratch.end, S.depth, 'coach');
-  if (S.gen !== gen || S.nodes[i]?.fen !== fen) return; // the game changed while the engine ran
+  if (S.gen !== gen || S.nodes[i]?.fen !== fen || (!CHAT.general && (S.cursor !== i || actionState().fen !== requestedFen))) return;
   COACH.ctl?.abort();
   const ctl = COACH.ctl = new AbortController();
   const run = CHAT.run = { gen, signal: ctl.signal, fen: actionState().fen, i, view: engineView(S), scratch, board: CHAT.general ? null : captureBoard(), label: conversationLabel() };
+  run.context = run.board ? answerContext(i, run.view, scratch, run.board.state) : null;
   const chat = $('#chat');
   chat.append(el('div', { class: 'msg user' }, question));
   const bubble = el('div', { class: 'msg coach thinking' }, el('span', { class: 'who' }, 'Coach'), 'Thinking…');
@@ -2394,7 +2402,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   chat.setAttribute('aria-busy', 'true'); // screen readers announce the finished answer once, not every streamed chunk
   $('#coachStop').hidden = false; $('#coachSend').disabled = true;
   const view = engineView(S);
-  const render = (text, check = null) => { if (!activeRun(run)) return; bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); pinMessage(bubble, run.label, run.board); const body = el('div'); renderRich(body, text, run.scratch?.end || (run.board ? run.board.state.nodes[run.i].fen : fen), check); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
+  const render = (text, check = null) => { if (!activeRun(run)) return; bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); pinMessage(bubble, run.label, run.board); const body = el('div'); renderRich(body, text, run.context?.fen || fen, check || (run.context ? checkFor(text, run.context) : null)); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
   try {
     const history = (CHAT.general ? CHAT.generalTurns : chatTurns).slice(-8);
     const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${conversationContext(i, view, scratch)}\n\nQuestion: ${question}` }];
@@ -2405,7 +2413,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
       ? await sampleWithTools(turns, { ...opts, onStatus: status, run }) : await COACH.sample(turns, opts);
     if (!activeRun(run)) { bubble.remove(); return; }
     const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
-    render(full, run.board ? checkFor(full, run.i, run.view, run.scratch, evidence, run.board.state) : null);
+    render(full, run.context ? checkFor(full, run.context, evidence) : null);
     if (evidence.length) bubble.append(evidenceBox(evidence));
     const note = usageNote(usage); if (note) bubble.append(note);
     const targetHistory = run.board ? chatTurns : CHAT.generalTurns;
@@ -2473,6 +2481,7 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
         result = await chatAction(c.name, c.input, run);
         if (result.fen && !result.error) {
           run.i = S.cursor; run.view = engineView(S); run.scratch = scratchFacts(); run.board = captureBoard(); run.label = conversationLabel();
+          run.context = answerContext(run.i, run.view, run.scratch, run.board.state);
         }
       } else if (chk.ok) {
         onStatus?.(TOOL_DOING[c.name]);
@@ -2595,34 +2604,52 @@ function renderProgress() {
   box.textContent = `Challenges: ${right} of ${tries} right. By theme: ${themes.sort((a, b) => b[1].tries - a[1].tries).map(([k, t]) => `${themeLabel(k)} ${t.right}/${t.tries}`).join(', ')}.`;
 }
 
-// Comments on node i, in the dialogue beside the board.
-async function commentOn(i) {
+/**
+ * Generate or restore a comment for a mainline node or the supplied scratch position.
+ * Capture board context before generation, pin it on the bubble, and key cached prose by
+ * the full route. After awaits, reject replaced games/nodes; cursor navigation alone is
+ * allowed because rendering uses the captured evidence rather than the later board.
+ * @param {number} i Zero-based mainline node index (0 is the starting position).
+ * @param {object} [options]
+ * @param {ScratchFacts|null} [options.scratch=null] Visible scratch prefix for a manual comment.
+ * @returns {Promise<void>}
+ */
+async function commentOn(i, { scratch = null } = {}) {
   if (!COACH.sample) return;
   CHAT.general = false; renderCoachCtx();
-  const n = S.nodes[i]; const fen = n.fen, gen = S.gen;
-  const view = engineView(S); const { use } = aspectsFor(S.aspects, view);
+  const n = S.nodes[i]; if (!n) return;
+  const fen = scratch?.end || n.fen, gen = S.gen, board = captureBoard();
+  board.state.cursor = i; if (!scratch) board.scratch = null;
+  let view = engineView(S);
   if (view !== 'none') {
     if (!anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'coach');
-    if (i > 0 && !anaOf(S.nodes[i - 1].fen)) await analyse(S.nodes[i - 1].fen, S.depth, 'coach');
+    if (S.gen !== gen || S.nodes[i] !== n) return;
+    const previous = scratch ? scratch.prev : i > 0 ? S.nodes[i - 1].fen : null;
+    if (previous && !anaOf(previous)) await analyse(previous, S.depth, 'coach');
   }
-  if (S.gen !== gen || S.nodes[i] !== n) return; // the game changed while the engine ran
-  const where = i ? moveLabel(i) : 'the start';
+  if (S.gen !== gen || S.nodes[i] !== n || (scratch && actionState().fen !== scratch.end)) return;
+  view = engineView(S); const { use } = aspectsFor(S.aspects, view);
+  const context = answerContext(i, view, scratch, board.state);
+  const where = scratch ? `${t('Scratch board')} ${lineText(playLine(Chess, scratch.start, scratch.ucis))}` : i ? moveLabel(i) : 'the start';
   const head = `Coach on ${where}: ${use.map(id => ASPECTS.find(a => a.id === id).label).join(' · ')}`;
   const chat = $('#chat');
   const bubble = el('div', { class: 'msg coach thinking' }, el('span', { class: 'who' }, head), 'Thinking…');
   chat.append(bubble); chat.scrollTop = chat.scrollHeight;
   const render = (text, check = null) => {
+    if (S.gen !== gen || S.nodes[i] !== n) return;
     bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, head));
-    const body = el('div'); renderRich(body, text, fen, check); bubble.append(body); chat.scrollTop = chat.scrollHeight;
+    pinMessage(bubble, t(head), board);
+    const body = el('div'); renderRich(body, text, fen, check || checkFor(text, context)); bubble.append(body); chat.scrollTop = chat.scrollHeight;
   };
-  const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact', lang: LANG });
+  const position = JSON.stringify([board.state.start, context.game.ucis, scratch?.start, scratch?.ucis, fen]);
+  const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact', lang: LANG, position });
   let text = TUTOR.cache.get(key), usage = null;
   const cached = text !== undefined;
   if (!cached) {
     TUTOR.ctl?.abort();
     const ctl = TUTOR.ctl = new AbortController();
     try {
-      const turns = [{ role: 'user', content: COACH_RULES }, { role: 'user', content: `${contextFor(i, { view })}\n\n${commentRequest(use, { view })}` }];
+      const turns = [{ role: 'user', content: COACH_RULES }, { role: 'user', content: `${contextFor(i, { view, scratch })}\n\n${commentRequest(use, { view })}` }];
       ({ text, usage } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task: 'quick', onText: ({ text }) => render(text) }));
     } catch (e) {
       if (e?.code === 'cancelled') bubble.remove();
@@ -2632,7 +2659,7 @@ async function commentOn(i) {
     if (S.gen !== gen || S.nodes[i] !== n) { bubble.remove(); return; }
     TUTOR.cache.set(key, text); store.set('tutorCache', TUTOR.cache.entries());
   }
-  const check = checkFor(text, i, view);
+  const check = checkFor(text, context);
   render(text, check);
   if (cached) bubble.querySelector('.who').append(' (saved)');
   const note = usageNote(usage); if (note) bubble.append(note);
@@ -2657,41 +2684,82 @@ function coachError(e) {
   if (['browser_model', 'budget_exceeded', 'provider_rejected'].includes(e?.code) && e.message) return e.message;
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
-// The answer's moves and piece claims checked against chess.js and the engine lines the coach saw
-// for node i (tutor.js checkAnswer, TODO 3.4). After a review, the coach also saw the whole game and
-// the better line at each turning point (reviewFacts), so those count as backed too.
-// With `scratch` (scratchFacts), the line the player tried and Stockfish's line after it count too;
-// with `evidence` (the tool results), the lines the tools showed. `starts`: where those lines begin.
-function checkFor(text, i, view, scratch = null, evidence = [], state = S) {
+/**
+ * @typedef {import('./annotations.js').AnswerPositions & {
+ *   game: import('./annotations.js').ChessLine,
+ *   evidence: import('./annotations.js').ChessLine[], starts: string[],
+ *   args: import('./tutor.js').AnswerEvidence
+ * }} AnswerContext
+ */
+/** @typedef {AnswerContext & import('./tutor.js').AnswerCheck} CheckedAnswer */
+/**
+ * Copy the positions AND engine lines supplied with a request. This is a detached data
+ * snapshot, not Object.freeze(): later cursor moves, analyses and replies must not
+ * reinterpret it. Respect engine visibility; a full review includes all played moves
+ * and key-moment PVs, while ordinary chat includes history only through node `i`.
+ * @param {number} i Zero-based mainline node index; must exist in `state.nodes`.
+ * @param {import('./tutor.js').EngineView} view Engine visibility for this request.
+ * @param {ScratchFacts|null} [scratch=null] Visible scratch prefix, copied by scratchFacts().
+ * @param {Pick<typeof S, 'nodes'|'reviewDone'>} [state=S] Live game or captured state.
+ * @param {object} [options]
+ * @param {boolean} [options.review] Defaults to a completed review with full engine visibility.
+ * @returns {AnswerContext} Keep this same context for streaming and final checks.
+ */
+function answerContext(i, view, scratch = null, state = S, { review = state.reviewDone && view === 'all' } = {}) {
   const fen = scratch?.end || state.nodes[i].fen, prevFen = scratch ? scratch.prev : i > 0 ? state.nodes[i - 1].fen : null;
-  const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv);
-  const review = state.reviewDone && view === 'all';
-  const tried = [...(scratch ? [scratch.sans, ...(view === 'all' ? pvs(scratch.end).slice(0, 2).map(pv => pvSans(Chess, scratch.end, pv, 6)) : [])] : []), ...evidence.flatMap(e => e.lines)];
-  const starts = [...(scratch ? [scratch.start] : []), ...evidence.flatMap(e => [e.args.fen, ...(e.starts || []), ...(e.name === 'threats' ? [flipSide(Chess, e.args.fen)] : [])])].filter(Boolean);
-  return { starts, prevFen, ...checkAnswer(Chess, parseBoardBlock(text).text, {
-    fen, prevFen,
-    lines: view === 'all' ? pvs(fen) : [],
-    prevLines: prevFen && view !== 'none' ? pvs(prevFen) : [],
-    game: state.nodes.slice(1, review ? state.nodes.length : i + 1).map(n => n.san),
-    extra: [...(review ? keyMoments(6).map(({ i: k }) => { const pf = S.nodes[k - 1].fen; return pvSans(Chess, pf, anaOf(pf)?.lines[0]?.pv || [], 6); }) : []), ...tried],
-  }) };
+  const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv.slice());
+  const nodes = state.nodes.slice(0, review ? state.nodes.length : i + 1);
+  const game = { start: nodes[0].fen, sans: nodes.slice(1).map(n => n.san), ucis: nodes.slice(1).map(n => n.uci), fens: nodes.map(n => n.fen) };
+  const lines = view === 'all' ? pvs(fen) : [], prevLines = prevFen && view !== 'none' ? pvs(prevFen) : [];
+  const evidence = [...lines.map(pv => playLine(Chess, fen, pv)), ...prevLines.map(pv => playLine(Chess, prevFen, pv))];
+  if (scratch) evidence.push(playLine(Chess, scratch.start, scratch.ucis));
+  if (review) for (const { i: k } of keyMoments(6, state)) {
+    const before = state.nodes[k - 1].fen;
+    evidence.push(playLine(Chess, before, pvs(before)[0]?.slice(0, 6) || []));
+  }
+  const sources = evidence.filter(l => l?.sans.length);
+  return { fen, prevFen, game, evidence: sources, starts: sources.map(l => l.start),
+    args: { fen, prevFen, lines, prevLines, game: game.sans, extra: sources.map(l => l.sans) } };
 }
-// Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.
-// With `check`, moves that aren't backed by the engine are marked, and a note says how many.
-// The coach's ```board block is taken off the text; with `check` (the finished answer), its marks are
-// checked against the position: those that fit are drawn and can be shown again, the others counted.
-// Runs of moves become lines (annotations.js) that hovering previews and clicking steps through.
+/**
+ * Check prose against captured request evidence plus legally replayed tool lines.
+ * Tool lines retain their own start FENs; threats may start with the side flipped.
+ * Remove board instructions before tokenising so offsets match renderRich().
+ * @param {string} text Raw coach answer, including any fenced board block.
+ * @param {AnswerContext} context Snapshot captured for this answer, never the current cursor.
+ * @param {{name: string, args: {fen?: string}, lines?: string[][], starts?: string[]}[]} [tools=[]] SAN lines with explicit starts or args.fen.
+ * @returns {CheckedAnswer} New check/context object; inputs are not mutated.
+ */
+function checkFor(text, context, tools = []) {
+  const evidence = tools.flatMap(e => (e.lines || []).map((sans, k) => {
+    const start = e.starts?.[k] || (e.name === 'threats' ? flipSide(Chess, e.args.fen) : e.args.fen);
+    return playLine(Chess, start, sans);
+  })).filter(l => l?.sans.length);
+  return { ...context, evidence: [...context.evidence, ...evidence], starts: [...context.starts, ...evidence.map(l => l.start)],
+    ...checkAnswer(Chess, parseBoardBlock(text).text, { ...context.args, extra: [...context.args.extra, ...evidence.map(l => l.sans)] }) };
+}
+/**
+ * Replace a container with safe text-based markdown, verdicts and validated move links.
+ * Use captured positions for links, retain unsupported-move flags, and leave square
+ * references as text. Validate board-block marks before offering them; draw them only
+ * when the main board matches `fen`. Never interpret model output as HTML.
+ * @param {HTMLElement} box Container whose children are replaced.
+ * @param {string} text Raw coach answer, including any fenced board block.
+ * @param {string} [fen=nodeFen()] Answer's captured FEN when a check is supplied.
+ * @param {CheckedAnswer|null} [check=null] Check made from the same answer text/context.
+ * @returns {void}
+ */
 function renderRich(box, text, fen = nodeFen(), check = null) {
   box.replaceChildren();
   const block = parseBoardBlock(text);
   text = block.text;
-  const k = S.nodes.findIndex(n => n.fen === fen);
-  const lines = check ? linesInAnswer(Chess, text, check.moves, { fen, prevFen: check.prevFen ?? (k > 0 ? S.nodes[k - 1].fen : null), starts: check.starts || [] }) : null;
+  const lines = check ? linesInAnswer(Chess, text, check.moves, { fen, prevFen: check.prevFen, starts: check.starts, game: check.game, evidence: check.evidence }) : null;
   const marks = lines ? lines.moves.map(m => ({ ...m, lineRef: m.line !== undefined ? lines.lines[m.line] : null })) : null; // in text order, one per SAN_RE match
   const blocks = text.replace(/\r/g, '').split(/\n{2,}/);
   for (const b of blocks) {
     const lines = b.split('\n');
-    if (lines.every(l => /^\s*([-*•]|\d+\.)\s+/.test(l) || !l.trim())) {
+    const listItem = l => /^\s*[-*•]\s+/.test(l) || (/^\s*\d+\.\s+/.test(l) && !/^\s*\d+\.\s+\**(?:[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8]|O-O)/.test(l));
+    if (lines.every(l => listItem(l) || !l.trim())) {
       const ul = el('ul', { translate: 'no' }); lines.filter(l => l.trim()).forEach(l => ul.append(inline(el('li'), l.replace(/^\s*([-*•]|\d+\.)\s+/, ''), fen, marks))); box.append(ul);
     } else box.append(inline(el('p', { translate: 'no' }), b.replace(/^#+\s*/gm, ''), fen, marks));
   }
@@ -2814,8 +2882,19 @@ $('#scratchNext').addEventListener('click', () => stepScratch(1));
 $('#scratchClose').addEventListener('click', () => closeScratch());
 $('#btnWhatIf').addEventListener('click', () => openScratch(playLine(Chess, nodeFen(), []), { i: 0, free: true, title: 'What if…' }));
 $('#scratchAsk').addEventListener('click', () => { if (SCRATCH?.sans.length) askCoach(`What about this line from here: ${lineText(SCRATCH)}? Explain the idea, and how the position looks after it.`); });
-// The line on the scratch board, for the coach's context and the answer check (TODO 4.6): a copy,
-// since the player may keep playing while the answer streams.
+/**
+ * @typedef {object} ScratchFacts
+ * @property {string} start Scratch line's starting FEN.
+ * @property {string[]} sans Played SAN prefix through the scratch cursor.
+ * @property {string[]} ucis Same prefix in UCI.
+ * @property {string} end Position at the scratch cursor.
+ * @property {string|null} prev Position before the cursor, or null at the start.
+ * @property {string} text Numbered line for the prompt.
+ */
+/**
+ * Copy only the visible scratch prefix for a request; later scratch play cannot change it.
+ * @returns {ScratchFacts|null} Null when no scratch board is open.
+ */
 function scratchFacts() {
   if (!SCRATCH) return null;
   return { start: SCRATCH.start, sans: SCRATCH.sans.slice(0, SCRATCH.i), ucis: SCRATCH.ucis.slice(0, SCRATCH.i), end: SCRATCH.fens[SCRATCH.i], prev: SCRATCH.i ? SCRATCH.fens[SCRATCH.i - 1] : null, text: lineText(SCRATCH, SCRATCH.i) };
@@ -2847,9 +2926,15 @@ function previewPosition(p, caption) {
   const cap = $('#boardPreview'); cap.textContent = caption; cap.hidden = false;
 }
 function endPreview() { if (previewing) syncBoard(); }
-// A move that belongs to a line in an answer (TODO 4.3): hovering or focusing shows it from the
-// position before it (as a preview when that isn't the position on the board); a click or Enter
-// opens the line on the scratch board, at this move.
+/**
+ * Attach mouse/keyboard navigation to a move in a validated line (TODO 4.3).
+ * Hover/focus previews the position BEFORE the move; click/Enter/Space opens a scratch
+ * board AFTER it. These are adjacent FEN indices, not mainline node indices.
+ * @param {HTMLElement} span Move token to make interactive.
+ * @param {import('./annotations.js').ChessLine} line Legally replayed line.
+ * @param {number} ply Zero-based move index; must be within `line.ucis`.
+ * @returns {void}
+ */
 function lineMove(span, line, ply) {
   const before = line.fens[ply], u = line.ucis[ply];
   const arrow = { orig: u.slice(0, 2), dest: u.slice(2, 4), brush: 'san' };
@@ -2872,16 +2957,13 @@ function lineMove(span, line, ply) {
 }
 function addSan(node, text, fen, marks = null) {
   let lastIdx = 0; let m; SAN_RE.lastIndex = 0;
-  const legal = new Map(new Chess(fen).moves({ verbose: true }).map(mv => [mv.san.replace(/[+#]/, ''), mv]));
   while ((m = SAN_RE.exec(text))) {
     if (m.index > lastIdx) node.append(text.slice(lastIdx, m.index));
     const mark = marks?.[0]?.san === m[0] ? marks.shift() : null;
     if (mark?.status === 'square') { node.append(m[0]); lastIdx = m.index + m[0].length; continue; }
-    const mv = legal.get(m[1]);
     const flag = mark?.status === 'invalid' ? ' invalid' : mark?.status === 'legal' ? ' unchecked' : '';
-    const span = el('span', { class: 'san' + flag, title: mark?.why || (mv ? 'Hover to see it on the board' : '') }, m[0]);
+    const span = el('span', { class: 'san' + flag, title: mark?.why || '' }, m[0]);
     if (mark?.lineRef) lineMove(span, mark.lineRef, mark.ply);
-    else if (mv) { span.addEventListener('mouseenter', () => { if (nodeFen() === fen) { sanShape = { orig: mv.from, dest: mv.to, brush: 'san' }; drawShapes(); } }); span.addEventListener('mouseleave', () => { sanShape = null; drawShapes(); }); }
     node.append(span); lastIdx = m.index + m[0].length;
   }
   if (lastIdx < text.length) node.append(text.slice(lastIdx));
@@ -2908,7 +2990,7 @@ function reviewFacts() {
 }
 async function writeSummary() {
   if (!COACH.sample) return;
-  const gen = S.gen;
+  const gen = S.gen, context = answerContext(last(), 'all', null, S, { review: true });
   const btn = $('#btnSummary'); const box = $('#summaryBox');
   btn.disabled = true; box.replaceChildren(el('span', { class: 'empty-note' }, 'Thinking…'));
   const { c, acc } = tally(); const names = playerNames();
@@ -2918,9 +3000,10 @@ async function writeSummary() {
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });
   const prompt = `${COACH_RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
   try {
-    const { text } = await COACH.sample(prompt, { onText: ({ text }) => { if (S.gen === gen) renderRich(box, text); }, cache: false, task: 'review' });
+    const render = text => { if (S.gen === gen) renderRich(box, text, context.fen, checkFor(text, context)); };
+    const { text } = await COACH.sample(prompt, { onText: ({ text }) => render(text), cache: false, task: 'review' });
     if (S.gen !== gen) return;
-    S.summary = text; renderRich(box, text);
+    S.summary = text; render(text);
     if (S.gameId) saveCurrentGame({ quiet: true });
   } catch (e) { box.replaceChildren(e?.text ? e.text : coachError(e)); }
   finally { btn.disabled = !COACH.sample; btn.textContent = 'Rewrite'; }
@@ -2969,12 +3052,18 @@ async function studyPlan() {
   if (!COACH.sample) return;
   const box = $('#studyPlan'); const btn = $('#btnStudyPlan');
   btn.disabled = true; box.replaceChildren(el('div', { class: 'summary' }, el('span', { class: 'empty-note' }, 'Thinking…')));
-  const target = box.firstElementChild;
+  const target = box.firstElementChild, gen = S.gen, i = S.cursor, view = engineView(S), board = captureBoard(), label = positionLabel();
+  const scratch = scratchFacts(), context = answerContext(i, view, scratch, board.state);
+  const render = text => {
+    if (S.gen !== gen) return;
+    target.replaceChildren(); pinMessage(target, label, board);
+    const body = el('div'); renderRich(body, text, context.fen, checkFor(text, context)); target.append(body);
+  };
   try {
-    const prompt = `${COACH_RULES}\n\n${contextFor(S.cursor)}\n\nTask: Suggest a short study plan (3 steps) built around the themes of this position. For each step name the theme, what to look for in the player's own games, and one reference from the retrieved list with the part to read. Under 200 words.`;
-    const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(target, text), cache: { gcTime: 600000 }, task: 'review' });
-    renderRich(target, text);
-  } catch (e) { target.replaceChildren(coachError(e)); }
+    const prompt = `${COACH_RULES}\n\n${contextFor(i, { view, scratch })}\n\nTask: Suggest a short study plan (3 steps) built around the themes of this position. For each step name the theme, what to look for in the player's own games, and one reference from the retrieved list with the part to read. Under 200 words.`;
+    const { text } = await COACH.sample(prompt, { onText: ({ text }) => render(text), cache: { gcTime: 600000 }, task: 'review' });
+    render(text);
+  } catch (e) { if (S.gen === gen) target.replaceChildren(coachError(e)); }
   finally { btn.disabled = !COACH.sample; }
 }
 const REF_TAGS = ['opening', 'sicilian', 'french', 'caro-kann', 'open-games', 'queens-gambit', 'kid', 'english', 'iqp', 'carlsbad', 'maroczy', 'passed-pawn', 'king-attack', 'fork', 'pin', 'mate', 'calculation', 'planning', 'pawn-endgame', 'rook-endgame', 'minor-endgame', 'ocb'];
@@ -3101,7 +3190,7 @@ modeHint(); renderProgress();
   $('#btnSettingsClose').addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 }
-$('#btnComment').addEventListener('click', () => commentOn(S.cursor));
+$('#btnComment').addEventListener('click', () => commentOn(S.cursor, { scratch: scratchFacts() }));
 choice('#optLevel', S.level, v => { S.level = +v; saveSettings(); renderAll(); renderPlayers(); });
 choice('#libFilter', 'all', () => renderLibrary());
 $('#explorerSource').value = ['all', 'classic', 'library'].includes(store.get('explorerSource')) ? store.get('explorerSource') : 'all';

@@ -1,3 +1,7 @@
+/**
+ * @file Tutor policy, evidence verdict and cache contracts (TODO 3.2–3.7).
+ * Fixed chess positions and supplied PVs exercise the checks without an AI provider.
+ */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
@@ -10,7 +14,17 @@ import {
 const ITALIAN = 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4';
 const LINES = [['d2d3', 'f8c5', 'c2c3'], ['f3g5', 'd7d5', 'e4d5']];
 const GAME = ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Nf6'];
+/**
+ * Check prose against a fixed Italian Game position, its played history and two engine PVs.
+ * @param {string} text Coach prose under test.
+ * @returns {import('../../src/tutor.js').AnswerCheck}
+ */
 const check = text => checkAnswer(Chess, text, { fen: ITALIAN, lines: LINES, game: GAME });
+/**
+ * Project verdicts in token order so assertions cannot overlook a misclassified square or suffix.
+ * @param {import('../../src/tutor.js').AnswerCheck} r Checked answer.
+ * @returns {string[]}
+ */
 const statuses = r => r.moves.map(m => `${m.san}:${m.status}`);
 
 test('aspects: known ids in standard order, defaults when none are left', () => {
@@ -107,6 +121,7 @@ test('checked answer: legal moves outside the engine lines are unchecked, not wr
   assert.equal(r.problems, 0);
 });
 
+/** Coordinates in prose stay square references, while an incorrect piece claim still counts as a problem. */
 test('checked answer: squares are not moves; piece-on-square claims are checked', () => {
   const r = check('The knight on f3 eyes the e5 square, but the bishop on b5 is a dream.');
   assert.deepEqual(statuses(r), ['f3:square', 'e5:square', 'b5:square']);
@@ -128,10 +143,11 @@ test('checked answer: lines from other positions the coach was given (the review
   assert.deepEqual(statuses(r), ['Nc6:line', 'Bb5:line', 'Bc5:line', 'Qh4:invalid']);
 });
 
+/** Aspect order is irrelevant, but a different route/game step must invalidate cached numbered prose. */
 test('comment cache key covers position, move, aspects, view, level and model', () => {
   const base = { epd: 'x', uci: 'e2e4', aspects: ['mind', 'last'], view: 'all', level: 2, model: 'm' };
   assert.equal(commentKey(base), commentKey({ ...base, aspects: ['last', 'mind'] }));
-  for (const change of [{ epd: 'y' }, { uci: 'd2d4' }, { aspects: ['last'] }, { view: 'past' }, { level: 3 }, { model: 'n' }]) {
+  for (const change of [{ epd: 'y' }, { uci: 'd2d4' }, { aspects: ['last'] }, { view: 'past' }, { level: 3 }, { model: 'n' }, { position: 'another move order or game step' }]) {
     assert.notEqual(commentKey(base), commentKey({ ...base, ...change }), JSON.stringify(change));
   }
 });

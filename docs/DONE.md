@@ -32,6 +32,29 @@ TODO items: 5.3.
 - A position graph is useful for “my chosen moves here”, while the original route is needed to edit and rehearse an opening. Keeping both avoids losing move-order choices at transpositions.
 - Scratch boards may begin at the current position, an ancestor or an independent standard start. Capturing a repertoire needs an explicit connecting path, rather than concatenating every visible game move with the scratch line.
 - Returning to the initial diagram later in a line is not a fresh start: capture keeps that move history, while position queries intentionally merge the repeated diagram.
+## 2026-10-23 — Commentary links retain the correct game step
+
+TODO items: fixes to 3.4, 3.7, 4.3 and 4.6.
+
+### Implementation notes
+
+- Reproduced five browser failures and three unit failures on the previous implementation: historical moves linked from a later occurrence, numbered alternatives inherited the previous variation's end, repeated-position comments reused an earlier turn's cached text, manual commentary ignored the scratch board, and saved review summaries had no move links.
+- `annotations.js` resolves links against captured game/evidence positions. It checks full-move number and side at every linked ply, recognises formatted move runs and Unicode ellipses, and reconnects explicitly continued clauses. Separate sentences/paragraphs and alternatives reset the continuation. Repeated unnumbered historical references remain unlinked when their occurrence is ambiguous.
+- Navigation legality and engine backing remain distinct: legal but unsupported variations can be inspected while retaining their flags; illegal continuations stop at the valid prefix. Bare pawn notation inside a numbered sequence is no longer mistaken for a square. Chess move numbers stay visible instead of being stripped as list numbering.
+- Chat and comments snapshot the supplied analysis and game path before generation. Comment bubbles pin their original game/scratch position, and the manual comment button uses the scratch position on screen. History/full-position cache keys prevent reusing numbered wording at a different game step; prompts ask for move numbers and sides.
+- Saved/generated review summaries and study plans use the same checked-link path. Their links retain the requested position across cursor changes, and study-plan work checks the game generation before rendering. Tool evidence retains its own start positions, including confirmed motif lines and flipped-side threats.
+- Added JSDoc for the key replay, evidence-checking, cache and UI context/navigation functions, with shared types for checked tokens, captured positions and legal lines. Contracts distinguish UTF-16 text offsets, zero-based move indices, before/after FENs, square references and engine verdicts. Regression test/helper documentation explains the invariants each scenario protects.
+- Validation: `npm run check`, a clean build and mock-provider unit tests pass (256 passed, one opt-in live test skipped). The full Playwright suite passes (113 passed, one live-model test skipped), including seven new commentary regressions and the existing annotation/tool workflows. The JSDoc follow-up also passes static checks, a fresh build, 26 focused unit tests and 20 commentary/annotation/tool browser tests. Architecture, TODO and DONE PDFs regenerated locally.
+
+### Deviations
+
+- This fixes reference binding and request context, not the semantic truth of arbitrary model prose. Ambiguous references are left unlinked; legal navigation does not establish engine support or prove an explanation. No provider integration or dependency added.
+- Independent fix branch from main; the open repertoire-builder PR is separate.
+
+### Insights
+
+- SAN and EPD alone cannot identify a game occurrence. A move number, side, original route and captured evidence are needed to preserve the position the commentary refers to.
+- The board cursor is presentation state. Moving it while an answer streams must not become a new source for that answer's links.
 
 ---
 

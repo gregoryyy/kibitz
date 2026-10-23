@@ -99,7 +99,7 @@ What the model sees is assembled on purpose, not dumped in.
   - a model per task: quick questions, chat, reviews;
   - a daily token budget for the server, budgets in tokens and dollars per user for paid models (users told apart by a cookie until there are accounts), and a per-minute rate limit in the gateway;
   - the tokens and cost of every answer, and the player's total today, shown in the dialogue;
-  - a cache of coach comments keyed by position, move, aspects, engine view, level and model (`commentKey()`, `lruCache()`).
+  - a cache of coach comments keyed by position, ordered game/scratch history, move, aspects, engine view, level, model and language (`commentKey()`, `lruCache()`).
 
 ### 3.2 Retrieval (RAG)
 
@@ -126,6 +126,8 @@ The **repertoire builder** (`repertoire.js`, 5.3) stores named White/Black colle
 ### 3.4 Structured output
 
 Machine-facing output uses constrained formats: named JSON replies for structured requests, schemas for tool calls, and a small `board` grammar for marks in chat answers.
+
+Commentary links retain the game positions and engine lines supplied with each request. The resolver in `annotations.js` checks move number, side and legality against that snapshot, joining prose continuations while resetting separate alternatives. Historical moves, scratch lines and review references keep their original FENs when the player navigates. A legal link permits inspection; engine/game backing remains a separate verdict, and unsupported claims stay flagged. Unknown or ambiguous positions stay unlinked. Commentary cache keys include the ordered game/scratch route and full position, since equal EPDs can occur at different move numbers.
 
 - **Named formats only.** The page asks for a format by name (`/api/ai/structured`, `FORMATS` in `schema.mjs`) and can't send a schema of its own.
 - **Native first, then a fallback.** The gateway asks each provider for native JSON-schema output. If the provider rejects that, or the reply doesn't fit, it repeats the request with the schema in the instructions and parses the JSON out of the text (`completeJson()`).

@@ -13,6 +13,30 @@
 // ```board block at the end of an answer, one instruction per line (parseBoardBlock).
 
 import { flipSide } from './modes.js';
+import { LINE_GAP } from './tutor.js';
+
+/**
+ * A replayed line with full FENs, including side to move and move counters.
+ * @typedef {object} ChessLine
+ * @property {string} start Normalised starting FEN; identical to `fens[0]`.
+ * @property {string[]} sans Canonical SAN, including check/mate suffixes.
+ * @property {string[]} ucis UCI moves, including promotion suffixes.
+ * @property {string[]} fens `fens[k]` is the position after k plies; length is `sans.length + 1`.
+ */
+/**
+ * @typedef {object} AnswerPositions
+ * @property {string} fen Position supplied with the request.
+ * @property {string|null} [prevFen] Previous position, if available.
+ * @property {string[]} [starts] Additional candidate starting FENs, such as tool positions.
+ * @property {ChessLine|null} [game] Captured game route, retaining move counters.
+ * @property {ChessLine[]} [evidence] Replayed engine, scratch, review or tool lines.
+ */
+/**
+ * A checked token, optionally bound to a returned line. Linking preserves its evidence verdict.
+ * @typedef {import('./tutor.js').CheckedMove & {line?: number, ply?: number}} LinkedMove
+ * `line` indexes the returned lines; `ply` indexes the move within that line (both zero-based).
+ * Hover uses `fens[ply]`; click opens `fens[ply + 1]`. Unresolved tokens have neither field.
+ */
 
 export const KINDS = ['arrow', 'square', 'ghost', 'label', 'line'];
 export const MAX_MARKS = 8; // a block with more is cut: an answer points at a few things, not at everything
@@ -22,8 +46,11 @@ const LABEL = /^[A-Za-z0-9!?+#=]{1,2}$/;
 
 const movesOf = (Chess, fen) => { try { return new Chess(fen).moves({ verbose: true }); } catch { return []; } };
 
-// One annotation checked against the position `fen`: {ok: true, a} with the annotation as it will be
-// drawn, or {ok: false, why}. Nothing about it is trusted: kinds, squares, pieces and moves are checked.
+/**
+ * Validate an untrusted annotation against `fen` (or a line's explicit start) before drawing.
+ * Return `{ok: true, a}` normalised or `{ok: false, why}`. Check kinds, squares, pieces and moves;
+ * threat arrows use the opposite side to move. This checks legality, not engine backing.
+ */
 export function checkAnnotation(Chess, fen, a) {
   if (!a || typeof a !== 'object' || !KINDS.includes(a.kind)) return { ok: false, why: 'unknown kind' };
   if (a.kind === 'arrow') {
@@ -58,8 +85,15 @@ export function checkAnnotation(Chess, fen, a) {
   return { ok: true, a: { kind: 'line', ...line } };
 }
 
-// Moves (SAN, or UCI like e2e4 / e7e8q) played in turn from `start`: {start, sans, ucis, fens}, or
-// null if one of them isn't legal. fens[k] is the position after k moves.
+/**
+ * Replay the first 40 SAN/UCI plies without mutating the input or any shared board.
+ * Moves beyond that limit are ignored. An illegal move within the limit rejects the
+ * whole line, unlike pvSans(), which keeps a legal prefix. An empty line is valid.
+ * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {string} start Starting FEN.
+ * @param {readonly string[]} moves SAN or UCI (for example, e2e4 or e7e8q).
+ * @returns {ChessLine|null} Null for an invalid FEN or illegal replayed move.
+ */
 export function playLine(Chess, start, moves) {
   let c; try { c = new Chess(start); } catch { return null; }
   const out = { start: c.fen(), sans: [], ucis: [], fens: [c.fen()] };
@@ -73,10 +107,13 @@ export function playLine(Chess, start, moves) {
   return out;
 }
 
-// The ```board block at the end of an answer, if any: the answer's text without it, the instructions
-// read from it (one per line), and how many lines were left out. Only these forms are read:
-//   arrow e2 e4 · threat d8 h4 · square f7 · ghost wN d5 · label d5 !
-// While an answer streams, an unfinished block is hidden too.
+/**
+ * Remove the first fenced board block, including an unfinished streaming block.
+ * Read at most MAX_MARKS instructions: arrow e2 e4, threat d8 h4, square f7,
+ * ghost wN d5 or label d5 !. Return the remaining text, unvalidated marks and the
+ * count of malformed/excess nonempty instructions. checkMarks() validates legality.
+ * @param {unknown} text Untrusted answer, coerced to a string (nullish becomes empty).
+ */
 export function parseBoardBlock(text) {
   const s = String(text ?? '');
   const at = s.search(/```board\b/i);
@@ -102,42 +139,93 @@ export function parseBoardBlock(text) {
   return { text: (s.slice(0, at) + after).replace(/\s+$/, ''), marks, skipped };
 }
 
-// The checked marks of a block for the position: {shown, dropped}, each dropped one with why.
+/** Validate parsed marks for `fen`, returning `{shown, dropped}` with a reason for each drop. */
 export function checkMarks(Chess, fen, marks) {
   const shown = [], dropped = [];
   for (const m of marks) { const r = checkAnnotation(Chess, fen, m); if (r.ok) shown.push(r.a); else dropped.push({ mark: m, why: r.why }); }
   return { shown, dropped };
 }
 
-// The lines in an answer, from checkAnswer's moves (tutor.js): a run of moves separated only by spaces
-// and move numbers, up to the first wrong one, that plays legally from where the answer's previous line
-// ended, or else from the position, the one before, or one of `starts` (positions the coach's
-// tools looked at).
-// Returns the moves with {line, ply} added where they belong to a line (ply: moves played after this
-// one, from the line's start), and the lines themselves ({start, sans, ucis, fens}). A single move
-// is a line of one, so hovering it can show it from the right position.
-export function linesInAnswer(Chess, text, moves, { fen, prevFen = null, starts = [] }) {
+/**
+ * Bind checked tokens to legal lines using the request's captured game/evidence.
+ * Explicit move numbers constrain every ply. Separate sentences and alternatives reset
+ * continuation; ambiguous historical occurrences stay unlinked. Replay at most 40 plies
+ * per run and retain only a legal prefix. Legality permits navigation but does not change
+ * engine/game verdicts. Return new token objects; never mutate the supplied tokens/lines.
+ * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {string} text Same board-block-free text used by checkAnswer(), before markdown rendering.
+ * @param {readonly import('./tutor.js').CheckedMove[]} moves Checked tokens with offsets into `text`.
+ * @param {AnswerPositions} context Captured positions; must not follow the live board cursor.
+ * @returns {{moves: LinkedMove[], lines: ChessLine[]}} Optional token indices refer to these lines.
+ */
+export function linesInAnswer(Chess, text, moves, { fen, prevFen = null, starts = [], game = null, evidence = [] }) {
   const t = String(text ?? '');
+  /** @type {LinkedMove[]} */
   const out = moves.map(m => ({ ...m }));
   const real = out.map((m, k) => k).filter(k => out[k].status !== 'square');
-  const GAP = /^\s+(?:\d+\s*(?:\.{1,3}|…)\s*)?$/;
+  /** @type {ChessLine[]} */
   const lines = [];
+  const base = san => san.replace(/[+#]/g, '');
+  const reference = m => {
+    const match = /(\d+)\s*(\.{1,3}|…)[\s*`]*$/.exec(t.slice(0, m.index));
+    return match ? { number: +match[1], side: match[2] === '.' ? 'w' : 'b' } : null;
+  };
+  const sources = [game, ...evidence].filter(l => l?.sans?.length && l.fens?.length === l.sans.length + 1);
+  let previousEnd = 0;
   for (let s = 0; s < real.length;) {
     let e = s;
-    while (e + 1 < real.length && GAP.test(t.slice(out[real[e]].index + out[real[e]].san.length, out[real[e + 1]].index))) e++;
-    // The checked moves of a run up to the first wrong one ("10. Nxb5 cxb5 11. Bxb5+ Nbd7??" keeps three).
-    const run = real.slice(s, e + 1), bad = run.findIndex(k => out[k].status === 'invalid');
-    const group = bad < 0 ? run : run.slice(0, bad);
+    while (e + 1 < real.length && LINE_GAP.test(t.slice(out[real[e]].index + out[real[e]].san.length, out[real[e + 1]].index))) e++;
+    const group = real.slice(s, e + 1).slice(0, 40);
     if (group.length) {
       const sans = group.map(k => out[k].san);
-      // Prose continues lines ("3... g6, and if 4. Qf3 then Nf6"): try the end of the line before first.
-      const from = [lines.at(-1)?.fens.at(-1), fen, prevFen, ...starts].filter(Boolean);
-      const line = from.map(f => playLine(Chess, f, sans)).find(Boolean);
+      const refs = group.map(k => reference(out[k]));
+      const from = start => {
+        if (typeof start !== 'string') return null;
+        const first = refs[0], fields = start.split(' ');
+        if (first && (fields[1] !== first.side || +fields[5] !== first.number)) return null;
+        try {
+          const c = new Chess(start), line = { start: c.fen(), sans: [], ucis: [], fens: [c.fen()] };
+          for (let i = 0; i < sans.length; i++) {
+            const r = refs[i]; if (r && (c.turn() !== r.side || c.moveNumber() !== r.number)) break;
+            let move; try { move = c.move(sans[i]); } catch { break; }
+            line.sans.push(move.san); line.ucis.push(move.from + move.to + (move.promotion || '')); line.fens.push(c.fen());
+          }
+          return line.sans.length ? line : null;
+        } catch { return null; }
+      };
+      const unique = candidates => {
+        const legal = candidates.filter(Boolean), longest = legal.reduce((n, l) => Math.max(n, l.sans.length), 0);
+        const byStart = new Map(legal.filter(l => l.sans.length === longest).map(l => [l.start, l]));
+        return byStart.size === 1 ? [...byStart.values()][0] : null;
+      };
+      const matching = source => {
+        const found = [];
+        for (let i = 0; i < (source?.sans?.length || 0); i++) {
+          if (sans.every((san, j) => base(san) === base(source.sans[i + j] || ''))) found.push(from(source.fens[i]));
+        }
+        return found;
+      };
+      // Continue only an explicitly connected clause, not a new sentence/paragraph or alternative.
+      const gap = t.slice(previousEnd, out[group[0]].index).replace(/^[*`]*[!?]+/, '').replace(/\d+\s*(?:\.{1,3}|…)[\s*`]*$/, '');
+      const continues = previousEnd > 0 && !/[.!?]|\n\s*\n/.test(gap) && (refs[0] || /\b(then|if|after|and|followed by|dann|falls|nach|und)\b/i.test(gap))
+        && !/\b(or|instead|alternatively|rather|oder|statt|alternativ)\b/i.test(gap);
+      const historical = matching(game).filter(Boolean), history = unique(historical);
+      let line = continues ? from(lines.at(-1)?.fens.at(-1)) : null;
+      if (!line && refs.some(Boolean)) {
+        line = history || unique(evidence.flatMap(matching))
+          || unique([fen, prevFen, ...starts, ...sources.flatMap(l => l.fens)].map(from));
+      } else if (!line) {
+        line = out[group[0]].status === 'game' ? history : null;
+        const ambiguousHistory = out[group[0]].status === 'game' && new Set(historical.map(l => l.start)).size > 1;
+        if (!ambiguousHistory) line ||= from(fen) || from(prevFen) || unique(evidence.flatMap(matching)) || history || unique(starts.map(from));
+      }
       if (line) {
         const id = lines.push(line) - 1;
-        group.forEach((k, ply) => { out[k].line = id; out[k].ply = ply; });
+        // Legality allows navigation; the original engine/game verdict stays on each token.
+        group.slice(0, line.sans.length).forEach((k, ply) => { out[k].line = id; out[k].ply = ply; });
       }
     }
+    previousEnd = out[real[e]].index + out[real[e]].san.length;
     s = e + 1;
   }
   return { moves: out, lines };
