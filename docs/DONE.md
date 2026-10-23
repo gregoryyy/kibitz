@@ -7,6 +7,42 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Road idea: piece power in four corners
+
+TODO items: none; [ROAD 9](ROAD.md#9-piece-power-attacks-and-defence-in-four-corners) records a future feature.
+
+### Implementation notes
+
+- Captured the four corner dot counts: inbound/outbound attacks above, inbound/outbound defence below. Recorded always-visible and on-demand modes, details and highlights of the related pieces.
+- Kept the mobile gesture as a design question with long-press and Inspect-then-tap candidates. Recorded the conflict with existing right-click circles/arrows, plus accessibility, help settings and attack/defence semantics to settle.
+
+### Deviations
+
+- Planning only: no board feature is implemented and no implementation TODO is marked complete.
+
+### Insights
+
+- Inspection and manual annotation share the right-click gesture; their interaction needs an explicit design. Attack/defender counts also need a clear definition before they can serve as teaching aids.
+
+---
+
+## 2026-10-23 — PDF tooling under root utilities
+
+TODO items: 0.12.
+
+### Implementation notes
+
+- Moved the print stylesheet and Mermaid include to `utils/pdf/`. Updated `just pdf` / `just pdfs`, stylesheet comments and the earlier tooling entry to use the new paths.
+- Documented `utils/` as the home for repository utilities in AGENTS.md.
+- Validation: plain and Mermaid PDF builds pass, and an unchanged document is skipped on the second build. `npm run check`, a fresh app build and mock-provider unit tests pass (243 passed, one opt-in live test skipped).
+
+### Deviations
+
+- None. The PDF commands, output locations and incremental-build mechanism keep their existing behaviour.
+
+### Insights
+
+- PDF build assets belong with repository utilities; document sources and generated output stay with the documents.
 ## 2026-10-23 — Research: RAG, neurosymbolic games and milestones 5–7
 
 TODO items: 8.9 (research); informs milestones 5–8.
@@ -701,8 +737,8 @@ TODO items: none (tooling for the docs, adapted from the OrgFab repo's `just pdf
   - pandoc writes a standalone HTML page, with images embedded and math as MathML;
   - headless Chrome prints that page to PDF.
 - `just pdfs [PATHS]` does it for every Markdown file that git tracks or would track. It skips `CLAUDE.md`, which only points at AGENTS.md, and `.github/`.
-- The typography is in `docs/pdf/style.css`: a serif body, sans headings and tables, Menlo for code. Task lists (TODO.md) get checkboxes. Screenshots scale to the column, and in print to the page height.
-- Documents with ```` ```mermaid ```` blocks (ARCH.md) also get `docs/pdf/mermaid.html`. pandoc downloads Mermaid 11.4.1 from jsDelivr and embeds it, and Chrome draws the diagrams before printing.
+- The typography is in `utils/pdf/style.css`: a serif body, sans headings and tables, Menlo for code. Task lists (TODO.md) get checkboxes. Screenshots scale to the column, and in print to the page height.
+- Documents with ```` ```mermaid ```` blocks (ARCH.md) also get `utils/pdf/mermaid.html`. pandoc downloads Mermaid 11.4.1 from jsDelivr and embeds it, and Chrome draws the diagrams before printing.
 - Builds are incremental. `.pdfstamps/` keeps a hash of the source and build inputs, and of the PDF produced, so unchanged files are skipped. A second `just pdfs` skipped all 9 documents.
 - `*.md.pdf` and `.pdfstamps/` are ignored by git.
 - `CHROME=/path/to/chrome` picks another browser; the default is the macOS Chrome.

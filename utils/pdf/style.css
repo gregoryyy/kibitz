@@ -1,7 +1,7 @@
 /* style.css: print stylesheet for the Markdown documents (README, AGENTS, docs/).
  *
  * Used by `just pdf` and `just pdfs`: pandoc --standalone --embed-resources --mathml
- * --css docs/pdf/style.css, then headless Chrome prints the page to an A4 PDF.
+ * --css utils/pdf/style.css, then headless Chrome prints the page to an A4 PDF.
  * Adapted from the OrgFab repo's tools/dev/pdf-style.css.
  *
  * Type: Charter/Georgia serif for body text, system sans for headings and tables,
@@ -121,7 +121,7 @@ pre code {
   padding: 0;
 }
 
-/* ---- Mermaid diagrams (docs/pdf/mermaid.html turns them into SVG) ---- */
+/* ---- Mermaid diagrams (utils/pdf/mermaid.html turns them into SVG) ---- */
 
 pre.mermaid {
   background: none;

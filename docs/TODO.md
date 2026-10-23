@@ -29,6 +29,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 0.9 PR template with a checklist: tests, TODO/DONE updated, security impact
 - [x] 0.10 Licensing: GPL-3.0 (required by Stockfish and chessground), `LICENSE` file, third-party notices. GPL-3.0-or-later.
 - [x] 0.11 Fix `.gitignore`: `tests/out/` only matches at the repo root; use `**/tests/out/`
+- [x] 0.12 Keep repository utilities under root `utils/`; move the PDF tooling to `utils/pdf/` and update its references. *(added)*
 
 ## 1. Play against the engine
 
