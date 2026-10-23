@@ -10,6 +10,7 @@ Rules:
 - Treat Stockfish's evaluations and lines as the truth about concrete play. Never invent variations: every move or line you give must come from the engine lines or the game's moves provided, and lines stay at 6 plies or fewer. Moves that aren't backed this way are marked as unchecked for the player.
 - Explain the ideas a human can use: threats, plans, piece placement, pawn structure, tactics and the reasoning that finds them. Pitch it to the player's level.
 - Use standard algebraic notation (SAN). Describe evaluations in words ("about a pawn better for White") and give the number in brackets.
+- Include move numbers and sides in past-move references and concrete variations (12. Nf3, 12... Nf6), using the supplied game/FEN. Keep alternative lines separate.
 - Recommend reading only from the retrieved references, naming the part when it is given.
 - Be concise: under 170 words unless asked for more. Short paragraphs or at most 4 bullets. No headings.
 - If tools are offered, use them to check a move or line before you rely on it; quote lines only from the context or from tool results.
@@ -168,7 +169,10 @@ export function checkAnswer(Chess, text, { fen, prevFen = null, lines = [], prev
     let status = inLines.has(base) ? 'line' : inGame.has(base) ? 'game' : legal.has(base) ? 'legal' : 'invalid';
     // A bare square ("on e4", "the d5 square") names a square, not a pawn move. It stays in the
     // list (status 'square') so the list matches the text's move-like tokens one to one.
-    if (/^[a-h][1-8]$/.test(m[0]) && (status === 'invalid' || SQUARE_WORD.test(t.slice(0, m.index)))) status = 'square';
+    const before = t.slice(0, m.index), previous = moves.at(-1);
+    const notation = /\d+\s*(?:\.{1,3}|…)[\s*`]*$/.test(before)
+      || (previous && previous.status !== 'square' && LINE_GAP.test(t.slice(previous.index + previous.san.length, m.index)));
+    if (/^[a-h][1-8]$/.test(m[0]) && (SQUARE_WORD.test(before) || (status === 'invalid' && !notation))) status = 'square';
     moves.push({ san: m[0], index: m.index, status, why: WHY[status] });
   }
   // Sequences: moves separated only by spaces and move numbers ("1. e4 e5 2. Nf3", "12... Nf3")
@@ -198,7 +202,8 @@ export function checkAnswer(Chess, text, { fen, prevFen = null, lines = [], prev
   }
   return { moves, pieces, problems: moves.filter(x => x.status === 'invalid').length + pieces.filter(p => !p.ok).length };
 }
-const LINE_GAP = /^\s+(?:\d+\s*(?:\.{1,3}|…)\s*)?$/;
+// Formatting and NAG punctuation do not change a move sequence. A sentence boundary does.
+export const LINE_GAP = /^[\s*`!?]+(?:\d+\s*(?:\.{1,3}|…)[\s*`]*)?$/;
 const SQUARE_WORD =/\b(on|to|at|from|the|of|into|onto|towards|toward|via|square|squares)\s+$/i;
 const WHY = {
   line: 'In Stockfish\'s lines',
@@ -220,9 +225,10 @@ function longestRun(seqs, group) {
 
 // --- Comment cache (3.7) ----------------------------------------------
 // Key: the position (EPD), the move that led to it, the aspects, what the coach could see, the
-// player's level, the model, and the language when it isn't English (so English keys stay as they were).
-export function commentKey({ epd, uci = '', aspects, view, level, model, lang = 'en' }) {
-  return [epd, uci, normaliseAspects(aspects).join(','), view, level, model, ...(lang !== 'en' ? [lang] : [])].join('|');
+// player's level, model and language. `position` includes the full FEN and ordered game/scratch
+// history: equal EPDs can describe different game steps, whose numbered prose is not interchangeable.
+export function commentKey({ epd, uci = '', aspects, view, level, model, lang = 'en', position = '' }) {
+  return [epd, uci, normaliseAspects(aspects).join(','), view, level, model, ...(lang !== 'en' ? [lang] : []), ...(position ? [position] : [])].join('|');
 }
 // A least-recently-used map of at most `max` entries; `entries` restores a saved one.
 export function lruCache(max = 100, entries = []) {

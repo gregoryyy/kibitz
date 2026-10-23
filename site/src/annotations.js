@@ -13,6 +13,7 @@
 // ```board block at the end of an answer, one instruction per line (parseBoardBlock).
 
 import { flipSide } from './modes.js';
+import { LINE_GAP } from './tutor.js';
 
 export const KINDS = ['arrow', 'square', 'ghost', 'label', 'line'];
 export const MAX_MARKS = 8; // a block with more is cut: an answer points at a few things, not at everything
@@ -109,35 +110,73 @@ export function checkMarks(Chess, fen, marks) {
   return { shown, dropped };
 }
 
-// The lines in an answer, from checkAnswer's moves (tutor.js): a run of moves separated only by spaces
-// and move numbers, up to the first wrong one, that plays legally from where the answer's previous line
-// ended, or else from the position, the one before, or one of `starts` (positions the coach's
-// tools looked at).
-// Returns the moves with {line, ply} added where they belong to a line (ply: moves played after this
-// one, from the line's start), and the lines themselves ({start, sans, ucis, fens}). A single move
-// is a line of one, so hovering it can show it from the right position.
-export function linesInAnswer(Chess, text, moves, { fen, prevFen = null, starts = [] }) {
+// Link checked moves to the answer's captured game/evidence, never the later board cursor.
+// Explicit move numbers constrain *every* ply; an unresolved/ambiguous reference stays unlinked.
+export function linesInAnswer(Chess, text, moves, { fen, prevFen = null, starts = [], game = null, evidence = [] }) {
   const t = String(text ?? '');
   const out = moves.map(m => ({ ...m }));
   const real = out.map((m, k) => k).filter(k => out[k].status !== 'square');
-  const GAP = /^\s+(?:\d+\s*(?:\.{1,3}|…)\s*)?$/;
-  const lines = [];
+  const lines = [], base = san => san.replace(/[+#]/g, '');
+  const reference = m => {
+    const match = /(\d+)\s*(\.{1,3}|…)[\s*`]*$/.exec(t.slice(0, m.index));
+    return match ? { number: +match[1], side: match[2] === '.' ? 'w' : 'b' } : null;
+  };
+  const sources = [game, ...evidence].filter(l => l?.sans?.length && l.fens?.length === l.sans.length + 1);
+  let previousEnd = 0;
   for (let s = 0; s < real.length;) {
     let e = s;
-    while (e + 1 < real.length && GAP.test(t.slice(out[real[e]].index + out[real[e]].san.length, out[real[e + 1]].index))) e++;
-    // The checked moves of a run up to the first wrong one ("10. Nxb5 cxb5 11. Bxb5+ Nbd7??" keeps three).
-    const run = real.slice(s, e + 1), bad = run.findIndex(k => out[k].status === 'invalid');
-    const group = bad < 0 ? run : run.slice(0, bad);
+    while (e + 1 < real.length && LINE_GAP.test(t.slice(out[real[e]].index + out[real[e]].san.length, out[real[e + 1]].index))) e++;
+    const group = real.slice(s, e + 1).slice(0, 40);
     if (group.length) {
       const sans = group.map(k => out[k].san);
-      // Prose continues lines ("3... g6, and if 4. Qf3 then Nf6"): try the end of the line before first.
-      const from = [lines.at(-1)?.fens.at(-1), fen, prevFen, ...starts].filter(Boolean);
-      const line = from.map(f => playLine(Chess, f, sans)).find(Boolean);
+      const refs = group.map(k => reference(out[k]));
+      const from = start => {
+        if (typeof start !== 'string') return null;
+        const first = refs[0], fields = start.split(' ');
+        if (first && (fields[1] !== first.side || +fields[5] !== first.number)) return null;
+        try {
+          const c = new Chess(start), line = { start: c.fen(), sans: [], ucis: [], fens: [c.fen()] };
+          for (let i = 0; i < sans.length; i++) {
+            const r = refs[i]; if (r && (c.turn() !== r.side || c.moveNumber() !== r.number)) break;
+            let move; try { move = c.move(sans[i]); } catch { break; }
+            line.sans.push(move.san); line.ucis.push(move.from + move.to + (move.promotion || '')); line.fens.push(c.fen());
+          }
+          return line.sans.length ? line : null;
+        } catch { return null; }
+      };
+      const unique = candidates => {
+        const legal = candidates.filter(Boolean), longest = legal.reduce((n, l) => Math.max(n, l.sans.length), 0);
+        const byStart = new Map(legal.filter(l => l.sans.length === longest).map(l => [l.start, l]));
+        return byStart.size === 1 ? [...byStart.values()][0] : null;
+      };
+      const matching = source => {
+        const found = [];
+        for (let i = 0; i < (source?.sans?.length || 0); i++) {
+          if (sans.every((san, j) => base(san) === base(source.sans[i + j] || ''))) found.push(from(source.fens[i]));
+        }
+        return found;
+      };
+      // Continue only an explicitly connected clause, not a new sentence/paragraph or alternative.
+      const gap = t.slice(previousEnd, out[group[0]].index).replace(/^[*`]*[!?]+/, '').replace(/\d+\s*(?:\.{1,3}|…)[\s*`]*$/, '');
+      const continues = previousEnd > 0 && !/[.!?]|\n\s*\n/.test(gap) && (refs[0] || /\b(then|if|after|and|followed by|dann|falls|nach|und)\b/i.test(gap))
+        && !/\b(or|instead|alternatively|rather|oder|statt|alternativ)\b/i.test(gap);
+      const historical = matching(game).filter(Boolean), history = unique(historical);
+      let line = continues ? from(lines.at(-1)?.fens.at(-1)) : null;
+      if (!line && refs.some(Boolean)) {
+        line = history || unique(evidence.flatMap(matching))
+          || unique([fen, prevFen, ...starts, ...sources.flatMap(l => l.fens)].map(from));
+      } else if (!line) {
+        line = out[group[0]].status === 'game' ? history : null;
+        const ambiguousHistory = out[group[0]].status === 'game' && new Set(historical.map(l => l.start)).size > 1;
+        if (!ambiguousHistory) line ||= from(fen) || from(prevFen) || unique(evidence.flatMap(matching)) || history || unique(starts.map(from));
+      }
       if (line) {
         const id = lines.push(line) - 1;
-        group.forEach((k, ply) => { out[k].line = id; out[k].ply = ply; });
+        // Legality allows navigation; the original engine/game verdict stays on each token.
+        group.slice(0, line.sans.length).forEach((k, ply) => { out[k].line = id; out[k].ply = ply; });
       }
     }
+    previousEnd = out[real[e]].index + out[real[e]].san.length;
     s = e + 1;
   }
   return { moves: out, lines };

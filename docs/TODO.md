@@ -94,7 +94,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 3.4 Validate the output: check every move, square and line against chess.js and the engine's lines, then drop or flag the ones that can't be verified *(added)*. Flagged, not dropped (see DONE.md)
 - [x] 3.5 Adapt to the player's level *(prototype)*
 - [x] 3.6 When to comment: after every move, only after mistakes, or on request; no spoilers mid-game unless help is on
-- [x] 3.7 Cache comments by (EPD, aspect, level, model)
+- [x] 3.7 Cache comments by position, ordered game/scratch history, aspects, help view, level, model and language. Equal EPDs at different game steps do not share numbered commentary
 - [x] 3.8 Tutor eval set: reference positions with the key points a good comment should hit; scored by engine checks plus an LLM judge, run per provider *(added)*
 - [x] 3.9 Explanation modes, chosen in the coach settings and switchable at any time *(added)*. In the Coach tab as "How the coach works": Only when asked, After my mistakes, After my moves, Commentary on every move, Challenge me
   - [x] 3.9.1 On request (today's behaviour): the coach speaks when asked or when a chip is clicked
@@ -107,7 +107,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 - [x] 4.1 Chat panel: history per game and position, streaming, stop button *(prototype)*
 - [x] 4.2 Annotation schema: arrows, square highlights, ghost pieces, labels, move sequences
-- [x] 4.3 Rendering: chessground shapes for arrows and highlights; a ghost-piece layer; a variation stepper that leaves the game untouched
+- [x] 4.3 Rendering: chessground shapes for arrows and highlights; a ghost-piece layer; a variation stepper that leaves the game untouched. Commentary links use captured game/evidence positions and explicit move numbers, including historical occurrences and alternatives
 - [x] 4.4 Check every annotation against the current position before drawing it
 - [x] 4.5 "What if": the user tries a move on a scratch board, the engine evaluates it, the tutor explains
 - [x] 4.6 Chat context: current position, game so far, selected aspects, recent tutor comments

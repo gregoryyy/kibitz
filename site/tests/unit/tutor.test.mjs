@@ -131,7 +131,7 @@ test('checked answer: lines from other positions the coach was given (the review
 test('comment cache key covers position, move, aspects, view, level and model', () => {
   const base = { epd: 'x', uci: 'e2e4', aspects: ['mind', 'last'], view: 'all', level: 2, model: 'm' };
   assert.equal(commentKey(base), commentKey({ ...base, aspects: ['last', 'mind'] }));
-  for (const change of [{ epd: 'y' }, { uci: 'd2d4' }, { aspects: ['last'] }, { view: 'past' }, { level: 3 }, { model: 'n' }]) {
+  for (const change of [{ epd: 'y' }, { uci: 'd2d4' }, { aspects: ['last'] }, { view: 'past' }, { level: 3 }, { model: 'n' }, { position: 'another move order or game step' }]) {
     assert.notEqual(commentKey(base), commentKey({ ...base, ...change }), JSON.stringify(change));
   }
 });
