@@ -8,7 +8,7 @@ import { runTextBenchmark } from './text-benchmark.mjs';
  * The same ingestion/search implementation serves the page and this evaluation. Tests inject
  * a fake client; CLI cloud calls additionally require --allow-cloud. No .env file is loaded.
  */
-export async function runDenseBenchmark({ config = loadEmbeddingConfig(), embedder = null, allowCloud = false } = {}) {
+export function denseBenchmarkSession({ config = loadEmbeddingConfig(), embedder = null, allowCloud = false } = {}) {
   if (!config.available) throw new Error('Configure EMBEDDING_PROVIDER and EMBEDDING_MODEL for dense evaluation');
   if (!LOCAL_PROVIDERS.includes(config.provider) && !allowCloud) throw new Error('Cloud evaluation requires --allow-cloud; the authored corpus and queries will be sent to that provider');
   const provider = embedder || createEmbedder(config);
@@ -18,6 +18,12 @@ export async function runDenseBenchmark({ config = loadEmbeddingConfig(), embedd
     const r = await provider.embedBatch(texts, { signal });
     return { vectors: r.vectors, metadata: { ...identity, providerModel: r.providerModel, dimensions: r.vectors[0]?.length } };
   });
+  return { session, identity };
+}
+
+/** Explicit provider comparison; automatic tests inject a fake client or configure mock. */
+export async function runDenseBenchmark(options = {}) {
+  const { session, identity } = denseBenchmarkSession(options);
   const report = await runTextBenchmark({ retriever: 'passage-cosine-v1', retrieve: async (passages, query, options) => {
     if (!session.index) await session.build(passages, identity);
     return session.search(query, identity, options);

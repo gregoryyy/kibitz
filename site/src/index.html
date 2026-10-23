@@ -329,6 +329,7 @@ table.counts .g { font: 700 13px var(--font-mono); color: var(--c); display: inl
 .lib-list { display: flex; flex-direction: column; gap: 8px; }
 .study-search { margin: 12px 0; }
 .study-search label { flex: 1; min-width: 130px; }
+#studyHybridControls label { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
 .study-hit { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; min-width: 0; overflow-wrap: anywhere; }
 .study-hit p { margin: 6px 0; }
 .study-passage { white-space: pre-wrap; }
@@ -531,9 +532,15 @@ a.ext { color: var(--accent); font-size: 14px; }
           <label for="studyQuery" class="sr-only">Study text keywords</label>
           <input type="search" id="studyQuery" maxlength="500" placeholder="Try isolated pawn, blockade or Qxf7" autocomplete="off">
           <div class="row" style="margin-top:8px">
-            <label for="studyMethod">Search method<select id="studyMethod"><option value="keyword">Keywords</option><option value="dense">By meaning</option></select></label>
+            <label for="studyMethod">Search method<select id="studyMethod"><option value="keyword">Keywords</option><option value="dense">By meaning</option><option value="hybrid">Combined</option></select></label>
             <label for="studySource">Search in<select id="studySource"><option value="all">All study text</option><option value="library">My annotations</option><option value="classic">Classic annotations</option><option value="guide">Study notes</option></select></label>
             <label for="studyLanguage">Text language<select id="studyLanguage"><option value="ui">Interface language</option><option value="all">Any language</option><option value="en">English</option><option value="de">Deutsch</option></select></label>
+          </div>
+          <div id="studyHybridControls" hidden>
+            <p class="hint">Combine text matches and optional board relevance. Results may only be related to your question.</p>
+            <label><input type="checkbox" id="studyBoardRelevance"> Favor the current board</label>
+            <label><input type="checkbox" id="studyAllTerms"> Require every search term</label>
+            <p class="hint">Requiring terms checks their spelling in the title or passage, not whether the passage answers your question.</p>
           </div>
           <div id="studyDenseControls" hidden>
             <p class="hint" id="studyDenseProvider"></p>
@@ -704,8 +711,9 @@ import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './cla
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions, librarySourceContext } from './library.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './opening-guides.js';
-import { annotationPassages, guidePassages, buildTextIndex, searchText } from './text-search.js';
+import { annotationPassages, guidePassages, searchText } from './text-search.js';
 import { DenseSession, DENSE_LIMITS, embeddingIdentity, selectPassages } from './dense-search.js';
+import { buildHybridIndex, searchHybrid, HYBRID_POLICY } from './hybrid-search.js';
 import { namedContinuations, namedOpeningContext } from './opening-variations.js';
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
@@ -1612,10 +1620,10 @@ const DrillReviews = createDrillStore(browserStorage());
 let DRILL = null, drillGround = null, drillDeckKey = '', drillDeck = [];
 const libraryCache = new Map(); // collection + id -> exact input key and immutable snapshot promise
 let LIBRARY_RECORDS = new Map(), libraryIndexGen = 0;
-let TEXT_INDEX = null, TEXT_NOTES = [], TEXT_GUIDES = [], guideTextPromise = null, guideTextError = false;
-const DENSE = { session: new DenseSession(requestEmbeddings), context: '', gen: S.gen, descriptor: null, loading: false, request: 0, busy: '', done: 0, total: 0, hits: null, query: '', message: '' };
+let TEXT_INDEX = null, HYBRID_INDEX = null, TEXT_NOTES = [], TEXT_GUIDES = [], guideTextPromise = null, guideTextError = false;
+const DENSE = { session: new DenseSession(requestEmbeddings), context: '', queryContext: '', gen: S.gen, descriptor: null, loading: false, request: 0, busy: '', done: 0, total: 0, hits: null, query: '', message: '' };
 /** Rebuild from the current account's records only; static authored guides may be shared locally. */
-function rebuildTextIndex() { TEXT_INDEX = buildTextIndex([...TEXT_NOTES, ...TEXT_GUIDES]); }
+function rebuildTextIndex() { HYBRID_INDEX = buildHybridIndex(Chess, [...TEXT_NOTES, ...TEXT_GUIDES]); TEXT_INDEX = HYBRID_INDEX.text; }
 /** Content and provenance, rather than update timestamps, invalidate source-aware records. */
 function librarySnapshot(g, collection) {
   const key = `${collection}:${g.id}`, input = JSON.stringify([g.pgn, g.provenance, g.kind]);
@@ -1629,7 +1637,7 @@ function onLibChange() {
   const ids = new Set(items.map(({ g, collection }) => `${collection}:${g.id}`));
   for (const id of libraryCache.keys()) if (!ids.has(id)) libraryCache.delete(id);
   // Never expose deleted/replaced records while hashing their replacements.
-  INDEX = K.buildPositionIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null;
+  INDEX = K.buildPositionIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null; HYBRID_INDEX = null;
   const records = [], keys = new Set();
   for (const [source, collection] of [['library', [...Lib.games.values()]], ['classic', EXAMPLES]]) for (const g of collection) {
     const key = `${source}:${g.id}`; keys.add(key);
@@ -2129,8 +2137,9 @@ function renderStudySearch() {
   syncDenseContext();
   $('#studySearchLocked').hidden = allowed; $('#studySearchControls').hidden = !allowed;
   const method = $('#studyMethod').value;
-  $('#studyDenseControls').hidden = method !== 'dense';
-  if (method === 'dense') renderDenseControls();
+  $('#studyDenseControls').hidden = method === 'keyword';
+  $('#studyHybridControls').hidden = method !== 'hybrid';
+  if (method !== 'keyword') renderDenseControls();
   body.replaceChildren(); status.textContent = '';
   if (!allowed || paneHidden('library')) return;
   const query = $('#studyQuery').value.trim();
@@ -2150,10 +2159,10 @@ function renderStudySearch() {
     return;
   }
   const options = studyTextOptions();
-  if (method === 'dense' && (DENSE.busy || !DENSE.hits || DENSE.query !== query)) { status.textContent = DENSE.busy === 'build' ? `Embedding ${DENSE.done} of ${DENSE.total} passages…` : DENSE.busy === 'query' ? 'Searching by meaning…' : DENSE.message || 'Build an index of the selected text, then search by meaning.'; return; }
-  const hits = method === 'dense' ? DENSE.hits : searchText(TEXT_INDEX, query, options);
-  status.textContent = hits.length ? `${hits.length} study text results` : method === 'dense' ? 'No related study text. Try another query.' : 'No matching study text. Try another keyword.';
-  for (const { passage: p, excerpt } of hits) {
+  if (method !== 'keyword' && (DENSE.busy || !DENSE.hits || DENSE.query !== query)) { status.textContent = DENSE.busy === 'build' ? `Embedding ${DENSE.done} of ${DENSE.total} passages…` : DENSE.busy === 'query' ? 'Searching by meaning…' : DENSE.message || 'Build an index of the selected text, then search by meaning.'; return; }
+  const hits = method !== 'keyword' ? DENSE.hits : searchText(TEXT_INDEX, query, options), queryContext = studyHybridContext();
+  status.textContent = hits.length ? `${hits.length} study text results` : method === 'hybrid' && $('#studyAllTerms').checked ? 'No passage found containing every search term. Broaden the query or turn off the term requirement.' : method !== 'keyword' ? 'No related study text. Try another query.' : 'No matching study text. Try another keyword.';
+  for (const { passage: p, excerpt, evidence } of hits) {
     const entry = p.kind === 'annotation' ? LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`) : null;
     const g = entry?.g, occurrence = entry?.snapshot?.occurrences.find(o => o.id === p.occurrenceId);
     const card = el('article', { class: 'study-hit', 'data-passage-id': p.id, 'data-kind': p.kind },
@@ -2163,9 +2172,14 @@ function renderStudySearch() {
       el('details', {}, el('summary', {}, 'Read passage and source'), el('p', { class: 'study-passage', translate: 'no' }, p.text),
         el('p', {}, el('span', {}, 'Source:'), ' ', el('span', { translate: 'no' }, p.sourceTitle || p.title)),
         el('p', {}, el('span', {}, 'Annotation licence as supplied'), ': ', p.licence ? el('span', { translate: 'no' }, p.licence) : el('span', {}, 'Not supplied'))));
+    if (evidence) card.append(el('p', { class: 'hint' }, evidence.complete ? 'Contains every search term; support is not verified.' : 'Related text; some search terms are absent.'),
+      el('details', {}, el('summary', {}, 'Why this result'),
+        el('p', {}, evidence.channels.includes('keywords') && evidence.channels.includes('meaning') ? 'Found by keywords and meaning' : evidence.channels.includes('keywords') ? 'Found by keywords' : evidence.channels.includes('meaning') ? 'Found by meaning' : 'Found by board features'),
+        evidence.board ? el('p', {}, evidence.board === 'exact' ? 'Same position, including turn and rights' : 'Same pawns with matching turn, check and phase') : null,
+        ...evidence.tags.map(tag => el('p', {}, K.TAG_LABELS[tag]))));
     if (p.kind === 'guide') card.append(el('p', { class: 'hint' }, { idea: 'Idea', plans: 'Typical plans', structure: 'Pawn structures' }[p.locator.section]));
     else {
-      const valid = () => showEngine() && gen === S.gen && libraryGen === libraryIndexGen && query === $('#studyQuery').value.trim() && source === $('#studySource').value && language === studyTextOptions().language && method === $('#studyMethod').value && entry === LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`)
+      const valid = () => showEngine() && gen === S.gen && libraryGen === libraryIndexGen && query === $('#studyQuery').value.trim() && source === $('#studySource').value && language === studyTextOptions().language && method === $('#studyMethod').value && queryContext === studyHybridContext() && entry === LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`)
         && entry?.snapshot?.document.revision === p.revision && TEXT_INDEX?.documents.some(d => d.passage.id === p.id);
       if (g && occurrence) card.append(el('p', { translate: p.ply ? 'no' : null, class: 'hint' }, p.ply ? occurrence.label : 'Starting position'),
         el('button', { class: 'btn small', onclick: () => { if (valid()) openGame(g, p.ply, valid); } }, 'Open annotated position'));
@@ -2179,12 +2193,16 @@ function studyTextOptions() {
   const source = $('#studySource').value;
   return { language: $('#studyLanguage').value === 'ui' ? LANG : $('#studyLanguage').value, kind: source === 'guide' ? 'guide' : source === 'all' ? 'all' : 'annotation', collection: ['library', 'classic'].includes(source) ? source : 'all' };
 }
+/** Capture board/filter intent separately: changing it cancels results but can retain source vectors. */
+function studyHybridContext() {
+  return $('#studyMethod').value === 'hybrid' ? JSON.stringify([$('#studyAllTerms').checked, $('#studyBoardRelevance').checked ? (SCRATCH ? scratchFen() : nodeFen()) : '']) : '';
+}
 /** Erase private vectors on source/account/policy changes, even while the Library tab is closed. */
 function syncDenseContext() {
   const context = JSON.stringify([Lib.where, Lib.uid, libraryIndexGen, studyTextOptions(), $('#studyMethod').value, showEngine(), !!GATEWAY?.localOnly]);
-  const changed = context !== DENSE.context, gameChanged = DENSE.gen !== S.gen;
-  if (changed || gameChanged) {
-    DENSE.session.cancel(changed); DENSE.context = context; DENSE.gen = S.gen; DENSE.request++; DENSE.loading = false;
+  const queryContext = studyHybridContext(), changed = context !== DENSE.context, gameChanged = DENSE.gen !== S.gen;
+  if (changed || gameChanged || queryContext !== DENSE.queryContext) {
+    DENSE.session.cancel(changed); DENSE.context = context; DENSE.queryContext = queryContext; DENSE.gen = S.gen; DENSE.request++; DENSE.loading = false;
     DENSE.busy = ''; DENSE.hits = null; DENSE.query = ''; DENSE.message = '';
   }
   const query = $('#studyQuery').value.trim();
@@ -2220,6 +2238,7 @@ function renderDenseControls() {
   $('#studyDenseClear').disabled = !DENSE.session.index && !DENSE.busy;
   $('#studyDenseCancel').hidden = !DENSE.busy;
   $('#studyDenseRefresh').disabled = busy;
+  $('#studyDenseSearch').textContent = $('#studyMethod').value === 'hybrid' ? 'Search combined' : 'Search by meaning';
   const index = DENSE.session.index, meta = $('#studyDenseMetadata'); meta.replaceChildren();
   if (index) meta.append(el('p', {}, `Semantic index: ${index.passages.length} passages.`), el('details', {}, el('summary', {}, 'Embedding index details'),
     el('p', { translate: 'no' }, `${index.metadata.provider} · ${index.metadata.model} · ${index.metadata.providerModel || '?'}`),
@@ -2235,9 +2254,9 @@ async function requestEmbeddings(texts, descriptor, signal) {
 /** Build/search are separate explicit actions. Recheck destination, owner, sources and game after awaits. */
 async function runDenseAction(action) {
   syncDenseContext();
-  if (!showEngine() || $('#studyMethod').value !== 'dense' || DENSE.busy || DENSE.loading || !TEXT_INDEX || (['all', 'guide'].includes($('#studySource').value) && !TEXT_GUIDES.length)) return;
-  const request = ++DENSE.request, context = DENSE.context, gen = S.gen, query = $('#studyQuery').value.trim();
-  const current = () => request === DENSE.request && context === DENSE.context && gen === S.gen && showEngine();
+  if (!showEngine() || $('#studyMethod').value === 'keyword' || DENSE.busy || DENSE.loading || !TEXT_INDEX || (['all', 'guide'].includes($('#studySource').value) && !TEXT_GUIDES.length)) return;
+  const request = ++DENSE.request, context = DENSE.context, queryContext = studyHybridContext(), gen = S.gen, query = $('#studyQuery').value.trim();
+  const current = () => request === DENSE.request && context === DENSE.context && queryContext === studyHybridContext() && gen === S.gen && showEngine();
   DENSE.busy = action; DENSE.hits = null; DENSE.message = ''; DENSE.query = action === 'query' ? query : ''; DENSE.done = 0; DENSE.total = 0; renderStudySearch();
   try {
     const descriptor = await loadEmbeddingStatus();
@@ -2254,7 +2273,11 @@ async function runDenseAction(action) {
       await DENSE.session.build(passages, descriptor, (done, total) => { if (current()) { DENSE.done = done; DENSE.total = total; renderStudySearch(); } });
       if (current()) DENSE.message = 'Semantic index ready. Enter a query and search by meaning.';
     } else {
-      const hits = await DENSE.session.search(query, descriptor, studyTextOptions());
+      const hybrid = $('#studyMethod').value === 'hybrid', options = studyTextOptions();
+      const fen = hybrid && $('#studyBoardRelevance').checked ? (SCRATCH ? scratchFen() : nodeFen()) : '', allTerms = $('#studyAllTerms').checked, index = HYBRID_INDEX;
+      const dense = await DENSE.session.search(query, descriptor, { ...options, ...(hybrid ? { limit: HYBRID_POLICY.candidates } : {}) });
+      if (!current()) return;
+      const hits = hybrid ? searchHybrid(index, query, { ...options, dense, fen, allTerms }) : dense;
       if (current()) DENSE.hits = hits;
     }
   } catch (e) {
@@ -3477,6 +3500,7 @@ function lineText(line, upTo = line.sans.length) {
   return line.sans.slice(0, upTo).map((san, k) => { const [, side, , , , num] = line.fens[k].split(' '); return side === 'w' ? `${num}. ${san}` : k === 0 ? `${num}… ${san}` : san; }).join(' ');
 }
 function renderScratch() {
+  if (DENSE.queryContext !== studyHybridContext()) renderStudySearch();
   const bar = $('#scratchBar'); bar.hidden = !SCRATCH;
   if (!SCRATCH) return;
   $('#scratchTitle').textContent = SCRATCH.title;
@@ -3920,7 +3944,9 @@ $('#libSearch').addEventListener('input', renderLibrary);
 $('#studyQuery').addEventListener('input', renderStudySearch);
 $('#studySource').addEventListener('change', renderStudySearch);
 $('#studyLanguage').addEventListener('change', renderStudySearch);
-$('#studyMethod').addEventListener('change', () => { renderStudySearch(); if ($('#studyMethod').value === 'dense') prepareDenseService(); });
+$('#studyMethod').addEventListener('change', () => { renderStudySearch(); if ($('#studyMethod').value !== 'keyword') prepareDenseService(); });
+$('#studyBoardRelevance').addEventListener('change', renderStudySearch);
+$('#studyAllTerms').addEventListener('change', renderStudySearch);
 $('#studyDenseBuild').addEventListener('click', () => runDenseAction('build'));
 $('#studyDenseSearch').addEventListener('click', () => runDenseAction('query'));
 $('#studyDenseClear').addEventListener('click', clearDenseIndex);

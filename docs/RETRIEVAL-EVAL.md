@@ -4,6 +4,8 @@ TODO 8.8 establishes a repeatable offline baseline for the existing `similarPosi
 
 TODO 8.3.1 subsequently adds the separate [lexical passage benchmark](TEXT-SEARCH.md#measured-baseline), selected with `just retrieval-eval --mode text`. Its source passages, query set and relevance unit differ from the position suite; the default position baseline remains unchanged.
 
+Explicit `--mode dense` and `--mode hybrid` comparisons followed in 8.3.2/8.4. They call the configured embedding provider on authored data, require `--allow-cloud` for cloud providers and never load `.env` or saved player data. The [hybrid report](HYBRID-SEARCH.md#measured-comparison) separates unchanged text queries, an every-term ablation and ten board/intent cases.
+
 ## Running
 
 From the repository root, with the site's npm dependencies installed:
@@ -58,4 +60,4 @@ Add original or appropriately sourced fixtures and manually reviewed labels, inc
 
 `runRetrievalBenchmark({ name, retrieve })` accepts future retrieval adapters over the same snapshots and candidate IDs. An adapter receives question text, language, FEN, relevance unit and current-game exclusion. Gold judgements, query IDs and evaluation groups—including the no-answer label—are withheld. It returns ordered occurrence records, which the scorer projects to the relevance unit. Passage retrieval will need an annotation/passage unit and text-specific cases.
 
-This small authored development suite is not a held-out generalisation estimate. The [lexical passage baseline](TEXT-SEARCH.md) followed in 8.3.1. Dense/hybrid comparisons, reranking, ownership filters, deletion/update benchmarks, graph synthesis, entailment and latency/cost studies remain later work. Chess correctness and teaching quality need separate checks.
+This small authored development suite is not a held-out generalisation estimate. The [lexical/dense passage baselines](TEXT-SEARCH.md) and [hybrid comparison](HYBRID-SEARCH.md) followed in 8.3/8.4. Source/account/filter/deletion boundaries have unit/browser tests; larger update/deletion benchmarks, graph synthesis, semantic support/abstention and latency/cost studies remain later work. Chess correctness and teaching quality need separate checks.

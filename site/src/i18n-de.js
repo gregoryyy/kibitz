@@ -3,6 +3,23 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Hybrid passage retrieval (TODO 8.4) ----------------------------------------------------
+  'Combined': 'Kombiniert',
+  'Combine text matches and optional board relevance. Results may only be related to your question.': 'Verbinde Texttreffer auf Wunsch mit der Brettstellung. Ergebnisse können lediglich thematisch zu deiner Frage passen.',
+  'Favor the current board': 'Aktuelle Brettstellung bevorzugen',
+  'Require every search term': 'Jeden Suchbegriff voraussetzen',
+  'Requiring terms checks their spelling in the title or passage, not whether the passage answers your question.': 'Die Begriffsvorgabe prüft die Schreibweise im Titel oder Text, nicht ob der Text deine Frage beantwortet.',
+  'Search combined': 'Kombiniert suchen',
+  'No passage found containing every search term. Broaden the query or turn off the term requirement.': 'Keine Textstelle mit jedem Suchbegriff gefunden. Suche allgemeiner oder schalte die Begriffsvorgabe aus.',
+  'Contains every search term; support is not verified.': 'Enthält jeden Suchbegriff; inhaltliche Unterstützung ist nicht geprüft.',
+  'Related text; some search terms are absent.': 'Verwandter Text; einige Suchbegriffe fehlen.',
+  'Why this result': 'Warum dieser Treffer',
+  'Found by keywords and meaning': 'Durch Suchbegriffe und Bedeutung gefunden',
+  'Found by keywords': 'Durch Suchbegriffe gefunden',
+  'Found by meaning': 'Durch Bedeutung gefunden',
+  'Found by board features': 'Durch Brettmerkmale gefunden',
+  'Same position, including turn and rights': 'Gleiche Stellung einschließlich Zugrecht und Sonderrechten',
+  'Same pawns with matching turn, check and phase': 'Gleiche Bauern bei gleichem Zugrecht, Schachstatus und gleicher Phase',
   // --- Explicit passage embeddings (TODO 8.3.2) -----------------------------------------------
   'Search comments and study notes. Results are source text, not checked advice.': 'Durchsuche Kommentare und Studiennotizen. Ergebnisse sind Quellentexte, keine geprüften Empfehlungen.',
   'Search method': 'Suchmethode',

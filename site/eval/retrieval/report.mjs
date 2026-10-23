@@ -41,11 +41,12 @@ export function renderRetrievalReport(report) {
  */
 export async function main(args) {
   const { values } = parseArgs({ args, options: { mode: { type: 'string', default: 'position' }, out: { type: 'string' }, json: { type: 'boolean' }, help: { type: 'boolean' }, 'allow-cloud': { type: 'boolean' } }, strict: true });
-  if (values.help) { process.stdout.write('Usage: node utils/retrieval-eval.mjs [--mode position|text|dense] [--json] [--out PATH_STEM] [--allow-cloud]\nDense mode uses the separately configured embedding provider; cloud calls need --allow-cloud. No .env is loaded.\n'); return; }
-  if (!['position', 'text', 'dense'].includes(values.mode)) throw new Error('Unknown benchmark mode');
+  if (values.help) { process.stdout.write('Usage: node utils/retrieval-eval.mjs [--mode position|text|dense|hybrid] [--json] [--out PATH_STEM] [--allow-cloud]\nDense/hybrid modes use the separately configured embedding provider; cloud calls need --allow-cloud. No .env is loaded.\n'); return; }
+  if (!['position', 'text', 'dense', 'hybrid'].includes(values.mode)) throw new Error('Unknown benchmark mode');
   if (values.out === '') throw new Error('--out needs a non-empty path stem');
-  const report = values.mode === 'dense' ? await (await import('./dense-benchmark.mjs')).runDenseBenchmark({ allowCloud: !!values['allow-cloud'] }) : values.mode === 'text' ? await runTextBenchmark() : await runRetrievalBenchmark();
-  const markdown = values.mode !== 'position' ? renderTextReport(report) : renderRetrievalReport(/** @type {Awaited<ReturnType<typeof runRetrievalBenchmark>>} */ (report));
+  const hybrid = values.mode === 'hybrid' ? await import('./hybrid-benchmark.mjs') : null;
+  const report = hybrid ? await hybrid.runHybridBenchmark({ allowCloud: !!values['allow-cloud'] }) : values.mode === 'dense' ? await (await import('./dense-benchmark.mjs')).runDenseBenchmark({ allowCloud: !!values['allow-cloud'] }) : values.mode === 'text' ? await runTextBenchmark() : await runRetrievalBenchmark();
+  const markdown = hybrid ? hybrid.renderHybridReport(report) : values.mode !== 'position' ? renderTextReport(report) : renderRetrievalReport(/** @type {Awaited<ReturnType<typeof runRetrievalBenchmark>>} */ (report));
   const json = JSON.stringify(report, null, 2) + '\n';
   if (values.out) {
     await mkdir(path.dirname(values.out), { recursive: true });
