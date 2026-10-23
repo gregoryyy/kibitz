@@ -45,7 +45,7 @@ export function readGame(Chess, pgn) {
       const m = replay.move(mv);
       line.sans.push(m.san); line.ucis.push(m.from + m.to + (m.promotion || '')); line.fens.push(replay.fen());
     }
-    return { line, headers: c.getHeaders(), nags: mainlineNags(pgn), comments: Object.fromEntries(c.getComments().map(({ fen, comment }) => [fen.split(' ').slice(0, 4).join(' '), comment])) };
+    return { line, headers: c.getHeaders(), nags: mainlineNags(pgn), comments: Object.fromEntries(c.getComments().map(({ fen, comment }) => [fen, comment])) };
   } catch { return { error: 'That does not look like a valid PGN.' }; }
 }
 

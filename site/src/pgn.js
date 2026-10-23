@@ -49,3 +49,43 @@ export function mainlineNags(pgn) {
 
 // NAGs as one display string ("!?", "?? ±").
 export const nagText = nags => (nags || []).map(n => NAG_GLYPHS[n] || `$${n}`).join(' ');
+
+/**
+ * Locate mainline comments in the ORIGINAL PGN, including comments before the first move.
+ * Offsets are UTF-16 string indices, with an exclusive end; braces/semicolon are excluded.
+ * Unlike chess.js's position-keyed comments, repeated positions keep distinct annotations.
+ * Headers, escaped lines and RAV comments never become mainline passages. The caller must
+ * first validate the complete PGN and check plies against its legal mainline.
+ * @param {string} pgn Original, unnormalised source text.
+ * @returns {{ply: number, text: string, start: number, end: number}[]} Source passages.
+ */
+export function mainlineComments(pgn) {
+  const out = []; let ply = 0, depth = 0, i = 0;
+  const comment = (start, end) => { const text = pgn.slice(start, end); if (!depth && text.trim()) out.push({ ply, text, start, end }); };
+  while (i < pgn.length) {
+    const ch = pgn[i];
+    if (/\s/.test(ch)) { i++; continue; }
+    if (ch === '%' && (i === 0 || pgn[i - 1] === '\n' || pgn[i - 1] === '\r')) { const end = pgn.indexOf('\n', i); i = end < 0 ? pgn.length : end + 1; continue; }
+    if (ch === '[') {
+      let quoted = false; i++;
+      while (i < pgn.length) {
+        const c = pgn[i++];
+        if (c === '\\' && quoted) { i++; continue; }
+        if (c === '"') quoted = !quoted;
+        if (c === ']' && !quoted) break;
+      }
+      continue;
+    }
+    if (ch === '{') { const end = pgn.indexOf('}', i + 1); if (end < 0) break; comment(i + 1, end); i = end + 1; continue; }
+    if (ch === ';') { let end = pgn.indexOf('\n', i + 1); if (end < 0) end = pgn.length; comment(i + 1, end); i = end; continue; }
+    if (ch === '(') { depth++; i++; continue; }
+    if (ch === ')') { depth--; i++; continue; }
+    if (ch === '$') { i++; while (/\d/.test(pgn[i] || 'x')) i++; continue; }
+    const start = i;
+    while (i < pgn.length && !/[\s{};()$[\]]/.test(pgn[i])) i++;
+    if (i === start) { i++; continue; }
+    const token = pgn.slice(start, i).replace(/^\d+\.+/, '');
+    if (!depth && token && !RESULTS.has(token) && !/^(?:\.+|\d+|[!?]+)$/.test(token)) ply++;
+  }
+  return out;
+}
