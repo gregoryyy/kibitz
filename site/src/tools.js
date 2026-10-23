@@ -116,7 +116,7 @@ const moverCp = (score, side) => { const cp = scoreToCp(score); return side === 
 // One bounded verifier per tool, shared by its lines. No search is needed for a terminal board;
 // other results need an exact score, a legal PV and at least depth 6. Cache by EPD, including misses.
 function motifVerifier(Chess, engine) {
-  const cache = new Map(), evidence = [], started = Date.now();
+  const cache = new Map(), evidence = [], starts = [], started = Date.now();
   let searches = 0;
   const seed = (fen, a) => { cache.set(epd(fen), a); };
   const read = async fen => {
@@ -169,10 +169,11 @@ function motifVerifier(Chess, engine) {
       row.status = 'confirmed';
       row.continuation = numbered(Chess, line.fens[k], bestReply.ucis, CAPS.motifPlies).text;
       evidence.push(bestReply.sans);
+      starts.push(bestReply.start);
     }
     return rows;
   };
-  return { seed, check, evidence };
+  return { seed, check, evidence, starts };
 }
 const motifSummary = checks => [...new Set(checks.flatMap(r => r.motifs))].slice(0, 12);
 
@@ -246,5 +247,6 @@ export async function runTool(Chess, engine, { name, args }) {
   return {
     result: { line: await verifier.check(line), note: 'Only confirmed motifs are returned. Refuted or unverified moves are not evidence; continuations come from Stockfish.' },
     lines: verifier.evidence,
+    starts: verifier.starts,
   };
 }

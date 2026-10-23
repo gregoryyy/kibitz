@@ -145,6 +145,8 @@ The loop runs in the page, capped at four rounds and six calls per answer. A loa
 
 The chat's Discuss control selects the current position or general chess. General questions keep their own history and send no board context. Each answer keeps a snapshot of the game and move it was about, with a button to revisit it in analysis. Leaving a running game keeps it in memory with a way back, including its clock; loads and scratch changes never write the saved library.
 
+Play and Study group the task tabs. Entering Review from a live game requires confirmation and pauses its snapshot; returning keeps the study's cursor and results so either session can be revisited. The board, dialogue and review identify their game and move. These paired sessions live in memory. On narrow screens the composer temporarily fits beside the board inside the visual viewport, following keyboard resizing; sending or choosing Full layout restores the normal arrangement.
+
 ### 3.6 Verification and guardrails
 
 The model's output is untrusted.
