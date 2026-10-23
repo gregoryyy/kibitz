@@ -24,6 +24,8 @@ test('general questions send no position; context and history stay visible acros
   await expect(await ask(page, 'What is prophylaxis?')).toContainText('Mock coach');
   expect(JSON.stringify(bodies[0].messages)).not.toContain('Current position (FEN)');
   expect(bodies[0].tools).not.toContain('analyse');
+  expect(bodies[0].messages[0].content).toContain('The player selected General chess');
+  expect(bodies[0].messages[0].content).not.toContain('live-game help setting');
   await expect(page.locator('.message-context')).toHaveText('General chess');
   await ask(page, 'How can I practise it?');
   expect(JSON.stringify(bodies.at(-1).messages)).toContain('What is prophylaxis?');
