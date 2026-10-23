@@ -90,15 +90,18 @@ test('a provider that refuses tools: the page asks again without them, and stops
   await expect(page.locator('#chat .msg.coach').last().locator('.evidence')).toHaveCount(0);
 });
 
-/** A temporary service failure must not turn off the existing Stockfish tools for later questions. */
-test('a transient provider error preserves Stockfish access on the next question', async ({ page }) => {
+/** Full engine help permits fresh Stockfish requests during play, including after a service failure. */
+test('a transient provider error preserves Stockfish access during a live game with full help', async ({ page }) => {
   const bodies = [];
   await page.route('**/api/ai/sample', r => {
     const body = r.request().postDataJSON(); bodies.push(body);
     if (bodies.length === 1) return r.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: { code: 'provider_error', message: 'Temporary service error' } }) });
     return r.continue();
   });
-  await open(page); await page.locator('#modeAnalyse').click();
+  await open(page);
+  await page.locator('#optHelp button[data-v="full"]').click();
+  await page.locator('#btnNewGame').click();
+  expect(await page.evaluate(() => window.__kibitz.S.playing)).toBe(true);
   await ask(page, 'Evaluate this position.');
   await expect(page.locator('#chat .msg.coach').last()).toHaveAttribute('data-error', 'provider_error');
   const answer = await ask(page, 'Please ask Stockfish. [mock:tool]');
