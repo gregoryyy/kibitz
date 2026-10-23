@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Road and research: position similarity by aspect
+
+TODO items: none completed; [ROAD 10](ROAD.md#10-position-similarity-by-aspect) informs 8.1, 8.4, 8.5 and 8.8.
+
+### Implementation notes
+
+- Added the ROAD idea for a family of position similarity measures parameterised by the aspect being studied, with explained exact/structural/thematic matches.
+- Added [position-similarity research](research/position-similarity.md): primary chess-retrieval studies, conditional metric learning and chess-aware encoders, candidate symbolic/dynamic distances, a proposed weighted baseline and an aspect-specific evaluation plan.
+- Connected attack/defence graph features to the four-corner piece-power idea. Distinguished similarity scores, mathematical metrics, verification coverage and the validity of advice in the current position.
+
+### Deviations
+
+- Research and planning only. No weights or encoder selected, no similarity benchmark run, and no runtime feature or implementation TODO marked complete. The existing general research notes remain in PR #41.
+
+### Insights
+
+- Similar-looking positions and similar tactical solutions are different retrieval targets. The same pair can rank differently for pawn structure, piece activity and tactics.
+- Corner dot counts compress relationships; retrieval needs the underlying edges and roles to distinguish positions with equal counts. An aspect-specific score can be useful without being a strict metric on complete chess states.
+
+---
+
 ## 2026-10-23 — Road idea: piece power in four corners
 
 TODO items: none; [ROAD 9](ROAD.md#9-piece-power-attacks-and-defence-in-four-corners) records a future feature.
