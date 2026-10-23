@@ -1702,6 +1702,12 @@ async function runReview() {
   if (!ctl.stop) { S.reviewDone = true; if (S.gameId || S.mode === 'play') saveCurrentGame({ quiet: true }); }
   renderAll(); renderReview(); refreshAnalysis();
 }
+/**
+ * Select the largest classified win-probability drops, then return them in game order.
+ * @param {number} [limit=5] Maximum number of moments.
+ * @param {Pick<typeof S, 'nodes'>} [state=S] Live game or captured review state.
+ * @returns {{i: number, drop: number, n: typeof S.nodes[number]}[]} One-based move indices.
+ */
 function keyMoments(limit = 5, state = S) {
   const out = [];
   for (let i = 1; i < state.nodes.length; i++) {
@@ -2439,7 +2445,16 @@ function renderProgress() {
   box.textContent = `Challenges: ${right} of ${tries} right. By theme: ${themes.sort((a, b) => b[1].tries - a[1].tries).map(([k, t]) => `${themeLabel(k)} ${t.right}/${t.tries}`).join(', ')}.`;
 }
 
-// Comments on node i, in the dialogue beside the board.
+/**
+ * Generate or restore a comment for a mainline node or the supplied scratch position.
+ * Capture board context before generation, pin it on the bubble, and key cached prose by
+ * the full route. After awaits, reject replaced games/nodes; cursor navigation alone is
+ * allowed because rendering uses the captured evidence rather than the later board.
+ * @param {number} i Zero-based mainline node index (0 is the starting position).
+ * @param {object} [options]
+ * @param {ScratchFacts|null} [options.scratch=null] Visible scratch prefix for a manual comment.
+ * @returns {Promise<void>}
+ */
 async function commentOn(i, { scratch = null } = {}) {
   if (!COACH.sample) return;
   CHAT.general = false; renderCoachCtx();
@@ -2510,8 +2525,27 @@ function coachError(e) {
   if (['browser_model', 'budget_exceeded', 'provider_rejected'].includes(e?.code) && e.message) return e.message;
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
-// Freeze the positions AND engine lines supplied with a request. Later cursor moves, analyses
-// and game replies must not reinterpret a completed answer's references.
+/**
+ * @typedef {import('./annotations.js').AnswerPositions & {
+ *   game: import('./annotations.js').ChessLine,
+ *   evidence: import('./annotations.js').ChessLine[], starts: string[],
+ *   args: import('./tutor.js').AnswerEvidence
+ * }} AnswerContext
+ */
+/** @typedef {AnswerContext & import('./tutor.js').AnswerCheck} CheckedAnswer */
+/**
+ * Copy the positions AND engine lines supplied with a request. This is a detached data
+ * snapshot, not Object.freeze(): later cursor moves, analyses and replies must not
+ * reinterpret it. Respect engine visibility; a full review includes all played moves
+ * and key-moment PVs, while ordinary chat includes history only through node `i`.
+ * @param {number} i Zero-based mainline node index; must exist in `state.nodes`.
+ * @param {import('./tutor.js').EngineView} view Engine visibility for this request.
+ * @param {ScratchFacts|null} [scratch=null] Visible scratch prefix, copied by scratchFacts().
+ * @param {Pick<typeof S, 'nodes'|'reviewDone'>} [state=S] Live game or captured state.
+ * @param {object} [options]
+ * @param {boolean} [options.review] Defaults to a completed review with full engine visibility.
+ * @returns {AnswerContext} Keep this same context for streaming and final checks.
+ */
 function answerContext(i, view, scratch = null, state = S, { review = state.reviewDone && view === 'all' } = {}) {
   const fen = scratch?.end || state.nodes[i].fen, prevFen = scratch ? scratch.prev : i > 0 ? state.nodes[i - 1].fen : null;
   const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv.slice());
@@ -2528,6 +2562,15 @@ function answerContext(i, view, scratch = null, state = S, { review = state.revi
   return { fen, prevFen, game, evidence: sources, starts: sources.map(l => l.start),
     args: { fen, prevFen, lines, prevLines, game: game.sans, extra: sources.map(l => l.sans) } };
 }
+/**
+ * Check prose against captured request evidence plus legally replayed tool lines.
+ * Tool lines retain their own start FENs; threats may start with the side flipped.
+ * Remove board instructions before tokenising so offsets match renderRich().
+ * @param {string} text Raw coach answer, including any fenced board block.
+ * @param {AnswerContext} context Snapshot captured for this answer, never the current cursor.
+ * @param {{name: string, args: {fen?: string}, lines?: string[][], starts?: string[]}[]} [tools=[]] SAN lines with explicit starts or args.fen.
+ * @returns {CheckedAnswer} New check/context object; inputs are not mutated.
+ */
 function checkFor(text, context, tools = []) {
   const evidence = tools.flatMap(e => (e.lines || []).map((sans, k) => {
     const start = e.starts?.[k] || (e.name === 'threats' ? flipSide(Chess, e.args.fen) : e.args.fen);
@@ -2536,11 +2579,17 @@ function checkFor(text, context, tools = []) {
   return { ...context, evidence: [...context.evidence, ...evidence], starts: [...context.starts, ...evidence.map(l => l.start)],
     ...checkAnswer(Chess, parseBoardBlock(text).text, { ...context.args, extra: [...context.args.extra, ...evidence.map(l => l.sans)] }) };
 }
-// Minimal safe markdown: paragraphs, bullets, **bold**, and SAN highlighting with hover arrows.
-// With `check`, moves that aren't backed by the engine are marked, and a note says how many.
-// The coach's ```board block is taken off the text; with `check` (the finished answer), its marks are
-// checked against the position: those that fit are drawn and can be shown again, the others counted.
-// Runs of moves become lines (annotations.js) that hovering previews and clicking steps through.
+/**
+ * Replace a container with safe text-based markdown, verdicts and validated move links.
+ * Use captured positions for links, retain unsupported-move flags, and leave square
+ * references as text. Validate board-block marks before offering them; draw them only
+ * when the main board matches `fen`. Never interpret model output as HTML.
+ * @param {HTMLElement} box Container whose children are replaced.
+ * @param {string} text Raw coach answer, including any fenced board block.
+ * @param {string} [fen=nodeFen()] Answer's captured FEN when a check is supplied.
+ * @param {CheckedAnswer|null} [check=null] Check made from the same answer text/context.
+ * @returns {void}
+ */
 function renderRich(box, text, fen = nodeFen(), check = null) {
   box.replaceChildren();
   const block = parseBoardBlock(text);
@@ -2674,8 +2723,19 @@ $('#scratchNext').addEventListener('click', () => stepScratch(1));
 $('#scratchClose').addEventListener('click', () => closeScratch());
 $('#btnWhatIf').addEventListener('click', () => openScratch(playLine(Chess, nodeFen(), []), { i: 0, free: true, title: 'What if…' }));
 $('#scratchAsk').addEventListener('click', () => { if (SCRATCH?.sans.length) askCoach(`What about this line from here: ${lineText(SCRATCH)}? Explain the idea, and how the position looks after it.`); });
-// The line on the scratch board, for the coach's context and the answer check (TODO 4.6): a copy,
-// since the player may keep playing while the answer streams.
+/**
+ * @typedef {object} ScratchFacts
+ * @property {string} start Scratch line's starting FEN.
+ * @property {string[]} sans Played SAN prefix through the scratch cursor.
+ * @property {string[]} ucis Same prefix in UCI.
+ * @property {string} end Position at the scratch cursor.
+ * @property {string|null} prev Position before the cursor, or null at the start.
+ * @property {string} text Numbered line for the prompt.
+ */
+/**
+ * Copy only the visible scratch prefix for a request; later scratch play cannot change it.
+ * @returns {ScratchFacts|null} Null when no scratch board is open.
+ */
 function scratchFacts() {
   if (!SCRATCH) return null;
   return { start: SCRATCH.start, sans: SCRATCH.sans.slice(0, SCRATCH.i), ucis: SCRATCH.ucis.slice(0, SCRATCH.i), end: SCRATCH.fens[SCRATCH.i], prev: SCRATCH.i ? SCRATCH.fens[SCRATCH.i - 1] : null, text: lineText(SCRATCH, SCRATCH.i) };
@@ -2707,9 +2767,15 @@ function previewPosition(p, caption) {
   const cap = $('#boardPreview'); cap.textContent = caption; cap.hidden = false;
 }
 function endPreview() { if (previewing) syncBoard(); }
-// A move that belongs to a line in an answer (TODO 4.3): hovering or focusing shows it from the
-// position before it (as a preview when that isn't the position on the board); a click or Enter
-// opens the line on the scratch board, at this move.
+/**
+ * Attach mouse/keyboard navigation to a move in a validated line (TODO 4.3).
+ * Hover/focus previews the position BEFORE the move; click/Enter/Space opens a scratch
+ * board AFTER it. These are adjacent FEN indices, not mainline node indices.
+ * @param {HTMLElement} span Move token to make interactive.
+ * @param {import('./annotations.js').ChessLine} line Legally replayed line.
+ * @param {number} ply Zero-based move index; must be within `line.ucis`.
+ * @returns {void}
+ */
 function lineMove(span, line, ply) {
   const before = line.fens[ply], u = line.ucis[ply];
   const arrow = { orig: u.slice(0, 2), dest: u.slice(2, 4), brush: 'san' };

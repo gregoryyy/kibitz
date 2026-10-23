@@ -15,6 +15,29 @@
 import { flipSide } from './modes.js';
 import { LINE_GAP } from './tutor.js';
 
+/**
+ * A replayed line with full FENs, including side to move and move counters.
+ * @typedef {object} ChessLine
+ * @property {string} start Normalised starting FEN; identical to `fens[0]`.
+ * @property {string[]} sans Canonical SAN, including check/mate suffixes.
+ * @property {string[]} ucis UCI moves, including promotion suffixes.
+ * @property {string[]} fens `fens[k]` is the position after k plies; length is `sans.length + 1`.
+ */
+/**
+ * @typedef {object} AnswerPositions
+ * @property {string} fen Position supplied with the request.
+ * @property {string|null} [prevFen] Previous position, if available.
+ * @property {string[]} [starts] Additional candidate starting FENs, such as tool positions.
+ * @property {ChessLine|null} [game] Captured game route, retaining move counters.
+ * @property {ChessLine[]} [evidence] Replayed engine, scratch, review or tool lines.
+ */
+/**
+ * A checked token, optionally bound to a returned line. Linking preserves its evidence verdict.
+ * @typedef {import('./tutor.js').CheckedMove & {line?: number, ply?: number}} LinkedMove
+ * `line` indexes the returned lines; `ply` indexes the move within that line (both zero-based).
+ * Hover uses `fens[ply]`; click opens `fens[ply + 1]`. Unresolved tokens have neither field.
+ */
+
 export const KINDS = ['arrow', 'square', 'ghost', 'label', 'line'];
 export const MAX_MARKS = 8; // a block with more is cut: an answer points at a few things, not at everything
 const SQ = /^[a-h][1-8]$/;
@@ -23,8 +46,11 @@ const LABEL = /^[A-Za-z0-9!?+#=]{1,2}$/;
 
 const movesOf = (Chess, fen) => { try { return new Chess(fen).moves({ verbose: true }); } catch { return []; } };
 
-// One annotation checked against the position `fen`: {ok: true, a} with the annotation as it will be
-// drawn, or {ok: false, why}. Nothing about it is trusted: kinds, squares, pieces and moves are checked.
+/**
+ * Validate an untrusted annotation against `fen` (or a line's explicit start) before drawing.
+ * Return `{ok: true, a}` normalised or `{ok: false, why}`. Check kinds, squares, pieces and moves;
+ * threat arrows use the opposite side to move. This checks legality, not engine backing.
+ */
 export function checkAnnotation(Chess, fen, a) {
   if (!a || typeof a !== 'object' || !KINDS.includes(a.kind)) return { ok: false, why: 'unknown kind' };
   if (a.kind === 'arrow') {
@@ -59,8 +85,15 @@ export function checkAnnotation(Chess, fen, a) {
   return { ok: true, a: { kind: 'line', ...line } };
 }
 
-// Moves (SAN, or UCI like e2e4 / e7e8q) played in turn from `start`: {start, sans, ucis, fens}, or
-// null if one of them isn't legal. fens[k] is the position after k moves.
+/**
+ * Replay the first 40 SAN/UCI plies without mutating the input or any shared board.
+ * Moves beyond that limit are ignored. An illegal move within the limit rejects the
+ * whole line, unlike pvSans(), which keeps a legal prefix. An empty line is valid.
+ * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {string} start Starting FEN.
+ * @param {readonly string[]} moves SAN or UCI (for example, e2e4 or e7e8q).
+ * @returns {ChessLine|null} Null for an invalid FEN or illegal replayed move.
+ */
 export function playLine(Chess, start, moves) {
   let c; try { c = new Chess(start); } catch { return null; }
   const out = { start: c.fen(), sans: [], ucis: [], fens: [c.fen()] };
@@ -74,10 +107,13 @@ export function playLine(Chess, start, moves) {
   return out;
 }
 
-// The ```board block at the end of an answer, if any: the answer's text without it, the instructions
-// read from it (one per line), and how many lines were left out. Only these forms are read:
-//   arrow e2 e4 · threat d8 h4 · square f7 · ghost wN d5 · label d5 !
-// While an answer streams, an unfinished block is hidden too.
+/**
+ * Remove the first fenced board block, including an unfinished streaming block.
+ * Read at most MAX_MARKS instructions: arrow e2 e4, threat d8 h4, square f7,
+ * ghost wN d5 or label d5 !. Return the remaining text, unvalidated marks and the
+ * count of malformed/excess nonempty instructions. checkMarks() validates legality.
+ * @param {unknown} text Untrusted answer, coerced to a string (nullish becomes empty).
+ */
 export function parseBoardBlock(text) {
   const s = String(text ?? '');
   const at = s.search(/```board\b/i);
@@ -103,20 +139,33 @@ export function parseBoardBlock(text) {
   return { text: (s.slice(0, at) + after).replace(/\s+$/, ''), marks, skipped };
 }
 
-// The checked marks of a block for the position: {shown, dropped}, each dropped one with why.
+/** Validate parsed marks for `fen`, returning `{shown, dropped}` with a reason for each drop. */
 export function checkMarks(Chess, fen, marks) {
   const shown = [], dropped = [];
   for (const m of marks) { const r = checkAnnotation(Chess, fen, m); if (r.ok) shown.push(r.a); else dropped.push({ mark: m, why: r.why }); }
   return { shown, dropped };
 }
 
-// Link checked moves to the answer's captured game/evidence, never the later board cursor.
-// Explicit move numbers constrain *every* ply; an unresolved/ambiguous reference stays unlinked.
+/**
+ * Bind checked tokens to legal lines using the request's captured game/evidence.
+ * Explicit move numbers constrain every ply. Separate sentences and alternatives reset
+ * continuation; ambiguous historical occurrences stay unlinked. Replay at most 40 plies
+ * per run and retain only a legal prefix. Legality permits navigation but does not change
+ * engine/game verdicts. Return new token objects; never mutate the supplied tokens/lines.
+ * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {string} text Same board-block-free text used by checkAnswer(), before markdown rendering.
+ * @param {readonly import('./tutor.js').CheckedMove[]} moves Checked tokens with offsets into `text`.
+ * @param {AnswerPositions} context Captured positions; must not follow the live board cursor.
+ * @returns {{moves: LinkedMove[], lines: ChessLine[]}} Optional token indices refer to these lines.
+ */
 export function linesInAnswer(Chess, text, moves, { fen, prevFen = null, starts = [], game = null, evidence = [] }) {
   const t = String(text ?? '');
+  /** @type {LinkedMove[]} */
   const out = moves.map(m => ({ ...m }));
   const real = out.map((m, k) => k).filter(k => out[k].status !== 'square');
-  const lines = [], base = san => san.replace(/[+#]/g, '');
+  /** @type {ChessLine[]} */
+  const lines = [];
+  const base = san => san.replace(/[+#]/g, '');
   const reference = m => {
     const match = /(\d+)\s*(\.{1,3}|…)[\s*`]*$/.exec(t.slice(0, m.index));
     return match ? { number: +match[1], side: match[2] === '.' ? 'w' : 'b' } : null;

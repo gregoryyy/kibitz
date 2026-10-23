@@ -4,6 +4,38 @@
 // Pure: no DOM, no globals. chess.js is passed in, so this runs in the browser and in Node.
 import { UNTRUSTED_RULE } from './prompt.js';
 
+/** @typedef {typeof import('chess.js').Chess} ChessConstructor */
+/** @typedef {'all'|'past'|'none'} EngineView */
+/**
+ * Evidence verdict, independent of whether a token can be linked to a legal position.
+ * `line`: supplied engine/extra line; `game`: played move; `legal`: legal at the current
+ * or previous position but unsupported; `invalid`: unsupported move or sequence;
+ * `square`: a square reference rather than a move.
+ * @typedef {'line'|'game'|'legal'|'invalid'|'square'} MoveStatus
+ */
+/**
+ * @typedef {object} CheckedMove
+ * @property {string} san Original token, including any check/mate suffix.
+ * @property {number} index Zero-based UTF-16 offset in the checked text.
+ * @property {MoveStatus} status
+ * @property {string} why Explanation of the evidence verdict.
+ */
+/**
+ * @typedef {object} AnswerEvidence
+ * @property {string} fen Position supplied with the request; must be a valid FEN.
+ * @property {string|null} [prevFen] Position before the supplied move, if available.
+ * @property {string[][]} [lines] Engine PVs in UCI, rooted at `fen`.
+ * @property {string[][]} [prevLines] Engine PVs in UCI, rooted at `prevFen`.
+ * @property {string[]} [game] Played mainline in SAN.
+ * @property {string[][]} [extra] Other supplied lines in SAN, such as tool/review evidence.
+ */
+/**
+ * @typedef {object} AnswerCheck
+ * @property {CheckedMove[]} moves Tokens in text order, including square references.
+ * @property {{text: string, index: number, ok: boolean}[]} pieces Piece-on-square claims.
+ * @property {number} problems Invalid move tokens plus incorrect piece claims.
+ */
+
 // Shared rules for every coach request (3.3).
 export const COACH_RULES = `You are Kibitz, a chess coach inside a training app. Each message includes the current position, Stockfish 19's analysis and references retrieved for the position.
 Rules:
@@ -138,7 +170,16 @@ export function safetyNotes(Chess, fen) {
 export const SAN_RE = /\b(O-O-O|O-O|[KQRBN][a-h]?[1-8]?x?[a-h][1-8]|[a-h]x[a-h][1-8](?:=[QRBN])?|[a-h][1-8](?:=[QRBN])?)[+#]?/g;
 const strip = san => san.replace(/[+#]/g, '');
 
-// The SAN moves of a principal variation (UCI), stopping at the first illegal one.
+/**
+ * Convert at most `max` UCI plies to SAN without check/mate suffixes for evidence matching.
+ * Stop at the first illegal move; unlike playLine(), keep the legal prefix.
+ * @param {ChessConstructor} Chess Injected chess.js constructor; no shared board is mutated.
+ * @param {string} fen Starting position.
+ * @param {string[]|null} pv Engine principal variation in UCI.
+ * @param {number} [max=12] Maximum number of plies to inspect.
+ * @returns {string[]}
+ * @throws {Error} If the starting FEN is invalid.
+ */
 export function pvSans(Chess, fen, pv, max = 12) {
   const c = new Chess(fen), out = [];
   for (const u of (pv || []).slice(0, max)) {
@@ -148,24 +189,29 @@ export function pvSans(Chess, fen, pv, max = 12) {
 }
 const legalSans = (Chess, fen) => { try { return new Set(new Chess(fen).moves().map(strip)); } catch { return new Set(); } };
 
-// Each move-like token in `text`, in order, with where it's backed:
-//   'line'    in one of Stockfish's lines (for this position or the one before, or in `extra`:
-//             lines from other positions the coach was given, in SAN, e.g. the review's turning points);
-//   'game'    one of the game's moves;
-//   'legal'   legal here (or in the position before) but in no engine line: unchecked;
-//   'invalid' neither, or part of a sequence that isn't a line of Stockfish's or the game's;
-//   'square'  a bare square used as a square ("the knight on f3"), not a move.
-// Also "<piece> on <square>" claims, checked against the board now and one move before.
-// problems: the invalid moves plus the wrong piece claims.
+/**
+ * Classify move tokens against supplied evidence and check English piece-on-square claims.
+ * Contiguous move runs must match an evidence sequence; legal root moves alone do not
+ * establish support for a variation. Inputs are not mutated. This checks move evidence,
+ * not the semantic truth of prose or its exact historical occurrence; linesInAnswer()
+ * binds positions separately. Pass text with the board block removed so offsets align.
+ * @param {ChessConstructor} Chess Injected chess.js constructor.
+ * @param {string} text Coach prose, with original formatting retained.
+ * @param {AnswerEvidence} evidence Captured request evidence, not the later board state.
+ * @returns {AnswerCheck} Verdicts with zero-based UTF-16 text offsets.
+ * @throws {Error} If a supplied current/previous FEN is invalid.
+ */
 export function checkAnswer(Chess, text, { fen, prevFen = null, lines = [], prevLines = [], game = [], extra = [] }) {
   const seqs = [...lines.map(pv => pvSans(Chess, fen, pv)), ...(prevFen ? prevLines.map(pv => pvSans(Chess, prevFen, pv)) : []), ...extra.map(l => l.map(strip))];
   const inLines = new Set(seqs.flat()), inGame = new Set(game.map(strip));
   const legal = new Set([...legalSans(Chess, fen), ...(prevFen ? legalSans(Chess, prevFen) : [])]);
+  /** @type {CheckedMove[]} */
   const moves = [];
   let m; SAN_RE.lastIndex = 0;
   const t = String(text ?? '');
   while ((m = SAN_RE.exec(t))) {
     const base = m[1];
+    /** @type {MoveStatus} */
     let status = inLines.has(base) ? 'line' : inGame.has(base) ? 'game' : legal.has(base) ? 'legal' : 'invalid';
     // A bare square ("on e4", "the d5 square") names a square, not a pawn move. It stays in the
     // list (status 'square') so the list matches the text's move-like tokens one to one.
@@ -198,7 +244,7 @@ export function checkAnswer(Chess, text, { fen, prevFen = null, lines = [], prev
   const PIECE_RE = /\b(king|queen|rook|bishop|knight|pawn)s?\s+on\s+([a-h][1-8])\b/gi;
   while ((m = PIECE_RE.exec(t))) {
     const type = { king: 'k', queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p' }[m[1].toLowerCase()];
-    pieces.push({ text: m[0], index: m.index, ok: boards.some(b => b.get(m[2])?.type === type) });
+    pieces.push({ text: m[0], index: m.index, ok: boards.some(b => b.get(/** @type {import('chess.js').Square} */ (m[2]))?.type === type) });
   }
   return { moves, pieces, problems: moves.filter(x => x.status === 'invalid').length + pieces.filter(p => !p.ok).length };
 }
@@ -224,9 +270,22 @@ function longestRun(seqs, group) {
 }
 
 // --- Comment cache (3.7) ----------------------------------------------
-// Key: the position (EPD), the move that led to it, the aspects, what the coach could see, the
-// player's level, model and language. `position` includes the full FEN and ordered game/scratch
-// history: equal EPDs can describe different game steps, whose numbered prose is not interchangeable.
+/**
+ * Build a comment-cache key, normalising aspects into their canonical order.
+ * Numbered prose depends on the route and full FEN: callers must supply `position` when
+ * equal EPDs can occur at different game steps. Empty position and English preserve the
+ * legacy key format; the key is an internal identifier, not a hash of arbitrary text.
+ * @param {object} context
+ * @param {string} context.epd Position without move counters.
+ * @param {string} [context.uci=''] Move that led to the position.
+ * @param {string[]} context.aspects Requested commentary aspect ids.
+ * @param {EngineView} context.view Engine visibility allowed for this request.
+ * @param {number} context.level Player explanation level.
+ * @param {string} context.model Provider/model identity.
+ * @param {string} [context.lang='en'] Answer language.
+ * @param {string} [context.position=''] Serialised full FEN and ordered game/scratch route.
+ * @returns {string}
+ */
 export function commentKey({ epd, uci = '', aspects, view, level, model, lang = 'en', position = '' }) {
   return [epd, uci, normaliseAspects(aspects).join(','), view, level, model, ...(lang !== 'en' ? [lang] : []), ...(position ? [position] : [])].join('|');
 }

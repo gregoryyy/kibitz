@@ -1,5 +1,8 @@
-// Board annotations (TODO 4.2, 4.4, 4.7): the schema, the ```board block, lines in an answer, and
-// model output that is malformed or hostile.
+/**
+ * @file Pure annotation and move-link checks (TODO 4.2, 4.3, 4.4, 4.7).
+ * chess.js validates replay; supplied evidence determines verdicts separately from navigation.
+ * Malformed model output must never become a drawable mark or an illegal continuation.
+ */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
@@ -33,6 +36,7 @@ test('squares, ghosts and labels are checked too', () => {
   assert.equal(checkAnnotation(Chess, START, null).ok, false);
 });
 
+/** Replay keeps SAN/UCI and before/after FENs aligned; one illegal move rejects the entire line. */
 test('lines: every move legal in turn, in SAN or UCI', () => {
   const l = playLine(Chess, START, ['e4', 'e5', 'g1f3']);
   assert.deepEqual(l.sans, ['e4', 'e5', 'Nf3']);
@@ -67,6 +71,10 @@ test('hostile or malformed blocks draw nothing wrong', () => {
   assert.equal(ok.dropped[0].why, 'not a legal move here');
 });
 
+/**
+ * Connected clauses continue a variation; alternatives reset it and tool lines keep their starts.
+ * A legal link must retain an unsupported verdict, while an illegal suffix cannot become a link.
+ */
 test('lines in an answer: a run of checked moves becomes a line from the right position', () => {
   const fen = QH5;
   const text = 'Defend with 3... g6, and if 4. Qf3 then Nf6. The other try 3... Nf6?? loses to 4. Qxf7#.';
@@ -100,6 +108,7 @@ test('lines in an answer: a run of checked moves becomes a line from the right p
   assert.equal(linesInAnswer(Chess, 'Play 3... Qxh5 now.', bad.moves, { fen }).lines.length, 0);
 });
 
+/** Move numbers distinguish repeated SAN occurrences; an ambiguous unnumbered mention stays unlinked. */
 test('numbered historical references resolve to their own occurrence, including a repeated move', () => {
   const game = playLine(Chess, START, ['Nf3', 'Nf6', 'Ng1', 'Ng8', 'Nf3']);
   const text = 'After **1. Nf3** the knight develops; **3. Nf3** returns to that square.';
@@ -111,6 +120,10 @@ test('numbered historical references resolve to their own occurrence, including 
   assert.equal(linesInAnswer(Chess, ambiguous, marks.moves, { fen, prevFen, game }).lines.length, 0);
 });
 
+/**
+ * A repeated move number starts an alternative, and a mismatched number rejects a candidate.
+ * Explicitly connected variation clauses must not silently switch back to the played mainline.
+ */
 test('move numbers reset alternatives instead of continuing the preceding sentence', () => {
   const text = 'Try 1. e4 e5. Another option is 1. d4 d5.';
   const checked = checkAnswer(Chess, text, { fen: START, lines: [['e2e4', 'e7e5'], ['d2d4', 'd7d5']] });
@@ -126,6 +139,7 @@ test('move numbers reset alternatives instead of continuing the preceding senten
   assert.equal(linked.lines[1].start, playLine(Chess, START, ['e4', 'c5']).fens[2]);
 });
 
+/** Full FEN counters/side, rather than array indices, anchor fragments starting with Black at move 12. */
 test('historical black moves use the custom start move number and unicode ellipsis', () => {
   const start = START.replace(' w ', ' b ').replace(' 0 1', ' 0 12');
   const game = playLine(Chess, start, ['e5', 'Nf3', 'Nc6']);
