@@ -7,6 +7,34 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — White and Black repertoire builder
+
+TODO items: 5.3.
+
+### Implementation notes
+
+- Added `repertoire.js`: complete standard-start PGN mainlines become legal ordered UCI lines, with regenerated SAN/FEN for display. The builder in Openings creates/renames White or Black repertoires, saves/edits named lines and notes, confirms line/repertoire removal and copies the selected repertoire as PGN.
+- **Use board line** captures the game prefix plus the scratch variation only up to the displayed move. Alternatives rooted at an earlier game position reconnect to that ancestor; a disconnected custom position is rejected. A saved opening can be explored independently on the scratch board. These actions leave the underlying game and games library intact.
+- A separate EPD graph merges chosen moves at transpositions and shows them only on the repertoire side's turn. Ordered routes, both sides' moves and stable line IDs remain stored for later drills. Identical routes within one repertoire are rejected as duplicates; distinct transposed routes remain valid.
+- Versioned browser storage (`kibitz.repertoires`) validates on reload and before writing, and updates memory only after a successful write. Quota failures retain the saved data and editor draft. Malformed data and unknown versions stay untouched with editing disabled. User names/notes render as text and do not enter prompts; PGN export keeps them inside headers/comments.
+- Saved moves, line editors and actions follow the explorer's live-help policy. Restricted help clears rendered suggestions and editor contents even while the tab is closed. German text and phone layout are covered. No provider, external service or dependency added.
+- Repertoire lines support up to 200 plies without truncation. Extending a validated scratch prefix through the explorer now preserves the full prefix instead of applying the 40-ply bound for model-proposed lines.
+- Tests cover game/scratch/ancestor capture, repeated-start history, legality and bounds, transpositions, duplicate identities/routes, storage rollback, malformed/future-version data and safe PGN export. Eight browser scenarios cover both sides, reload, edit/remove, hostile text, help restrictions, failed-save retry, long prefixes and German phone layout.
+- Validation: `npm run check`, a fresh build and mock-provider unit tests pass (265 passed, one opt-in live test skipped). The full Playwright suite passes (114 passed, one live-model test skipped); all 14 repertoire/explorer scenarios pass again after the capture-history refinement. Desktop/phone layouts inspected, 53 local document link paths checked, and changed documentation PDFs regenerated locally.
+
+### Deviations
+
+- Storage is browser-local, including when the games library uses an account. Cloud persistence remains in 7.6. Each repertoire supports up to 128 lines, with up to 32 repertoires; names and notes are bounded, and limit failures do not save a partial line.
+- Standard-start ordered mainlines are the editable unit. PGN annotation variations do not become additional saved choices automatically. Spaced-repetition scheduling (5.4), authored explanations (5.5) and named variation browsing (5.6) remain separate work.
+
+### Insights
+
+- A position graph is useful for “my chosen moves here”, while the original route is needed to edit and rehearse an opening. Keeping both avoids losing move-order choices at transpositions.
+- Scratch boards may begin at the current position, an ancestor or an independent standard start. Capturing a repertoire needs an explicit connecting path, rather than concatenating every visible game move with the scratch line.
+- Returning to the initial diagram later in a line is not a fresh start: capture keeps that move history, while position queries intentionally merge the repeated diagram.
+
+---
+
 ## 2026-10-23 — Opening explorer from reference games
 
 TODO items: 5.2.

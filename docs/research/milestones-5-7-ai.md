@@ -32,7 +32,7 @@ Opening popularity, score in a historical sample and engine quality are differen
 
 **State at the audit baseline:** 5.1 is implemented. [The ECO builder](../../site/scripts/build-eco.mjs) produces position names and named SAN lines from the bundled opening data. That data is not a frequency/win-rate explorer. The move graph, repertoire workflow and lesson passages above were proposed work.
 
-**Implementation update, 2026-10-23:** [TODO 5.2](../TODO.md#5-opening-library) now has a local reference-game explorer in [`openings.js`](../../site/src/openings.js): transpositions, corpus filters, record counts/results, sample occurrences and scratch variations, subject to live-help settings. It needs no LLM. Repertoires, drills, explanations and the named-continuation panel remain planned.
+**Implementation update, 2026-10-23:** [TODO 5.2](../TODO.md#5-opening-library) now has a local reference-game explorer in [`openings.js`](../../site/src/openings.js): transpositions, corpus filters, record counts/results, sample occurrences and scratch variations, subject to live-help settings. TODO 5.3 adds named White/Black repertoires in [`repertoire.js`](../../site/src/repertoire.js), preserving legal ordered lines while querying chosen moves by position. Both work without an LLM. Drills, explanations and the named-continuation panel remain planned.
 
 ## Milestone 6: curriculum
 

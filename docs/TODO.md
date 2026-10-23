@@ -153,7 +153,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 - [x] 5.1 Opening names by position (Lichess chess-openings, CC0), in `site/data/eco`
 - [x] 5.2 Opening explorer: position/move graph from standard-start reference games, with corpus filters, continuation counts, White/draw/Black/unknown results and sample games at the matching ply. Transpositions join; repeated positions count once per record. Continuations use the scratch board and respect live help. Uses the existing classics and saved/imported games; no external explorer API
-- [ ] 5.3 Repertoire builder: the user picks lines for White and for Black
+- [x] 5.3 Repertoire builder: named White/Black repertoires with editable standard-start lines and notes, capture from the game/scratch board up to the displayed move, position-based chosen moves, confirmed removal and PGN copy. Validated browser-local storage is separate from games; live-help restrictions apply
 - [ ] 5.4 Repertoire drill with spaced repetition *(added)*
 - [ ] 5.5 Opening explanations: ideas, typical plans, resulting pawn structures
 - [ ] 5.6 Opening variations at the board: which opening this is, and the named continuations from here *(added)*

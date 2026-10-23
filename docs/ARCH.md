@@ -121,6 +121,8 @@ Planned: material and piece-placement signatures, fuzzy pawn-structure distance,
 
 The **opening explorer** (`openings.js`, 5.2) builds a separate EPD-keyed move graph from standard-start PGN mainlines in the reference collection. Transpositions join; each record contributes its first continuation at a position. Corpus filters, result counts and sample occurrences are explicit data queries. Continuation clicks use the scratch board and require the same help permission as engine analysis. This does not use a language model or an external explorer API.
 
+The **repertoire builder** (`repertoire.js`, 5.3) stores named White/Black collections of ordered UCI lines and notes under the versioned browser key `kibitz.repertoires`, separately from saved games. chess.js validates complete standard-start lines on input and reload. Board capture joins a game prefix to a connected scratch variation, keeping only the displayed portion. A position graph shows the selected side's chosen moves across transpositions; the stored routes stay intact for editing and future drills. Opening a line uses the scratch board, and live-help restrictions cover both saved suggestions and actions. Writes publish to memory only after storage succeeds; unreadable or unknown-version data is kept untouched. This needs no LLM and has no cloud sync yet.
+
 ### 3.4 Structured output
 
 Machine-facing output uses constrained formats: named JSON replies for structured requests, schemas for tool calls, and a small `board` grammar for marks in chat answers.
