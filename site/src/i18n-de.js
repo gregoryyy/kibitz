@@ -3,6 +3,33 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Explicit passage embeddings (TODO 8.3.2) -----------------------------------------------
+  'Search comments and study notes. Results are source text, not checked advice.': 'Durchsuche Kommentare und Studiennotizen. Ergebnisse sind Quellentexte, keine geprüften Empfehlungen.',
+  'Search method': 'Suchmethode',
+  'Keywords': 'Stichwörter',
+  'By meaning': 'Nach Bedeutung',
+  'Building sends the selected text to the embedding service. Searching sends your query. Vectors stay in memory until cleared or reloaded.': 'Beim Aufbau wird der ausgewählte Text an den Embedding-Dienst gesendet, beim Suchen deine Anfrage. Die Vektoren bleiben bis zum Löschen oder Neuladen im Arbeitsspeicher.',
+  'Build semantic index': 'Semantischen Index aufbauen',
+  'Search by meaning': 'Nach Bedeutung suchen',
+  'Clear semantic index': 'Semantischen Index löschen',
+  'Refresh embedding service': 'Embedding-Dienst aktualisieren',
+  'Checking embedding service…': 'Embedding-Dienst wird geprüft…',
+  'Semantic search needs a configured embedding provider.': 'Die semantische Suche braucht einen eingerichteten Embedding-Anbieter.',
+  'Local-only mode blocks this embedding provider.': 'Der Nur-lokal-Modus sperrt diesen Embedding-Anbieter.',
+  'Embedding provider unavailable.': 'Der Embedding-Anbieter ist nicht verfügbar.',
+  'Semantic index: {n} passages.': 'Semantischer Index: {n} Textstellen.',
+  'Embedding index details': 'Details zum Embedding-Index',
+  '{n} dimensions': '{n} Dimensionen',
+  'Model revision not supplied.': 'Keine Modellrevision angegeben.',
+  'Embedding {done} of {total} passages…': '{done} von {total} Textstellen werden eingebettet…',
+  'Searching by meaning…': 'Suche nach Bedeutung…',
+  'Build an index of the selected text, then search by meaning.': 'Baue einen Index des ausgewählten Textes auf und suche dann nach Bedeutung.',
+  'Embedding service changed. Review the provider and build again.': 'Der Embedding-Dienst hat sich geändert. Prüfe den Anbieter und baue den Index erneut auf.',
+  'Select 1–512 passages. Use the source and language filters.': 'Wähle 1–512 Textstellen aus. Nutze die Quellen- und Sprachfilter.',
+  'Semantic index ready. Enter a query and search by meaning.': 'Der semantische Index ist bereit. Gib eine Anfrage ein und suche nach Bedeutung.',
+  'Embedding request failed. Check the provider or rebuild the index.': 'Die Embedding-Anfrage ist fehlgeschlagen. Prüfe den Anbieter oder baue den Index erneut auf.',
+  'Semantic index cleared.': 'Der semantische Index wurde gelöscht.',
+  'No related study text. Try another query.': 'Kein verwandter Studientext. Probiere eine andere Anfrage.',
   // --- Local study-text search (TODO 8.3.1) -----------------------------------------------------
   'Search study text': 'Studientexte durchsuchen',
   'Study text is hidden while you play. Choose Full engine help or finish the game to search.': 'Studientexte sind während der Partie ausgeblendet. Wähle volle Engine-Hilfe oder beende die Partie, um zu suchen.',

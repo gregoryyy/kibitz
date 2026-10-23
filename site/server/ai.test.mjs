@@ -245,7 +245,7 @@ test('embed: one plain POST, vectors returned in input order, limits enforced', 
   const e = createEmbedder(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }), { client });
   assert.deepEqual(await e.embed(['a', 'b']), [[1, 0], [0, 1]]);
   assert.equal(calls[0].path, '/embeddings');
-  assert.deepEqual(calls[0].opts.body, { model: 'mistral-embed', input: ['a', 'b'] });
+  assert.deepEqual(calls[0].opts.body, { model: 'mistral-embed', input: ['a', 'b'], encoding_format: 'float' });
   await assert.rejects(e.embed([]), { code: 'bad_request' });
   await assert.rejects(e.embed(['x'.repeat(8001)]), { code: 'prompt_too_large' });
   const short = createEmbedder(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai', OPENAI_API_KEY: 'k' }), { client: { post: async () => ({ data: [] }) } });

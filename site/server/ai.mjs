@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { exampleFor, providerSchema } from './schema.mjs';
 import { TOOLS, CAPS as TOOL_CAPS } from '../src/tools.js';
+import { normaliseVector } from '../src/dense-search.js';
 
 export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock'];
 // Small, fast models by default: coaching replies are short and grounded in engine output.
@@ -328,38 +329,56 @@ const EMBEDDING_DEFAULTS = { openai: 'text-embedding-3-small', mistral: 'mistral
 export const EMBED_LIMITS = { texts: 128, chars: 8000 };
 export function loadEmbeddingConfig(env = process.env) {
   const provider = (env.EMBEDDING_PROVIDER || 'ollama').trim().toLowerCase();
-  const off = reason => ({ provider, model: '', available: false, reason });
+  const revision = (env.EMBEDDING_REVISION || '').trim().slice(0, 160);
+  const off = reason => ({ provider, model: '', revision, available: false, reason });
   if (!EMBEDDING_PROVIDERS.includes(provider)) return off(`EMBEDDING_PROVIDER "${provider}" is not one of ${EMBEDDING_PROVIDERS.join(', ')}`);
-  if (provider === 'mock') return { provider, model: 'mock', available: true, reason: '' };
-  const base = /** @type {any} */ (loadConfig({ ...env, AI_PROVIDER: provider, [`${provider.toUpperCase()}_MODEL`]: 'embeddings' }));
+  if (provider === 'mock') return { provider, model: 'mock', revision, available: true, reason: '' };
+  // Read this provider's actual credentials/endpoint; runtime local-only policy is enforced
+  // by the embedding route, without silently substituting the chat provider's local client.
+  const base = /** @type {any} */ (loadConfig({ ...env, AI_PROVIDER: provider, AI_LOCAL_ONLY: '', [`${provider.toUpperCase()}_MODEL`]: 'embeddings' }));
   const model = env.EMBEDDING_MODEL || EMBEDDING_DEFAULTS[provider];
   if (!model) return off('EMBEDDING_MODEL is empty; for Ollama, set it to an embedding model you have pulled (e.g. nomic-embed-text)');
   if (!base.available) return off(base.reason);
-  return { provider, model, available: true, reason: '', apiKey: base.apiKey, baseURL: base.baseURL, timeoutMs: base.timeoutMs };
+  return { provider, model, revision, available: true, reason: '', apiKey: base.apiKey, baseURL: base.baseURL, timeoutMs: base.timeoutMs };
 }
 // embed(texts, {signal}) -> one vector (array of numbers) per text, in order.
-export function createEmbedder(cfg, /** @type {{ client?: any }} */ { client } = {}) {
+export function createEmbedder(cfg, /** @type {{ client?: any, inspectModel?: (model: string, signal?: AbortSignal) => Promise<any> }} */ { client, inspectModel } = {}) {
   if (!cfg.available) throw new GatewayError('unavailable', cfg.reason || 'No embedding provider configured', 503);
   const check = texts => {
-    if (!Array.isArray(texts) || !texts.length || texts.some(t => typeof t !== 'string')) throw new GatewayError('bad_request', 'Expected a list of strings', 400);
+    if (!Array.isArray(texts) || !texts.length || texts.some(t => typeof t !== 'string' || !t.trim())) throw new GatewayError('bad_request', 'Expected non-empty text strings', 400);
     if (texts.length > EMBED_LIMITS.texts || texts.some(t => t.length > EMBED_LIMITS.chars)) throw new GatewayError('prompt_too_large', `At most ${EMBED_LIMITS.texts} texts of ${EMBED_LIMITS.chars} characters`, 413);
   };
-  if (cfg.provider === 'mock') {
-    // Deterministic 8-dimensional vectors from character codes, for tests.
-    return { async embed(texts) { check(texts); return texts.map(t => Array.from({ length: 8 }, (_, k) => [...t].reduce((a, ch, i) => a + (i % 8 === k ? ch.charCodeAt(0) : 0), 0) / 1000)); } };
-  }
   const baseURL = cfg.provider === 'ollama' ? cfg.baseURL.replace(/\/+$/, '') + '/v1' : cfg.baseURL;
-  const c = client ?? new OpenAI({ apiKey: cfg.apiKey, baseURL, timeout: cfg.timeoutMs });
+  const c = cfg.provider === 'mock' ? null : client ?? new OpenAI({ apiKey: cfg.apiKey, baseURL, timeout: cfg.timeoutMs });
+  // Ollama can relay cloud models too. Its provider label alone is not proof of local inference.
+  // Inspect only model metadata before sending text; old/unknown metadata fails closed.
+  const inspect = inspectModel || (async (model, signal) => {
+    const r = await fetch(cfg.baseURL.replace(/\/+$/, '') + '/api/show', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model }),
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(cfg.timeoutMs)]) : AbortSignal.timeout(cfg.timeoutMs) });
+    if (!r.ok) throw new GatewayError('provider_error', 'Could not verify a local Ollama embedding model', 502);
+    return r.json();
+  });
+  /** Ordered finite vectors plus observed model/usage; absent usage gets a conservative byte estimate. */
+  async function embedBatch(texts, /** @type {{signal?: AbortSignal}} */ { signal } = {}) {
+    check(texts);
+    if (cfg.provider === 'mock') return { vectors: texts.map(t => Array.from({ length: 8 }, (_, k) => [...t].reduce((a, ch, i) => a + (i % 8 === k ? ch.charCodeAt(0) : 0), 0) / 1000)), providerModel: 'mock', usage: { input: texts.reduce((s, t) => s + t.length, 0), output: 0, estimated: true } };
+    if (cfg.provider === 'ollama') {
+      const info = await inspect(cfg.model, signal);
+      if (info?.remote_model || info?.remote_host || !['gguf', 'safetensors'].includes(info?.details?.format) || !info?.model_info?.['general.architecture'] || !info?.capabilities?.includes('embedding')) throw new GatewayError('forbidden', 'Ollama embeddings require a verified local embedding model', 409);
+    }
+    const res = await c.post('/embeddings', { body: { model: cfg.model, input: texts, encoding_format: 'float' }, signal });
+    const data = Array.isArray(res?.data) ? [...res.data].sort((a, b) => a?.index - b?.index) : [];
+    if (data.length !== texts.length || data.some((d, i) => d?.index !== i)) throw new GatewayError('provider_error', 'The embedding provider returned invalid input indices', 502);
+    try { const dimensions = data[0]?.embedding?.length; data.forEach(d => normaliseVector(d.embedding, dimensions)); }
+    catch { throw new GatewayError('provider_error', 'The embedding provider returned invalid vectors', 502); }
+    const tokens = res.usage?.prompt_tokens ?? res.usage?.total_tokens;
+    if (tokens !== undefined && (!Number.isSafeInteger(tokens) || tokens < 0)) throw new GatewayError('provider_error', 'The embedding provider returned invalid usage', 502);
+    return { vectors: data.map(d => d.embedding), providerModel: typeof res.model === 'string' ? res.model.slice(0, 200) : null,
+      usage: { input: tokens ?? texts.reduce((s, t) => s + Buffer.byteLength(t, 'utf8') + 1, 0), output: 0, estimated: tokens === undefined } };
+  }
   return {
-    async embed(texts, /** @type {{ signal?: AbortSignal }} */ { signal } = {}) {
-      check(texts);
-      // A plain POST: the SDK's embeddings.create() asks for base64 by default, which the
-      // OpenAI-compatible servers (Mistral, Ollama) may not support.
-      const res = await c.post('/embeddings', { body: { model: cfg.model, input: texts }, signal });
-      const data = [...(res?.data || [])].sort((a, b) => a.index - b.index);
-      if (data.length !== texts.length || data.some(d => !Array.isArray(d.embedding))) throw new GatewayError('provider_error', 'The embedding provider returned an unexpected response', 502);
-      return data.map(d => d.embedding);
-    },
+    embedBatch,
+    async embed(texts, options = {}) { return (await embedBatch(texts, options)).vectors; },
   };
 }
 

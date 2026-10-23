@@ -7,6 +7,35 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Explicit passage embeddings and dense retrieval comparison
+
+TODO items: 8.3.2; completes 8.3.
+
+### Implementation notes
+
+- Library study-text search retains local Keywords as its default and adds explicit **By meaning** indexing/search. The selected source/language scope is applied before ingestion; Build sends bounded batches of literal title/body text, Search sends only the query, and typing sends nothing. Results reuse literal source/licence display and exact annotation-occurrence navigation, including repeated boards. The destination and model are visible before ingestion; changed service identities require review and another explicit build.
+- Pure, JSDoc-typed `dense-search.js` validates/normalises finite nonzero vectors, ranks by cosine with stable source-ID ties, and publishes at most 512 passages atomically in batches of sixteen. Index metadata records provider, configured/reported model, supplied revision, observed dimensions, input version and opaque endpoint/cookie identities. Mismatched batches/queries are rejected. Vectors stay in browser memory; source/account/filter/method/policy changes clear them, and generation guards reject late work after cancellation/deletion or game replacement.
+- A stateless `/api/ai/embeddings` route reuses the gateway's Host/Origin/JSON bounds, rate limiter and usage budgets. Per-user paid accounting follows the embedding provider independently of chat. One active request per cookie and four overall bound concurrency. The route never stores/logs text or vectors and exposes no credentials/endpoint URL. Cookie scope is an anonymous cache/request boundary, not account authentication; library ownership remains in the browser.
+- Provider adapters now request float vectors, validate exact response indices/dimensions and return observed model and usage. Missing usage receives a marked conservative byte estimate. Embedding configuration reads the named provider's own credentials even under local-only mode; the route refuses cloud providers separately. Ollama metadata is checked before text is sent, rejecting cloud aliases, non-embedding models and unknown local-model metadata. Runtime local-only changes abort admitted cloud work and reject late vectors.
+- Root `utils/retrieval-eval.mjs --mode dense` uses the production embedding/session path against the same 159 authored passages and 28 labelled queries as BM25. It does not load `.env` or saved player data; cloud runs require `--allow-cloud`. Alternate rankers receive no gold labels, and result identities resolve to canonical in-scope source references. Existing lexical/position modes remain unchanged.
+- A manual run with the already-installed local **bge-m3**, Ollama 0.40.7, F16/1024 dimensions on Apple M1 Pro Metal records its supplied digest and full comparison in [Markdown/JSON](eval/retrieval/dense-bge-m3.md). Precision@1 increases from 0.900 to 0.950, recall@3 from 0.950 to 1.000 and MRR@3 from 0.917 to 0.975. Both paraphrases now appear within three results. However, all eight no-answer queries return hits, versus two for BM25. No private data, cloud request, model download, dependency or `llmkit` code was used.
+- Sixteen new unit/gateway scenarios cover cosine geometry, literal inputs/source filters, atomic batching, vector/metadata drift, cancellation, cookie isolation, provider separation/local-only policy, budgets, disconnected callers, adapter isolation and CLI/report contracts. Eight browser scenarios cover explicit requests, paraphrase navigation, source/language changes, deletion/cancel/reload, changed model/dimension/scope, closed-tab policy changes and German phone controls. The phone check exposed double translation of pretranslated dynamic text and a literal null child; both were corrected, and the final layout was inspected without overflow or interface-language gaps.
+- Validation: lint/types, a fresh build and the full mock-provider unit/gateway suite pass (339 passed, one opt-in live test skipped). Full Playwright passes (188 passed, one opt-in live-model test skipped). The five passage-evaluation scenarios pass again after the final report caveat; recorded dense Markdown matches its JSON, lexical/position baselines remain unchanged, all 64 checked local documentation links exist and `git diff --check` passes.
+
+### Deviations
+
+- This is a bounded memory-only index over the current source passages. Persistent/server vector stores, larger licensed corpora, hybrid ranking and tutor citation integration remain separate items. The revision is operator-supplied, not independently attested against weights; unknown revisions remain explicit. Ollama installations lacking the required local-model metadata fail closed.
+- The real-model comparison is an explicit manual evaluation; automated tests only use mock/fake providers. Its small authored development suite is not held-out evidence of generalisation, chess accuracy or answer quality.
+- Shared lexical gold is retained for comparability. Its German “Isolani”/English-guide case can have a useful bilingual semantic match despite its no-answer label; the report flags this intent limitation. Semantic label review is needed before using the aggregate false-positive rate to calibrate abstention. Off-topic and unsupported-proof cases still lack supporting passages.
+
+### Insights
+
+- Better paraphrase recall can coexist with substantially worse abstention. Positive cosine similarity cannot establish that a permitted passage answers a question; 8.4 needs separate relevance/abstention evaluation before 8.6 feeds retrieved text to the coach.
+- A local service can relay a cloud model. Local-only enforcement needs model-level evidence as well as a provider label, and its policy must be rechecked after asynchronous work.
+- Configured chat and embedding providers can differ. Reusing chat configuration under local-only mode must not silently substitute credentials/endpoints while retaining another provider's name.
+
+---
+
 ## 2026-10-23 — Direct game/analysis round trips
 
 TODO items: 4.12.7.
