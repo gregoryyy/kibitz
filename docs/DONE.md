@@ -29,6 +29,29 @@ TODO items: 8.9 (research); informs milestones 5–8.
 - Kibitz already uses a separate complete Stockfish analyst outside the opponent game. It does not call standalone NNUE, hidden representations, static evaluation traces or Syzygy. The embedding client helpers likewise do not constitute an implemented text-retrieval pipeline.
 - A legal position/move graph, a text-derived entity graph and a hierarchy of summaries solve different retrieval problems. Establish a labelled lexical/structural baseline before adding graph complexity.
 - Engine agreement, source grounding, explanation faithfulness and learner improvement need separate checks. Finite-depth analysis and a model judge should not be presented as universal chess truth.
+## 2026-10-23 — Keep the game and the review, with the board visible while typing
+
+TODO items: 4.12.2, 4.12.3, 4.12.4; completes 4.12 and milestone 4 with 4.11.2.
+
+### Implementation notes
+
+- The tabs are grouped into Play (Game, Coach) and Study (Review, Library, Reading), retaining their ARIA tab keyboard navigation. A banner above the board identifies the current game, finished game or analysis, with its players/title and move. The dialogue and review name their position too; imported titles remain text.
+- Selecting Review during a running game asks to pause it. Cancellation keeps playing. Acceptance snapshots the live game and clock, then opens a separate analysis session. Returning resumes the live game; revisiting Review restores the previous study's cursor, scratch board and review results. Undoing a transition also keeps the other session. A confirmation tied to an old game cannot replace a newer one.
+- The board and dialogue both offer Return. The header's Play switch resumes a suspended game too. Panel PGN loads, library loads and the Analyse switch preserve a return snapshot before the existing save operation normalizes metadata, so returning keeps the original headers as well as the moves and clock. Failed imports do not leave a phantom suspended game.
+- Confirmed continuations later in a motif tool's line carry their own starting FEN into the answer's board links. Clicking such a tactic opens it from its actual position, rather than the tool's original root position.
+- The normal dialogue stays below the board on portrait phones and beside it on tablets and landscape phones. Narrow-screen chips scroll in one row. While composing, the board and composer fit side by side inside `visualViewport`; its height and offset follow keyboard/viewport changes. Sending, Escape, losing composer focus or Full layout restores the normal view. The textarea uses 16px text on narrow screens to avoid input zoom.
+- `ux.spec` adds end-to-end coverage for review confirmation/cancellation, both sessions over a round trip, preserved headers, invalid/valid imports, the Analyse switch, stale confirmation, and visible board/input/send controls at portrait, landscape and tablet sizes with a reduced keyboard viewport. Existing settings, layout and chat tests remain in place. No dependencies were added.
+
+### Deviations
+
+- The temporary composition view replaces a mobile drawer. It keeps the board visible without putting it behind the chat.
+- The suspended game and last study remain session memory. Reload persistence for both sessions is outside this milestone; the existing single current-game snapshot remains unchanged.
+- Mobile keyboard geometry is exercised in Chrome with reduced viewports. Physical iOS/Android keyboard behavior has not been manually tested.
+
+### Insights
+
+- Saving can change display metadata, so preserving only the moves is not enough for a faithful return: take the snapshot before saving.
+- A tall stacked page can pass a simple visibility check while its board is far outside the keyboard viewport. The new tests check the actual rectangles of the board and composer.
 
 ---
 
@@ -82,6 +105,25 @@ TODO items: 4.8, 4.9, 4.10 (milestone 4, part 2b).
 
 - Checking FEN syntax is not checking a legal position: chess.js accepts some impossible king placements. A shared position check protects both loads and engine tools.
 - An answer needs a snapshot of its position, not a later lookup of the same move index in whichever game is on the board. The same distinction makes general conversation, scratch analysis and return-to-game work together.
+
+---
+
+## 2026-10-22 — Consistent primer filenames
+
+TODO items: none directly; documentation upkeep.
+
+### Implementation notes
+
+- The primer source, HTML and PDF share the `Primer_v01` basename. The build script reads and writes in `docs/primer/`, with the same prefix for intermediate Markdown files.
+- Updated the primer README and the links in ARCH.md and ROAD.md for the PDF's location in `docs/primer/`.
+
+### Deviations
+
+- No planned feature changed.
+
+### Insights
+
+- One basename in the build script keeps source and output names aligned.
 
 ---
 
