@@ -12,8 +12,12 @@ const record = page => {
   return bodies;
 };
 async function ask(page, question) {
+  const answers = page.locator('#chat .msg.coach'), before = await answers.count();
   await page.locator('#coachInput').fill(question); await page.locator('#coachSend').click();
-  const answer = page.locator('#chat .msg.coach').last();
+  // askCoach may analyse the position before appending its bubble. Wait for this answer,
+  // rather than accepting the already-completed reply to the previous board command.
+  await expect(answers).toHaveCount(before + 1);
+  const answer = answers.last();
   await expect(answer).not.toHaveClass(/thinking/, { timeout: 60_000 });
   await expect(page.locator('#coachStop')).toBeHidden({ timeout: 60_000 });
   return answer;

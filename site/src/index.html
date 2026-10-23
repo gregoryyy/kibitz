@@ -58,7 +58,7 @@ main { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.9
 .board-context { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .board-context strong { color: var(--accent); }
 .board-context .game-title { min-width: 0; overflow-wrap: anywhere; }
-.player { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.player { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 30px; }
 .player .name { font-weight: 600; }
 .player .meta { color: var(--muted); font-size: 13px; }
 .player .right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
@@ -681,6 +681,7 @@ import { Chessground } from './chessground.js';
 import * as K from './knowledge.js';
 import { Engine, stockfishAttempts } from './engine.js';
 import { createStore, browserStorage } from './store.js';
+import { gameCheckpoint } from './sessions.js';
 import { quote } from './prompt.js';
 import { createBrowserModel, cpuThreads } from './browser-llm.js';
 import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './tutor.js';
@@ -1363,7 +1364,7 @@ function newGame({ confirmed = false } = {}) {
   }
   let start = startPosition();
   if (start.error) { toast(start.error + ' Starting from the normal position instead.'); start = { fen: START, sans: [], title: null }; }
-  cancelChat(); CHAT.undo = []; CHAT.returnGame = null; CHAT.studyBoard = null; CHAT.general = false; CHAT.generalTurns = [];
+  cancelChat(); CHAT.undo = []; CHAT.returnGame = null; CHAT.studyBoard = null; CHAT.studyCheckpoint = null; CHAT.general = false; CHAT.generalTurns = [];
   analyst.cancel(); cancelReply(); S.gen++;
   S.mode = 'play'; S.start = start.fen; S.over = null; S.thinking = false; S.hints = 0;
   S.nodes = nodesFor(start.fen, start.sans); S.startPly = start.sans.length; S.cursor = last();
@@ -1438,12 +1439,8 @@ async function hint() {
 }
 function setMode(m) {
   if (m === S.mode) return;
-  if (m === 'play' && CHAT.returnGame) { submitChat('return to my game'); return; }
-  if (m === 'analysis' && S.playing && S.nodes.length > 1) { confirmBox('Switch to analysis? The game will be saved as unfinished.', 'Switch', () => { CHAT.returnGame = captureBoard(); saveCurrentGame({ quiet: true, result: '*' }); S.playing = false; S.mode = 'analysis'; S.clock = null; renderAll(); refreshAnalysis(); }); return; }
-  S.mode = m; S.playing = m === 'play' ? S.playing : false;
-  if (m === 'analysis') S.clock = null;
-  if (m === 'play' && !S.playing) { newGame({ confirmed: true }); return; }
-  renderAll(); refreshAnalysis();
+  if (m === 'analysis') { pauseGameForAnalysis(); return; }
+  if (!returnToGame()) newGame({ confirmed: true });
 }
 function loadText(txt) {
   txt = txt.trim(); if (!txt) return 'Paste a FEN or PGN first.';
@@ -2382,7 +2379,7 @@ function evalGraph() {
 // ---------------------------------------------------------------- Coach (Claude)
 const COACH = { sample: null, ctl: null };
 const chatTurns = [];
-const CHAT = { general: false, generalTurns: [], undo: [], returnGame: null, studyBoard: null, run: null, confirm: null };
+const CHAT = { general: false, generalTurns: [], undo: [], returnGame: null, studyBoard: null, studyCheckpoint: null, run: null, confirm: null };
 function cancelChat() {
   COACH.ctl?.abort(); COACH.ctl = null; CHAT.run = null;
   CHAT.confirm?.(false);
@@ -2639,13 +2636,14 @@ function bookLine(r) {
   const b = r.book;
   return `${b.user ? quote(b.title, 120) : b.title} by ${b.user ? quote(b.author, 80) : b.author}${r.where ? ', ' + r.where : ''}`;
 }
-// Board snapshots are session state only. Restoring one never writes the saved library.
+/** Capture a detached session, charging elapsed clock time only up to this instant. */
 function captureBoard() {
   const fields = ['mode', 'userColor', 'orientation', 'start', 'nodes', 'cursor', 'over', 'hints', 'gameId', 'meta', 'playing', 'reviewDone', 'summary', 'comments', 'clock', 'gameTc', 'startPly', 'drawBlock', 'drawPending'];
   const state = structuredClone(Object.fromEntries(fields.map(k => [k, S[k]]))), running = !!S.clock?.turn;
   if (state.clock) state.clock = stopClock(state.clock, performance.now());
   return { state, running, scratch: SCRATCH && structuredClone(SCRATCH) };
 }
+/** Restore one session, invalidate old engine work, and resume only its running game clock. */
 function restoreBoard(b) {
   analyst.cancel(); cancelReply(); closeScratch(false);
   const gen = S.gen + 1;
@@ -2655,6 +2653,32 @@ function restoreBoard(b) {
   $('.boardcol').classList.toggle('scratching', !!SCRATCH);
   CHAT.general = false; renderAll(); renderScratch(); renderReview(); refreshAnalysis();
   if (S.playing && turnOf(nodeFen(last())) !== S.userColor) setTimeout(engineReply, 60);
+}
+/** Pause Play immediately, keeping the original game separate from editable analysis. */
+function pauseGameForAnalysis() {
+  cancelChat(); $('#confirmSlot').replaceChildren();
+  const game = captureBoard();
+  const reuse = CHAT.studyBoard && CHAT.studyCheckpoint === gameCheckpoint(game.state);
+  const study = structuredClone(reuse ? CHAT.studyBoard : game);
+  if (!reuse) {
+    const names = playerNames();
+    study.state.meta = { ...study.state.meta, white: study.state.meta?.white || t(names.w.name), black: study.state.meta?.black || t(names.b.name), played: true, userColor: S.userColor };
+  }
+  Object.assign(study.state, { mode: 'analysis', playing: false, clock: null }); study.running = false;
+  CHAT.returnGame = game;
+  restoreBoard(study);
+}
+/** Return controls bypass chat/challenges; a chat tool can preserve its own active run. */
+function returnToGame({ preserveChat = false } = {}) {
+  if (!CHAT.returnGame) return false;
+  if (!preserveChat) cancelChat();
+  $('#confirmSlot').replaceChildren();
+  const back = CHAT.returnGame;
+  CHAT.studyBoard = captureBoard(); CHAT.studyCheckpoint = gameCheckpoint(back.state);
+  CHAT.returnGame = null;
+  CHAT.undo.push(CHAT.studyBoard); CHAT.undo = CHAT.undo.slice(-20);
+  restoreBoard(back); openTab('game');
+  return true;
 }
 function conversationLabel() {
   if (CHAT.general) return t('General chess');
@@ -2725,8 +2749,8 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
     return loadChatGame(game, null, run);
   }
   if (name === 'return') {
-    if (!CHAT.returnGame) return { error: 'There is no suspended game.' };
-    const back = CHAT.returnGame; CHAT.studyBoard = captureBoard(); CHAT.returnGame = null; CHAT.undo.push(CHAT.studyBoard); restoreBoard(back); run.gen = S.gen; openTab('game');
+    if (!returnToGame({ preserveChat: true })) return { error: 'There is no suspended game.' };
+    run.gen = S.gen;
     return finishChatAction(run, 'Returned to your game.');
   }
   if (name === 'takeback') {
@@ -2771,8 +2795,8 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
   if (name === 'undo') {
     if (S.playing && S.thinking) return { error: 'Wait for Stockfish to move.' };
     const b = CHAT.undo.pop(); if (!b) return { error: 'There is no board change to undo.' };
-    if (S.playing && !b.state.playing) CHAT.returnGame = captureBoard();
-    else if (!S.playing && b.state.playing) { CHAT.studyBoard = captureBoard(); CHAT.returnGame = null; }
+    if (S.mode === 'play' && b.state.mode === 'analysis') CHAT.returnGame = captureBoard();
+    else if (S.mode === 'analysis' && b.state.mode === 'play') { CHAT.studyBoard = captureBoard(); CHAT.studyCheckpoint = gameCheckpoint(b.state); CHAT.returnGame = null; }
     restoreBoard(b); run.gen = S.gen;
   } else {
     if (name === 'move' && preview && !whatIfAllowed()) return { error: 'Trying a line needs Full engine help or analysis.' };
@@ -3620,11 +3644,7 @@ async function chooseTab(name) {
   if (name === 'review' && S.playing && S.nodes.length > 1) {
     const gen = S.gen;
     if (!(await confirmChatLeave(undefined, { forReview: true })) || gen !== S.gen) return;
-    cancelChat(); CHAT.returnGame = captureBoard();
-    const study = CHAT.studyBoard || structuredClone(CHAT.returnGame);
-    if (!CHAT.studyBoard) { const names = playerNames(); study.state.meta = { ...study.state.meta, white: study.state.meta?.white || t(names.w.name), black: study.state.meta?.black || t(names.b.name), played: true, userColor: S.userColor }; }
-    Object.assign(study.state, { mode: 'analysis', playing: false, clock: null }); study.running = false;
-    restoreBoard(study);
+    pauseGameForAnalysis();
   }
   openTab(name);
 }
@@ -3781,8 +3801,8 @@ $('#coachSend').addEventListener('click', () => {
   submitChat(q);
 });
 $('#chatContext').addEventListener('change', e => { cancelChat(); CHAT.general = e.target.value === 'general'; renderCoachCtx(); });
-$('#chatReturn').addEventListener('click', () => submitChat('return to my game'));
-$('#boardReturn').addEventListener('click', () => submitChat('return to my game'));
+$('#chatReturn').addEventListener('click', () => returnToGame());
+$('#boardReturn').addEventListener('click', () => returnToGame());
 $('#chatUndo').addEventListener('click', () => submitChat('undo'));
 $('#coachInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#coachSend').click(); } });
 $('#coachStop').addEventListener('click', cancelChat);

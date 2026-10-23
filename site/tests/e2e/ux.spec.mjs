@@ -85,7 +85,6 @@ test('the Analyse mode switch keeps a way back to the running game', async ({ pa
   await open(page); await play(page);
   const live = await pgn(page);
   await page.locator('#modeAnalyse').click();
-  await page.locator('#confirmSlot').getByRole('button', { name: 'Switch', exact: true }).click();
   await expect(page.locator('#boardReturn')).toBeVisible();
   await page.locator('#modePlay').click();
   await expect.poll(async () => (await S(page)).playing).toBe(true);

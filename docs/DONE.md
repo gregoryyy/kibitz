@@ -7,6 +7,31 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-23 — Direct game/analysis round trips
+
+TODO items: 4.12.7.
+
+### Implementation notes
+
+- Analyse now immediately pauses a detached copy of the current Play session. Play and both Return buttons restore its history, viewed step, orientation, starting position, result and clock directly. Analysis edits stay in their own snapshot; switching itself no longer saves an unfinished game to the library. Untouched/custom-start and finished games also retain a way back.
+- Shared pause/return helpers use the existing capture/restore path: elapsed clock time is charged at suspension, a running clock restarts on return, and an unstarted clock stays stopped. Switching cancels chat, confirmations and opponent searches, advances the game generation, and restarts an opponent reply only if still needed. Return buttons bypass the chat command parser so an unanswered challenge cannot intercept them; typed return commands still work.
+- Returning keeps the study's mainline branch, cursor, scratch variation and review results. Pure, JSDoc-typed `sessions.js` identifies its corresponding game checkpoint using full position history, viewed step, game identity, player colour and result. A transposition with different history is distinct; clock ticks and engine annotations are irrelevant. Once play advances, Analyse starts from that updated game instead of restoring an old study. Review keeps its existing confirmation and shares the same transition helpers. Undo uses modes to retain the return path for finished games too; return snapshots are bounded to twenty undo entries.
+- Player rows wrap when captured pieces, result and clocks cannot fit on a phone. The German custom-start/finished-game scenario exposed this existing overflow during the new round-trip checks.
+- Two unit scenarios cover checkpoint identity, legal transpositions and excluded transient data. Six browser scenarios cover timed pauses, edits and repeated switches, an advanced game, all three return controls during a challenge, cancelled and replacement opponent searches, a stale review confirmation, scratch restoration, and untouched/finished games with German phone layout and undo. The direct-switch regression was first run against the old code and failed because Analyse remained inactive awaiting confirmation. Existing UX expectations now use the immediate switch.
+- The full browser run exposed an existing opening-guide test-helper race: when the coach first analysed a setup, the helper accepted the preceding completed command reply before a new answer bubble existed. It now waits for an additional coach reply before checking completion, so prompt assertions inspect the requested answer.
+- Validation: `npm run check`, a fresh build and the full mock-provider unit/gateway suite pass (323 passed, one opt-in live test skipped). All six new browser scenarios pass; the opening-guide suite passes three consecutive runs after the wait correction (21 scenarios). The final German phone layout was inspected with no page overflow.
+
+### Deviations
+
+- This extends the completed milestone 4 UX work as 4.12.7. Paired sessions remain in memory; preserving both across reloads is outside this change. Other leave-game confirmations remain in place.
+
+### Insights
+
+- A reversible mode switch needs the same cancellation and generation boundary as loading another game, even when both positions have the same FEN. Otherwise a cancelled reply can affect the resumed game or clear a newer search's status.
+- Position equality alone is insufficient for deciding whether to reopen a study: history, viewed step and game result matter, while clock ticks should not discard useful analysis.
+
+---
+
 ## 2026-10-23 — Local annotation and study-note search
 
 TODO items: 8.3.1 (lexical part of 8.3; embedding ingestion/search remains 8.3.2).
