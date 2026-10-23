@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { TOOLS, TOOL_NAMES, CAPS, checkToolCall, runTool } from '../../src/tools.js';
+import { TOOLS, ENGINE_TOOL_NAMES, CAPS, checkToolCall, runTool } from '../../src/tools.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 // After 1. e4 e5 2. Qh5 Nc6 3. Bc4, Black to move: White threatens Qxf7#.
@@ -17,8 +17,8 @@ function fakeEngine(table) {
 const key = fen => fen.split(' ').slice(0, 4).join(' ');
 
 test('the catalogue: every tool has a description and an object schema', () => {
-  assert.deepEqual(TOOL_NAMES, ['analyse', 'try_move', 'threats', 'compare', 'find_mate', 'find_motifs']);
-  for (const n of TOOL_NAMES) { assert.ok(TOOLS[n].description.length > 20, n); assert.equal(TOOLS[n].schema.type, 'object', n); assert.ok(TOOLS[n].schema.required.includes('fen'), n); }
+  assert.deepEqual(ENGINE_TOOL_NAMES, ['analyse', 'try_move', 'threats', 'compare', 'find_mate', 'find_motifs']);
+  for (const n of ENGINE_TOOL_NAMES) { assert.ok(TOOLS[n].description.length > 20, n); assert.equal(TOOLS[n].schema.type, 'object', n); assert.ok(TOOLS[n].schema.required.includes('fen'), n); }
 });
 
 test('arguments are untrusted: unknown tools, extra fields, bad positions, illegal moves and caps are refused', () => {

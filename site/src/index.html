@@ -196,6 +196,10 @@ textarea { resize: vertical; min-height: 44px; }
 
 /* Coach */
 .ctxline { font: 12px var(--font-mono); color: var(--muted); background: var(--surface-2); border-radius: 8px; padding: 6px 10px; overflow-wrap: anywhere; }
+.chat-context { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.chat-context select { width: auto; min-width: 0; max-width: 100%; flex: 1; padding: 4px 6px; }
+.message-context { display: block; color: var(--muted); font: 11px var(--font-mono); margin: 0 0 5px; }
+.dialogue .confirm { flex-shrink: 0; }
 .chat { display: flex; flex-direction: column; gap: 12px; max-height: 460px; overflow-y: auto; padding-right: 2px; }
 .msg { max-width: 92%; padding: 10px 13px; border-radius: 12px; font-size: 14.5px; overflow-wrap: anywhere; }
 .msg.user { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-bottom-right-radius: 4px; }
@@ -350,6 +354,7 @@ a.ext { color: var(--accent); font-size: 14px; }
   <section class="desk" aria-label="Coaching desk">
     <div class="dialogue" id="dialogue" aria-label="Coach">
       <div class="ctxline" id="coachCtx">Position: start</div>
+      <div class="chat-context"><label for="chatContext">Discuss</label><select id="chatContext"><option value="position">Current position</option><option value="general">General chess</option></select><button class="btn small" id="chatReturn" hidden>Return to my game</button><button class="btn small" id="chatUndo" hidden>Undo board change</button></div>
       <div class="notice model-box" id="browserModelBox" hidden>
         <div><strong id="browserModelName">In-browser model</strong> <span class="hint" id="browserModelState"></span></div>
         <progress id="browserModelProgress" max="1" value="0" hidden></progress>
@@ -357,6 +362,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       </div>
       <div class="notice" id="coachOff" hidden>The coach needs an AI provider in this view. Stockfish analysis, flags and review still work.</div>
       <div class="chat" id="chat" aria-live="polite"></div>
+      <div id="chatConfirm" hidden></div>
       <div class="chips"><button class="chip primary" id="btnComment" title="A comment on the aspects chosen in the Coach tab">Comment on this position</button><span id="coachChips" class="chips"></span></div>
       <div class="composer">
         <textarea id="coachInput" rows="2" placeholder="Ask about this position, your last move, or a plan"></textarea>
@@ -515,7 +521,8 @@ import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
 import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
-import { TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
+import { TOOL_NAMES, ENGINE_TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
+import { CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames } from './chat.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
 import { sanToSpeech, parseMoveInput } from './notation.js';
@@ -1161,6 +1168,7 @@ function newGame({ confirmed = false } = {}) {
   }
   let start = startPosition();
   if (start.error) { toast(start.error + ' Starting from the normal position instead.'); start = { fen: START, sans: [], title: null }; }
+  cancelChat(); CHAT.undo = []; CHAT.returnGame = null; CHAT.general = false; CHAT.generalTurns = [];
   analyst.cancel(); cancelReply(); S.gen++;
   S.mode = 'play'; S.start = start.fen; S.over = null; S.thinking = false; S.hints = 0;
   S.nodes = nodesFor(start.fen, start.sans); S.startPly = start.sans.length; S.cursor = last();
@@ -1255,7 +1263,8 @@ function loadText(txt) {
   } catch (e) { return 'That doesn\'t look like a valid FEN or PGN.'; }
 }
 function commentsOf(c) { const m = {}; for (const { fen, comment } of c.getComments()) m[K.epd(fen)] = comment; return m; }
-function loadLine(start, sans, meta = null, comments = {}, { gameId = null, cursor = null, nags = [] } = {}) {
+function loadLine(start, sans, meta = null, comments = {}, { gameId = null, cursor = null, nags = [], preserveChat = false } = {}) {
+  if (!preserveChat) { cancelChat(); CHAT.undo = []; }
   analyst.cancel(); cancelReply(); S.gen++;
   S.mode = 'analysis'; S.playing = false; S.over = null; S.thinking = false; S.start = start; S.meta = meta; S.comments = comments;
   S.clock = null; S.gameTc = null; S.startPly = 0;
@@ -1265,7 +1274,7 @@ function loadLine(start, sans, meta = null, comments = {}, { gameId = null, curs
   S.nodes.forEach((n, i) => { if (nags[i]?.length) n.nags = nags[i].filter(x => Number.isInteger(x) && x >= 1 && x <= 255); });
   S.cursor = cursor ?? last();
   if (meta?.userColor) { S.orientation = meta.userColor === 'b' ? 'black' : 'white'; }
-  chatTurns.length = 0; $('#chat').replaceChildren();
+  if (!preserveChat) { chatTurns.length = 0; $('#chat').replaceChildren(); }
   renderAll(); refreshAnalysis();
   renderReview();
 }
@@ -1615,7 +1624,14 @@ function evalGraph() {
 // ---------------------------------------------------------------- Coach (Claude)
 const COACH = { sample: null, ctl: null };
 const chatTurns = [];
-function setCoach(s) { COACH.sample = s && LANG === 'de' ? germanSans(s) : s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !s; $('#btnStudyPlan').disabled = !s; renderChips(); renderAspectPicker(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; }
+const CHAT = { general: false, generalTurns: [], undo: [], returnGame: null, run: null, confirm: null };
+function cancelChat() {
+  COACH.ctl?.abort(); COACH.ctl = null; CHAT.run = null;
+  CHAT.confirm?.(false);
+  TUTOR.ctl?.abort(); analyst.cancel('tool');
+  $('#coachStop').hidden = true; $('#coachSend').disabled = false; $('#chat').removeAttribute('aria-busy');
+}
+function setCoach(s) { COACH.sample = s && LANG === 'de' ? germanSans(s) : s; $('#coachOff').hidden = !!s; $('#coachSend').disabled = !!COACH.ctl; $('#btnStudyPlan').disabled = !s; renderChips(); renderAspectPicker(); if ($('#btnSummary')) $('#btnSummary').disabled = !s; }
 use('sample').then(setCoach);
 // Coach settings (local gateway only): provider, models per task, local-only mode, a connection
 // test and today's usage. Keys and models stay in .env; the page only picks among what's set up.
@@ -1770,6 +1786,11 @@ function renderChips() {
   box.append(el('button', { class: 'chip', id: 'btnChallenge', title: 'The coach asks, you answer; the engine checks', onclick: () => startChallenge(S.cursor) }, 'Challenge me'));
 }
 function renderCoachCtx() {
+  $('#chatContext option[value="position"]').textContent = positionLabel();
+  $('#chatContext option[value="position"]').translate = false;
+  $('#chatContext').value = CHAT.general ? 'general' : 'position';
+  $('#chatReturn').hidden = !CHAT.returnGame; $('#chatUndo').hidden = !CHAT.undo.length;
+  if (CHAT.general) { $('#coachCtx').textContent = 'General chess: no position is sent to the coach.'; return; }
   const i = S.cursor; const fen = nodeFen();
   const turn = turnOf(fen) === 'w' ? 'White' : 'Black';
   const evOf = f => { const x = anaOf(f); return terminalCp(f) !== null ? 'game over' : x ? `${fmtScore(x.lines[0]?.score)} d${x.depth || '–'}` : 'analysing…'; };
@@ -1784,7 +1805,7 @@ function renderCoachCtx() {
 // (mid-game, help "flag mistakes") leaves out the engine's view of the current position and rates
 // only the player's own moves; 'none' (mid-game, help off) leaves out all engine data (TODO 3.6).
 function contextFor(i, { view = 'all', scratch = null } = {}) {
-  const n = S.nodes[i]; const fen = n.fen; const c = chessAt(i);
+  const n = S.nodes[i]; const fen = scratch?.end || n.fen; const c = chessAt(i);
   const a = view === 'all' ? anaOf(fen) : null; const op = openingAt(i);
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
   const lines = [];
@@ -1806,7 +1827,7 @@ function contextFor(i, { view = 'all', scratch = null } = {}) {
     const mot = K.moveMotifs(Chess, fen, a.best);
     if (mot.length) lines.push(`Motifs in the engine's best move: ${mot.map(m => m.why).join('; ')}.`);
   } else lines.push('Engine analysis is still running for this position.');
-  if (i > 0) {
+  if (i > 0 && !scratch) {
     const pf = S.nodes[i - 1].fen; const pa = anaOf(pf);
     const rated = view === 'all' || (view === 'past' && n.color === S.userColor);
     lines.push(`Last move: ${moveLabel(i)}${rated && n.cls ? `, rated ${n.cls} by the engine (win chance for the mover ${n.wpB?.toFixed(0)}% → ${n.wpA?.toFixed(0)}%)` : ''}.`);
@@ -1818,7 +1839,7 @@ function contextFor(i, { view = 'all', scratch = null } = {}) {
   if (S.reviewDone && view === 'all') lines.push(...reviewFacts());
   // TODO 4.6: what the player is looking at beyond the game, and what they asked comments to cover.
   if (scratch) {
-    lines.push(`The player is trying a line on a scratch board, from the current position; it isn't part of the game: ${scratch.text}.`);
+    lines.push(`The player is trying a line on a scratch board; it isn't part of the game. Its starting position is ${scratch.start}; the line is ${scratch.text || '(setup only)'}.`);
     lines.push(`Position after the line (FEN): ${scratch.end}`);
     const sa = view === 'all' ? anaOf(scratch.end) : null, st = terminalCp(scratch.end);
     if (st !== null) lines.push(`After the line the game would be over (${new Chess(scratch.end).isCheckmate() ? 'checkmate' : 'draw'}).`);
@@ -1841,20 +1862,230 @@ function bookLine(r) {
   const b = r.book;
   return `${b.user ? quote(b.title, 120) : b.title} by ${b.user ? quote(b.author, 80) : b.author}${r.where ? ', ' + r.where : ''}`;
 }
+// Board snapshots are session state only. Restoring one never writes the saved library.
+function captureBoard() {
+  const fields = ['mode', 'userColor', 'orientation', 'start', 'nodes', 'cursor', 'over', 'hints', 'gameId', 'meta', 'playing', 'reviewDone', 'summary', 'comments', 'clock', 'gameTc', 'startPly', 'drawBlock', 'drawPending'];
+  const state = structuredClone(Object.fromEntries(fields.map(k => [k, S[k]]))), running = !!S.clock?.turn;
+  if (state.clock) state.clock = stopClock(state.clock, performance.now());
+  return { state, running, scratch: SCRATCH && structuredClone(SCRATCH) };
+}
+function restoreBoard(b) {
+  analyst.cancel(); cancelReply(); closeScratch(false);
+  const gen = S.gen + 1;
+  Object.assign(S, structuredClone(b.state), { gen, thinking: false, drawPending: false });
+  if (b.running && S.clock && S.playing) S.clock = { ...S.clock, turn: turnOf(nodeFen(last())), since: performance.now() };
+  if (b.scratch) SCRATCH = { ...structuredClone(b.scratch), gen, cursor: S.cursor, nodes: S.nodes.length };
+  $('.boardcol').classList.toggle('scratching', !!SCRATCH);
+  CHAT.general = false; renderAll(); renderScratch(); renderReview(); refreshAnalysis();
+  if (S.playing && turnOf(nodeFen(last())) !== S.userColor) setTimeout(engineReply, 60);
+}
+function conversationLabel() {
+  if (CHAT.general) return t('General chess');
+  return positionLabel();
+}
+function positionLabel() {
+  const title = S.meta?.white ? `${S.meta.white} – ${S.meta.black || '?'}` : S.meta?.title || t('Current position');
+  return `${title} · ${S.cursor ? moveLabel(S.cursor) : t('start')}${SCRATCH ? ' · ' + t('Scratch board') : ''}`;
+}
+function pinMessage(bubble, label, board) {
+  bubble.dataset.context = label;
+  const b = el('button', { class: 'message-context btn small', translate: 'no', title: 'Show this position', onclick: async () => {
+    if (!board) { cancelChat(); CHAT.general = true; renderCoachCtx(); return; }
+    const gen = S.gen;
+    if (S.playing && S.nodes.length > 1 && !(await confirmChatLeave())) return;
+    if (S.gen !== gen) return;
+    cancelChat(); CHAT.undo.push(captureBoard());
+    if (S.playing) CHAT.returnGame = captureBoard();
+    const view = structuredClone(board);
+    Object.assign(view.state, { mode: 'analysis', playing: false, clock: null }); view.running = false;
+    restoreBoard(view);
+  } }, label);
+  bubble.append(b);
+}
+function confirmChatLeave(signal) {
+  if (signal?.aborted) return Promise.resolve(false);
+  CHAT.confirm?.(false);
+  return new Promise(resolve => {
+    const slot = $('#chatConfirm'); let settled = false;
+    const done = ok => { if (settled) return; settled = true; signal?.removeEventListener('abort', abort); CHAT.confirm = null; slot.hidden = true; slot.replaceChildren(); resolve(ok); };
+    const abort = () => done(false);
+    CHAT.confirm = done;
+    slot.replaceChildren(el('div', { class: 'confirm' }, 'Leave this game to analyse? You can return to it here.',
+      el('button', { class: 'btn small primary', onclick: () => done(true) }, 'Leave and analyse'),
+      el('button', { class: 'btn small', onclick: () => done(false) }, 'Cancel')));
+    slot.hidden = false; signal?.addEventListener('abort', abort, { once: true });
+  });
+}
+function activeRun(run) { return !run.signal.aborted && CHAT.run === run && run.gen === S.gen; }
+function actionState() { return { fen: SCRATCH ? scratchFen() : nodeFen(), plies: last(), playing: S.playing, canMove: canMove() && !SCRATCH, userColor: S.userColor }; }
+async function chatAction(name, input, run, { preview = false, follow = false } = {}) {
+  if (!activeRun(run)) throw { code: 'cancelled' };
+  if (run.fen && run.fen !== actionState().fen) return { error: 'The position changed. Ask again before changing the board.' };
+  if (name === 'find_game') {
+    await Lib.ready;
+    const query = input.query.replace(/(?:at |after )?move \d+.*$/i, '').trim();
+    const ref = findGameRefs(query)[0];
+    const color = /\bblack\b/i.test(query) ? 'b' : /\bwhite\b/i.test(query) ? 'w' : undefined;
+    const result = /\bloss|lost\b/i.test(query) ? 'loss' : /\bwin|won\b/i.test(query) ? 'win' : /\bdraw\b/i.test(query) ? 'draw' : undefined;
+    const words = /\bmy\b/i.test(query) ? query.replace(/\b(my|last|latest|game|with|as|a|the|black|white|loss|lost|win|won|draw)\b/gi, '').trim() : query.replace(/^the\s+/i, '');
+    const hits = ref ? [{ id: ref.id }] : searchGames(allGames(), { query: words, color, result });
+    if (!hits.length) {
+      await loadOpenings();
+      const op = OPENINGS.find(o => o[1].toLowerCase().includes(query.toLowerCase()));
+      if (op) return chatAction('load_opening', { moves: op[2].split(' ') }, run);
+      return { error: 'No matching game or opening was found.' };
+    }
+    const at = /(?:at |after )?move (\d+)(\.{1,3})?/i.exec(input.query);
+    const g = allGames().find(g => g.id === hits[0].id), game = readGame(Chess, g.pgn);
+    if (game.error) return game;
+    const f = game.line.start.split(' '), ply = input.ply ?? (at ? 2 * (+at[1] - +f[5]) + (at[2] === '...' ? 2 : 1) - (f[1] === 'b' ? 1 : 0) : undefined);
+    return chatAction('load_game', { id: hits[0].id, ...(ply === undefined ? {} : { ply }) }, run);
+  }
+  if (name === 'pgn') {
+    const game = readGame(Chess, input.pgn);
+    if (game.error) return game;
+    return loadChatGame(game, null, run);
+  }
+  if (name === 'return') {
+    if (!CHAT.returnGame) return { error: 'There is no suspended game.' };
+    const back = CHAT.returnGame; CHAT.returnGame = null; CHAT.undo.push(captureBoard()); restoreBoard(back); run.gen = S.gen;
+    return finishChatAction(run, 'Returned to your game.');
+  }
+  if (name === 'takeback') {
+    const count = input.count;
+    if (!Number.isInteger(count) || count < 1 || count > 40) return { error: 'Choose 1–40 moves to take back.' };
+    if (S.thinking && S.playing) return { error: 'Wait for Stockfish to move.' };
+    if (SCRATCH) {
+      CHAT.undo.push(captureBoard());
+      openScratch(playLine(Chess, SCRATCH.start, SCRATCH.sans.slice(0, Math.max(0, SCRATCH.i - count))), { free: SCRATCH.free, title: SCRATCH.title });
+    } else if (S.playing) {
+      const target = last() - count;
+      if (target < S.startPly || turnOf(S.nodes[target].fen) !== S.userColor) return { error: 'Take back a full turn so it is your move.' };
+      CHAT.undo.push(captureBoard()); cancelReply(); S.nodes.length = target + 1; S.cursor = target;
+      if (S.clock) { const clk = S.nodes[target].clk; S.clock = clk ? { ...S.clock, ...clk, turn: S.userColor, since: performance.now() } : newClock(S.gameTc); }
+      renderAll(); refreshAnalysis();
+    } else {
+      CHAT.undo.push(captureBoard()); goTo(Math.max(0, S.cursor - count));
+    }
+    return finishChatAction(run);
+  }
+  const checked = checkChatCall(Chess, name, input, { ...actionState(), ...(preview && whatIfAllowed() ? { playing: false } : {}) });
+  if (checked.error) return checked;
+  if (name === 'search_library') { await Lib.ready; return { games: searchGames(allGames(), input) }; }
+  if (name === 'search_openings') {
+    await loadOpenings();
+    const words = input.query.toLowerCase().split(/\s+/);
+    return { openings: OPENINGS.filter(o => words.every(w => `${o[0]} ${o[1]}`.toLowerCase().includes(w))).slice(0, 8).map(o => ({ eco: o[0], name: o[1], moves: o[2].split(' ') })) };
+  }
+  if (name === 'load_game') {
+    await Lib.ready;
+    const g = allGames().find(g => g.id === input.id);
+    if (!g) return { error: 'That game is not in the library.' };
+    const game = readGame(Chess, g.pgn);
+    if (game.error) return game;
+    if (input.ply > game.line.sans.length) return { error: 'That move is not in this game.' };
+    return loadChatGame(game, g, run, input.ply);
+  }
+  if (name === 'load_pgn') return loadChatGame(readGame(Chess, input.pgn), null, run);
+  if (name === 'load_position') return loadChatGame({ line: playLine(Chess, checked.args.fen, []), headers: {} }, null, run);
+  if (name === 'load_opening') return loadChatGame({ line: checked.line, headers: {} }, null, run);
+  if (!activeRun(run)) throw { code: 'cancelled' };
+  if (name === 'undo') {
+    if (S.playing && S.thinking) return { error: 'Wait for Stockfish to move.' };
+    const b = CHAT.undo.pop(); if (!b) return { error: 'There is no board change to undo.' };
+    restoreBoard(b); run.gen = S.gen;
+  } else {
+    if (name === 'move' && preview && !whatIfAllowed()) return { error: 'Trying a line needs Full engine help or analysis.' };
+    CHAT.undo.push(captureBoard()); CHAT.undo = CHAT.undo.slice(-20);
+    if (name === 'goto') goTo(input.ply);
+    else if (name === 'setup') openScratch(playLine(Chess, checked.fen, []), { i: 0, free: true, title: 'Custom position' });
+    else if (name === 'move') {
+      if (S.playing && !preview) {
+        const u = checked.line.ucis[0];
+        if (!playMove({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] })) { CHAT.undo.pop(); return { error: 'The move could not be played.' }; }
+      } else {
+        const start = SCRATCH ? SCRATCH.start : nodeFen(), before = SCRATCH ? SCRATCH.sans.slice(0, SCRATCH.i) : [];
+        openScratch(playLine(Chess, start, [...before, ...checked.line.sans]), { free: true, title: 'What if…' });
+      }
+    }
+  }
+  if (follow && SCRATCH && whatIfAllowed()) {
+    const fen = scratchFen(); await analyse(fen, S.depth, 'coach');
+    if (!activeRun(run)) throw { code: 'cancelled' };
+    const next = anaOf(fen)?.lines[0]?.pv || [];
+    const line = playLine(Chess, SCRATCH.start, [...SCRATCH.sans.slice(0, SCRATCH.i), ...pvSans(Chess, fen, next, 6)]);
+    if (line) openScratch(line, { i: SCRATCH.i, free: true, title: SCRATCH.title });
+  }
+  return finishChatAction(run);
+}
+async function finishChatAction(run, text = 'Board updated.') {
+  CHAT.general = false; renderCoachCtx();
+  let fen = actionState().fen;
+  run.fen = fen;
+  if (engineView(S) === 'all' && !(S.playing && run.local)) {
+    await analyse(fen, S.depth, 'coach');
+    // Stockfish may have made its normal reply while analysing a chat move in a live game.
+    if (activeRun(run) && S.playing && actionState().fen !== fen) {
+      fen = run.fen = actionState().fen; await analyse(fen, S.depth, 'coach');
+    }
+  }
+  if (!activeRun(run) || actionState().fen !== fen) throw { code: 'cancelled' };
+  return { text, fen, sideToMove: turnOf(fen), castling: fen.split(' ')[2] };
+}
+async function loadChatGame(game, record, run, ply) {
+  if (game.error) return game;
+  if (!activeRun(run)) throw { code: 'cancelled' };
+  const before = captureBoard(), gen = S.gen, beforeFen = actionState().fen;
+  if (S.playing && S.nodes.length > 1 && !(await confirmChatLeave(run.signal))) return { error: 'The player cancelled the load. Keep the current game.' };
+  if (!activeRun(run) || S.gen !== gen || S.nodes.length !== before.state.nodes.length || actionState().fen !== beforeFen) return { error: 'The game changed. Ask again before loading.' };
+  if (S.playing && S.nodes.length > 1) { CHAT.returnGame = captureBoard(); CHAT.returnGame.scratch = null; }
+  CHAT.undo.push(before); CHAT.undo = CHAT.undo.slice(-20);
+  const h = game.headers;
+  loadLine(game.line.start, game.line.sans, record || { white: h.White, black: h.Black, result: h.Result, title: h.Event }, game.comments || {}, { gameId: record?.id || null, cursor: ply ?? game.line.sans.length, nags: game.nags || [], preserveChat: true });
+  CHAT.general = false; run.gen = S.gen; run.fen = nodeFen();
+  renderCoachCtx(); await analyse(run.fen, S.depth, 'coach');
+  if (!activeRun(run) || nodeFen() !== run.fen) throw { code: 'cancelled' };
+  return { text: 'Loaded in analysis.', fen: nodeFen(), ply: S.cursor, title: quote(record?.title || h.Event || '', 100) };
+}
+async function submitChat(question) {
+  if (openChallenge()) { answerChallenge(question); return; }
+  let command;
+  try { command = parseChatCommand(Chess, LANG === 'de' ? germanSanToSan(question) : question, actionState().fen, S.start); }
+  catch { command = { error: 'That is not a valid position or command.' }; }
+  if (!command) return askCoach(question);
+  cancelChat();
+  const ctl = COACH.ctl = new AbortController(), run = CHAT.run = { gen: S.gen, signal: ctl.signal, fen: actionState().fen, local: true };
+  const chat = $('#chat'), label = conversationLabel(), board = captureBoard();
+  chat.append(el('div', { class: 'msg user' }, question));
+  const bubble = el('div', { class: 'msg coach thinking' }, 'Thinking…'); chat.append(bubble);
+  $('#coachSend').disabled = true; $('#coachStop').hidden = false;
+  try {
+    const r = command.error ? command : await chatAction(command.name, command.input, run, command);
+    if (!activeRun(run)) { bubble.remove(); return; }
+    bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'));
+    pinMessage(bubble, r.error ? label : conversationLabel(), r.error ? board : captureBoard());
+    bubble.append(el('p', {}, r.error || r.text || 'Board updated.'));
+    if (r.fen) bubble.append(el('p', { class: 'mono', translate: 'no' }, `${r.fen.split(' ')[1] === 'w' ? t('White') : t('Black')} · ${r.fen.split(' ')[2]}`));
+    chatTurns.push({ role: 'user', content: quote(question, 500) }, { role: 'assistant', content: JSON.stringify(r) });
+  } catch (e) { if (e?.code === 'cancelled') bubble.remove(); else bubble.replaceChildren(coachError(e)); }
+  finally { if (COACH.ctl === ctl) { COACH.ctl = null; CHAT.run = null; $('#coachSend').disabled = false; $('#coachStop').hidden = true; } chat.scrollTop = chat.scrollHeight; }
+}
 async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   if (!COACH.sample) return; // the dialogue says why (#coachOff)
   if (atNode !== null && atNode !== S.cursor) goTo(atNode);
   const i = atNode ?? S.cursor, gen = S.gen;
   const fen = S.nodes[i].fen;
   // Own tag, so moving around the board (which cancels 'live' analysis) doesn't starve the coach.
-  if (!anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'coach');
-  if (i > 0 && !anaOf(S.nodes[i - 1].fen)) await analyse(S.nodes[i - 1].fen, S.depth, 'coach');
+  if (!CHAT.general && !anaOf(fen) && terminalCp(fen) === null) await analyse(fen, S.depth, 'coach');
+  if (S.gen !== gen) return;
+  if (!CHAT.general && i > 0 && !anaOf(S.nodes[i - 1].fen)) await analyse(S.nodes[i - 1].fen, S.depth, 'coach');
   // A line on the scratch board (TODO 4.5): the coach gets it with Stockfish's view at its end.
   const scratch = scratchFacts();
-  if (scratch && engineView(S) === 'all' && terminalCp(scratch.end) === null) await analyse(scratch.end, S.depth, 'coach');
+  if (!CHAT.general && scratch && engineView(S) === 'all' && terminalCp(scratch.end) === null) await analyse(scratch.end, S.depth, 'coach');
   if (S.gen !== gen || S.nodes[i]?.fen !== fen) return; // the game changed while the engine ran
   COACH.ctl?.abort();
   const ctl = COACH.ctl = new AbortController();
+  const run = CHAT.run = { gen, signal: ctl.signal, fen: actionState().fen, i, view: engineView(S), scratch, board: CHAT.general ? null : captureBoard(), label: conversationLabel() };
   const chat = $('#chat');
   chat.append(el('div', { class: 'msg user' }, question));
   const bubble = el('div', { class: 'msg coach thinking' }, el('span', { class: 'who' }, 'Coach'), 'Thinking…');
@@ -1862,29 +2093,35 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   chat.setAttribute('aria-busy', 'true'); // screen readers announce the finished answer once, not every streamed chunk
   $('#coachStop').hidden = false; $('#coachSend').disabled = true;
   const view = engineView(S);
-  const render = (text, check = null) => { bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); const body = el('div'); renderRich(body, text, fen, check); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
+  const render = (text, check = null) => { if (!activeRun(run)) return; bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); pinMessage(bubble, run.label, run.board); const body = el('div'); renderRich(body, text, run.scratch?.end || (run.board ? run.board.state.nodes[run.i].fen : fen), check); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
   try {
-    const history = chatTurns.slice(-8);
-    const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${contextFor(i, { view, scratch })}\n\nQuestion: ${question}` }];
+    const history = (CHAT.general ? CHAT.generalTurns : chatTurns).slice(-8);
+    const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${conversationContext(i, view, scratch)}\n\nQuestion: ${question}` }];
     const status = msg => { bubble.classList.add('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), msg); };
     const opts = { signal: ctl.signal, cache: false, task, onText: ({ text }) => text && render(text) };
     // Engine tools (TODO 4.11) where the engine's view is allowed anyway, never during a game with less help.
-    const { text, truncated, usage, evidence = [] } = toolsUsable(task) && view === 'all'
-      ? await sampleWithTools(turns, { ...opts, onStatus: status }) : await COACH.sample(turns, opts);
+    const { text, truncated, usage, evidence = [] } = toolsUsable(task)
+      ? await sampleWithTools(turns, { ...opts, onStatus: status, run }) : await COACH.sample(turns, opts);
+    if (!activeRun(run)) { bubble.remove(); return; }
     const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
-    render(full, checkFor(full, i, view, scratch, evidence));
+    render(full, run.board ? checkFor(full, run.i, run.view, run.scratch, evidence, run.board.state) : null);
     if (evidence.length) bubble.append(evidenceBox(evidence));
     const note = usageNote(usage); if (note) bubble.append(note);
-    chatTurns.push({ role: 'user', content: `[At ${i ? moveLabel(i) : 'start'}] ${question}` }, { role: 'assistant', content: text });
+    const targetHistory = run.board ? chatTurns : CHAT.generalTurns;
+    targetHistory.push({ role: 'user', content: `[${quote(run.label, 200)}] ${question}` }, { role: 'assistant', content: text });
   } catch (e) {
     if (e?.text) render(e.text);
     else if (e?.code === 'cancelled') bubble.remove();
     else { bubble.classList.remove('thinking'); bubble.dataset.error = e?.code || 'error'; bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), coachError(e)); }
     if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled'].includes(e?.code)) { COACH.sample = null; $('#coachOff').hidden = false; $('#coachSend').disabled = true; renderChips(); }
   } finally {
-    if (COACH.ctl === ctl) { $('#coachStop').hidden = true; $('#coachSend').disabled = !COACH.sample; chat.removeAttribute('aria-busy'); }
+    if (COACH.ctl === ctl) { COACH.ctl = null; CHAT.run = null; $('#coachStop').hidden = true; $('#coachSend').disabled = false; chat.removeAttribute('aria-busy'); }
     if ($('#settings').open) refreshGateway(); // today's usage
   }
+}
+function conversationContext(i, view, scratch) {
+  return CHAT.general ? `The player chose General chess. No board position or engine data is supplied. Discuss general ideas; do not invent concrete variations. Use load tools only if the player asks to see a game or position. Player: ${LEVELS[S.level]}.`
+    : `Active panel: ${$('.tabs [aria-selected="true"]')?.dataset.tab || 'game'}.\n${contextFor(i, { view, scratch })}`;
 }
 // ---------------------------------------------------------------- Engine tools (TODO 4.11)
 // The model may ask Stockfish and the motif detectors (src/tools.js). The loop runs here, on the
@@ -1902,29 +2139,41 @@ async function toolEngine(fen, { depth, lines }) {
 }
 const TOOL_DOING = { analyse: 'Stockfish is analysing…', try_move: 'Stockfish is trying a move…', threats: 'Stockfish is looking for threats…', compare: 'Stockfish is comparing moves…', find_mate: 'Stockfish is looking for a mate…', find_motifs: 'Checking the motifs of a line…' };
 const CALL_ID = /^[A-Za-z0-9_-]{1,64}$/;
-async function sampleWithTools(turns, { signal, task, onText, onStatus }) {
+async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
   const msgs = turns.slice(), evidence = [];
   const usage = { input: 0, output: 0, cost: 0 };
   const add = u => { usage.input += u?.input || 0; usage.output += u?.output || 0; usage.cost = typeof u?.cost === 'number' && usage.cost !== null ? usage.cost + u.cost : null; };
   let calls = 0;
   for (let round = 0; round <= TOOL_CAPS.rounds; round++) {
-    const offer = round < TOOL_CAPS.rounds;
+    if (!activeRun(run)) throw { code: 'cancelled' };
+    const offer = round < TOOL_CAPS.rounds && calls < TOOL_CAPS.calls;
+    const names = [...(!CHAT.general && engineView(S) === 'all' ? ENGINE_TOOL_NAMES : []), ...CHAT_TOOL_NAMES];
     let r;
-    try { r = await COACH.sample(msgs, { signal, cache: false, task, onText, ...(offer ? { tools: TOOL_NAMES } : {}) }); }
+    try { r = await COACH.sample(msgs, { signal, cache: false, task, onText, ...(offer ? { tools: names } : {}) }); }
     catch (e) {
       // A model without tools (some Ollama models) refuses the request: ask again without them.
       if (round === 0 && ['provider_rejected', 'provider_error'].includes(e?.code)) { TOOLS_OFF = true; return { ...(await COACH.sample(turns, { signal, cache: false, task, onText })), evidence }; }
       throw e;
     }
+    if (!activeRun(run)) throw { code: 'cancelled' };
     add(r.usage);
     // Only calls the gateway would accept back: known tools, sane ids. Others are dropped.
     const toolCalls = (r.toolCalls || []).filter(c => TOOL_NAMES.includes(c?.name) && CALL_ID.test(c?.id)).slice(0, TOOL_CAPS.calls);
     if (!offer || !toolCalls.length) return { ...r, usage: usage.input + usage.output ? usage : r.usage, evidence };
-    msgs.push({ role: 'assistant', content: r.text || '', toolCalls: toolCalls.map(c => ({ id: c.id, name: c.name, input: c.input && typeof c.input === 'object' && JSON.stringify(c.input).length <= 2000 ? c.input : {} })) });
+    msgs.push({ role: 'assistant', content: r.text || '', toolCalls: toolCalls.map(c => ({ id: c.id, name: c.name, input: c.input && typeof c.input === 'object' && !Array.isArray(c.input) && JSON.stringify(c.input).length <= 2000 ? c.input : {} })) });
     for (const c of toolCalls) {
-      const chk = ++calls > TOOL_CAPS.calls ? { ok: false, why: 'too many tool calls for one answer: answer with what you have' } : checkToolCall(Chess, c.name, c.input);
+      if (!activeRun(run)) throw { code: 'cancelled' };
+      const isChat = CHAT_TOOL_NAMES.includes(c.name);
+      const chk = ++calls > TOOL_CAPS.calls ? { ok: false, why: 'too many tool calls for one answer: answer with what you have' }
+        : !names.includes(c.name) ? { ok: false, why: 'That tool is not available with the current help setting.' }
+        : isChat ? { ok: true } : checkToolCall(Chess, c.name, c.input);
       let result;
-      if (chk.ok) {
+      if (chk.ok && isChat) {
+        result = await chatAction(c.name, c.input, run);
+        if (result.fen && !result.error) {
+          run.i = S.cursor; run.view = engineView(S); run.scratch = scratchFacts(); run.board = captureBoard(); run.label = conversationLabel();
+        }
+      } else if (chk.ok) {
         onStatus?.(TOOL_DOING[c.name]);
         const out = await runTool(Chess, toolEngine, chk);
         evidence.push({ name: chk.name, args: chk.args, result: out.result, lines: out.lines });
@@ -1932,6 +2181,8 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus }) {
       } else result = { error: chk.why };
       msgs.push({ role: 'tool', toolCallId: c.id, content: JSON.stringify(result) });
     }
+    if (!activeRun(run)) throw { code: 'cancelled' };
+    if (toolCalls.some(c => CHAT_TOOL_NAMES.includes(c.name) && !c.name.startsWith('search_'))) msgs.push({ role: 'user', content: conversationContext(S.cursor, engineView(S), scratchFacts()) });
     onStatus?.('Thinking…');
   }
 }
@@ -1988,6 +2239,7 @@ function renderInteresting() {
 // The open challenge, if it's for the position on the board.
 function openChallenge() { const c = TUTOR.challenge; return c && c.gen === S.gen && c.i === S.cursor ? c : null; }
 async function startChallenge(i) {
+  CHAT.general = false; renderCoachCtx();
   const n = S.nodes[i], fen = n.fen, gen = S.gen;
   if (engineView(S) !== 'all') { toast('Challenges need the engine\'s view: analysis, or Full engine help in a game.'); return; }
   if (terminalCp(fen) !== null) return;
@@ -2040,6 +2292,7 @@ function renderProgress() {
 // Comments on node i, in the dialogue beside the board.
 async function commentOn(i) {
   if (!COACH.sample) return;
+  CHAT.general = false; renderCoachCtx();
   const n = S.nodes[i]; const fen = n.fen, gen = S.gen;
   const view = engineView(S); const { use } = aspectsFor(S.aspects, view);
   if (view !== 'none') {
@@ -2103,17 +2356,17 @@ function coachError(e) {
 // the better line at each turning point (reviewFacts), so those count as backed too.
 // With `scratch` (scratchFacts), the line the player tried and Stockfish's line after it count too;
 // with `evidence` (the tool results), the lines the tools showed. `starts`: where those lines begin.
-function checkFor(text, i, view, scratch = null, evidence = []) {
-  const fen = S.nodes[i].fen, prevFen = i > 0 ? S.nodes[i - 1].fen : null;
+function checkFor(text, i, view, scratch = null, evidence = [], state = S) {
+  const fen = scratch?.end || state.nodes[i].fen, prevFen = scratch ? scratch.prev : i > 0 ? state.nodes[i - 1].fen : null;
   const pvs = f => (anaOf(f)?.lines || []).map(l => l.pv);
-  const review = S.reviewDone && view === 'all';
+  const review = state.reviewDone && view === 'all';
   const tried = [...(scratch ? [scratch.sans, ...(view === 'all' ? pvs(scratch.end).slice(0, 2).map(pv => pvSans(Chess, scratch.end, pv, 6)) : [])] : []), ...evidence.flatMap(e => e.lines)];
-  const starts = evidence.flatMap(e => [e.args.fen, ...(e.name === 'threats' ? [flipSide(Chess, e.args.fen)] : [])]).filter(Boolean);
-  return { starts, ...checkAnswer(Chess, parseBoardBlock(text).text, {
+  const starts = [...(scratch ? [scratch.start] : []), ...evidence.flatMap(e => [e.args.fen, ...(e.name === 'threats' ? [flipSide(Chess, e.args.fen)] : [])])].filter(Boolean);
+  return { starts, prevFen, ...checkAnswer(Chess, parseBoardBlock(text).text, {
     fen, prevFen,
     lines: view === 'all' ? pvs(fen) : [],
     prevLines: prevFen && view !== 'none' ? pvs(prevFen) : [],
-    game: S.nodes.slice(1, review ? S.nodes.length : i + 1).map(n => n.san),
+    game: state.nodes.slice(1, review ? state.nodes.length : i + 1).map(n => n.san),
     extra: [...(review ? keyMoments(6).map(({ i: k }) => { const pf = S.nodes[k - 1].fen; return pvSans(Chess, pf, anaOf(pf)?.lines[0]?.pv || [], 6); }) : []), ...tried],
   }) };
 }
@@ -2127,7 +2380,7 @@ function renderRich(box, text, fen = nodeFen(), check = null) {
   const block = parseBoardBlock(text);
   text = block.text;
   const k = S.nodes.findIndex(n => n.fen === fen);
-  const lines = check ? linesInAnswer(Chess, text, check.moves, { fen, prevFen: k > 0 ? S.nodes[k - 1].fen : null, starts: check.starts || [] }) : null;
+  const lines = check ? linesInAnswer(Chess, text, check.moves, { fen, prevFen: check.prevFen ?? (k > 0 ? S.nodes[k - 1].fen : null), starts: check.starts || [] }) : null;
   const marks = lines ? lines.moves.map(m => ({ ...m, lineRef: m.line !== undefined ? lines.lines[m.line] : null })) : null; // in text order, one per SAN_RE match
   const blocks = text.replace(/\r/g, '').split(/\n{2,}/);
   for (const b of blocks) {
@@ -2258,8 +2511,8 @@ $('#scratchAsk').addEventListener('click', () => { if (SCRATCH?.sans.length) ask
 // The line on the scratch board, for the coach's context and the answer check (TODO 4.6): a copy,
 // since the player may keep playing while the answer streams.
 function scratchFacts() {
-  if (!SCRATCH?.sans.length) return null;
-  return { start: SCRATCH.start, sans: SCRATCH.sans.slice(), ucis: SCRATCH.ucis.slice(), end: SCRATCH.fens.at(-1), text: lineText(SCRATCH) };
+  if (!SCRATCH) return null;
+  return { start: SCRATCH.start, sans: SCRATCH.sans.slice(0, SCRATCH.i), ucis: SCRATCH.ucis.slice(0, SCRATCH.i), end: SCRATCH.fens[SCRATCH.i], prev: SCRATCH.i ? SCRATCH.fens[SCRATCH.i - 1] : null, text: lineText(SCRATCH, SCRATCH.i) };
 }
 
 // An answer's board marks (TODO 4.2): {fen, shapes}, drawn while the board shows that position.
@@ -2349,6 +2602,7 @@ function reviewFacts() {
 }
 async function writeSummary() {
   if (!COACH.sample) return;
+  const gen = S.gen;
   const btn = $('#btnSummary'); const box = $('#summaryBox');
   btn.disabled = true; box.replaceChildren(el('span', { class: 'empty-note' }, 'Thinking…'));
   const { c, acc } = tally(); const names = playerNames();
@@ -2358,7 +2612,8 @@ async function writeSummary() {
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });
   const prompt = `${COACH_RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
   try {
-    const { text } = await COACH.sample(prompt, { onText: ({ text }) => renderRich(box, text), cache: false, task: 'review' });
+    const { text } = await COACH.sample(prompt, { onText: ({ text }) => { if (S.gen === gen) renderRich(box, text); }, cache: false, task: 'review' });
+    if (S.gen !== gen) return;
     S.summary = text; renderRich(box, text);
     if (S.gameId) saveCurrentGame({ quiet: true });
   } catch (e) { box.replaceChildren(e?.text ? e.text : coachError(e)); }
@@ -2590,10 +2845,13 @@ $('#btnReviewStop').addEventListener('click', () => { if (reviewCtl) { reviewCtl
 $('#coachSend').addEventListener('click', () => {
   const q = $('#coachInput').value.trim(); if (!q) return;
   $('#coachInput').value = '';
-  if (openChallenge()) answerChallenge(q); else askCoach(q);
+  submitChat(q);
 });
+$('#chatContext').addEventListener('change', e => { cancelChat(); CHAT.general = e.target.value === 'general'; renderCoachCtx(); });
+$('#chatReturn').addEventListener('click', () => submitChat('return to my game'));
+$('#chatUndo').addEventListener('click', () => submitChat('undo'));
 $('#coachInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#coachSend').click(); } });
-$('#coachStop').addEventListener('click', () => COACH.ctl?.abort());
+$('#coachStop').addEventListener('click', cancelChat);
 $('#libSearch').addEventListener('input', renderLibrary);
 $('#btnImport').addEventListener('click', importPGN);
 $('#btnSaveCurrent').addEventListener('click', () => saveCurrentGame());
@@ -2610,7 +2868,7 @@ document.addEventListener('keydown', e => {
 
 // ---------------------------------------------------------------- Boot
 function start(data) {
-  renderRefTags(); renderChips(); $('#coachSend').disabled = !COACH.sample;
+  renderRefTags(); renderChips(); $('#coachSend').disabled = false;
   let c = null;
   if (data?.pgn) { c = new Chess(); try { c.loadPgn(data.pgn); } catch { c = null; toast('The previous game could not be restored, so a new one was started.'); } }
   if (c) {
