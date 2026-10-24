@@ -1,4 +1,7 @@
 <title>Kibitz: Neurosymbolic Chess Coach</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#3a49d6">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -813,6 +816,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       </div>
     </section>
     <section class="settings-sec" id="providerPrivacy"></section>
+    <section class="settings-sec" id="offlineApp"></section>
     <section class="settings-sec">
       <h3>Engine</h3>
       <div class="field">
@@ -876,6 +880,8 @@ import { sanToSpeech, parseMoveInput } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import { createConsentStore, createPrivacyGate, PRIVACY_KEY } from './platform/privacy.js';
 import { createPrivacyPanel } from './platform/privacy-ui.js';
+import { createOfflinePanel } from './platform/offline-app.js';
+import { offlineCoach, rememberOfflineCoach } from './platform/offline-coach.js';
 import DE from './platform/i18n-de.js';
 import { compileCurriculum, lessonText } from './curriculum/curriculum.js';
 import { CURRICULUM } from './curriculum/catalogue.js';
@@ -982,6 +988,7 @@ let GATEWAY = null; // the local gateway's last status; null inside an artifact 
 async function localSample() {
   let status;
   try { const r = await fetch('api/ai/status'); status = r.ok ? await r.json() : null; } catch { status = null; }
+  if (status) rememberOfflineCoach(browserStorage(), status); else status = offlineCoach(browserStorage());
   GATEWAY = status; renderCoachSettings();
   if (!status?.available) { coachOffText(status); return null; }
   return canUseCoach() ? coachSample : null;
@@ -3031,6 +3038,7 @@ function renderCoachSettings() {
   $('#coachUsage').textContent = [usageText(g.usage, true), userUsageText(g.user, g.paid)].filter(Boolean).join(' ');
   renderUsageLine();
   renderBrowserModel();
+  $('#providerHint').append(...(g.offline ? [el('p', { translate: 'no' }, t('The server is unavailable. Using your previously selected browser coach; its model must already be cached on this device.'))] : []));
 }
 // ---------------------------------------------------------------- In-browser model (TODO 2.16)
 // A small model the page runs itself (browser-llm.js, wllama), when the server has one: just
@@ -3131,10 +3139,10 @@ async function gatewayPost(path, body) {
 }
 async function refreshGateway() {
   if (!GATEWAY) return;
-  try { const r = await fetch('api/ai/status'); if (r.ok) { GATEWAY = await r.json(); renderCoachSettings(); renderStudySearch(); } } catch { /* keep the last status */ }
+  try { const r = await fetch('api/ai/status'); if (r.ok) { GATEWAY = await r.json(); rememberOfflineCoach(browserStorage(), GATEWAY); renderCoachSettings(); renderStudySearch(); } } catch { /* keep the last status */ }
 }
 async function changeGateway(body) {
-  try { GATEWAY = await gatewayPost('config', body); } catch (e) { toast(e.message || coachError(e)); }
+  try { GATEWAY = await gatewayPost('config', body); rememberOfflineCoach(browserStorage(), GATEWAY); } catch (e) { toast(e.message || coachError(e)); }
   renderCoachSettings();
   renderStudySearch();
   setCoach(canUseCoach() ? coachSample : null);
@@ -4569,6 +4577,7 @@ function applyPlayerProfile(profile) {
   renderAll(); renderPlayers();
 }
 const profilePanel = createProfilePanel($('#playerProfile'), { store: PlayerProfile, onChange: applyPlayerProfile, t });
+createOfflinePanel($('#offlineApp'), { t, supported: !window.claude && window.top === window && isSecureContext && 'serviceWorker' in navigator });
 keyboardBoard = createKeyboardBoard($('#keyboardBoard'), { Chess, t, announce: announceKeyboard,
   state: () => ({ fen: SCRATCH ? scratchFen() : nodeFen(), generation: S.gen, orientation: S.orientation,
     allowed: $('#promo').hidden && (SCRATCH ? SCRATCH.free && !new Chess(scratchFen()).isGameOver() : canMove()), visible: !previewing && $('#promo').hidden }),

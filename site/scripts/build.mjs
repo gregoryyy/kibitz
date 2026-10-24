@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
+import { buildOffline } from './build-offline.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const nm = p => path.join(root, 'node_modules', p);
@@ -58,4 +59,6 @@ fs.writeFileSync(path.join(dist, 'index.html'), page);
 fs.writeFileSync(path.join(dist, '_test.html'),
   '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + page + '</body></html>');
 copy(path.join(root, 'src/data.html'), 'data.html');
+copy(path.join(root, 'src/icon.svg'), 'icon.svg');
+buildOffline(dist, page);
 console.log('Built dist/ (' + fs.readdirSync(dist).join(', ') + ')');
