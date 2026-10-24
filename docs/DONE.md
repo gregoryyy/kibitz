@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Conservative PGN import deduplication
+
+TODO items: 7.2.
+
+### Implementation notes
+
+- Added pure `library/import.js`: bounded PGN batch splitting and a derived exact source-document identity. Top-level boundaries support adjacent/headerless games while preserving tag-like text inside comments/variations. Legal mainline/full-FEN validation precedes matching. Outside whitespace, mainline move-number spacing, header order and line-ending convention can vary; original comments, variations, glyphs, explicit/parsed headers and separate source/licence assertions participate in identity.
+- Import compares against this user's current library and earlier batch entries, keeping the first document and every existing ID/PGN/revision intact. Entry origin and generated IDs/timestamps do not change content identity. Legacy records can match without migration; invalid/future metadata and unkeyable documents cannot suppress valid imports. Different source versions remain separate rather than merging annotations/rights.
+- Rechecked deduplication after asynchronous validation, immediately before writes. Duplicate-only imports perform no storage write or index rebuild. Overlapping imports are disabled; added/duplicate/unreadable/failed counts remain separate and localized. Failed/unreadable batches and newly typed replacement input stay available. Limits are 500 games/5 million characters plus the existing per-document limits. Temporary unsaved snapshot cache entries are removed after an attempt.
+- Existing local rollback protects failed writes. Account imports remember individually acknowledged records until snapshots arrive, preventing duplicate partial-save retries during that delay; failed writes gain no credit. Seven browser scenarios cover repeat/within-batch/reloaded matching and zero writes, distinct source content, legacy/future preservation, mixed outcomes and quota retry, delayed overlapping input, fake-account partial acknowledgements and German phone layout. Five logic scenarios cover exact identity, preservation counterexamples, full-FEN studies, invalid/legacy data and bounded source-aware splitting. The phone form/status was inspected visually.
+- Verification: ESLint, JSDoc types and build pass. The complete suites passed 415 unit/gateway tests and 254 browser tests, with one opt-in live test skipped per suite. After the final temporary-cache cleanup, all 415 unit tests and all sixteen focused import/library browser regressions passed again. Providers/account storage use mocks or fake clients.
+
+### Deviations
+
+- Deduplication matches conservative source documents rather than fuzzy game identity. Differently annotated/headered/licensed versions can remain separate even with the same moves, and built-ins are outside the user's import scope. Existing duplicates are not deleted. Account matching uses the current client snapshot plus its acknowledged imports; a future server uniqueness transaction is needed for simultaneous devices.
+
+### Insights
+
+- A mainline-only hash would silently discard distinct annotations, variations and attribution. The original PGN must remain the evidence document; normalization only belongs in a derived comparison key.
+- A successful account write can precede its subscription snapshot. Remembering acknowledgements is necessary for retry-safe deduplication, while counting only records visible in the UI would create new IDs during that gap. Duplicate-only imports must avoid writing so that quota failures cannot turn a harmless repeat into an apparent failed save.
+
+---
+
 ## 2026-10-24 — Play lesson positions against Stockfish
 
 TODO items: 6.8.

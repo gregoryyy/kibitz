@@ -15,7 +15,15 @@ TODO 7.1 establishes the records needed for RAG. `site/src/library/library.js` c
 
 `collection` is `classic` or `library`. This prevents a built-in and a user game with equal local IDs from colliding. User records remain within the existing account or browser storage boundary; these identifiers do not replace ownership checks when server storage is introduced.
 
-Logical game/source IDs survive source-metadata corrections. Occurrence/annotation IDs bind to a particular source revision, so editing the PGN changes them even if an update timestamp stays the same. Equal positions can retain their common position ID across revisions and games. Duplicate imports remain separate documents; a common SHA-256 revision is not automatic game deduplication (7.2).
+Logical game/source IDs survive source-metadata corrections. Occurrence/annotation IDs bind to a particular source revision, so editing the PGN changes them even if an update timestamp stays the same. Equal positions can retain their common position ID across revisions and games. Import deduplication (7.2) uses the conservative source-document identity below; shared positions or an equal mainline alone do not merge sources.
+
+## Import deduplication
+
+`src/library/import.js` derives an in-memory exact key from a legally replayed PGN, its full starting FEN, parsed headers/mainline, original annotation/variation tokens and normalized source/licence assertions. It ignores whitespace outside source strings/comments, mainline move-number spacing, header order and line-ending convention. Comments retain their content, glyphs and RAVs retain their tokens, and headers retain explicit/duplicate tag content as well as their parsed values. Different player/event/result fields, comments, branches, full-FEN counters or rights remain different documents. Entry origin, generated local ID and timestamps do not change content identity. This is conservative document matching, not fuzzy game identification; equivalent chess lines with differently expressed source content can remain separate.
+
+Only the importing user's library and earlier records in the batch participate; built-ins stay separate. Existing IDs, PGN bytes, metadata and revisions are never rewritten. Legacy records can match without migration. Invalid PGN, malformed/future provenance or content that cannot safely receive a key cannot suppress an incoming valid document. Existing duplicates are not deleted retrospectively.
+
+The bounded splitter recognizes top-level header/movetext boundaries, including adjacent/headerless games, without splitting tag-like text inside comments/variations. Imports accept at most 500 games and 5 million characters; each game retains the 200,000-character/4,000-ply limits. Added, duplicate, unreadable and failed-save counts stay separate. A failed/unreadable batch remains for retry, and a newly typed batch is never cleared by an older completion. Overlapping imports are disabled. After asynchronous validation, deduplication rechecks current library records immediately before writing. Duplicate-only batches make no storage write/index rebuild. Failed local writes roll back as before. Account writes remember each acknowledged import until its snapshot arrives, so partial-save retries do not create extra documents during that delay. This is scoped to the current client/account view, not a cross-device database uniqueness transaction.
 
 ## Source assertions
 
@@ -61,7 +69,7 @@ The Library import form accepts optional source fields for its batch. Each user 
 
 Compiled snapshots are derived data, not a second persistent copy of the library. The cache keys on the exact PGN, provenance and kind, not timestamps. SHA-256 uses Web Crypto in the browser/Node. While replacements are compiled, the previous position index is cleared; a library generation guard prevents late work from restoring changed/deleted records. Source-edit actions recheck their target record before writing. Source fields reach coach retrieval context through bounded `quote()` data and are rendered as text; only validated source URLs become links.
 
-The 7.1 slice adds no provider calls, dependency, external corpus, engine evaluation or storage service. SQLite/IndexedDB (7.6) and deduplication (7.2) remain separate work. Labelled position retrieval benchmarks followed in [8.8](RETRIEVAL-EVAL.md), with local lexical passage search and optional scoped memory-only embeddings in [8.3](TEXT-SEARCH.md), and bounded coach retrieval with source citation checks in [8.6](RETRIEVAL-CITATIONS.md).
+The source-record and import slices add no provider calls, dependency, external corpus, engine evaluation or storage service. SQLite/IndexedDB remains 7.6. Labelled position retrieval benchmarks followed in [8.8](RETRIEVAL-EVAL.md), with local lexical passage search and optional scoped memory-only embeddings in [8.3](TEXT-SEARCH.md), and bounded coach retrieval with source citation checks in [8.6](RETRIEVAL-CITATIONS.md).
 
 ## Checks
 
