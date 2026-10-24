@@ -18,7 +18,7 @@ test('the build preserves every source module under its source directory, withou
 });
 
 test('relative imports in the built page and application modules resolve inside the distributable', () => {
-  for (const file of ['index.html', ...modules]) {
+  for (const file of ['index.html', 'data.html', ...modules]) {
     const content = readFileSync(path.join(dist, file), 'utf8');
     for (const [, specifier] of content.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*)['"](\.[^'"]+\.js)['"]/g)) {
       const target = path.resolve(dist, path.dirname(file), specifier);

@@ -19,12 +19,16 @@ The page loads ES modules and Web Workers, so it must be served over HTTP. Openi
 
 The supported target is a **local single-user app**, served on loopback by default. Cloud AI remains optional; Ollama and the in-browser model offer local inference. [Deployment decision](docs/DEPLOYMENT.md) records the scope and implications for accounts, keys and security.
 
+The [threat model](docs/THREAT-MODEL.md) maps data flows, local trust assumptions, tested controls and remaining security verification work. The [OWASP Top 10 checklist](docs/OWASP-TOP10.md) records the code/evidence review and tracked findings; release verification remains open.
+
 ## Quick start
 
 ```bash
 cp .env.example .env   # then set AI_PROVIDER and that provider's key and model
 just serve             # install if needed, build, serve on http://127.0.0.1:8765/
 ```
+
+Before using a network provider, open **Settings → Coach → Provider permissions** and explicitly allow coach requests or embeddings for that provider. Keys alone do not enable sharing. [Privacy and data flows](docs/PRIVACY.md) explain configured endpoints, separate choices and revocation limits.
 
 On start the server prints `AI coach: <provider> / <model>`, or why the coach is off. Other recipes:
 
@@ -79,6 +83,8 @@ The **Classics** library includes 21 games with published score sources and sepa
 In **Library**, search words or combine player, opening/ECO, recorded year range, result and theme filters. Names and theme labels support English/German and accent-insensitive matching. Search works locally; the coach's library tool uses the same filters. **Search detected patterns** separately browses computed position themes and recorded move patterns, with explicit heuristic/candidate/rules labels and exact source navigation; [evidence limits](docs/LIBRARY.md#position-and-move-pattern-tags) distinguish geometric candidates from proven chess facts.
 
 An optional [server library](site/README.md#server-library) stores games and references in a private SQLite file, with a scoped IndexedDB browser cache. Choose it explicitly in Library; the existing browser library stays separate and is never uploaded automatically.
+
+**Settings → Export or erase your data** provides separate confirmed controls for saved browser data and this browser's server library. [Data formats and deletion scope](docs/DATA.md) explain retries, caches and copies outside the app.
 
 The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
 

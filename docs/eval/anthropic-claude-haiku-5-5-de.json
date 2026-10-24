@@ -1,0 +1,543 @@
+{
+  "coach": "anthropic / claude-haiku-5-5",
+  "judge": null,
+  "language": "de",
+  "date": "2026-10-24",
+  "file": "anthropic-claude-haiku-5-5-de.md",
+  "referencePositions": [
+    {
+      "id": "opera-b5",
+      "title": "Opernpartie nach 9… b5",
+      "moves": "e4 e5 Nf3 d6 d4 Bg4 dxe5 Bxf3 Qxf3 dxe5 Bc4 Nf6 Qb3 Qe7 Nc3 c6 Bg5 b5",
+      "chip": "Erkläre den besten Zug",
+      "keyPoints": [
+        {
+          "point": "nennt 10. Nxb5",
+          "all": [
+            "[NS]xb5"
+          ]
+        },
+        {
+          "point": "erkennt das Opfer",
+          "all": [
+            "opfer|gibt? (den |einen )?(springer|figur)"
+          ]
+        },
+        {
+          "point": "Schwarz liegt in der Entwicklung zurück, der König steht im Zentrum",
+          "all": [
+            "entwick|unrochiert|rochad|k(ö|oe)nig.{0,35}(zentrum|e8)"
+          ]
+        },
+        {
+          "point": "öffnet Linien gegen den König",
+          "all": [
+            "offen|öffn|oeffn"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "qh5-threat",
+      "title": "1. e4 e5 2. Qh5 Nc6 3. Bc4: Schwarz am Zug",
+      "moves": "e4 e5 Qh5 Nc6 Bc4",
+      "chip": "Taktik in Sicht?",
+      "keyPoints": [
+        {
+          "point": "Weiß droht Qxf7 matt",
+          "all": [
+            "[QD]xf7|f7",
+            "matt"
+          ]
+        },
+        {
+          "point": "nennt eine Verteidigung: g6, Qe7 oder Qf6",
+          "all": [
+            "\\bg6\\b|[QD]e7|[QD]f6"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "qg5-fork",
+      "title": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5: Schwarz am Zug",
+      "moves": "e4 e5 Nf3 Nc6 Bc4 Nd4 Nxe5",
+      "chip": "Taktik in Sicht?",
+      "keyPoints": [
+        {
+          "point": "nennt Qg5",
+          "all": [
+            "[QD]g5"
+          ]
+        },
+        {
+          "point": "erkennt den Doppelangriff auf Springer e5 und g2",
+          "all": [
+            "e5|springer",
+            "g2"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "elephant-trap",
+      "title": "Damengambit: Elefantenfalle nach 6. Nxd5",
+      "moves": "d4 d5 c4 e6 Nc3 Nf6 Bg5 Nbd7 cxd5 exd5 Nxd5",
+      "chip": "Taktik in Sicht?",
+      "keyPoints": [
+        {
+          "point": "nennt Nxd5",
+          "all": [
+            "[NS]xd5"
+          ]
+        },
+        {
+          "point": "beantwortet Bxd8 mit Bb4+",
+          "all": [
+            "[BL]b4"
+          ]
+        },
+        {
+          "point": "Schwarz gewinnt Material",
+          "all": [
+            "gewinn|figur|material|mehr"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "back-rank",
+      "title": "Grundreihenmatt in einem Zug",
+      "fen": "6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1",
+      "chip": "Erkläre den besten Zug",
+      "keyPoints": [
+        {
+          "point": "nennt Ra8#",
+          "all": [
+            "[RT]a8"
+          ]
+        },
+        {
+          "point": "erkennt das Matt",
+          "all": [
+            "matt"
+          ]
+        },
+        {
+          "point": "der König ist hinter den eigenen Bauern eingeschlossen",
+          "all": [
+            "grundreih|bauer|bauern|f7|g7|h7|flucht"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "iqp-break",
+      "title": "Steinitz–von Bardeleben vor 17. d5",
+      "moves": "e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4 exd4 cxd4 Bb4+ Nc3 d5 exd5 Nxd5 O-O Be6 Bg5 Be7 Bxd5 Bxd5 Nxd5 Qxd5 Bxe7 Nxe7 Re1 f6 Qe2 Qd7 Rac1 c6",
+      "chip": "Was ist der Plan?",
+      "keyPoints": [
+        {
+          "point": "nennt den Durchbruch d5",
+          "all": [
+            "\\bd5\\b"
+          ]
+        },
+        {
+          "point": "erkennt den isolierten Damenbauern",
+          "all": [
+            "isol|d4"
+          ]
+        },
+        {
+          "point": "König im Zentrum oder offene Linien",
+          "all": [
+            "k(ö|oe)nig|e-linie|offen|öffn|oeffn"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "opposition",
+      "title": "König und Bauer: Schwarz hat die Opposition",
+      "fen": "8/8/8/4k3/8/4K3/4P3/8 w - - 0 1",
+      "chip": "Was ist der Plan?",
+      "keyPoints": [
+        {
+          "point": "nennt die Opposition",
+          "all": [
+            "opposition"
+          ]
+        },
+        {
+          "point": "bei bestem Spiel remis",
+          "all": [
+            "remis|unentschieden"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "lucena",
+      "title": "Lucena-Stellung",
+      "fen": "1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1",
+      "chip": "Erkläre den besten Zug",
+      "keyPoints": [
+        {
+          "point": "schneidet den König ab oder drängt ihn mit Rd1+ ab",
+          "all": [
+            "[RT]d1|abschn|abdräng|abdraeng"
+          ]
+        },
+        {
+          "point": "Brückenbau auf der vierten Reihe",
+          "all": [
+            "br(ü|ue)cke|[RT]d4|viert.{0,12}reihe|abschirm"
+          ]
+        },
+        {
+          "point": "Weiß gewinnt",
+          "all": [
+            "gewinn"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "philidor",
+      "title": "Philidor-Stellung: Schwarz am Zug",
+      "fen": "4k3/7R/r7/3KP3/8/8/8/8 b - - 0 1",
+      "chip": "Was ist der Plan?",
+      "keyPoints": [
+        {
+          "point": "der Turm hält die sechste Reihe",
+          "all": [
+            "sechst|dritt|reihe"
+          ]
+        },
+        {
+          "point": "nach dem Bauernvorstoß Schachs von hinten",
+          "all": [
+            "hinten|schach"
+          ]
+        },
+        {
+          "point": "erkennt das Remis",
+          "all": [
+            "remis|unentschieden"
+          ]
+        }
+      ],
+      "language": "de"
+    },
+    {
+      "id": "sicilian-d4",
+      "title": "Sizilianisch nach 3. d4",
+      "moves": "e4 c5 Nf3 d6 d4",
+      "chip": "Was ist der Plan?",
+      "keyPoints": [
+        {
+          "point": "schlägt auf d4 mit cxd4",
+          "all": [
+            "cxd4"
+          ]
+        },
+        {
+          "point": "halboffene c-Linie oder zentrale Bauernmehrheit",
+          "all": [
+            "c-linie|halboffen|halb.offen|mehrheit|zentrum"
+          ]
+        },
+        {
+          "point": "entwickelt mit Nf6",
+          "all": [
+            "[NS]f6|entwick"
+          ]
+        }
+      ],
+      "language": "de"
+    }
+  ],
+  "summary": {
+    "positions": 10,
+    "keys": 0.8583333333333334,
+    "moves": 0.9333333333333333,
+    "judge": null,
+    "overall": 0.8958333333333333,
+    "wrongMoves": 2,
+    "secondsPerAnswer": 16.9058
+  },
+  "results": [
+    {
+      "id": "opera-b5",
+      "title": "Opernpartie nach 9… b5",
+      "question": "Erkläre die Idee hinter Stockfishs bestem Zug in dieser Stellung.",
+      "answer": "? – ? · 9… b5\n\nStockfish's bester Zug ist 10. Nxb5, mit etwa vier Bauern Vorteil für Weiß [+4.28].\n\nDie Idee: Der Springer schlägt den Bauern auf b5, der nach 9... b5 ungedeckt ist, und Schwarz kann die Dame nicht gut verteidigen. Die Engine-Linie geht so: 10... Qb4+ 11. Qxb4 Bxb4+ 12. c3 cxb5 13. Bxb5+ Nbd7. Schwarz tauscht die Damen, aber der Läufer muss sich zurückziehen, und 13. Bxb5+ bringt Weiß mit Schach wieder ins Spiel.\n\nMateriell ist das nicht einfach: In dieser Linie gibt Weiß einen Springer für zwei Bauern. Die hohe Bewertung kommt aus der Kompensation: Schwarz' König steht in der Mitte, seine Figuren sind noch nicht entwickelt, und Weiß hat die bessere Entwicklung und aktive Figuren auf den offenen Linien. Das passt zum Prinzip der offenen Partien aus den Studiennotizen: Entwicklung und Königssicherheit gehen vor Materialgewinn.\n\nDer eigentliche Fehler war 9... b5. Die Engine bevorzugte 9... Na6 [+2.52]. Bei 10. Bxf6 Qxf6 11. Nxb5 [+1.81] bleibt Weiß ebenfalls besser, aber deutlich weniger.\n\nDie Markierung auf dem Brett zeigen",
+      "error": null,
+      "checks": {
+        "all": 16,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Kibitz opening study notes (general background, not engine evidence). Apply only ideas that fit the supplied position. Proposed continuations and evaluations require supplied engine evidence or successful engine tools. Discuss played moves as game history.\n- Guide «open-games», matched by history: «Open games. Idea: Both sides occupy the centre early. Development and king safety matter before collecting material. Plans: White seeks active pieces and a supported central expansion. Black develops with threats against the centre and prepares to contest open files. Pawn structures: Central exchanges can open files quickly; a closed centre needs a different pace.»\n\nPlayer: club player, analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 *\nCurrent position (FEN): rn2kb1r/p3qppp/2p2n2/1p2p1B1/2B1P3/1QN5/PPP2PPP/R3K2R w KQkq - 0 10\nBoard:\n   +------------------------+\n 8 | r  n  .  .  k  b  .  r |\n 7 | p  .  .  .  q  p  p  p |\n 6 | .  .  p  .  .  n  .  . |\n 5 | .  p  .  .  p  .  B  . |\n 4 | .  .  B  .  P  .  .  . |\n 3 | .  Q  N  .  .  .  .  . |\n 2 | P  P  P  .  .  P  P  P |\n 1 | R  .  .  .  K  .  .  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nOpening: C41 Philidor Defense.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +4.28  10. Nxb5 Qb4+ 11. Qxb4 Bxb4+ 12. c3 cxb5 13. Bxb5+ Nbd7\n  2. +1.81  10. Bxf6 Qxf6 11. Nxb5 cxb5 12. Bxb5+ Nc6 13. Qd5 Rc8\n  3. +0.09  10. Be2 Nbd7 11. a3 Nc5 12. Qa2 a6 13. Be3 Qc7\nLast move: 9… b5, rated mistake by the engine (win chance for the mover 28% → 17%).\nEngine preferred Na6 instead: +2.52 9… Na6 10. Bxa6 bxa6 11. O-O Qb4 12. Bxf6\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Opening play (Move 9, still in known opening territory); 1.e4 e5 open games (C41 Philidor Defense).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's bishop on g5 is loose (no defender); White's bishop on c4 is attacked by a cheaper piece; White's rook on a1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Opening play, 1.e4 e5 open games.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Opening play, 1.e4 e5 open games.",
+      "ms": 18579,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          false,
+          true,
+          true
+        ],
+        "keys": 0.75,
+        "moves": 1,
+        "judge": null,
+        "overall": 0.875
+      }
+    },
+    {
+      "id": "qh5-threat",
+      "title": "1. e4 e5 2. Qh5 Nc6 3. Bc4: Schwarz am Zug",
+      "question": "Liegt gerade für eine Seite Taktik in der Luft? Worauf sollte ich achten?",
+      "answer": "? – ? · 3. Bc4\n\nJa, es gibt eine konkrete Drohung, und zwar für Weiß. Der Damenzug auf h5 und der Läufer auf c4 zielen beide auf f7, und 4. Qxf7# wäre Matt. Das Feld e7 ist von der Dame auf f7 aus erreichbar, und ~~Kxf7~~ scheitert am Läufer auf c4. Du musst also jetzt auf f7 reagieren.\n\nDer naheliegende Zug 3... Nf6 sieht aus, als würde er die Dame angreifen, verliert aber sofort: Nach 4. Qxf7# ist es matt. Stockfish bewertet das als klaren Fehler.\n\nGute Antworten sind laut Engine:\n- 3... g6 (beste Fortsetzung, etwa 0,4 Bauern besser für Schwarz [-0,39]): Der Bauer blockiert die Diagonale h5–f7 und greift gleichzeitig die Dame an.\n- 3... Qe7 (etwa 0,2 Bauern schlechter für Schwarz [+0,23]): Die Dame deckt f7 direkt.\n- 3... Qf6 (etwa 0,1 Bauern besser für Weiß [+0,10]): Auch hier deckt die Dame f7, die Stellung ist aber etwas unangenehmer.\n\nMerke dir für die Zukunft: Wenn die Dame früh auf h5 steht und der Läufer auf c4 zielt, ist f7 der Schwachpunkt. Prüfe bei jedem Zug, ob er diese Drohung offen lässt.\n\nDie Markierung auf dem Brett zeigen\n\nStockfish checked 2 things für this answer\n\n- analyse, depth 14: -0.37 3... g6 4. Qd1 Nf6 5. Nc3 Bg7 6. d3 O-O 7. Nf3 Nd4 8. O-O · -0.12 3... Qe7 4. Qd1 Qh4 5. Nc3 Bc5 6. Qf3 Nh6 7. g3 Qd8 8. d3 · +0.22 3... Qf6 4. Nc3 Bc5 5. Nf3 g6 6. Qg5 h6 7. Qg3 Nge7 8. Nb5\n\n- try Nf6: a mistake: it loses material or position (#1; best g6 -0.36), reply 4. Qxf7#",
+      "error": null,
+      "checks": {
+        "all": 10,
+        "invalid": 1,
+        "unchecked": 3
+      },
+      "context": "Kibitz opening study notes (general background, not engine evidence). Apply only ideas that fit the supplied position. Proposed continuations and evaluations require supplied engine evidence or successful engine tools. Discuss played moves as game history.\n- Guide «open-games», matched by history: «Open games. Idea: Both sides occupy the centre early. Development and king safety matter before collecting material. Plans: White seeks active pieces and a supported central expansion. Black develops with threats against the centre and prepares to contest open files. Pawn structures: Central exchanges can open files quickly; a closed centre needs a different pace.»\nNamed opening catalogue (metadata, not engine evidence). Names identify possible branches, not the strongest moves or their frequency. Use Stockfish lines or engine tools before recommending a concrete continuation.\n- 3... Nh6: «C20 King's Pawn Game: Wayward Queen Attack, Mellon Gambit»; 6 further plies to that name.\n\nPlayer: club player, analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Qh5 Nc6 3. Bc4 *\nCurrent position (FEN): r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3\nBoard:\n   +------------------------+\n 8 | r  .  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  n  .  .  .  .  . |\n 5 | .  .  .  .  p  .  .  Q |\n 4 | .  .  B  .  P  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  P  P  .  P  P  P |\n 1 | R  N  B  .  K  .  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: C20 King's Pawn Game: Wayward Queen Attack.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. −0.39  3… g6 4. Qf3 Nf6 5. Ne2 d6 6. h3 Bg7 7. O-O\n  2. −0.23  3… Qe7 4. Qd1 Qh4 5. Nc3 Bc5 6. g3 Qf6 7. Nf3\n  3. +0.10  3… Qf6 4. Nc3 Bc5 5. Nf3 g6 6. Qg5 Nd4 7. Qxf6\nLast move: 3. Bc4, rated best by the engine (win chance for the mover 47% → 46%).\nInteresting alternatives to the best move g6 (+0.39 for the side to move), from Stockfish's lines:\n  - Qe7: rank 2, +0.23, 0.16 below the best. different plan: a different idea: a queen move on the centre, where the best move is a pawn move on the kingside.\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Opening play (Move 3, still in known opening territory); 1.e4 e5 open games (C20 King's Pawn Game: Wayward Queen Attack).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's queen on h5 is loose (no defender); White's bishop on c4 is loose (no defender); White's rook on a1 is loose (no defender); White's bishop on c1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Opening play, 1.e4 e5 open games.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Opening play, 1.e4 e5 open games.",
+      "ms": 18846,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true
+        ],
+        "keys": 1,
+        "moves": 0.6666666666666667,
+        "judge": null,
+        "overall": 0.8333333333333334
+      }
+    },
+    {
+      "id": "qg5-fork",
+      "title": "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5: Schwarz am Zug",
+      "question": "Liegt gerade für eine Seite Taktik in der Luft? Worauf sollte ich achten?",
+      "answer": "? – ? · 4. Nxe5\n\nJa, es gibt sofort taktische Motive, und zwar auf beiden Seiten. Du bist am Zug.\n\nWeißes Motiv: Bxf7+ ist die Drohung. Der Läufer schlägt mit Schach auf f7 und greift dabei den Turm auf h8 an. Stockfish bewertet das ohne Gegenmaßnahme mit etwa +5,49 für Weiß, also ein gewaltiger Vorteil. Deshalb musst du zuerst reagieren.\n\nDeine Chance: Nd4 steht frei, und ~~Ne5~~ hängt ebenfalls, weil niemand es deckt. Der stärkste Zug laut Engine ist 4... Qg5, der den Springer auf e5 angreift. Die Hauptlinie ist 5. Bxf7+ Kd8 6. O-O Qxe5, und Schwarz steht etwa einen halben Bauern besser [-0,62]. Die Alternative 4... Qe7 (+0,69 für Weiß) gibt nach 5. Nxf7 Qxe4+ zwar den Bauern zurück, aber Weiß bleibt aktiver.\n\nWas du beachten solltest: Der Läufer auf c4 und der Springer auf e5 sind die weißen Figuren, auf die du achten musst. Die Gabel 4... Nxc2+ wäre ein Fehler, weil 5. Qxc2 den Springer für einen Bauern nimmt.\n\nDie 2 Markierungen auf dem Brett zeigen\n\nStockfish checked 2 things für this answer\n\n- threat for White: 4. Bxf7+ Ke7 5. Bxg8 Rxg8 6. c3 d6 (+5.49)\n\n- analyse, depth 14: -0.62 4... Qg5 5. Bxf7+ Kd8 6. O-O Qxe5 7. c3 Ne6 8. d3 Qf6 9. Bh5 · +0.69 4... Qe7 5. Nxf7 Qxe4+ 6. Kf1 d5 7. Nc3 Qf5 8. Bxd5 Nf6 9. Bc4 · +0.82 4... d5 5. Bxd5 Qg5 6. Bxf7+ Kd8 7. d3 Qxg2 8. Rf1 Nf6 9. Be3",
+      "error": null,
+      "checks": {
+        "all": 15,
+        "invalid": 1,
+        "unchecked": 0
+      },
+      "context": "Kibitz opening study notes (general background, not engine evidence). Apply only ideas that fit the supplied position. Proposed continuations and evaluations require supplied engine evidence or successful engine tools. Discuss played moves as game history.\n- Guide «italian», matched by history: «Italian Game. Idea: The king bishop develops actively while the centre remains flexible. Plans: White coordinates development with a central break. Black seeks the same central activity and should avoid falling behind in development. Pawn structures: Quiet central pawn chains can turn into an open centre after exchanges. A bishop aimed at the king is useful only when the rest of the army can join.»\n\nPlayer: club player, analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5 *\nCurrent position (FEN): r1bqkbnr/pppp1ppp/8/4N3/2BnP3/8/PPPP1PPP/RNBQK2R b KQkq - 0 4\nBoard:\n   +------------------------+\n 8 | r  .  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  N  .  .  . |\n 4 | .  .  B  n  P  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  P  P  .  P  P  P |\n 1 | R  N  B  Q  K  .  .  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: C50 Italian Game: Blackburne-Kostić Gambit.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. −0.62  4… Qg5 5. Bxf7+ Kd8 6. O-O Qxe5 7. d3 Nh6 8. Bd5\n  2. +0.87  4… d5 5. Bxd5 Qg5 6. Bxf7+ Kd8 7. d3 Qxg2 8. Rf1\n  3. +0.96  4… Qe7 5. Nxf7 Qxe4+ 6. Kf1 d5 7. Nc3 Qxc2 8. Qxc2\nLast move: 4. Nxe5, rated mistake by the engine (win chance for the mover 61% → 44%).\nEngine preferred Nxd4 instead: +1.16 4. Nxd4 exd4 5. O-O Nf6 6. Re1 d6\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Opening play (Move 4, still in known opening territory); Italian Game (C50 Italian Game: Blackburne-Kostić Gambit).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's knight on e5 is loose (no defender); Black's knight on d4 is loose (no defender); White's rook on a1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Evergreen Game: Adolf Anderssen vs Jean Dufresne, Berlin 1852. The Evans Gambit: lines opened in the centre, a quiet rook move that allows the queen to be taken, and a double check. Themes: Italian Game.\n  - Steinitz's rook dance: Wilhelm Steinitz vs Curt von Bardeleben, Hastings 1895. An isolated queen pawn pushed at the right moment, then a rook that checks on the seventh rank and cannot be taken. Themes: Italian Game.",
+      "ms": 28193,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true
+        ],
+        "keys": 1,
+        "moves": 0.6666666666666667,
+        "judge": null,
+        "overall": 0.8333333333333334
+      }
+    },
+    {
+      "id": "elephant-trap",
+      "title": "Damengambit: Elefantenfalle nach 6. Nxd5",
+      "question": "Liegt gerade für eine Seite Taktik in der Luft? Worauf sollte ich achten?",
+      "answer": "? – ? · 6. Nxd5\n\nJa, und die Taktik liegt klar bei Schwarz. Du musst jetzt den Springer auf d5 schlagen.\n\nDer Läufer auf g5 greift die Dame auf d8 über f6 und e7 an, aber der Springer auf f6 blockiert diese Linie. Sobald der Springer nach d5 geht, steht die Dame auf d8 direkt unter Beschuss, und Weiß muss sie zuerst mit 7. Bxd8 tauschen. Dann folgt 7... Bb4+ 8. Qd2 Bxd2+ 9. Kxd2 Kxd8. Schwarz hat danach einen Springer und einen Bauern mehr im Gegenzug für die Dame, etwa 4,7 Bauern Vorteil für Schwarz [-4.66] laut Stockfish.\n\nDie Engine stuft 6... Nxd5 als einzig gute Antwort ein. Andere Züge wie 6... h6 oder 6... c6 führen nur zu einem Vorteil für Weiß von etwa einem Bauern [+0.80 bis +1.11].\n\nAchte außerdem darauf, dass dein Springer auf f6 an die Dame gebunden ist, solange der Läufer auf g5 steht. Dieses Muster solltest du dir merken: Wenn ein Gegner einen Läufer auf der Diagonale zu deiner Dame stehen hat und ein Stein dazwischen steht, kann dieser Stein mit Tempo ziehen.\n\nDie Markierung auf dem Brett zeigen\n\nStockfish checked 2 things für this answer\n\n- analyse, depth 14, only one move holds: -4.66 6... Nxd5 7. Bxd8 Bb4+ 8. Qd2 Bxd2+ 9. Kxd2 Kxd8 10. e4 Ne7 11. Bd3 · +0.80 6... h6 7. Bxf6 Nxf6 8. Nc3 c5 9. e3 a6 10. Nf3 cxd4 11. Qxd4 · +1.11 6... c6 7. Nc3 h6 8. Bd2 c5 9. e3 cxd4 10. exd4 Be7\n\n- threat for White: 6. Qc2 c6 7. Nc3 Bb4 8. e4 c5 (+1.65)",
+      "error": null,
+      "checks": {
+        "all": 11,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Kibitz opening study notes (general background, not engine evidence). Apply only ideas that fit the supplied position. Proposed continuations and evaluations require supplied engine evidence or successful engine tools. Discuss played moves as game history.\n- Guide «queens-gambit», matched by history: «Queen’s Gambit. Idea: White challenges Black’s central foothold with a wing pawn while building a centre of their own. Plans: White develops pressure against the centre. Black completes development and prepares a freeing pawn break instead of defending passively. Pawn structures: Exchanges may lead to a Carlsbad structure, an isolated d-pawn or hanging pawns. These are possible outcomes, not features of every Queen’s Gambit.»\n\nPlayer: club player, analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Nbd7 5. cxd5 exd5 6. Nxd5 *\nCurrent position (FEN): r1bqkb1r/pppn1ppp/5n2/3N2B1/3P4/8/PP2PPPP/R2QKBNR b KQkq - 0 6\nBoard:\n   +------------------------+\n 8 | r  .  b  q  k  b  .  r |\n 7 | p  p  p  n  .  p  p  p |\n 6 | .  .  .  .  .  n  .  . |\n 5 | .  .  .  N  .  .  B  . |\n 4 | .  .  .  P  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  .  .  P  P  P  P |\n 1 | R  .  .  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: D51 Queen's Gambit Declined: Modern Variation, Knight Defense.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. −4.93  6… Nxd5 7. Bxd8 Bb4+ 8. Qd2 Bxd2+ 9. Kxd2 Kxd8 10. e4\n  2. +0.75  6… h6 7. Bxf6 Nxf6 8. Nc3 Bd7 9. e3 Bb4 10. Bc4\n  3. +1.03  6… c6 7. Nc3 Bb4 8. Nf3 O-O 9. Bd2 Bxc3 10. bxc3\nMotifs in the engine's best move: Nxd5 uncovers an attack on the bishop on g5; Nxd5 wins a loose knight.\nLast move: 6. Nxd5, rated blunder by the engine (win chance for the mover 54% → 14%).\nEngine preferred e3 instead: +0.41 6. e3 c6 7. Bd3 Be7 8. Qc2 h6\nWhy it hurts: the reply Nxd5 — Nxd5 uncovers an attack on the bishop on g5; Nxd5 wins a loose knight.\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Opening play (Move 6, still in known opening territory); Queen's Gambit (D51 Queen's Gambit Declined: Modern Variation, Knight Defense).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's knight on d5 is attacked and not defended; White's bishop on g5 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Evergreen Game: Adolf Anderssen vs Jean Dufresne, Berlin 1852. The Evans Gambit: lines opened in the centre, a quiet rook move that allows the queen to be taken, and a double check. Themes: Discovered attack.\n  - The Game of the Century: Donald Byrne vs Robert James Fischer, New York 1956. A 13-year-old's queen sacrifice: Black gives the queen for a decisive lead in material and a king that cannot escape the checks. Themes: Discovered attack.",
+      "ms": 35933,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true,
+          true
+        ],
+        "keys": 1,
+        "moves": 1,
+        "judge": null,
+        "overall": 1
+      }
+    },
+    {
+      "id": "back-rank",
+      "title": "Grundreihenmatt in einem Zug",
+      "question": "Erkläre die Idee hinter Stockfishs bestem Zug in dieser Stellung.",
+      "answer": "Custom position · start\n\nRa8# ist Matt, und der Gedanke dahinter ist die Grundreihe. Der schwarze König steht auf g8, und seine eigenen Bauern auf f7, g7 und h7 sperren ihn ein. Die Turm-Schach auf der 8. Reihe kann er nicht ausweichen, denn f8 und h8 liegen ebenfalls auf der Reihe und bleiben vom Turm angegriffen. Auf f7, g7 oder h7 kommt er nicht, weil dort seine eigenen Bauern stehen.\n\nSchwarz kann die Linie auch nicht blockieren, weil nur Bauern da sind und keine Figur auf die Reihe zwischen a8 und g8 gehen kann.\n\nDie Lehre für dich: Wenn der gegnerische König hinter einer geschlossenen Bauernwand steht, ist die Grundreihe seine Schwachstelle. Achte in solchen Stellungen zuerst darauf, ob ein Turm auf die offene Reihe kommen kann. Die Alternativen wie 1. g4 oder 1. Kf1 sind mit etwa +7,5 (also rund sieben Bauern Vorteil für Weiß) zwar auch gewonnen, aber der Matt-Zug ist die sofortige Entscheidung.\n\nDie Markierung auf dem Brett zeigen",
+      "error": null,
+      "checks": {
+        "all": 5,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "\nPlayer: club player, analysing a game.\nMoves so far: *\nCurrent position (FEN): 6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1\nBoard:\n   +------------------------+\n 8 | .  .  .  .  .  .  k  . |\n 7 | .  .  .  .  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | .  .  .  .  .  P  P  P |\n 1 | R  .  .  .  .  .  K  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. #1  1. Ra8#\n  2. +7.55  1. g4 f6 2. h4 Kf7 3. Ra7+ Kg6 4. Kf1 Kh6\n  3. +7.25  1. Kf1 g6 2. Ra8+ Kg7 3. g4 h6\nMotifs in the engine's best move: Ra8# is checkmate; Mate on the back rank; Direct pressure on the king.\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Endgame (Little material left on the board); King activity (In the endgame the king is a fighting piece).\nKeep in mind (from the board): White's rook on a1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Endgame Strategy by Mikhail Shereshevsky: Practical endgame technique: king activity, the principle of two weaknesses and not hurrying.\n  - 100 Endgames You Must Know by Jesús de la Villa: The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Checkmate pattern, Back-rank weakness, Attack on the king.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Checkmate pattern, Attack on the king.",
+      "ms": 8860,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true,
+          true
+        ],
+        "keys": 1,
+        "moves": 1,
+        "judge": null,
+        "overall": 1
+      }
+    },
+    {
+      "id": "iqp-break",
+      "title": "Steinitz–von Bardeleben vor 17. d5",
+      "question": "Was ist hier der Hauptplan für die Seite am Zug, und warum?",
+      "answer": "? – ? · 16… c6\n\nPlan für Weiß: den isolierten d-Bauern nach vorn bringen und die Linien öffnen.\n\nDer d-Bauer steht ohne Bauern auf c- und e-Linie, also kann ihn niemand decken [3]. Diese Schwäche wird aber nicht passiv verteidigt. Weiß stößt ihn mit 17. d5 vor, und das ist die stärkste Fortsetzung laut Stockfish (etwa zwei Bauern Vorteil für Weiß [+1.85]). Der Bauer greift c6 an und öffnet das Zentrum, während Schwarz' König noch auf e8 steht. Nach 17... Kf7 18. dxc6 bxc6 19. Qc4+ hat Weiß die aktiveren Figuren und Angriffschancen auf der offenen c-Linie.\n\nWarum jetzt? Schwarz' letzter Zug 16... c6 war laut Engine ein Fehler. 16... Kf7 war besser [+0.28]. Mit 16... c6 hat Schwarz seine Bauernstruktur festgelegt, und Weiß kann die Öffnung mit d5 erzwingen. Die Türme auf c1 und e1 und die Dame auf e2 sind schon bereit, die offenen Linien zu nutzen.\n\nZum Vergleich: 17. Qc4 mit Dame auf die c-Linie ist deutlich schwächer [+0.51]. Also zuerst öffnen, dann angreifen.\n\nDie Markierung auf dem Brett zeigen\n\nDem Coach bereitgestellte Textstellen\n\nDiese Textstellen geben Quellenaussagen wieder. Zitatlinks identifizieren Quellen; sie prüfen nicht die Erklärung.\n\n[1] New York\n\nDas berühmte Damenopfer: Der Läufer schlägt auf c4 mit Schach, danach folgt eine Zwickmühle aus Abzugsschachs.\n\nQuelle: Game of the Century (Wikipedia revision 1380744643)\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n17… Be6\n\nKommentierte Stellung öffnen\n\n[2] Slawisch und Halbslawisch\n\nAbtausche können Symmetrie, einen isolierten Bauern oder eine Struktur für einen Minoritätsangriff schaffen. Der Eröffnungsname allein bestimmt den Plan nicht.\n\nQuelle: Kibitz study notes\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n[3] Isolierter d-Bauer\n\nOhne Bauern auf einer Nachbarlinie kann der d-Bauer nicht durch einen anderen Bauern gedeckt werden.\n\nQuelle: Kibitz study notes\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.",
+      "error": null,
+      "checks": {
+        "all": 11,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Kibitz opening study notes (general background, not engine evidence). Apply only ideas that fit the supplied position. Proposed continuations and evaluations require supplied engine evidence or successful engine tools. Discuss played moves as game history.\n- Guide «italian», matched by history: «Italian Game. Idea: The king bishop develops actively while the centre remains flexible. Plans: White coordinates development with a central break. Black seeks the same central activity and should avoid falling behind in development. Pawn structures: Quiet central pawn chains can turn into an open centre after exchanges. A bishop aimed at the king is useful only when the rest of the army can join.»\n- Guide «iqp», matched by pawns: «Isolated d-pawn. Idea: Without a pawn on an adjacent file, the d-pawn cannot be supported by another pawn. Plans: The owner seeks piece activity and a well-supported advance. The opponent tries to blockade the pawn and reduce the attacking pieces. Pawn structures: This note applies to either colour. A pawn exchange or advance can change the structure and the balance of activity.»\n\nPlayer: club player, analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. c3 Nf6 5. d4 exd4 6. cxd4 Bb4+ 7. Nc3 d5 8. exd5 Nxd5 9. O-O Be6 10. Bg5 Be7 11. Bxd5 Bxd5 12. Nxd5 Qxd5 13. Bxe7 Nxe7 14. Re1 f6 15. Qe2 Qd7 16. Rac1 c6 *\nCurrent position (FEN): r3k2r/pp1qn1pp/2p2p2/8/3P4/5N2/PP2QPPP/2R1R1K1 w kq - 0 17\nBoard:\n   +------------------------+\n 8 | r  .  .  .  k  .  .  r |\n 7 | p  p  .  q  n  .  p  p |\n 6 | .  .  p  .  .  p  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  P  .  .  .  . |\n 3 | .  .  .  .  .  N  .  . |\n 2 | P  P  .  .  Q  P  P  P |\n 1 | .  .  R  .  R  .  K  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nOpening: C54 Italian Game: Giuoco Piano, Greco's Attack.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +1.85  17. d5 Kf7 18. dxc6 bxc6 19. Qc4+ Qd5 20. Qb4 Qd7\n  2. +0.51  17. Qc4 O-O-O 18. Qc5 Nd5 19. Qxa7 Rhe8 20. h3 Kc7\n  3. +0.18  17. Nd2 Kf7 18. Ne4 Rhe8 19. Qc4+ Nd5 20. Nc5 Rxe1+\nLast move: 16… c6, rated mistake by the engine (win chance for the mover 47% → 34%).\nEngine preferred Kf7 instead: +0.28 16… Kf7 17. Ne5+ fxe5 18. dxe5 Qe6 19. Qf3+\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Middlegame planning (Pieces developed, out of the opening); Italian Game (C54 Italian Game: Giuoco Piano, Greco's Attack); Isolated queen pawn (White has an isolated d-pawn); Open centre (Few or no pawns on the d- and e-files).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Pawn Structure Chess by Andrew Soltis: Groups openings into a small number of pawn-structure families and shows the plans that belong to each.\n  - Chess Structures: A Grandmaster Guide by Mauricio Flores Rios, the Isolated Queen Pawn chapter: Organised by pawn structure. Each chapter teaches the standard plans for both sides through annotated model games.\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - How to Reassess Your Chess by Jeremy Silman: Teaches planning from the imbalances in a position: minor pieces, pawn structure, space, material and development.\nClassic games on these themes (from the built-in collection):\n  - Steinitz's rook dance: Wilhelm Steinitz vs Curt von Bardeleben, Hastings 1895. An isolated queen pawn pushed at the right moment, then a rook that checks on the seventh rank and cannot be taken. Themes: Italian Game, Isolated queen pawn.\n  - The Evergreen Game: Adolf Anderssen vs Jean Dufresne, Berlin 1852. The Evans Gambit: lines opened in the centre, a quiet rook move that allows the queen to be taken, and a double check. Themes: Italian Game.",
+      "ms": 11132,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true,
+          true
+        ],
+        "keys": 1,
+        "moves": 1,
+        "judge": null,
+        "overall": 1
+      }
+    },
+    {
+      "id": "opposition",
+      "title": "König und Bauer: Schwarz hat die Opposition",
+      "question": "Was ist hier der Hauptplan für die Seite am Zug, und warum?",
+      "answer": "Custom position · start\n\nKurz: Der Plan ist, den Springer... nein, den König zu zentralisieren und den e-Bauern mit ihm zu unterstützen. Ein Gewinn ist aber nicht in Sicht.\n\nWarum: Der Bauer auf e2 ist blockiert, weil der schwarze König auf e5 direkt davor steht. Deshalb muss dein König den Weg freikämpfen, und er ist in diesem Endspiel die aktive Figur. Die drei besten Züge (Kd2, Kd3, Kf3) stehen alle bei etwa +0,12, also praktisch ausgeglichen. Das zeigt, dass Weiß hier keinen klaren Vorteil hat.\n\nKonkrete Linie: Die Stockfish-Hauptvariante ist 1. Kd3 Kd5 2. e3 Ke5 3. e4 Ke6 4. Kd4 Kd6. Dein König kommt auf d4 an, während Schwarz den Gegenkönig weiter vor dem Bauern hält. Vor dem Bauernvorstoß muss der König also gut stehen.\n\nOpposition: Der Begriff „Gewinnt Weiß am Zug?“ zu Opposition ist die Kernfrage dieser Stellung [3]. Die Könige stehen zwar nicht genau gleich, aber das Prinzip gilt: Wer die Opposition verliert, muss nachgeben. Beachte, dass dieser Abschnitt eine andere Stellung betrifft.\n\nDem Coach bereitgestellte Textstellen\n\nDiese Textstellen geben Quellenaussagen wieder. Zitatlinks identifizieren Quellen; sie prüfen nicht die Erklärung.\n\n[1] Kibitz endgame practice\n\nSchwarz muss die direkte Opposition aufgeben. Syzygy verzeichnet einen Verlust für die Zugseite, hier also einen weißen Gewinn; Kd6 ändert dieses Ergebnis nicht.\n\nQuelle: Kibitz endgame exercise: opposition-black-turn\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n1… Kd6\n\nKommentierte Stellung öffnen\n\n[2] Slawisch und Halbslawisch\n\nAbtausche können Symmetrie, einen isolierten Bauern oder eine Struktur für einen Minoritätsangriff schaffen. Der Eröffnungsname allein bestimmt den Plan nicht.\n\nQuelle: Kibitz study notes\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n[3] Kibitz endgame practice\n\nVergleiche die Könige auf e4 und e6. Gewinnt Weiß am Zug?\n\nQuelle: Kibitz endgame exercise: opposition-white-turn\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\nStart position\n\nKommentierte Stellung öffnen",
+      "error": null,
+      "checks": {
+        "all": 12,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "\nPlayer: club player, analysing a game.\nMoves so far: *\nCurrent position (FEN): 8/8/8/4k3/8/4K3/4P3/8 w - - 0 1\nBoard:\n   +------------------------+\n 8 | .  .  .  .  .  .  .  . |\n 7 | .  .  .  .  .  .  .  . |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  k  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  K  .  .  . |\n 2 | .  .  .  .  P  .  .  . |\n 1 | .  .  .  .  .  .  .  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +0.12  1. Kd2 Kd4 2. e3+ Kd5 3. Kd3 Ke5 4. e4 Ke6\n  2. +0.12  1. Kd3 Kd5 2. e3 Ke5 3. e4 Ke6 4. Kd4 Kd6\n  3. +0.12  1. Kf3 Kf5 2. Ke3 Ke5 3. Kd3 Kd5 4. e3 Ke5\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Endgame (Little material left on the board); Passed pawn (White has a passed e-pawn); King activity (In the endgame the king is a fighting piece); King and pawn ending (Only kings and pawns remain).\nRetrieved references (recommend only from these):\n  - 100 Endgames You Must Know by Jesús de la Villa, the king and pawn chapters: The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Endgame Strategy by Mikhail Shereshevsky: Practical endgame technique: king activity, the principle of two weaknesses and not hurrying.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\nClassic games on these themes (from the built-in collection):\n  - Réti's king march (study): Richard Réti vs study, Kagans Neueste Schachnachrichten 1921. A king can chase two goals at once: walking the diagonal, it supports its own pawn and catches the enemy one. Themes: Endgame, King activity, King and pawn ending.\n  - A safe promotion square: White vs Black, Kibitz endgame practice ????. Can White promote without stalemating Black? Check the resulting legal replies. Themes: Endgame, King and pawn ending.",
+      "ms": 12760,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          false
+        ],
+        "keys": 0.5,
+        "moves": 1,
+        "judge": null,
+        "overall": 0.75
+      }
+    },
+    {
+      "id": "lucena",
+      "title": "Lucena-Stellung",
+      "question": "Erkläre die Idee hinter Stockfishs bestem Zug in dieser Stellung.",
+      "answer": "Custom position · start\n\nDie Idee hinter Rd1+: Der Zug ist ein Schach mit Tempo. Der Turm wechselt von c1 auf die d-Linie und treibt den schwarzen König von d7 weg, Hauptlinie 1... Ke6. Das ist wichtig, weil der König sonst über c7 an den b-Bauern herankommen und ihn angreifen könnte. Stockfish bewertet die Stellung danach etwa als gewonnen für Weiß [+4.73].\n\nDer Plan danach: In der Hauptlinie folgt 2. Rd4, der Turm hält den König auf Abstand. Weiß bringt seinen König nach c7, um den Bauern zu begleiten. Der b-Bauer muss dann nur noch umwandeln, und dafür ist der weiße König auf b8 zunächst im Weg.\n\nSchwarz hat Gegenspiel: Mit 2... Rb2 greift der Turm den Bauern von hinten an. Genau diese Verteidigung beschreibt das Philidor-Muster: Der Turm wartet auf der Reihe und gibt später Schach von hinten [2]. Deshalb muss Weiß genau rechnen, damit der Bauer nicht verloren geht.\n\nAlternative: 1. Rb1 ist laut Stockfish fast gleichwertig [+4.62], aber ruhiger. Rd1+ ist klarer, weil es den schwarzen König sofort festlegt.\n\nDie Markierung auf dem Brett zeigen\n\nDem Coach bereitgestellte Textstellen\n\nDiese Textstellen geben Quellenaussagen wieder. Zitatlinks identifizieren Quellen; sie prüfen nicht die Erklärung.\n\n[1] Philidor\n\nHalte den Turm auf der sechsten Reihe: Der weiße König kann nicht vorrücken.\n\nQuelle: Kibitz Philidor teaching variant\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n1… Rb6\n\nKommentierte Stellung öffnen\n\n[2] Philidor\n\nJetzt bietet der Bauer seinem König keinen Schutz mehr: Gib Schachs von hinten.\n\nQuelle: Kibitz Philidor teaching variant\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n2… Rb1\n\nKommentierte Stellung öffnen\n\n[3] Glasgow Weekly Citizen\n\nRc4+ steht bereit: Nach c8=Q führt Rc4+ Qxc4 zum Patt.\n\nQuelle: Saavedra underpromotion (Wikipedia revision 1356337825)\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n5… Rd4\n\nKommentierte Stellung öffnen",
+      "error": null,
+      "checks": {
+        "all": 6,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "\nPlayer: club player, analysing a game.\nMoves so far: *\nCurrent position (FEN): 1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1\nBoard:\n   +------------------------+\n 8 | .  K  .  .  .  .  .  . |\n 7 | .  P  .  k  .  .  .  . |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | r  .  .  .  .  .  .  . |\n 1 | .  .  R  .  .  .  .  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nWhite to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +4.73  1. Rd1+ Ke6 2. Rd4 Rb2 3. Kc7 Ke5 4. Ra4 Kd5\n  2. +4.65  1. Rc7+ Kd6 2. Kc8 Rb2 3. Rd7+ Ke6 4. Rd4 Rc2+\n  3. +4.62  1. Rb1 Ra3 2. Rb6 Ra4 3. Rb3 Rg4 4. Ka7\nMotifs in the engine's best move: Direct pressure on the king.\nInteresting alternatives to the best move Rd1+ (+4.73 for the side to move), from Stockfish's lines:\n  - Rb1: rank 3, +4.62, 0.11 below the best. quiet: a quiet move: no check, no capture.\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Endgame (Little material left on the board); Passed pawn (White has a passed b-pawn); King activity (In the endgame the king is a fighting piece); Rook ending (Rooks and pawns only); Rook + pawn vs rook (Rook and pawn versus rook: Lucena / Philidor territory).\nKeep in mind (from the board): Black's rook on a2 is loose (no defender); White's rook on c1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - 100 Endgames You Must Know by Jesús de la Villa, the rook and pawn versus rook positions (Lucena, Philidor): The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\n  - Fundamental Chess Endings by Karsten Müller & Frank Lamprecht: An encyclopedic one-volume reference for theoretical endings.\nClassic games on these themes (from the built-in collection):\n  - The Lucena position: study vs study, Lucena ????. Building a bridge: the rook shields the king from checks so the pawn can queen. Themes: Endgame, Rook ending, Rook + pawn vs rook.\n  - The Philidor position: study vs study, Philidor ????. The defence: the rook holds the third rank until the pawn advances, then checks from behind. Themes: Endgame, Rook ending, Rook + pawn vs rook.",
+      "ms": 12243,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true,
+          false
+        ],
+        "keys": 0.6666666666666666,
+        "moves": 1,
+        "judge": null,
+        "overall": 0.8333333333333333
+      }
+    },
+    {
+      "id": "philidor",
+      "title": "Philidor-Stellung: Schwarz am Zug",
+      "question": "Was ist hier der Hauptplan für die Seite am Zug, und warum?",
+      "answer": "Custom position · start\n\nDein Plan als Schwarzer: den Bauern aufhalten und den Turm aktiv halten. Die Stellung ist laut Stockfish praktisch ausgeglichen (etwa 0,08 für Weiß, also quasi null). Der Bauer auf e5 ist Weißs Freibauer, und dein König muss ihn vor dem Vormarsch stoppen.\n\nDer beste Zug ist 1... Kf8 (Pfeil e8 f8). Der König geht Richtung e7, um die Bauernfront zu blockieren. Der Turm auf a6 bleibt aktiv und kann Weiß von der Seite oder von hinten stören. Die Engine-Linie geht so weiter: 2. Ke4 Ra1 3. Kf5 Ra6. Der Turm wechselt also die Seiten und sucht Schach- oder Störmöglichkeiten.\n\nDie Alternative 1... Rb6 ist mit etwa 0,03 Abstand fast gleichwertig. Sie hält den Turm auf der sechsten Reihe und schneidet den weißen König ab. Der König kommt danach aber langsamer zum Bauernblock.\n\nDie abgerufenen Quellen behandeln diese Abwehrstellung nicht direkt. Für die Theorie lohnt das Kapitel zu Turm und Bauer gegen Turm (Philidor) in «100 Endgames You Must Know» von Jesús de la Villa.\n\nDie Markierung auf dem Brett zeigen\n\nDem Coach bereitgestellte Textstellen\n\nDiese Textstellen geben Quellenaussagen wieder. Zitatlinks identifizieren Quellen; sie prüfen nicht die Erklärung.\n\n[1] St Petersburg\n\nDer weiße Bauer steht auf a7, der Turm auf a5, und der König erreicht f5. In der Quelle gibt Schwarz auf.\n\nQuelle: Chess Fundamentals (1921), game 10, p. 215\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n61. Kf5\n\nKommentierte Stellung öffnen\n\n[2] Slawisch und Halbslawisch\n\nAbtausche können Symmetrie, einen isolierten Bauern oder eine Struktur für einen Minoritätsangriff schaffen. Der Eröffnungsname allein bestimmt den Plan nicht.\n\nQuelle: Kibitz study notes\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n[3] Lucena\n\nDer Brückenbau: Der Turm wird die Schachs auf der vierten Reihe abdecken.\n\nQuelle: Kibitz Lucena teaching variant\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.\n\n2. Rd4\n\nKommentierte Stellung öffnen",
+      "error": null,
+      "checks": {
+        "all": 6,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "\nPlayer: club player, analysing a game.\nMoves so far: *\nCurrent position (FEN): 4k3/7R/r7/3KP3/8/8/8/8 b - - 0 1\nBoard:\n   +------------------------+\n 8 | .  .  .  .  k  .  .  . |\n 7 | .  .  .  .  .  .  .  R |\n 6 | r  .  .  .  .  .  .  . |\n 5 | .  .  .  K  P  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | .  .  .  .  .  .  .  . |\n 1 | .  .  .  .  .  .  .  . |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +0.08  1… Kf8 2. Ke4 Ra1 3. Kf5 Ra6 4. Rb7 Rh6 5. Rb8+\n  2. +0.09  1… Kd8 2. Ke4 Ke8 3. Kf4 Rb6 4. Kf5 Ra6 5. Rg7\n  3. +0.11  1… Rb6 2. Ke4 Ra6 3. Kf5 Kf8 4. Rh8+ Ke7 5. Rb8\nInteresting alternatives to the best move Kf8 (−0.08 for the side to move), from Stockfish's lines:\n  - Rb6: rank 3, −0.11, 0.03 below the best. different plan: a different idea: a rook move on the queenside, where the best move is a king move on the kingside.\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Endgame (Little material left on the board); Passed pawn (White has a passed e-pawn); King activity (In the endgame the king is a fighting piece); Rook ending (Rooks and pawns only); Rook + pawn vs rook (Rook and pawn versus rook: Lucena / Philidor territory).\nKeep in mind (from the board): White's rook on h7 is loose (no defender); Black's rook on a6 is loose (no defender).\nRetrieved references (recommend only from these):\n  - 100 Endgames You Must Know by Jesús de la Villa, the rook and pawn versus rook positions (Lucena, Philidor): The essential theoretical endings (Lucena, Philidor, opposition, key squares and more) with exercises.\n  - Silman's Complete Endgame Course by Jeremy Silman: Endgames taught in the order you need them, organised by rating band from beginner to master.\n  - Dvoretsky's Endgame Manual by Mark Dvoretsky: The standard advanced endgame reference, with the key positions highlighted for study.\n  - Fundamental Chess Endings by Karsten Müller & Frank Lamprecht: An encyclopedic one-volume reference for theoretical endings.\nClassic games on these themes (from the built-in collection):\n  - The Lucena position: study vs study, Lucena ????. Building a bridge: the rook shields the king from checks so the pawn can queen. Themes: Endgame, Rook ending, Rook + pawn vs rook.\n  - The Philidor position: study vs study, Philidor ????. The defence: the rook holds the third rank until the pawn advances, then checks from behind. Themes: Endgame, Rook ending, Rook + pawn vs rook.",
+      "ms": 12357,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true,
+          false
+        ],
+        "keys": 0.6666666666666666,
+        "moves": 1,
+        "judge": null,
+        "overall": 0.8333333333333333
+      }
+    },
+    {
+      "id": "sicilian-d4",
+      "title": "Sizilianisch nach 3. d4",
+      "question": "Was ist hier der Hauptplan für die Seite am Zug, und warum?",
+      "answer": "? – ? · 3. d4\n\nDu bist als Schwarzer am Zug, und dein Hauptplan ist, die weiße Mitte herauszufordern. Die Engine bevorzugt 3... cxd4: Du tauschst deinen c-Bauern gegen den d-Bauern, öffnest die c-Linie und bringst deine Figuren ins Spiel. Die Hauptlinie ist 4. Nxd4 Nf6 5. Nc3 a6 6. Be3 e5 7. Nb3. Danach kontrolliert Schwarz mit ...e5 das Zentrum.\n\nDie Stellung ist nur leicht besser für Weiß, etwa ein Drittel Bauer [+0.43]. Weiß hat mehr Raum, aber nichts Erzwungenes.\n\nDie Alternative 3... Nf6 [+0.49] hält die Spannung noch offen und führt oft zu ähnlichen Strukturen. 3... Nd7 [+0.78] ist klar schwächer, weil Weiß mehr Vorteil erhält.\n\nDer Name der Eröffnung allein sagt dir den Plan nicht. Abtausche können Symmetrie, einen isolierten Bauern oder einen Minoritätsangriff erzeugen [1]. Deshalb solltest du dich an den konkreten Stellungen orientieren, also daran, wer das Zentrum kontrolliert und wie schnell du deine Figuren entwickelst.\n\nDie Markierung auf dem Brett zeigen\n\nDem Coach bereitgestellte Textstellen\n\nDiese Textstellen geben Quellenaussagen wieder. Zitatlinks identifizieren Quellen; sie prüfen nicht die Erklärung.\n\n[1] Slawisch und Halbslawisch\n\nAbtausche können Symmetrie, einen isolierten Bauern oder eine Struktur für einen Minoritätsangriff schaffen. Der Eröffnungsname allein bestimmt den Plan nicht.\n\nQuelle: Kibitz study notes\n\nAngegebene Lizenz der Kommentare: GPL-3.0-or-later\n\nVerwandter Text; inhaltliche Unterstützung ist nicht geprüft.",
+      "error": null,
+      "checks": {
+        "all": 11,
+        "invalid": 0,
+        "unchecked": 0
+      },
+      "context": "Kibitz opening study notes (general background, not engine evidence). Apply only ideas that fit the supplied position. Proposed continuations and evaluations require supplied engine evidence or successful engine tools. Discuss played moves as game history.\n- Guide «sicilian», matched by position: «Sicilian Defence. Idea: Black challenges the centre from the flank, creating an asymmetric game. Plans: White uses development and central space for activity. Black seeks counterplay on central and queenside lines; the exact variation decides the timing. Pawn structures: An open Sicilian often trades Black’s c-pawn for White’s d-pawn. Closed and other Sicilian systems have different pawn structures.»\nNamed opening catalogue (metadata, not engine evidence). Names identify possible branches, not the strongest moves or their frequency. Use Stockfish lines or engine tools before recommending a concrete continuation.\nCurrent named position: «B50 Sicilian Defense».\n- 3... cxd4: «B50 Sicilian Defense»; 0 further plies to that name.\n- 3... Nf6: «B50 Sicilian Defense: Modern Variations, Anti-Qxd4 Move Order»; 0 further plies to that name.\n\nPlayer: club player, analysing a game.\nGame: «?» vs «?», result «*».\nMoves so far: 1. e4 c5 2. Nf3 d6 3. d4 *\nCurrent position (FEN): rnbqkbnr/pp2pppp/3p4/2p5/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq - 0 3\nBoard:\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  .  .  p  p  p  p |\n 6 | .  .  .  p  .  .  .  . |\n 5 | .  .  p  .  .  .  .  . |\n 4 | .  .  .  P  P  .  .  . |\n 3 | .  .  .  .  .  N  .  . |\n 2 | P  P  P  .  .  P  P  P |\n 1 | R  N  B  Q  K  B  .  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nBlack to move.\nOpening: B50 Sicilian Defense.\nStockfish 19 (depth 14) top lines, scores from White's point of view (+1.00 ≈ a pawn for White):\n  1. +0.43  3… cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Be3 e5 7. Nb3\n  2. +0.49  3… Nf6 4. Nc3 cxd4 5. Nxd4 a6 6. Be3 e5 7. Nb3\n  3. +0.78  3… Nd7 4. Be3 e6 5. dxc5 Nxc5 6. Bxc5 dxc5 7. Bb5+\nLast move: 3. d4, rated book by the engine (win chance for the mover 54% → 54%).\nInteresting alternatives to the best move cxd4 (−0.43 for the side to move), from Stockfish's lines:\n  - Nf6: rank 2, −0.49, 0.06 below the best. different plan: a different idea: a knight move on the kingside, where the best move is a pawn move on the centre.\n  - Nd7: rank 3, −0.78, 0.35 below the best. quiet: a quiet move: no check, no capture.\nAspects the player picked for comments: Last move, What's next, Keep in mind.\nPosition themes detected: Opening play (Move 3, still in known opening territory); Sicilian Defence (B50 Sicilian Defense).\nKeep in mind (from the board): Black's rook on a8 is loose (no defender); Black's rook on h8 is loose (no defender); White's rook on a1 is loose (no defender); White's rook on h1 is loose (no defender).\nRetrieved references (recommend only from these):\n  - Fundamental Chess Openings by Paul van der Sterren, the chapter on this opening family: A one-volume survey of every major opening that explains the ideas and typical plans behind each line instead of listing raw theory.\n  - Mastering the Chess Openings (4 vols) by John Watson: Explains why openings are played the way they are, with the strategic themes that carry into the middlegame. Volume 4 covers the English and Réti.\n  - Pawn Structure Chess by Andrew Soltis: Groups openings into a small number of pawn-structure families and shows the plans that belong to each.\n  - Logical Chess: Move by Move by Irving Chernev: Explains every single move of 33 master games, a gentle introduction to principled play.\nClassic games on these themes (from the built-in collection):\n  - The Opera Game: Paul Morphy vs Duke Karl / Count Isouard, Paris 1858. Development against an uncastled king: Morphy gives material to keep the lines open, and every piece joins in. Themes: Opening play.\n  - The Immortal Game: Adolf Anderssen vs Lionel Kieseritzky, London 1851. Activity over material: White gives up a bishop, both rooks and the queen, and mates with the minor pieces. Themes: Opening play.",
+      "ms": 10155,
+      "judgement": null,
+      "score": {
+        "hits": [
+          true,
+          true,
+          true
+        ],
+        "keys": 1,
+        "moves": 1,
+        "judge": null,
+        "overall": 1
+      }
+    }
+  ],
+  "capture": "rendered-message-v1",
+  "provenance": {
+    "sourceCommit": "21af92f091d4173b23c8d69e79b94f25b8eb4446",
+    "note": "Live answers captured before the prose-only extractor fix; original answers, checks and scores retained. No model rerun or judge."
+  }
+}

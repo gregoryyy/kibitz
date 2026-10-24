@@ -1,6 +1,6 @@
 // Minimal static server for local development, no dependencies.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
-//                          [--models DIR [--model ID]] [--offline] [--library FILE]
+//                          [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); that part needs the npm dependencies. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
@@ -29,20 +29,27 @@ const { values: opt, positionals } = parseArgs({
     model: { type: 'string', default: '' },
     offline: { type: 'boolean', default: false },
     library: { type: 'string', default: '' },
+    usage: { type: 'string', default: ':memory:' },
   },
 });
-if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE]'); process.exit(2); }
+if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]'); process.exit(2); }
 const root = fs.realpathSync(positionals[0]);
+let modelsDir = '';
+if (opt.models) {
+  try { modelsDir = fs.realpathSync(opt.models); if (!fs.statSync(modelsDir).isDirectory()) throw new Error(); }
+  catch { console.error('The model directory must already exist and be a directory; download the selected model first or omit --models.'); process.exit(2); }
+}
+// Validate every public tree before creating a private database or any missing parents.
+const servedRoots = [root, ...(modelsDir ? [modelsDir] : [])];
 let library = null, libraryStore = null;
 if (opt.library) {
   const { openPrivateLibrary } = await import('../server/library-files.mjs');
   const { createLibraryApi } = await import('../server/library-api.mjs');
-  libraryStore = openPrivateLibrary(opt.library, root);
+  libraryStore = openPrivateLibrary(opt.library, servedRoots);
   library = createLibraryApi({ store: libraryStore });
   process.once('exit', () => libraryStore.close());
 }
 
-const modelsDir = opt.models ? path.resolve(opt.models) : '';
 let api = null, apiStatus = '';
 if (opt.api) {
   if (opt.env) try { process.loadEnvFile(opt.env); } catch (e) { if (e.code !== 'ENOENT') throw e; }
@@ -53,7 +60,12 @@ if (opt.api) {
   const { loadConfig } = await import('../server/ai.mjs');
   const { createApi } = await import('../server/api.mjs');
   const config = loadConfig();
-  api = createApi({ config });
+  const { sqliteUsageStore } = await import('../server/usage-store.mjs');
+  const { privateDatabaseFile } = await import('../server/private-files.mjs');
+  const { usageAccounting } = await import('../server/usage.mjs');
+  const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
+  process.once('exit', () => usageStore.close());
+  api = createApi({ config, ...usageAccounting(config, { store: usageStore }) });
   apiStatus = config.available ? `AI coach: ${config.provider} / ${config.model}` : `AI coach off: ${config.reason}`;
 }
 
@@ -63,6 +75,7 @@ const TYPES = {
   '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.md': 'text/markdown; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
   '.svg': 'image/svg+xml; charset=utf-8',
@@ -120,6 +133,6 @@ http.createServer(async (req, res) => {
   process.exit(1);
 }).listen(Number(opt.port), opt.host, () => {
   console.log(`Serving ${path.relative(process.cwd(), root) || '.'} at http://${opt.host}:${opt.port}/`);
-  if (apiStatus) console.log(apiStatus);
+  if (apiStatus) { console.log(apiStatus); console.log(opt.usage === ':memory:' ? 'AI usage: in memory; restart resets counters' : 'AI usage: private persistent counters'); }
   if (opt.offline) console.log('Offline: the page loads nothing from other hosts');
 });

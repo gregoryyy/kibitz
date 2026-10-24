@@ -6,6 +6,7 @@ import { makeProvenance } from './library.js';
 import { CLASSIC_SCORE_SOURCES } from './classic-sources.js';
 import { CAPABLANCA_GAMES } from './capablanca.js';
 import { AUTHORED_PROBLEMS, CURATED_PROBLEMS } from './problem-data.js';
+import { classicMoves } from './classic-comments-de.js';
 
 const problemsById = new Map(CURATED_PROBLEMS.map(p => [p.id, p]));
 
@@ -103,7 +104,7 @@ export const CLASSICS = [
 ];
 
 // The collection as library games: {id, kind: 'example', title, white, black, date, result, pgn, tags, about, moment}.
-export function classicGames() {
+export function classicGames({ language = 'en' } = {}) {
   return CLASSICS.map(item => {
     const problem = problemsById.get(item.id) || null, c = { ...item, ...(problem?.date ? { date: problem.date } : {}), ...(problem?.scoreNote ? { scoreNote: problem.scoreNote } : {}) };
     return {
@@ -112,7 +113,7 @@ export function classicGames() {
     provenance: makeProvenance('builtin', { ...(problem?.source || c.source || CLASSIC_SCORE_SOURCES[c.id] || { title: 'Kibitz classics collection', author: 'Kibitz contributors', url: 'https://github.com/gregoryyy/kibitz/blob/main/site/src/library/classics.js' }), annotations: 'GPL-3.0-or-later' }),
     pgn: [
       `[Event "${c.event}"]`, `[Date "${c.date}"]`, `[White "${c.white}"]`, `[Black "${c.black}"]`, `[Result "${c.result}"]`,
-      ...(c.fen ? ['[SetUp "1"]', `[FEN "${c.fen}"]`] : []), '', c.moves,
+      ...(c.fen ? ['[SetUp "1"]', `[FEN "${c.fen}"]`] : []), '', classicMoves(c.moves, language),
     ].join('\n'),
   }; });
 }

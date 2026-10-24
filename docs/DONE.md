@@ -23,6 +23,274 @@ TODO items: none; requested documentation tooling maintenance.
 ### Insights
 
 - Aggregate document generation can skip agent instructions without disabling explicit single-document conversion.
+## 2026-10-24 — Bounded model downloads verified before publication
+
+TODO items: 11.2.2; finding [#97](https://github.com/gregoryyy/kibitz/issues/97).
+
+### Implementation notes
+
+- Extracted the download pipeline into `scripts/download-model.mjs`: a transform enforces the pinned byte count before writing each chunk and hashes the accepted bytes. Exact size/digest checks precede publication. Unique exclusive partial/marker files separate concurrent downloads; handled failures/cancellation close streams and remove that run's temporary files.
+- Added a default 30-minute total header/body deadline, external cancellation and validated CLI `--timeout-ms`. The existing checked-file fast path remains. Failed transfers, hashes and truncations preserve earlier final weights/markers; successful publication replaces verified weights and then the marker. Marker writes during download do not follow an old marker symlink.
+- Eight unit cases cover invalid descriptors/deadlines, no early replacement during a held transfer, transport/HTTP/body/size/hash failures, stalled headers/body, cancellation before/during transfer, concurrent downloads, publication errors and marker symlinks. Three Playwright CLI cases use a subprocess-only preload that substitutes a tiny catalogue entry and every fetch; production has no fixture mode. The overflow regression fails on the actual old CLI: 65,563 bytes were written for a 27-byte pinned model before verification rejected it.
+- Validation: checks/build pass; 575 unit/server cases pass (one opt-in live skip); all three download CLI cases pass, including valid publication/reuse and cleanup of wrong-hash, truncated and stalled responses. No actual model download, provider call or user data is involved. Updated offline instructions and OWASP/threat-model dispositions.
+
+### Deviations
+
+- The deadline covers download headers/body, rather than unrelated local preflight hash checks. File/marker publication consists of two atomic replacements; interruption can leave verified weights requiring another full check. Abrupt crashes can leave unserved unique partials; only handled failures/cancellation promise cleanup.
+- The stored hash marker retains its operator-controlled quick-check contract. It is not a fresh digest of every served byte and does not detect every same-size local edit with an old marker. Remaining logging, file-serving/scanner and release findings are separate.
+
+### Insights
+
+- Rejecting an oversized file after it has filled the disk is too late. Enforcing the byte bound before each write and delaying publication until verification gives the integrity check a resource boundary as well as a final yes/no result.
+
+## 2026-10-24 — Private databases excluded from every served root
+
+TODO items: 11.2.1; finding [#96](https://github.com/gregoryyy/kibitz/issues/96).
+
+### Implementation notes
+
+- The shared private-file guard now checks library and usage database paths against both the static root and any separate model directory, resolving directory aliases before creating files or missing parents. Existing private-file modes, final-symlink rejection and string-root callers remain supported; a disk database with no declared public roots is refused.
+- The CLI resolves/validates the model directory before initializing either database. `--models` now requires an existing directory, giving path validation a definite public root; the normal download-first offline workflow already creates it. Missing/invalid model roots fail startup without creating private database files or their parent directories.
+- Added unit coverage for both roots, parent aliases, absent parents, preservation of existing bytes and valid neighboring private paths. Three real-CLI Playwright cases cover library with/without the AI gateway, usage, real/aliased model roots, missing model directories and valid private storage beside synthetic public weights. The rejection regression fails on the old server because it starts and creates the exposed database.
+- Validation: checks/build pass; 567 unit/server cases pass (one opt-in live skip); the three new CLI regressions and all twelve existing library-storage/usage browser cases pass. Fixtures use temporary synthetic files and the mock provider; no actual model, key or personal record is used. Documentation and the threat/OWASP finding disposition reflect the implemented boundary.
+
+### Deviations
+
+- A missing explicit model directory is rejected instead of treating it as an empty served tree. This prevents ambiguous future paths from bypassing database validation. Static/model file-descriptor races, model trust, download bounds and default logging remain separate findings; this does not complete the release gate.
+
+### Insights
+
+- A “private file outside the web root” check must know every tree the process can serve. Resolving public roots before private storage initialization makes that contract testable even when a second route has a strict filename allowlist.
+
+## 2026-10-24 — OWASP Top 10 code mapping and tracked findings
+
+TODO items: 11.2.
+
+### Implementation notes
+
+- Added [the OWASP Top 10:2025 checklist](OWASP-TOP10.md) for the selected local single-user deployment, using the current official edition checked on the review date. All ten categories map concrete source controls and existing tests to explicit remaining risks; review completion is distinguished from release approval.
+- Created findings [#96](https://github.com/gregoryyy/kibitz/issues/96) (private databases under a separate model root), [#97](https://github.com/gregoryyy/kibitz/issues/97) (unbounded downloads/publication before verification), [#98](https://github.com/gregoryyy/kibitz/issues/98) (default URL/provider-error logs) and [#99](https://github.com/gregoryyy/kibitz/issues/99) (all eleven open CodeQL alerts with initial source-context triage). No alert was dismissed or assumed exploitable solely from scanner severity.
+- Reproduced #96 with a temporary mock server and a synthetic empty usage database named as a catalogue GGUF file in a separate model directory: HTTP 200 returned the SQLite header. No real model/key/personal data/provider request was used; the server and temporary files were cleaned up. Default private paths remain outside served roots.
+- Reviewed source snapshot `2203105`, whose checks/build and 566 unit/server passes (one live skip) and five focused mock browser passes are recorded in the preceding entry. This documentation-only milestone adds no runtime changes; local evidence/navigation links and the mapping were checked against the source.
+
+### Deviations
+
+- Findings are tracked rather than presented as fixed. Seven scanner-rated high alerts remain unresolved alongside the other findings. The LLM Top 10, ASVS, automated-scan/baseline and release gates remain open; this checklist is not an exhaustive new browser audit or an all-clear release result.
+
+### Insights
+
+- A security checklist needs a disposition for each observation, including local-only assumptions and queries over trusted HTML/test fixtures. Mapping an alert to its actual sink and recording a synthetic reproduction gives the next fix a testable target without confusing a scanner label with demonstrated impact.
+
+## 2026-10-24 — Approved German provider trials and a prose-capture correction
+
+TODO items: 10.8.4.2; parent 10.8.4 and follow-up 10.8.4.3 remain open.
+
+### Implementation notes
+
+- Ran the approved German matrix sequentially, with the configured Haiku 5.5, GPT-6 Luna, Mistral Small Latest and Ollama DeepSeek-R1 models, ten positions maximum each and no judge. [The result matrix](eval/german-plan.md) separates completed answers from provider errors: Claude answered all ten; OpenAI returned 401/auth_failed; Mistral returned 429/rate_limited on the first position and all three runner retries; Ollama returned 404/model_not_found. No replacement model or download was used. A local Claude gateway-startup retry preceded any paid request.
+- Recorded Claude's original ten answers, actual engine contexts, fixed German cues and checks in JSON/Markdown. Original text/scores are preserved exactly; recomputation matches the archived scores and generated report/index. The report has source-commit provenance and an explicit legacy capture warning. No cloud invoice or exact provider-request count is inferred from answer counts.
+- The live report exposed source/tool/interface text contaminating cue scores. The extractor now scores only coach prose and counts recognized moves in that prose; new records are labelled `coach-prose-v2`. Legacy/missing capture metadata is labelled `rendered-message-v1`, with a warning in reports and the index. Reports use captured reference cues and link to the correct language's source.
+- Validation: checks/build pass; 566 unit/server cases pass (one opt-in live skip); all five benchmark browser cases pass with mocks, including all twenty English/German positions. The new synthetic capture regression fails on the preceding extractor by including source-only bridge/mate cues and passes on the fix. A mock CLI report verifies the new capture metadata without additional paid calls.
+
+### Deviations
+
+- The provider comparison is incomplete: credentials, rate limits and the missing configured Ollama model prevented three providers from answering. Fresh comparable prose-only captures need a new approved plan after those prerequisites are fixed. The parent TODO remains open.
+- Claude's retained cue score is not a model-only quality score: Lucena's bridge cue, for example, appeared only in a supplied source. The two automatically flagged move tokens include an impossible capture discussed as such and a piece reference; they are not independently verified recommendations to play illegal moves. There was no semantic judge and no paid rerun to conceal the capture problem.
+
+### Insights
+
+- Grounding material is useful context but must not earn credit for the model explaining it. Separating provider failures, observed checker flags, capture versions and semantic assessment makes the experiment reviewable without turning transport success or a lexical match into a coaching-quality claim.
+
+## 2026-10-24 — Local application threat model
+
+TODO items: 11.1.
+
+### Implementation notes
+
+- Added [the threat model](THREAT-MODEL.md) with an explicit local single-user scope, a data-flow diagram, protected assets, trusted operator files and the separate AI/library cookie boundaries. It maps browser/engine/storage, gateway/providers, imported PGN and retrieval passages, optional embeddings, local model loading, offline bundles, operational counters, exports and fonts.
+- Ten attack scenarios link implemented controls to concrete modules/tests and retain their limitations: prompt injection, untrusted output/actions, stale games/owners, retrieval poisoning/disclosure, resource spending, supply-chain/local-file trust, misconfiguration, erasure/consent acknowledgement and logging. Future hosted/runtime changes explicitly require a boundary update.
+- Corrected the architecture's overbroad claims about own-page-only access and nothing leaving the machine, and its obsolete planned-evaluation note. Added README/architecture navigation to the model.
+- Validation: documentation links checked against the repository; diagram and flow descriptions reviewed against the referenced implementation. Runtime files are unchanged from preparation parent e2b752c, whose checks/build, 566 unit/server cases (one live skip) and all four bilingual mock benchmark cases pass. No live provider or security scan result is inferred from this documentation change.
+
+### Deviations
+
+- This completes the threat-model item rather than the separate OWASP/ASVS/scanning/release gates. Existing code-scanning alerts, model/file handling, log privacy and resource-bound review remain explicit follow-ups under 11.2–11.6/12.3. Cookie grouping and provider consent attestations are not described as hosted authentication.
+
+### Insights
+
+- A legal move, a source hash, a permitted endpoint and a successful feature test establish different facts. Keeping these boundaries explicit prevents a citation or a local deployment label from implying stronger guarantees than the implementation provides.
+
+## 2026-10-24 — Prepare German tutor evaluation and explicit live-run plan
+
+TODO items: 10.8.4.1; live provider matrix 10.8.4.2 remains open.
+
+### Implementation notes
+
+- Added `eval/positions-de.mjs`: the same ten IDs, legal FEN/move sequences and 28 concept counts, with German titles, actual translated UI chips and German lexical cues accepting canonical/German move letters. Detached selections reject unknown languages/IDs. English source data/default behavior remains available.
+- The runner supports `--lang`, a no-request `--plan`, dedicated `--out` and server-only `--env` paths for worktrees. Load completion checks game generation instead of English UI text. German filenames end in `-de`; reports capture language, reference positions/cues, actual answer context and language-specific key points. The combined index separates languages and identifies regex scores as cue coverage.
+- A fresh benchmark browser grants only its selected coach provider through the existing privacy UI after the paid-run guard permits execution. It loads no personal profile/library, keeps keys server-side and preserves first-error/no-completed-report behavior. Startup timers are cleared, and plans report configured provider/model availability without calling a coach/judge or writing a result.
+- Validation: checks/build, all 566 unit/server tests on the integrated milestone base (one live-provider skip), nine focused scoring/paid-plan cases, all four English/German browser benchmark/error cases and a real one-position mock CLI report pass. The browser cases cover all ten positions in each language. All four configured-provider plans were inspected without model requests; Mistral's initial startup timeout passed on retry.
+
+### Deviations
+
+- The [live-run plan](eval/german-plan.md) records model IDs and pending trials separately. No provider result is fabricated from a mock run, English report, configured key or failed connection. The existing paid-run approval requirement remains in effect; 10.8.4 is not marked complete before live trials are recorded.
+- Regex cues can match negations and irrelevant mentions. A test explicitly records this limit; translated patterns do not establish semantic correctness or calibrated cross-language rankings. Printed position counts are not hard request/cost caps when agent follow-ups and rate-limit retries occur.
+
+### Insights
+
+- Language-specific quick-question labels and load-success messages belong to the actual UI path. A valid German benchmark must preserve chess positions/concepts while retaining the language and source text used for every reported cue score.
+
+## 2026-10-24 — German opening labels and authored classic-game notes
+
+TODO items: 10.8.3.
+
+### Implementation notes
+
+- Added project-authored German labels for all 141 opening-family prefixes in the 3,865-row catalogue, common variant terminology and literal bounded matching across original/German names and ECO codes. Canonical English names and family IDs stay unchanged in game state, engine features and PGN headers. Proper names and uncommon nicknames keep their spelling; unknown custom text remains literal.
+- Opening selection, board labels, continuation/guide controls, Reading and library metadata display the selected language, while searches accept either name. Added a search-only alias without changing stored records or calling a provider.
+- Translated all 63 distinct authored classic comments (64 occurrences). The 33 bundled games/problems keep identical legal moves, headers, positions and source/licence metadata; English remains the pure catalogue function's default. German comment PGNs have their own natural source hashes and precise searchable locators. Imported notes and already saved copies keep their original language; recorded problem evidence retains its exact original scope.
+- [Translation scope and source identity](GERMAN-STUDY.md) document family coverage, retained names, existing saved copies and the separate unchanged English retrieval benchmark. The app requests the selected language's built-ins without rewriting a personal library.
+- Validation: the isolated study build passed checks/build, all 555 unit/server cases (one optional live skip), four new browser scenarios plus localization/opening regressions, and a complete 365-pass browser rerun (one optional live-model skip). After integrating the published usage milestone, combined checks/build, all 563 unit/server cases (one optional live skip) and all 34 relevant study/coach/embedding/data/privacy/usage browser scenarios pass. German phone layout inspected; production audit reports zero vulnerabilities. On the isolated study build, the offline-builder follow-up produces byte-identical worker, offline document and install manifest for the actual tested 98-asset build; its file-handling regression and corrected activation fixture were also verified separately.
+
+### Deviations
+
+- The first full browser run had 364 passes and one initial offline-install assertion timeout. Its 20-second assertion was shorter than the app's existing 120-second installation deadline; the corrected wait passed all seven focused offline cases and the entire subsequent 365-case run. The final dependency update changes build/test handling, with identical generated app bytes as described above.
+- German lexical/source-navigation tests do not claim a new retrieval-quality score or prove translated prose/chess claims. The existing frozen English benchmark and canonical chess data remain separate.
+
+### Insights
+
+- A translated annotated PGN is a different source document even when every chess move is unchanged. Its hashes and citation offsets must be generated from the actual language-specific text.
+
+## 2026-10-24 — Persistent local AI usage and per-browser request limits
+
+TODO items: 2.11, scoped by the selected local single-user deployment (10.1).
+
+### Implementation notes
+
+- Added current-day SQLite counters with hashed cookie scopes, bounded minute-admission timestamps, version checks, private file creation and fail-closed storage/capacity errors. Admission persists both rate allowances before provider work; completion records server and user usage in one transaction. Standard serve recipes select gitignored `.kibitz-data/usage.sqlite`; direct CLI/evaluation/test calls remain explicitly ephemeral unless `--usage FILE` is supplied.
+- Coach turns, connection tests and embeddings share aggregate and per-cookie rates. Paid classification is captured with the original route across asynchronous work. Consent is rechecked against the actual route after a request body finishes arriving, preventing a provider switch from reusing the preceding route's permission.
+- Existing token/cost displays and daily paid/local accounting retain their response shape. Corrupt/future schemas, unsafe paths, write failures and the 10,000-scope capacity limit preserve existing budgets rather than replacing the ledger. No prompt, answer, game, model ID, raw cookie or key enters the database.
+- [Usage settings and lifecycle](USAGE.md) document current-day retention, SQLite remnants/backups, operator reset, direct-CLI memory mode and threshold overshoot/incomplete-provider-usage limits. Data/privacy notices explain in English/German that their library/browser export and erasure controls leave operational counters in place.
+- Validation: checks/build and all 558 unit/server cases on the isolated notation/offline base (one optional live skip); four new store scenarios, actual CLI restart/privacy checks and three HTTP regressions. All three HTTP regressions fail on preceding API 9833767. All 30 focused browser cases pass, covering coach/embedding flows and all six data/nine privacy cases; the new real-CLI browser test verifies restart-persistent refusal, another cookie's independent allowance and both notice translations. Production audit reports zero vulnerabilities. The first new browser assertion expected gateway wording rather than the existing friendly error message; correcting that expectation completed the scenario without a product error-message change.
+
+### Deviations
+
+- Hosted accounts and authenticated quotas remain deferred with 10.2, as selected by the owner. Cookie replacement can restart an individual scope; aggregate server counters remain independent. The browser model does not pass through this gateway ledger.
+- Budgets are admission thresholds on completed reported usage, not reservations or hard billing caps. Final/in-flight calls, provider retries/fallbacks and crashes before usage recording can exceed or under-report them; provider-side spending caps remain necessary for hard financial limits. Operational counter retention/reset is separate from chess-data erasure and explicitly disclosed.
+
+### Insights
+
+- Durable cookie counters require a shared transactional store, but do not create authentication. Route/consent/payment classification must also be captured at the same point after asynchronous request-body reads.
+
+## 2026-10-24 — Optional German move letters and figurines
+
+TODO items: 10.8.2.
+
+### Implementation notes
+
+- Added pure complete-SAN-token formatting for English SAN, German K/D/T/L/S and white figurines for both colours, including promotion, captures, checks and punctuation. Typed moves also accept German/figurine letters through legal chess.js resolution; English SAN retains precedence.
+- Settings → General saves an independent notation choice after acknowledgement. Main/scratch move lists and recognized coach move tokens repaint immediately, including existing answers. Canonical English SAN remains in game state, PGNs, engine lines, stored answers and cache keys. Figurines retain localized screen-reader descriptions; literal prose is left alone.
+- Unknown saved preferences remain intact until an explicit selection. Failed saves retain the previous display; native cross-tab changes repaint presentation without changing games or invoking models. [Notation rules and limits](NOTATION.md) document the behavior.
+- Validation: checks/build, all 549 unit/server tests (one live-provider skip), all five new browser scenarios and a complete browser rerun with 361 passes (one optional live-model skip). German phone figurine screenshot inspected; production dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- Display formatting recognizes actual SAN tokens; it does not rewrite arbitrary imported or model prose. English SAN stays the default independently of interface language.
+- The first full browser run had 360 passes and one pre-existing scratch-board assertion failure before a move. That case passed five unchanged repeats, and the subsequent complete run passed all 361 cases. No product change or assertion relaxation was made for that intermittent failure.
+
+### Insights
+
+- Display notation needs to remain separate from canonical move data, especially when repainting an answer or switching interface language. A figurine's visible glyph also needs an accessible move description.
+
+## 2026-10-24 — Verified offline app bundle and browser-coach fallback
+
+TODO items: 10.7.
+
+### Implementation notes
+
+- The build generates an install manifest, authored SVG icon, font-free offline document and module worker with exact SHA-256/size metadata for every public asset. The bundle includes actual Stockfish builds, board/rules code, opening tables, classics, lessons, app/data modules and the browser-model runtime. Preparation is explicit in English/German Settings; no new dependency is needed.
+- Worker installation fetches without cookies and rejects redirects, failed responses, wrong sizes or changed digests before activation. Failed new bundles are removed. Scoped cached navigation/modules retain one version, and missing files produce a failure rather than mixing a newer module into an older page. API responses, model weights, other paths/origins and mutations bypass the app cache. Reads/status checks cannot recreate an erased cache.
+- Initial control starts on the next navigation. Update checks are explicit; complete updates wait for old controlled tabs to close, with no forced reload/activation. Cleanup removes only older app bundles in the same scope. Incomplete caches require explicit removal, reload and re-preparation; failures and retries stay visible. Separate removal preserves games/other caches/weights, while confirmed browser erasure also unregisters/removes the app copy before acknowledging completion.
+- A bounded, versioned descriptor retains only an explicitly selected browser model's local URL/name/size. It restores the existing local coach path after gateway loss without replaying cloud status, usage or owner metadata. Unknown formats remain intact/closed; changing providers clears a readable saved choice. Existing load consent, memory limits and the wllama weight cache remain separate.
+- Nine unit scenarios cover path exclusions, cookie-free integrity checks, incomplete-install cleanup, scoped activation/removal, reads after erasure, model descriptor boundaries/future formats and the actual build manifest. Seven browser scenarios cover real offline reload/Stockfish reply, browser games/openings/lesson mate, actual waiting HTTP updates, rejected changed assets, removal/data erasure, gateway-loss browser coaching, incomplete-cache re-preparation/removal retry and German phone controls.
+- Validation: checks/build, all 547 unit/server tests (one live-provider skip), all seven new browser scenarios and all 356 browser tests (one optional live-model skip) pass. Production audit reports zero vulnerabilities. The real offline engine/reply and exact lesson mate run without network access; fake browser inference remains a separate test as described below.
+
+- CI follow-up: the manifest builder rejects file/directory symlinks and checks/hashes a no-follow opened regular-file descriptor rather than statting then reading a path. The regression fails on cfe6ee0. Checks/build, all 548 unit/server cases (one live skip), six offline browser cases and three repeats of the corrected activation case pass. The activation fixture now closes all old tabs before opening its replacement and records worker/client state on failure; installation waits cover the app's existing 120-second deadline. CI's browser deadline is 60 minutes after its expanded suite reached the old 30-minute job limit. The preceding complete app suite remains the 356-pass run described above; the follow-up changes build/test handling, without product UI logic changes.
+
+### Deviations
+
+- [Offline scope and limits](OFFLINE.md) distinguish a browser-only offline app from locally running Ollama, which still needs the Node gateway. Browser weights need their separate prior load/cache; in-memory fallback is not proof of durable weight storage. Fresh offline private-server collections remain inaccessible without owner verification, while the separate browser library and bundled references work locally.
+- Installation controls and quotas are browser dependent. Tests use actual Stockfish but fake browser-model inference; no real-model performance or cross-browser guarantee is inferred. Unknown cached-file loss can require the browser's worker/cache controls if the app page itself cannot load.
+
+### Insights
+
+- Re-registering identical worker code does not reconstruct an evicted cache. Cache reads also need to avoid `caches.open()` after erasure, since it creates a new empty cache even from a still-controlled old tab.
+
+## 2026-10-24 — Keyboard board play, patterned marks and reduced motion
+
+TODO items: 10.5.
+
+### Implementation notes
+
+- Added pure navigation/rules models and a native roving-focus grid in `chess/keyboard-board.js`. One Tab stop exposes all 64 labelled squares; orientation-aware arrows, row/corner keys, Enter/Space selection, Escape and legal destinations use the existing game/scratch move path. Read-only states and game/FEN changes clear captured selections; previews hide the grid and global history/flip shortcuts leave it alone.
+- Promotion focuses explicit translated choices, supports keyboard underpromotion/cancellation, restores focus and checks captured game/scratch identity. A held pointer choice cannot promote in a replacement game even at the same FEN. Clearing the pointer selection before a keyboard selection prevents Chessground's king-to-rook castling shortcut from becoming an unintended move.
+- Added `chess/board-marks.js`: six distinct automatic arrow patterns supplement existing colours, with literal localized descriptions of squares, meanings, patterns and validated labels. User-drawn marks also have patterns/descriptions. Prior coach marks disappear when live help becomes restricted; previews do not retain descriptions for the wrong board. All descriptions use text nodes.
+- The reduced-motion media query now disables the actual Chessground animator and cancels a running animation, including preference changes while the page is open. Existing CSS motion suppression remains in effect. German controls and labels avoid a second translation pass.
+- Six unit scenarios cover navigation, orientation, actual rules/king safety, castling, en passant, promotion destinations, unique patterns and hostile mark data. Ten browser scenarios cover focus/Tab, live and analysis play, game replacement, either-colour underpromotion, stale pointer promotion, mixed pointer/keyboard castling, help/preview/scratch isolation, real animator state and German dark phone layout. The stale-promotion test was run against prior head `3914e1c` and fails there because the obsolete chooser remains active.
+- Validation: checks/build, all 538 unit/server tests (one live-provider skip), all ten new browser cases and all 349 browser tests (one optional live-model skip) pass. Production dependency audit reports zero vulnerabilities. German phone focus screenshot inspected; the stale-promotion regression fails on the prior build as described above.
+
+### Deviations
+
+- Existing typed SAN/UCI input and independent lesson/drill/own-mistake controls remain available. The new square grid targets the main board and free scratch board rather than replacing every practice widget.
+- [Controls and verification limits](ACCESSIBILITY.md) document Chrome automation/visual inspection and the remaining need for hands-on assistive-technology testing; no WCAG conformance claim is made.
+
+### Insights
+
+- A CSS reduced-motion rule does not stop a JavaScript board animator. Keyboard selection also needs to clear the pointer renderer's previous origin before selecting another piece.
+
+## 2026-10-24 — Explicit provider/purpose opt-in and privacy notice
+
+TODO items: 10.4.
+
+### Implementation notes
+
+- Added pure `platform/privacy.js` and localized `privacy-ui.js`: initially off, acknowledged per-provider coach/test and passage/query-embedding permissions for Anthropic, OpenAI, Mistral and Ollama. A bounded v1/revision store preserves malformed/future data closed to network sharing, rejects stale sequential-tab edits and publishes grants only after save. A failed revocation denies this tab immediately and retains a distinct safe retry without temporarily re-granting permission.
+- A central transport rereads choices before requests, combines cancellation signals, attaches exact version/provider/purpose attestations and fences late results. UI/native storage changes cancel pending coach/embedding transports, clear reusable conversation/semantic state and update availability. Existing in-browser model loading consent and local mock behavior remain distinct; quick in-browser routing can work while a network coach is blocked.
+- The gateway checks actual routing before spending/rate-budget admission for sample, structured, connection-test and embedding calls. Provider changes cannot reuse another provider's header, and coach consent cannot authorize embeddings. Existing fake-provider budget/embedding fixtures now explicitly attest their intended calls; no real service is contacted.
+- Settings place permissions beside provider controls, with an accessible jump button, English/German data-flow notice and literal provider names. Provider switches update the grant prompt immediately; enabling quick in-browser routing restores its controls while network sharing remains blocked. The notice covers questions/history, game/engine/tool context, retrieved/source text, profile fields, separately selected embedding passages/queries, configurable compatible/Ollama endpoints, fonts, local model loading and provider retention limits. Local-model wording no longer promises that all network traffic stops. [Privacy/API contract](PRIVACY.md) distinguishes explicit direct-client attestation from authentication or signed consent records.
+- Six unit scenarios cover initially closed choices, separate scopes, acknowledged grants, failed revocation, stale tabs, unknown formats and cancelled held results. A fake-SDK gateway scenario verifies missing/wrong-provider/wrong-purpose/version refusals without spending. Nine browser cases cover persistence, provider switching, blocked-cloud/quick-browser routing, failed grant/revocation retry, held replies, actual cross-tab revocation, future formats, separate embeddings and German phone controls. Existing cloud-embedding policy tests explicitly grant permission before testing their later restrictions.
+- Validation: checks/build and all 532 unit/server/fake-provider tests (one live-provider skip), 27 focused server cases, 19 focused browser/regression cases, all nine new privacy cases and all 339 browser tests (one optional live-model skip) pass. Production audit reports zero vulnerabilities. Readable German phone notice/control screenshots inspected.
+
+### Deviations
+
+- Per-purpose controls are narrower than a single provider toggle. Mock mode and the browser model do not need a network-provider permission; browser model loading retains its existing resource consent. Host-managed artifacts keep their separate host contract.
+- Consent headers attest a local operator/browser choice and provide routing/version preconditions; they are not authentication or legal consent receipts. Revocation cannot recall transmitted data or stop all provider-side work already accepted. Truly simultaneous localStorage writers lack a transaction; failed revocations warn about other tabs/reloads until saved. No provider-retention/compliance guarantee is invented.
+
+### Insights
+
+- A connection test also contacts a provider and needs consent. Embedding ingestion has a different data scope from coach context, so sharing a provider name is insufficient permission to send passages or queries.
+
+## 2026-10-24 — Standalone data exports and confirmed browser/server erasure
+
+TODO items: 10.3.
+
+### Implementation notes
+
+- Added standalone `src/data.html` and `platform/data.js`/`data-page.js`, linked from Settings and copied by the build. The data page does not boot app autosave, engine or game state. It downloads bounded versioned JSON without model calls: raw Kibitz browser values preserve unknown/future formats and original PGNs, while current-cookie server exports refresh and validate their exact owner snapshot. Other origin-storage keys, server env keys, transient drafts and provider histories are excluded.
+- Separate native confirmation dialogs distinguish browser data from the current server collection. Browser erasure compares its preview before/after cache deletion, waits for native IndexedDB deletion, removes only the Kibitz localStorage namespace and named library cache, and verifies completion without recreating app preferences. Changed previews, storage/cache failures and partial removals never claim a complete erase; retry inspects the remaining data again.
+- Added cookie/scope/revision/confirmation-checked `POST /api/library/erase`, with the existing same-origin/host, JSON/size/rate boundaries. SQLite atomically removes only that owner's games/references and retains an advanced revision tombstone so older pending writes cannot resurrect data, including after restart. Other owners and browser records remain separate. Acknowledged server deletion removes only the verified owner's cache; cache failure and uncertain server acknowledgement get distinct messages.
+- The page supports English/German, a phone-sized native modal, keyboard cancellation/focus, literal source contents and no reflection/prompt rendering. [Data formats and lifecycle](DATA.md) document raw exports, no automatic restore, caps, concurrent-tab limits, backups, physical SQLite remnants, provider/host-managed account exclusions and operator responsibilities.
+- Five unit scenarios cover raw export fidelity/namespaces, cache acknowledgement, changed previews/partial failures, future formats, localized copy and build output. Three server scenarios check transactional owner/tombstone/restart behavior, malformed erasure and explicit session/origin/confirmation/CAS constraints. Six new browser cases verify downloads, app navigation/autosave isolation, scoped cache removal, stale writes/previews, cancellation, partial/uncertain outcomes and German phone controls.
+- Validation: ESLint/JSDoc checks, build, all 525 unit tests (one live-provider skip), 16 focused server cases, all six data browser cases and all 330 browser tests (one optional live-model skip) pass. The earlier focused run passed existing localization/settings/library-storage regressions; the German data translator binding was corrected and rechecked. German phone confirmation screenshot inspected; production dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- The selected local single-user target uses browser and optional cookie-owned Node storage. Host-managed artifact account libraries, provider retention and operator backups remain outside these controls and are identified explicitly. No hosted-account deletion or forensic disk erasure is claimed.
+- Browser key removal is not a transaction. Other tabs can recreate in-memory copies, so the page asks the player to close them; partial failure stays visible. Exports preserve saved raw values without adding an import/restore workflow.
+
+### Insights
+
+- Deletion needs both a persistence boundary and an acknowledgement boundary: stopping autosave prevents local recreation, while a retained server revision blocks older writes and keeps uncertain receipts from becoming false success messages.
 
 ## 2026-10-24 — Select the local single-user deployment
 
