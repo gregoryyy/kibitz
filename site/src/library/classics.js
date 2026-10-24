@@ -3,9 +3,16 @@
 // no globals. The game scores are historical record; the comments are ours. Tags use the
 // vocabulary of knowledge.js TAG_LABELS, so a position's features find the games that teach them.
 import { makeProvenance } from './library.js';
+import { CLASSIC_SCORE_SOURCES } from './classic-sources.js';
+import { CAPABLANCA_GAMES } from './capablanca.js';
+import { AUTHORED_PROBLEMS, CURATED_PROBLEMS } from './problem-data.js';
+
+const problemsById = new Map(CURATED_PROBLEMS.map(p => [p.id, p]));
 
 // Each entry: id, title, white, black, event, date, result, tags, about (one line on what it
 // teaches), moment (the ply of its key moment), and either moves (from the start) or fen + moves (a study).
+/** @typedef {{id:string,title:string,white:string,black:string,event:string,date:string,result:string,tags:string[],about:string,moment:number,moves:string,fen?:string,scoreNote?:string,source?:{title:string,author:string,url:string,score:string}}} ClassicEntry */
+/** @type {ClassicEntry[]} */
 export const CLASSICS = [
   {
     id: 'ex-opera', title: 'The Opera Game', white: 'Paul Morphy', black: 'Duke Karl / Count Isouard', event: 'Paris', date: '1858', result: '1-0',
@@ -35,13 +42,15 @@ export const CLASSICS = [
     id: 'cl-reti-tartakower', title: 'Réti\'s queen sacrifice', white: 'Richard Réti', black: 'Savielly Tartakower', event: 'Vienna', date: '1910', result: '1-0',
     tags: ['caro-kann', 'opening', 'sacrifice', 'mate'], moment: 17,
     about: 'A miniature: Black\'s king stays in the centre with the queen chasing pawns, and a queen sacrifice ends in a double check and mate.',
-    moves: '1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Qd3 e5 6. dxe5 Qa5+ 7. Bd2 Qxe5 8. O-O-O {The rook takes the d-file while Black has not castled.} Nxe4 9. Qd8+ {The queen sacrifice.} Kxd8 10. Bg5+ {Double check.} Kc7 11. Bd8# 1-0',
+    scoreNote: 'The published game ended after 10.Bg5+. The final two plies show a teaching continuation.',
+    moves: '1. e4 c6 2. d4 d5 3. Nc3 dxe4 4. Nxe4 Nf6 5. Qd3 e5 6. dxe5 Qa5+ 7. Bd2 Qxe5 8. O-O-O {The rook takes the d-file while Black has not castled.} Nxe4 9. Qd8+ {The queen sacrifice.} Kxd8 10. Bg5+ {Double check. The published game ended here with Black resigning; the following two plies are a teaching continuation.} Kc7 11. Bd8# 1-0',
   },
   {
-    id: 'cl-legal', title: 'Légal\'s mate', white: 'Sire de Légal', black: 'Saint Brie', event: 'Paris', date: '1750', result: '1-0',
+    id: 'cl-legal', title: 'Légal\'s mate', white: 'Sire de Légal', black: 'Saint Brie', event: 'Traditional teaching version', date: '????', result: '1-0',
     tags: ['open-games', 'opening', 'pin', 'sacrifice', 'mate'], moment: 9,
     about: 'A pin that isn\'t one: the knight ignores the pin on f3, gives up the queen, and the minor pieces mate.',
-    moves: '1. e4 e5 2. Bc4 d6 3. Nf3 Bg4 4. Nc3 g6 5. Nxe5 {The knight leaves f3 although it seems pinned to the queen.} Bxd1 6. Bxf7+ Ke7 7. Nd5# 1-0',
+    scoreNote: 'Traditional teaching version. The historical date, move order and rook odds are disputed.',
+    moves: '1. e4 e5 2. Nf3 d6 3. Bc4 Bg4 4. Nc3 g6 5. Nxe5 {The knight leaves f3 although it seems pinned to the queen. This is a traditional teaching version; the historical date, move order and rook odds are disputed.} Bxd1 6. Bxf7+ Ke7 7. Nd5# 1-0',
   },
   {
     id: 'cl-lasker-thomas', title: 'The king hunt', white: 'Edward Lasker', black: 'George Alan Thomas', event: 'London', date: '1912', result: '1-0',
@@ -76,33 +85,36 @@ export const CLASSICS = [
     moves: '1. c7 Rd6+ 2. Kb5 Rd5+ 3. Kb4 Rd4+ 4. Kb3 Rd3+ 5. Kc2 Rd4 {Rc4+ is ready: after c8=Q, Rc4+ Qxc4 is stalemate.} 6. c8=R {The rook avoids the stalemate and threatens Ra8 mate.} Ra4 7. Kb3 {Attacking the rook and threatening Rc1 mate.} 1-0',
   },
   {
-    id: 'st-lucena', title: 'The Lucena position', white: 'study', black: 'study', event: 'Lucena', date: '1497', result: '1-0',
+    id: 'st-lucena', title: 'The Lucena position', white: 'study', black: 'study', event: 'Lucena', date: '????', result: '1-0',
     tags: ['rook-pawn-vs-rook', 'rook-endgame', 'endgame'], moment: 3,
     about: 'Building a bridge: the rook shields the king from checks so the pawn can queen.',
     fen: '1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1',
     moves: '1. Rd1+ {Drive the defending king one file further away.} Ke7 2. Rd4 {The bridge: the rook will block the checks on the fourth rank.} Ra1 3. Kc7 Rc1+ 4. Kb6 Rb1+ 5. Kc6 Rc1+ 6. Kb5 Rb1+ 7. Rb4 1-0',
   },
   {
-    id: 'st-philidor', title: 'The Philidor position', white: 'study', black: 'study', event: 'Philidor', date: '1777', result: '1/2-1/2',
+    id: 'st-philidor', title: 'The Philidor position', white: 'study', black: 'study', event: 'Philidor', date: '????', result: '1/2-1/2',
     tags: ['rook-pawn-vs-rook', 'rook-endgame', 'endgame'], moment: 4,
     about: 'The defence: the rook holds the third rank until the pawn advances, then checks from behind.',
     fen: '4k3/7R/r7/3KP3/8/8/8/8 b - - 0 1',
     moves: '1... Rb6 {Keep the rook on the sixth rank: the white king can\'t come forward.} 2. e6 Rb1 {Now the pawn has left the king no shelter: check from behind.} 3. Kd6 Rd1+ 4. Ke5 Re1+ 1/2-1/2',
   },
+  ...CAPABLANCA_GAMES,
+  ...AUTHORED_PROBLEMS,
 ];
 
 // The collection as library games: {id, kind: 'example', title, white, black, date, result, pgn, tags, about, moment}.
 export function classicGames() {
-  return CLASSICS.map(c => ({
-    id: c.id, kind: 'example', title: c.title, white: c.white, black: c.black, date: c.date, result: c.result, tags: c.tags, about: c.about, moment: c.moment,
-    // This identifies the packaged collection, not a verified original publication of each score.
-    // The project's authored notes have its declared licence; original score rights remain unknown.
-    provenance: makeProvenance('builtin', { title: 'Kibitz classics collection', author: 'Kibitz contributors', url: 'https://github.com/gregoryyy/kibitz/blob/main/site/src/library/classics.js', annotations: 'GPL-3.0-or-later' }),
+  return CLASSICS.map(item => {
+    const problem = problemsById.get(item.id) || null, c = { ...item, ...(problem?.date ? { date: problem.date } : {}), ...(problem?.scoreNote ? { scoreNote: problem.scoreNote } : {}) };
+    return {
+    id: c.id, kind: 'example', title: c.title, white: c.white, black: c.black, date: c.date, result: c.result, tags: c.tags, about: c.about, moment: c.moment, scoreNote: c.scoreNote || '', problem: problem ? structuredClone(problem) : null,
+    // Games have published score sources; problem definitions distinguish diagrams and authored variants.
+    provenance: makeProvenance('builtin', { ...(problem?.source || c.source || CLASSIC_SCORE_SOURCES[c.id] || { title: 'Kibitz classics collection', author: 'Kibitz contributors', url: 'https://github.com/gregoryyy/kibitz/blob/main/site/src/library/classics.js' }), annotations: 'GPL-3.0-or-later' }),
     pgn: [
       `[Event "${c.event}"]`, `[Date "${c.date}"]`, `[White "${c.white}"]`, `[Black "${c.black}"]`, `[Result "${c.result}"]`,
       ...(c.fen ? ['[SetUp "1"]', `[FEN "${c.fen}"]`] : []), '', c.moves,
     ].join('\n'),
-  }));
+  }; });
 }
 
 // Classics that teach this position's themes (3.2.5): scored by the features' weights on the
@@ -124,6 +136,8 @@ export function retrieveClassics(features, { limit = 3, exclude = null } = {}) {
 // "Philidor" alone is also an opening, "Lucena" alone a person.
 const pair = (a, b) => `${a}\\s*(?:[–—-]|vs?\\.?|versus|against|gegen)\\s*${b}`;
 const NAMES = {
+  ...Object.fromEntries(AUTHORED_PROBLEMS.map(g => [g.id, [problemsById.get(g.id).title.en, problemsById.get(g.id).title.de].map(title => title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))])),
+  ...Object.fromEntries(CAPABLANCA_GAMES.map(g => [g.id, [g.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replaceAll('–', '[–—-]').replaceAll('St Petersburg', 'St\\.?\\s+Petersburg')]])),
   'ex-opera': ['(?:Morphy[\'’]s )?Opera (?:House )?Game', 'Opernpartie', pair('Morphy', '(?:the |den )?(?:Duke|Count|Herzog|Grafen?|Isouard|Brunswick|Braunschweig)')],
   'ex-immortal': ['(?<!Rubinstein[\'’]s )Immortal Game', '(?<!Rubinsteins )Unsterbliche(?:n)? Partie', pair('Anderssen', 'Kieseritzky')],
   'cl-evergreen': ['Evergreen (?:Game|Partie)', 'Immergrüne(?:n)? Partie', pair('Anderssen', 'Dufresne')],

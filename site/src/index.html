@@ -264,9 +264,13 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 #lessonMove { min-width: 0; width: auto; flex: 1; }
 #lessonLine { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; }
 #lessonLine [aria-pressed="true"] { border-color: var(--accent); }
-.lesson-promotion { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; }
-.lesson-promotion::backdrop { background: rgb(0 0 0 / .35); }
-.lesson-promotion button { margin: 8px 4px 0 0; }
+#libFilter { flex-wrap: wrap; max-width: 100%; }
+.lesson-promotion, .lesson-play-confirm { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; max-width: calc(100vw - 32px); }
+.lesson-promotion::backdrop, .lesson-play-confirm::backdrop { background: rgb(0 0 0 / .35); }
+.lesson-promotion button, .lesson-play-confirm button { margin: 8px 4px 0 0; }
+.lesson-play-confirm { width: 460px; }
+.lesson-play-controls { display: grid; gap: 8px; }
+.lesson-play-controls .row { flex-wrap: wrap; }
 .lesson-progress { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
 .lesson-progress p, .lesson-progress h3 { margin: 0; }
 .lesson-progress summary { cursor: pointer; }
@@ -603,13 +607,14 @@ a.ext { color: var(--accent); font-size: 14px; }
       </section>
       <div class="row">
         <input type="text" id="libSearch" placeholder="Search player, opening, result" style="flex:1;min-width:160px">
-        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button></div>
+        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button><button data-v="problems" aria-pressed="false">Problems</button></div>
       </div>
       <div id="libList" class="lib-list"></div>
       <details class="box"><summary>Import PGN (games or annotated studies)</summary>
         <div class="field"><textarea id="importText" rows="5" placeholder="Paste one or more PGN games. Comments in { } are indexed so the coach can quote them when a similar position comes up."></textarea></div>
+        <p class="hint">Repeated copies are skipped; different annotations or source details stay separate.</p>
         <details><summary>Source and licences (optional)</summary><div id="importSourceFields"></div></details>
-        <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg"></span></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg" role="status" aria-live="polite" data-raw translate="no"></span></div>
       </details>
       <div class="row"><button class="btn small" id="btnSaveCurrent">Save current game</button><button class="btn small" id="btnExportAll">Copy all as PGN</button></div>
     </div>
@@ -752,6 +757,12 @@ import { STYLES, styleOf, pickStyled } from './chess/style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './chess/modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './library/classics.js';
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
+import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
+import { CURATED_PROBLEMS } from './library/problem-data.js';
+import { verifiedProblemEvidence } from './library/problems.js';
+import { PROBLEM_TABLEBASES } from './library/problem-tablebases.js';
+import { TABLEBASE_SNAPSHOTS } from './curriculum/tablebase-snapshots.js';
+import { tablebaseIndex } from './curriculum/tablebase.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings/openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './openings/opening-guides.js';
 import { annotationPassages, guidePassages, searchText } from './library/text-search.js';
@@ -771,15 +782,18 @@ import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/
 import { sanToSpeech, parseMoveInput } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import DE from './platform/i18n-de.js';
-import { compileCurriculum } from './curriculum/curriculum.js';
+import { compileCurriculum, lessonText } from './curriculum/curriculum.js';
 import { CURRICULUM } from './curriculum/catalogue.js';
 import { createCurriculumPanel } from './curriculum/ui.js';
 import { createLessonPlayer } from './curriculum/player.js';
 import { createLessonProgressStore, summarizeLessonProgress, LESSON_PROGRESS_KEY } from './curriculum/progress.js';
 import { createLessonProgressPanel } from './curriculum/progress-ui.js';
+import { prepareLessonGame } from './curriculum/playout.js';
+import { confirmLessonGame } from './curriculum/playout-confirm.js';
 
 let lessonPlayer = null;
 let refreshLessonProgress = () => {};
+let lessonGameTail = Promise.resolve();
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -1441,11 +1455,17 @@ function newGame({ confirmed = false } = {}) {
   }
   let start = startPosition();
   if (start.error) { toast(start.error + ' Starting from the normal position instead.'); start = { fen: START, sans: [], title: null }; }
+  beginGame(start);
+}
+// Both the start form and a validated lesson request use the same engine/clock lifecycle.
+function beginGame(start, { color = null } = {}) {
+  const nodes = nodesFor(start.fen, start.sans);
   cancelChat(); CHAT.undo = []; CHAT.returnGame = null; CHAT.studyBoard = null; CHAT.studyCheckpoint = null; CHAT.general = false; CHAT.generalTurns = [];
+  $('#confirmSlot').replaceChildren();
   analyst.cancel(); cancelReply(); S.gen++;
   S.mode = 'play'; S.start = start.fen; S.over = null; S.thinking = false; S.hints = 0;
-  S.nodes = nodesFor(start.fen, start.sans); S.startPly = start.sans.length; S.cursor = last();
-  S.userColor = S.colorPick === 'r' ? (Math.random() < .5 ? 'w' : 'b') : S.colorPick;
+  S.nodes = nodes; S.startPly = start.sans.length; S.cursor = last();
+  S.userColor = color || (S.colorPick === 'r' ? (Math.random() < .5 ? 'w' : 'b') : S.colorPick);
   S.orientation = S.userColor === 'w' ? 'white' : 'black';
   S.gameId = 'g' + Date.now().toString(36); S.meta = start.title ? { title: start.title } : null; S.playing = true; S.reviewDone = false; S.summary = ''; S.comments = {};
   const tc = timeControlOf(S.tc); S.gameTc = tc.base ? tc : null; S.clock = tc.base ? newClock(tc) : null;
@@ -1496,9 +1516,46 @@ async function offerDraw() {
   toast('Stockfish declines the draw and plays on.'); renderControls();
 }
 function confirmBox(text, yesLabel, onYes) {
-  const slot = $('#confirmSlot'); slot.replaceChildren(el('div', { class: 'confirm' }, el('span', {}, text), el('span', { class: 'spacer' }),
-    el('button', { class: 'btn small primary', onclick: () => { slot.replaceChildren(); onYes(); } }, yesLabel),
-    el('button', { class: 'btn small', onclick: () => slot.replaceChildren() }, 'Cancel')));
+  const slot = $('#confirmSlot'), gen = S.gen;
+  const box = el('div', { class: 'confirm' }, el('span', {}, text), el('span', { class: 'spacer' }),
+    el('button', { class: 'btn small primary', onclick: () => {
+      if (!box.isConnected || !slot.contains(box)) return;
+      slot.replaceChildren(); if (S.gen === gen) onYes();
+    } }, yesLabel),
+    el('button', { class: 'btn small', onclick: () => { if (slot.contains(box)) slot.replaceChildren(); } }, 'Cancel'));
+  slot.replaceChildren(box);
+}
+
+/** Start only the captured lesson/main-game context; a failed save never replaces the game. */
+async function playLessonPosition(request) {
+  // An aborted earlier request may still be saving a detached snapshot. Wait for its cleanup.
+  const previous = lessonGameTail; let release;
+  lessonGameTail = new Promise(resolve => { release = resolve; });
+  await previous;
+  try {
+    if (request.signal.aborted || !request.isCurrent()) return { cancelled: true };
+    const prepared = prepareLessonGame(Chess, request); if (prepared.error) return { error: prepared.error };
+    const gameKey = () => JSON.stringify([gameCheckpoint(S), S.meta, S.comments]);
+    const gen = S.gen, checkpoint = gameKey();
+    const current = () => !request.signal.aborted && request.isCurrent() && S.gen === gen && gameKey() === checkpoint;
+    if (S.playing && S.nodes.length > 1) {
+      const confirmed = await confirmLessonGame(document, { side: t(request.color === 'w' ? 'White' : 'Black'), signal: request.signal, t });
+      if (!confirmed) return { cancelled: true };
+      if (!current()) return { error: 'The current game changed. Start the lesson position again when ready.' };
+      const record = currentRecord({ result: '*' });
+      // A packaged example is copied, never overwritten by a played variant.
+      if (record.kind === 'example') { record.id = 'g' + Date.now().toString(36); record.kind = 'study'; }
+      const saved = await Lib.putGame(record);
+      if (!current()) return request.signal.aborted || !request.isCurrent() ? { cancelled: true }
+        : { error: 'The current game changed. Start the lesson position again when ready.' };
+      if (!saved) return { error: 'The current game could not be saved. The lesson position has not been started.' };
+    }
+    if (!current()) return { cancelled: true };
+    beginGame(prepared.start, { color: prepared.color });
+    openTab('game'); $('.boardcol').scrollIntoView({ block: 'start' });
+    (canMove() ? $('#moveInput') : $('[data-tab="game"]')).focus();
+    return {};
+  } finally { release(); }
 }
 async function hint() {
   const fen = nodeFen(), i = S.cursor, gen = S.gen;
@@ -1593,6 +1650,7 @@ const LOCAL_FULL = 'Browser storage is full, so this wasn\'t saved. Delete some 
 let libLoaded;
 const Lib = {
   where: 'loading', games: new Map(), books: new Map(), db: null, uid: null, unsub: [], indexed: Promise.resolve(),
+  importAcks: new Map(), // acknowledged account imports not yet delivered by the account snapshot
   // Writes wait for this, so a save during start-up can't overwrite the stored library with an empty one.
   ready: new Promise(r => { libLoaded = r; }),
   async init() {
@@ -1602,14 +1660,18 @@ const Lib = {
       this.db = db; this.uid = uid; this.where = 'cloud';
       const base = db.doc(`data/users/${uid}/kibitz`);
       this.gamesCol = base.collection('games'); this.booksCol = base.collection('books');
-      this.unsub.push(this.gamesCol.onSnapshot(s => { this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => this.fallback({ lost: true })));
+      this.unsub.push(this.gamesCol.onSnapshot(s => {
+        this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
+        for (const id of this.importAcks.keys()) if (this.games.has(id)) this.importAcks.delete(id);
+        onLibChange();
+      }, () => this.fallback({ lost: true })));
       this.unsub.push(this.booksCol.onSnapshot(s => { this.books = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => {}));
       libLoaded();
     } else this.fallback();
   },
   fallback({ lost = false } = {}) {
     if (lost) toast('Your account library is unavailable. Saving in this browser until you reload.');
-    this.where = 'local'; this.db = null;
+    this.where = 'local'; this.db = null; this.importAcks.clear();
     this.games = new Map((store.get('games', [])).map(g => [g.id, g]));
     this.books = new Map((store.get('books', [])).map(b => [b.id, b]));
     libLoaded(); onLibChange();
@@ -1624,7 +1686,7 @@ const Lib = {
   },
   async putGame(g, options = {}) { return (await this.putGames([g], options)) === 1; },
   // Saves several games with one write (local) and one library refresh; returns how many were saved.
-  async putGames(list, { expected = null } = {}) {
+  async putGames(list, { expected = null, importReport = null } = {}) {
     await this.ready;
     try {
       list = list.map(g => {
@@ -1634,10 +1696,19 @@ const Lib = {
       await Promise.all(list.map(g => librarySnapshot(g, 'library')));
     } catch { toast('Source metadata or PGN is invalid or unsupported. Stored games have been kept.'); return 0; }
     if (expected && this.games.get(expected.id) !== expected) return 0;
+    if (importReport) {
+      // Recheck after asynchronous validation against the latest acknowledged library state.
+      const plan = deduplicatePgnImport(Chess, list, [...this.games.values(), ...this.importAcks.values()]);
+      list = plan.records; importReport.duplicates = plan.duplicates;
+    }
+    if (!list.length) return 0; // duplicate-only imports make no write or index change
     if (this.where === 'cloud') {
       let n = 0;
       for (const g of list) {
-        try { await this.gamesCol.doc(g.id).set(g); n++; }
+        try {
+          await this.gamesCol.doc(g.id).set(g); n++;
+          if (importReport && !this.games.has(g.id)) this.importAcks.set(g.id, g);
+        }
         catch (e) { toast(e?.code === 'quota_exceeded' ? 'Library is full. Delete some games first.' : 'Could not save to your library.'); break; }
       }
       return n;
@@ -1648,6 +1719,7 @@ const Lib = {
   },
   async delGame(id) {
     await this.ready;
+    this.importAcks.delete(id);
     if (this.where === 'cloud') { try { await this.gamesCol.doc(id).delete(); } catch { toast('Could not delete that game.'); } }
     else this.localChange(this.games, () => this.games.delete(id));
   },
@@ -1666,6 +1738,8 @@ const Lib = {
 // Built-in examples (public-domain games, annotations by Kibitz) so the library and retrieval have something to show.
 // The built-in classics (classics.js, TODO 7.3): in the library, the position index and the reading list.
 const EXAMPLES = classicGames();
+const PROBLEMS = new Map(CURATED_PROBLEMS.map(p => [p.id, p]));
+const PROBLEM_TABLEBASE_LOOKUP = tablebaseIndex(Chess, [...TABLEBASE_SNAPSHOTS, ...PROBLEM_TABLEBASES]);
 let INDEX = K.buildPositionIndex([]);
 let OPENING_INDEX = buildOpeningIndex([]);
 const openingCache = new Map(); // source + id -> {pgn, record}; invalidate on content, not timestamps
@@ -1683,7 +1757,11 @@ function rebuildTextIndex() { HYBRID_INDEX = buildHybridIndex(Chess, [...TEXT_NO
 function librarySnapshot(g, collection) {
   const key = `${collection}:${g.id}`, input = JSON.stringify([g.pgn, g.provenance, g.kind]);
   let cached = libraryCache.get(key);
-  if (!cached || cached.input !== input) libraryCache.set(key, cached = { input, promise: compileLibraryGame(Chess, g, collection) });
+  if (!cached || cached.input !== input) libraryCache.set(key, cached = { input, promise: compileLibraryGame(Chess, g, collection).then(snapshot => {
+    const definition = collection === 'classic' ? PROBLEMS.get(g.id) : null;
+    const evidence = verifiedProblemEvidence(Chess, snapshot, definition, PROBLEM_TABLEBASE_LOOKUP);
+    return evidence ? { ...snapshot, problem: { ...snapshot.problem, verification: 'tablebase-branch', ...evidence } } : snapshot;
+  }) });
   return cached.promise;
 }
 function allGames() { return [...Lib.games.values(), ...EXAMPLES]; }
@@ -2366,7 +2444,12 @@ function renderSourceEvidence(box, record) {
   if (!record?.snapshot) return;
   const data = record.snapshot;
   box.append(el('p', { class: 'hint source-counts' }, `${data.occurrences.length} position occurrences · ${data.annotations.length} annotations`));
-  if (data.problem) box.append(el('p', { class: 'hint' }, 'Study position with a recorded line. Move legality is checked; the solution and stated result are unverified.'));
+  if (data.problem?.verification === 'tablebase-branch') {
+    const evidence = data.problem.tablebase, outcome = t(evidence.outcome === 'draw' ? 'Draw' : evidence.outcome === 'white-win' ? 'White wins' : 'Black wins');
+    box.append(el('p', { class: 'hint', translate: 'no', 'data-raw': '' }, t('Recorded branch: {outcome}. Checked in saved Syzygy facts; other continuations are not certified.', { outcome })),
+      el('a', { class: 'ext', href: evidence.url, target: '_blank', rel: 'noopener noreferrer' }, 'Tablebase source'));
+    if (data.problem.goal === 'mate-in-one') box.append(el('p', { class: 'hint' }, 'The recorded move is an actual mate in one. Other mates may exist.'));
+  } else if (data.problem) box.append(el('p', { class: 'hint' }, 'Study position with a recorded line. Move legality is checked; the solution and stated result are unverified.'));
 }
 function refreshLibraryEvidence() {
   for (const card of $$('#libList .game')) {
@@ -2379,10 +2462,12 @@ function sourceDetails(g) {
   const box = el('details', { class: 'source-details' }, el('summary', {}, 'Source and licences'));
   if (!state.value) { box.append(el('p', { class: 'hint' }, 'Source metadata is invalid or from a newer version. Stored data has been kept; this record is omitted from similar-position results.')); return box; }
   const p = state.value;
+  if (g.scoreNote) box.append(el('p', { class: 'hint' }, g.scoreNote));
   box.append(el('p', {}, SOURCE_ORIGINS[p.origin]), el('p', { class: 'hint' }, 'Licences are recorded as supplied; blank fields mean not supplied.'));
   const evidence = el('div', { class: 'source-evidence' }); box.append(evidence);
   renderSourceEvidence(evidence, LIBRARY_RECORDS.get(`${collection}:${g.id}`));
   if (p.source.url) box.append(el('a', { class: 'ext', href: p.source.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open source'));
+  if (collection === 'classic' && g.problem?.reference?.url && g.problem.reference.url !== p.source.url) box.append(el('p', {}, el('a', { class: 'ext', href: g.problem.reference.url, target: '_blank', rel: 'noopener noreferrer' }, 'Method reference')));
   if (collection === 'classic') {
     for (const [label, value] of [['Source title', p.source.title], ['Source author or curator', p.source.author], ['Score licence as supplied', p.rights.score], ['Annotation licence as supplied', p.rights.annotations]]) box.append(el('p', {}, el('span', {}, label), ': ', value ? el('span', { translate: 'no' }, value) : el('span', {}, 'Not supplied')));
   } else {
@@ -2405,7 +2490,7 @@ function renderLibrary() {
   const mine = [...Lib.games.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   $('#libCount').textContent = mine.length ? String(mine.length) : '';
   // The classics (classics.js) under their own filter; in "All" only while the library is empty or a search is on.
-  const pool = filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !q ? [] : EXAMPLES)];
+  const pool = filt === 'problems' ? EXAMPLES.filter(g => g.problem) : filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !q ? [] : EXAMPLES)];
   const list = pool.filter(g => {
     if (filt === 'played' && g.kind !== 'played') return false;
     if (filt === 'study' && g.kind === 'played') return false;
@@ -2416,6 +2501,8 @@ function renderLibrary() {
   if (paneHidden('library')) return; // count and location above stay current; the list renders when the tab opens
   if (!mine.length) box.append(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
   for (const g of list) {
+    const problem = EXAMPLES.includes(g) ? g.problem : null;
+    const names = problem ? `${t('White')} – ${t('Black')}` : `${g.white} – ${g.black}`;
     const youIdx = g.userColor;
     const acc = youIdx && g.accuracy?.[youIdx] != null ? `${Math.round(g.accuracy[youIdx])}% accuracy` : '';
     const c = youIdx ? g.counts?.[youIdx] : null;
@@ -2424,10 +2511,12 @@ function renderLibrary() {
       del.replaceWith(el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id) }, 'Delete'), el('button', { class: 'btn small', onclick: renderLibrary }, 'Keep')));
     } }, 'Delete');
     box.append(el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
-      el('div', {}, el('div', { class: 'title' }, g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, `${g.white} – ${g.black}`)),
-        el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills)),
+      el('div', {}, el('div', { class: 'title' }, problem ? el('span', { class: 'badge ex' }, problem.goal === 'mate-in-one' ? 'Problem' : 'Study') : g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, names)),
+        el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills),
+        g.scoreNote ? el('p', { class: 'hint' }, g.scoreNote) : null,
+        problem ? el('p', { class: 'problem-prompt', translate: 'no', 'data-raw': '' }, lessonText(problem.prompt, LANG)) : null),
       el('div', { class: 'res' }, g.result || '*'),
-      el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g) }, g.reviewed ? 'Open review' : 'Open'),
+      el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g, problem ? 0 : null) }, g.reviewed ? 'Open review' : 'Open'),
         el('button', { class: 'btn small ghost', onclick: () => copyText(g.pgn, 'PGN copied') }, 'Copy PGN'),
         el('button', { class: 'btn small ghost', onclick: () => downloadPGN(g) }, 'Save .pgn'),
         g.kind === 'example' ? null : del), sourceDetails(g)));
@@ -2443,27 +2532,43 @@ async function downloadPGN(g) {
   if (!dl) { copyText(g.pgn, 'Saving files isn\'t available here, so the PGN was copied instead'); return; }
   try { await dl.save({ filename: name, data: g.pgn }); } catch (e) { if (e?.code && e.code !== 'cancelled' && e.code !== 'declined') toast('The file was not saved.'); }
 }
-function splitPGN(txt) { return txt.split(/\n\s*\n(?=\[Event |\[White |\[Site )/).map(s => s.trim()).filter(Boolean); }
+let importBusy = false;
 async function importPGN() {
-  const original = $('#importText').value, parts = splitPGN(original);
+  if (importBusy) return;
+  const original = $('#importText').value, batch = splitPgnImport(original);
+  const status = text => { $('#importMsg').textContent = t(text); };
+  if (batch.error) { status(batch.error); return; }
+  const parts = batch.games;
   let provenance; try { provenance = makeProvenance('imported', sourceInput($('#importSourceFields'))); }
-  catch { $('#importMsg').textContent = 'Check the source fields and use an HTTP or HTTPS URL without credentials.'; return; }
-  const recs = []; let bad = 0;
-  for (const p of parts) {
-    try {
-      if (p.length > 200_000) { bad++; continue; }
-      const c = new Chess(); c.loadPgn(p); const h = c.getHeaders();
-      if (!c.history().length && !h.FEN) { bad++; continue; }
-      const r = new Chess(h.FEN || START); let op = null;
-      c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < OPENING_PLIES) op = e; });
-      const rec = { id: 'i' + crypto.randomUUID(), kind: 'study', provenance, title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() };
-      await librarySnapshot(rec, 'library'); recs.push(rec);
-    } catch { bad++; }
+  catch { status('Check the source fields and use an HTTP or HTTPS URL without credentials.'); return; }
+  importBusy = true; $('#btnImport').disabled = true; status('Importing games…');
+  const recs = [], importIds = []; let bad = 0;
+  try {
+    for (const p of parts) {
+      try {
+        if (p.length > 200_000) { bad++; continue; }
+        const c = new Chess(); c.loadPgn(p); const h = c.getHeaders();
+        if (!c.history().length && !h.FEN) { bad++; continue; }
+        const r = new Chess(h.FEN || START); let op = null;
+        c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < OPENING_PLIES) op = e; });
+        const rec = { id: 'i' + crypto.randomUUID(), kind: 'study', provenance, title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() };
+        importIds.push(rec.id); await librarySnapshot(rec, 'library'); recs.push(rec);
+      } catch { bad++; }
+    }
+    const report = { duplicates: 0 };
+    const ok = recs.length ? await Lib.putGames(recs, { importReport: report }) : 0; // one local write/re-index
+    const failed = recs.length - report.duplicates - ok, messages = [];
+    if (ok) messages.push(t(ok === 1 ? 'Added 1 game.' : 'Added {n} games.', { n: ok }));
+    if (report.duplicates) messages.push(t(report.duplicates === 1 ? 'Skipped 1 duplicate.' : 'Skipped {n} duplicates.', { n: report.duplicates }));
+    if (bad) messages.push(t(bad === 1 ? 'Skipped 1 unreadable game.' : 'Skipped {n} unreadable games.', { n: bad }));
+    if (failed) messages.push(t(failed === 1 ? 'Could not save 1 game. Retry the import.' : 'Could not save {n} games. Retry the import.', { n: failed }));
+    $('#importMsg').textContent = messages.join(' ') || t('No valid PGN found.');
+    if (!bad && !failed && (ok || report.duplicates) && $('#importText').value === original) $('#importText').value = '';
+  } catch { status('The games could not be saved.'); }
+  finally {
+    importBusy = false; $('#btnImport').disabled = false;
+    for (const id of importIds) if (!Lib.games.has(id) && !Lib.importAcks.has(id)) libraryCache.delete('library:' + id);
   }
-  const ok = recs.length ? await Lib.putGames(recs) : 0; // one write and one re-index for the whole batch
-  const skipped = bad ? `, skipped ${bad} that couldn't be read` : '';
-  $('#importMsg').textContent = ok ? `Added ${ok} game${ok > 1 ? 's' : ''}${skipped}.` : recs.length ? 'The games could not be saved.' : 'No valid PGN found.';
-  if (ok === recs.length && ok && $('#importText').value === original) $('#importText').value = '';
 }
 
 // ---------------------------------------------------------------- Review
@@ -3867,7 +3972,7 @@ function renderReading() {
   if (!classics.length) cl.append(el('p', { class: 'empty-note' }, 'No classic game in the collection matches these themes.'));
   for (const r of classics) {
     const g = EXAMPLES.find(x => x.id === r.game.id);
-    cl.append(el('div', { class: 'seen' }, el('span', { class: 'k' }, r.hits.map(h => K.TAG_LABELS[h.tag] || h.tag).slice(0, 3).join(' · ')),
+    cl.append(el('div', { class: 'seen' }, el('span', { class: 'k', translate: 'no', 'data-raw': '' }, r.hits.map(h => t(K.TAG_LABELS[h.tag] || h.tag)).slice(0, 3).join(' · ')),
       el('button', { class: 'btn small', onclick: () => openGame(g, r.game.moment) }, 'Open'),
       el('div', {}, `${r.game.title} · ${r.game.white} – ${r.game.black}, ${r.game.event} ${r.game.date}`), el('q', {}, r.game.about)));
   }
@@ -3924,7 +4029,7 @@ function flushLessonResults() {
   refreshLessonProgress();
 }
 lessonPlayer = createLessonPlayer($('#lessonPlayer'), curriculum, { Chess, mountBoard: Chessground, language: LANG, t, generation: () => S.gen,
-  onComplete: result => { pendingLessonResults.push({ id: crypto.randomUUID(), at: Date.now(), ...result }); flushLessonResults(); } });
+  onComplete: result => { pendingLessonResults.push({ id: crypto.randomUUID(), at: Date.now(), ...result }); flushLessonResults(); }, onPlay: playLessonPosition });
 refreshLessonProgress();
 curriculumPanel = createCurriculumPanel($('#curriculumPanel'), curriculum, { language: LANG, level: S.level, t,
   onOpen: (lesson, exercise) => lessonPlayer.open(lesson, exercise), getProgress: () => lessonProgressSummary });

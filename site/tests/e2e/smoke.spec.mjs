@@ -1,5 +1,6 @@
 // The main flows work end to end (replaces the old tests/e2e.py).
 import { test, expect, open, move, S } from './fixtures.mjs';
+import { CLASSICS } from '../../src/library/classics.js';
 
 test('play a move, Stockfish replies, resign and review', async ({ page }) => {
   await open(page);
@@ -18,7 +19,7 @@ test('play a move, Stockfish replies, resign and review', async ({ page }) => {
 test('library, reading and coach tabs render; the mock coach answers', async ({ page }) => {
   await open(page);
   await page.locator('[data-tab="library"]').click();
-  await expect(page.locator('#libList .game')).toHaveCount(13); // the built-in classics, while the library is empty
+  await expect(page.locator('#libList .game')).toHaveCount(CLASSICS.length); // the built-in classics, while the library is empty
   await page.locator('#libList .game').filter({ hasText: 'Opera' }).getByRole('button', { name: 'Open' }).click();
   await page.locator('[data-tab="reading"]').click();
   await expect(page.locator('#bookList .book').first()).toBeVisible();

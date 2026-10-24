@@ -7,6 +7,103 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Sourced problems and checked study branches
+
+TODO items: 7.4.
+
+### Implementation notes
+
+- Added `library/problem-data.js` and `problems.js`: twelve curated positions, four mates in one and eight studies/reflections. Eight original curriculum exercises join the existing Réti, Saavedra, Lucena and Philidor records, for 33 reference records including the 21 games. Source lesson/exercise IDs and immutable code references preserve lineage; English/German questions, distinct problem/study badges, a wrapping Problems filter and diagram-first opening expose the collection. Normal move controls show the recorded example. Current-game departure/return behavior is retained; viewing is not a lesson solve.
+- Published Réti/Saavedra diagrams retain fixed Wikipedia revisions, contributor credits, CC BY-SA 4.0 facts and 64 source cells that reconstruct their placements. Lucena/Philidor remain explicitly authored variants under the project licence, with separate conventional-method references and unknown publication dates; the Lucena name does not establish a 1497 publication. The [manifest documentation](../site/data/problems/README.md) and shipped notices separate these sources from original teaching prose.
+- The general compiler keeps imported studies at legal-replay-only status. Snapshot composition attaches checked evidence only to the curated `classic` collection after binding document/root occurrence, full FEN/counters, UCI line, result and source/score rights. Four mate tasks prove actual checkmate. All 48 worked plies preserve declared White-perspective WDL in 50 saved snapshots (28 shared curriculum records plus 22 fixed Réti/Saavedra records). Notes stay unverified; arbitrary alternatives, unique best play and learner performance gain no certificate. Flat problem metadata is detached from the trusted registry, and copied IDs/extra metadata cannot opt imports into proof.
+- `check-problems.mjs` audits source/diagram/curriculum bindings, bounded bilingual metadata and every numerical snapshot digest offline. Its explicit `--refresh` queries only the 22 fixed published-study FENs, serially, strips response prose/SAN, validates the collection and atomically replaces the data. No account/browser position is read or sent. Shared curriculum evidence retains its separate refresh command; ordinary/cursed/uncertain outcomes and DTZ/DTM remain distinct through the existing adapter.
+- Seven logic scenarios cover collection coverage, detached metadata, forged imports, changed counters/branches/results/rights, colour/turn-sensitive outcomes, failed queen promotion in Saavedra, actual mates versus nonmates, uncertain evidence, independent diagram reconstruction, source/digest tampering, fake refresh clients/errors and an offline default. Five browser scenarios cover filtering with a personal library, no remote/provider requests or false progress, diagram-first White/Black mate examples, forged imported proof, live-game cancel/return, German phone wrapping/labels and method links. Existing source/library/localization regressions also pass.
+- Validation: ESLint/JSDoc checks, build, offline source audits and 427 unit tests pass (one live-provider skip). The complete browser suite passes 262 tests (one optional live-model skip); the final colour-label adjustment is checked again with the unit suite and 19 focused browser cases.
+
+### Deviations
+
+- This is a curated starter collection of endgame tasks, reusing checked authored material alongside the two published studies and two conventional variants. It does not claim a complete problem corpus or a proof tree over every defence. The Library exposes worked-line inspection on its normal analysis board; interactive lesson solving/progress remains the separate lesson player. No source-view completion is converted into mastery or a performance grade.
+
+### Insights
+
+- Equal piece placement is insufficient for result evidence: side to move and counters can change the outcome. Matching an imported ID is also insufficient for source trust. The exact document/source/branch binding keeps objective chess facts separate from imported claims and prose.
+- A named conventional position need not be the original published diagram. Recording authored variants and their method references avoids borrowing a historical date or a source's licence for a different setup. Shared curriculum examples also need stable lineage rather than duplicated, independently drifting solutions.
+
+---
+
+## 2026-10-24 — Published classic-game sources and expanded collection
+
+TODO items: 7.3.
+
+### Implementation notes
+
+- Expanded the built-in collection from nine to 21 games, alongside the four existing studies. `library/capablanca.js` adds twelve complete scores from Part II of Capablanca's 1921 *Chess Fundamentals*, with per-game/page attribution, the source's public-domain-in-the-USA statement, theme tags and original Kibitz teaching notes. Games 3 and 6 omit their final played moves in the book and are excluded. Notes' concrete final-position facts are checked independently with chess.js; resignation results remain source reports.
+- `classic-sources.js` and `data/classics/historical-scores.json` identify fixed Wikipedia revisions, contributor attribution, CC BY-SA 4.0 move-data rights, retrieval dates/digests and normalized score facts for the nine earlier versions. External prose, variations and judgement glyphs are excluded. Original teaching notes keep their separate GPL-3.0-or-later assertion. The shipped notices and [source manifest documentation](../site/data/classics/README.md) preserve licence links, changes and scope rather than relicensing the CC BY-SA data as GPL-3.0-or-later.
+- `check-classics.mjs` audits all 21 games/1,355 recorded plies offline. Its bounded descriptive-notation helper reconstructs the 980 book plies by searching legal candidates across each entire score, retaining original-side piece identity through castling and checking relative squares, captures and checks. It requires a unique recorded branch, rejects invalid/ambiguous/oversized data and uses a state budget. Matching a published score establishes transcription consistency, not unique best play or a forced result.
+- Cards/source details/own PGN notes disclose that Réti's game ended with resignation after 10.Bg5+, with the last two plies a teaching continuation. Légal uses the cited traditional teaching move order and unknown date, explaining the disputed date/order/rook odds. New title references recognize dated English/German forms without linking a bare player name. Reading localizes individual theme labels before joining them; a newly exposed multi-theme German gap has a browser regression.
+- Froze the original thirteen-record retrieval fixture at `b1c4782` so production growth/history corrections cannot silently change prior experiments. Provider-free position/text runs reproduce the existing corpus hashes exactly (`60270e…`/`fdc2ad…`), including 21 documents/481 occurrences/45 annotations and 159 text passages. Existing source/collection tests now cover all games and retain explicit study exclusions.
+- Five new logic scenarios cover source binding/transcription, tampering, independent board facts, teaching-history distinctions and ambiguous/invalid notation. Three browser scenarios cover the expanded collection, exact game opening/notes, read-only separate rights, no source/provider download, historical distinctions and German phone/theme labels. The phone source panel was inspected visually.
+- Verification: lint, JSDoc types, build and the offline 21-game audit pass; all 420 unit/gateway tests and all 257 browser tests pass, with one opt-in live test skipped per suite. The clean full browser rerun follows two corrected collection-size expectations in opening tests. Provider calls use mocks/fake clients. PRs 69 and 70 are green in CI.
+
+### Deviations
+
+- The collection records published versions actually checked, with fixed revision/page references. It does not claim to authenticate every first historical publication; disputed teaching versions stay labelled. The two incomplete book scores are not completed from memory or mixed with another source. Study-source verification remains the separate 7.4 milestone. Public-domain status is recorded as supplied for the USA, without a blanket worldwide assertion.
+- The retrieval benchmark remains a fixed development corpus; this addition makes no new retrieval-quality or learner-outcome claim about the larger production library. Its earlier metadata remains in the snapshot for reproducibility.
+
+### Insights
+
+- Legal replay alone cannot establish historical provenance. Published scores can omit moves, normalize dates or include a later demonstration after resignation. Binding source versions and showing these distinctions prevents a valid chess line from becoming a false historical claim.
+- A growing production catalogue must not silently alter measured evaluation corpora. Freezing the original records preserves published hashes and comparisons while letting current source metadata and teaching material improve.
+
+---
+
+## 2026-10-24 — Conservative PGN import deduplication
+
+TODO items: 7.2.
+
+### Implementation notes
+
+- Added pure `library/import.js`: bounded PGN batch splitting and a derived exact source-document identity. Top-level boundaries support adjacent/headerless games while preserving tag-like text inside comments/variations. Legal mainline/full-FEN validation precedes matching. Outside whitespace, mainline move-number spacing, header order and line-ending convention can vary; original comments, variations, glyphs, explicit/parsed headers and separate source/licence assertions participate in identity.
+- Import compares against this user's current library and earlier batch entries, keeping the first document and every existing ID/PGN/revision intact. Entry origin and generated IDs/timestamps do not change content identity. Legacy records can match without migration; invalid/future metadata and unkeyable documents cannot suppress valid imports. Different source versions remain separate rather than merging annotations/rights.
+- Rechecked deduplication after asynchronous validation, immediately before writes. Duplicate-only imports perform no storage write or index rebuild. Overlapping imports are disabled; added/duplicate/unreadable/failed counts remain separate and localized. Failed/unreadable batches and newly typed replacement input stay available. Limits are 500 games/5 million characters plus the existing per-document limits. Temporary unsaved snapshot cache entries are removed after an attempt.
+- Existing local rollback protects failed writes. Account imports remember individually acknowledged records until snapshots arrive, preventing duplicate partial-save retries during that delay; failed writes gain no credit. Seven browser scenarios cover repeat/within-batch/reloaded matching and zero writes, distinct source content, legacy/future preservation, mixed outcomes and quota retry, delayed overlapping input, fake-account partial acknowledgements and German phone layout. Five logic scenarios cover exact identity, preservation counterexamples, full-FEN studies, invalid/legacy data and bounded source-aware splitting. The phone form/status was inspected visually.
+- Verification: ESLint, JSDoc types and build pass. The complete suites passed 415 unit/gateway tests and 254 browser tests, with one opt-in live test skipped per suite. After the final temporary-cache cleanup, all 415 unit tests and all sixteen focused import/library browser regressions passed again. Providers/account storage use mocks or fake clients.
+- CI CodeQL flagged a first-occurrence replacement in the result-variant test fixture. The fixture now uses `replaceAll`; all five import logic scenarios and lint/types pass after the correction.
+
+### Deviations
+
+- Deduplication matches conservative source documents rather than fuzzy game identity. Differently annotated/headered/licensed versions can remain separate even with the same moves, and built-ins are outside the user's import scope. Existing duplicates are not deleted. Account matching uses the current client snapshot plus its acknowledged imports; a future server uniqueness transaction is needed for simultaneous devices.
+
+### Insights
+
+- A mainline-only hash would silently discard distinct annotations, variations and attribution. The original PGN must remain the evidence document; normalization only belongs in a derived comparison key.
+- A successful account write can precede its subscription snapshot. Remembering acknowledgements is necessary for retry-safe deduplication, while counting only records visible in the UI would create new IDs during that gap. Duplicate-only imports must avoid writing so that quota failures cannot turn a harmless repeat into an apparent failed save.
+
+---
+
+## 2026-10-24 — Play lesson positions against Stockfish
+
+TODO items: 6.8.
+
+### Implementation notes
+
+- Added pure `curriculum/playout.js` and an owned cancellable confirmation dialog. The lesson player offers either colour from its displayed exercise/worked-example position, preserving full FEN counters and applicable rights. Finished/invalid diagrams cannot start a game or silently fall back to the opening position. The chosen colour applies to this game without changing the saved start/colour preferences.
+- Both normal starts and the lesson handoff use the same engine/clock lifecycle, current strength/time settings, save and review controls. Opponent-first positions schedule a normal Stockfish reply. Starting practice makes no automatic exercise-completion claim. Native confirmation explains the selected side/settings and saves an active game with moves as unfinished before replacement; failed saves leave the game intact and support retry.
+- Pending requests serialize across detached saves. Abort signals, owned dialog identity, lesson render/session identity and the main game's generation/checkpoint reject cancelled, changed and held actions. The checkpoint also covers metadata/comments. Generic game confirmations require their original connected element and game generation, preventing a cancelled old resignation from ending a new lesson game.
+- Four logic scenarios cover exact source positions, side selection, counters/en passant/castling normalization, terminal versus theoretical drawn positions and invalid input. Ten browser scenarios cover worked-position starts, opponent-first replies, saving/reopening custom-FEN practice, cancel/confirm, storage failure/retry, old confirmations, lesson navigation, delayed saves with main-game or lesson changes, serialized replacement requests and German phone layout. The phone dialog was inspected visually.
+- Verification: ESLint, JSDoc types and build pass; 410 unit/gateway tests and 247 browser tests pass, with one opt-in live test skipped per suite. Provider calls use mocks/fake clients. The preceding progress PR is green in CI.
+
+### Deviations
+
+- The current game keeps running while confirmation or saving is pending. A changed position/state prevents replacement and asks the player to start again; a previously authorized detached snapshot may already have saved. This preserves running-game behavior without pausing/resuming clocks around a separate lesson board. Practice games use ordinary game progress/review rather than being graded as lesson solutions.
+
+### Insights
+
+- A lesson's displayed worked position can differ from both its initial diagram and the attempted solution. The explicit handoff must capture that full FEN and validate that it remains playable. A theoretical tablebase draw is still a useful practice position; a rules-ended game is not.
+- Cancelling a dialog does not cancel a storage write already in flight. Serializing subsequent handoffs and checking both the lesson and main-game context after the write prevents an older request from replacing a newly selected game.
+
+---
+
 ## 2026-10-24 — Saved lesson and theme progress
 
 TODO items: 6.7.
