@@ -254,6 +254,20 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 #drillBoard { width: 100%; height: 100%; }
 #drillPosition, #drillLineName { overflow-wrap: anywhere; }
 #drillFeedback { margin: 0; }
+.lesson-player { display: grid; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.lesson-player p, .lesson-player h3 { margin: 0; }
+.lesson-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.lesson-board-wrap { width: min(100%, 420px); aspect-ratio: 1; }
+#lessonBoard { width: 100%; height: 100%; }
+.lesson-task { display: grid; align-content: start; gap: 12px; min-width: 0; overflow-wrap: anywhere; }
+.lesson-controls { flex-wrap: wrap; }
+#lessonMove { min-width: 0; width: auto; flex: 1; }
+#lessonLine { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; }
+#lessonLine [aria-pressed="true"] { border-color: var(--accent); }
+.lesson-promotion { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; }
+.lesson-promotion::backdrop { background: rgb(0 0 0 / .35); }
+.lesson-promotion button { margin: 8px 4px 0 0; }
+@media (max-width: 600px) { .lesson-content { grid-template-columns: minmax(0, 1fr); } }
 .tabs .count { font: 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
 .pane { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .pane h2, .settings h2 { font: 600 18px/1.2 var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
@@ -529,6 +543,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <div class="pane" data-pane="lessons" hidden>
       <h2>Lessons</h2>
       <p class="hint">Explore modules, lesson goals and exercises by level or theme.</p>
+      <section id="lessonPlayer" hidden aria-label="Lesson player"></section>
       <div id="curriculumPanel"></div>
     </div>
 
@@ -750,6 +765,9 @@ import DE from './platform/i18n-de.js';
 import { compileCurriculum } from './curriculum/curriculum.js';
 import { CURRICULUM } from './curriculum/catalogue.js';
 import { createCurriculumPanel } from './curriculum/ui.js';
+import { createLessonPlayer } from './curriculum/player.js';
+
+let lessonPlayer = null;
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -1048,6 +1066,7 @@ function canMove() {
 }
 let previewing = false, namedPreview = null; // previews never change game/scratch state
 function syncBoard(refreshOpenings = true) {
+  lessonPlayer?.sync();
   namedPreview = null;
   if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
   // A scratch board stays until the game moves on or changes under it (a move, navigation, a load).
@@ -3872,8 +3891,10 @@ async function addRef() {
   $('#refMsg').textContent = 'Added. It will show up when a matching position comes up.';
 }
 
-// The catalogue is independent of the current board and makes no engine/provider requests.
-createCurriculumPanel($('#curriculumPanel'), compileCurriculum(Chess, CURRICULUM), { language: LANG, level: S.level, t });
+// Curriculum browsing and lesson play use separate state/boards and no provider requests.
+const curriculum = compileCurriculum(Chess, CURRICULUM);
+lessonPlayer = createLessonPlayer($('#lessonPlayer'), curriculum, { Chess, mountBoard: Chessground, language: LANG, t, generation: () => S.gen });
+createCurriculumPanel($('#curriculumPanel'), curriculum, { language: LANG, level: S.level, t, onOpen: (lesson, exercise) => lessonPlayer.open(lesson, exercise) });
 
 // ---------------------------------------------------------------- Tabs & wiring
 // The panels under the dialogue (game, coach settings, review, library, reading) fold away, so the
