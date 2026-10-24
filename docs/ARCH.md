@@ -237,6 +237,8 @@ Bounds:
 - confirmation before anything leaves the current game;
 - every claim traceable to a tool result, which the chat can show as evidence.
 
+**Catalogue metadata search** (7.5, `library/search.js`) shares literal accent/case-insensitive AND matching across Library controls and the coach tool. Player, opening/ECO, inclusive recorded-year bounds, absolute result and theme filters combine. Cached legal PGN headers/early mainline EPDs supply names/dates/results/opening labels; custom-start studies are not classified from their final boards. Unknown years stay outside ranges and invalid bounds return an accessible error. Theme IDs match tag membership exactly, with English/German labels also searchable, without any chess-verification claim. Active searches can include classics beside personal games; category/reset behavior and current-game isolation remain explicit. ECO readiness updates retained cards without discarding source drafts/focus. The coach's own-colour win/loss/draw filters stay separate from absolute results, and its eight bounded metadata hits remain quoted. Local browsing uses no model/storage mutation; [matching rules and limits](LIBRARY.md#catalogue-search) describe the boundary.
+
 ## 4. A language model in the browser
 
 Offline mode (`just offline`, TODO 2.16) runs the coach's language model inside the page.

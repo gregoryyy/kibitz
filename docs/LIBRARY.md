@@ -17,6 +17,24 @@ TODO 7.1 establishes the records needed for RAG. `site/src/library/library.js` c
 
 Logical game/source IDs survive source-metadata corrections. Occurrence/annotation IDs bind to a particular source revision, so editing the PGN changes them even if an update timestamp stays the same. Equal positions can retain their common position ID across revisions and games. Import deduplication (7.2) uses the conservative source-document identity below; shared positions or an equal mainline alone do not merge sources.
 
+## Catalogue search
+
+TODO 7.5 (`library/search.js`) shares a deterministic metadata matcher between the Library controls and the coach's `search_library` tool. Search words and fields combine with AND; word order is irrelevant, and matching ignores case/Unicode combining accents while keeping punctuation literal. Free text covers title (including a localized built-in title), both players, opening/ECO, recorded date/result, and theme IDs/English/localized labels. This is metadata retrieval, separate from [passage search](TEXT-SEARCH.md), with no model, embedding request, remote source fetch or storage write.
+
+| Filter | Meaning |
+| --- | --- |
+| Player | Search words in either White or Black's recorded name. |
+| Opening or ECO | Search words in the opening name/code. The deepest matching EPD among the first 40 legally replayed plies supplies a catalogue label; custom-start studies are not classified from their final position. Supplied PGN/legacy labels remain a fallback. |
+| From / to year | Inclusive recorded year, from 1 to 9999. Partial month/day values can retain a known four-digit year; unknown/malformed years do not enter a range. Invalid/reversed filter bounds show an error and return no records. These dates are source metadata, not historical authentication. |
+| Recorded result | Absolute White win (`1-0`), draw (`1/2-1/2`), Black win (`0-1`), or unfinished/unknown (`*`). |
+| Theme | Recorded catalogue tags. A known theme ID matches tag membership exactly; English/localized label words are also searchable. Tags confer no engine-verification or performance certificate. |
+
+For example, Player **Morphy**, years **1858–1858**, result **White wins** and theme **Pin** find the Opera Game. Category filters remain in effect; an active search in All includes classics even beside personal games. Clearing search keeps the chosen category and returns focus to the text field. Accessible labels, result/error status, invalid-year indication and English/German phone layouts accompany the controls. Searches are page-local and are not saved across reloads.
+
+Legal PGN headers supply canonical player/date/result metadata; flat fields remain available for legacy/unreadable records, which are kept without a rewrite. PGN parsing is cached by collection/local ID and exact PGN text, bounded to 200,000 characters and 4,000 plies. Search fields are bounded to 200 characters; no user text becomes a regular expression. Source/account changes invalidate the ordinary catalogue caches; ECO readiness updates retained cards without replacing open source forms or their unsaved edits/focus. Browse controls never alter the game on the board.
+
+The coach tool adds `player`, `opening`, integer `yearFrom`/`yearTo`, `theme` and absolute `score` filters. Existing `color` and `result` mean the player's own colour and win/loss/draw, independently of `score`. Arguments are validated before matching. At most eight hits are returned, newest known recorded date first, with bounded quoted metadata and no PGN/comments. Explicitly asking the coach to search still uses its normal provider/tool flow; local browsing needs no provider.
+
 ## Import deduplication
 
 `src/library/import.js` derives an in-memory exact key from a legally replayed PGN, its full starting FEN, parsed headers/mainline, original annotation/variation tokens and normalized source/licence assertions. It ignores whitespace outside source strings/comments, mainline move-number spacing, header order and line-ending convention. Comments retain their content, glyphs and RAVs retain their tokens, and headers retain explicit/duplicate tag content as well as their parsed values. Different player/event/result fields, comments, branches, full-FEN counters or rights remain different documents. Entry origin, generated local ID and timestamps do not change content identity. This is conservative document matching, not fuzzy game identification; equivalent chess lines with differently expressed source content can remain separate.

@@ -7,6 +7,30 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Combined library metadata search
+
+TODO items: 7.5.
+
+### Implementation notes
+
+- Added pure `library/search.js`, with literal case/accent-insensitive AND matching over query words, both players, opening/ECO, recorded-year bounds, absolute score and catalogue themes. Known theme IDs match exact tag membership, avoiding a false Pin match through Opening. English/localized theme labels and built-in titles participate in free text. Inclusive year ranges exclude unknown/malformed recorded years; invalid/reversed filter bounds return no results with an explicit message. Bounded inputs never become user-created regular expressions.
+- Legal PGN headers supply canonical names/date/result, with legacy flat-field fallback; cached early mainline EPDs identify the deepest matching ECO label through 40 plies. Custom-start studies are not classified from final piece placement. PGN parsing is cached by collection/local ID and exact text, without changing stored records, provenance or source-verification status. Source/account updates use the existing cache invalidation boundary.
+- Library controls add labelled player/opening/year/result/theme fields, result/error status, invalid-year indication and reset/focus behavior. Search includes classics beside personal games in All while preserving category filters; reset keeps the category. Existing cards update in place on late ECO readiness, keeping source-form drafts and focus. Delete/Keep cancellation still works through retained renders. English/German phone layout is covered.
+- The coach's library tool shares the matcher and adds validated combined fields. Existing own-player colour/win/loss/draw semantics remain separate from absolute PGN score. At most eight bounded, quoted metadata hits return, newest known dates first; no PGN/comments are exposed by search. Local browsing makes no provider requests or storage writes and does not change the game on the board.
+- Seven new logic scenarios cover combined fields, exact themes, Unicode/literal text, date/range/bounds validation, legal PGN/ECO inference, legacy/curated records, own-player outcomes, quoted results and tool validation. Seven browser scenarios cover combined local search, classics with a personal library, category/reset/error behavior, literal imported markup, source-form focus through delayed ECO data, German phone labels/queries and mock-coach parity. A missing Draw translation found by existing localization regressions was corrected.
+- Validation: ESLint/JSDoc checks, build and 434 unit tests pass (one live-provider skip); the dependency audit reports zero vulnerabilities. All 35 focused browser regressions and the complete 269-test browser suite pass (one optional live-model skip). Final year-field styling is rechecked with nine search/localization cases, including phone input-height assertions and a screenshot inspection.
+
+### Deviations
+
+- Search is over recorded metadata, not automatic motif diagnosis, source prose or model-inferred history. Structured fields and search words are page-local rather than persisted preferences. Imported games without tags remain searchable by their other fields; position/move pattern indexing remains TODO 8.2.
+
+### Insights
+
+- Display, browse and coach search need the same date/result/opening facts. Legal PGN-derived labels avoid dependence on whether the opening catalogue happened to arrive before import, while explicit unknown years prevent false historical matches.
+- Updating catalogue labels must not replace unrelated source editing controls. Retaining unchanged record cards keeps unsaved corrections and keyboard focus through asynchronous data readiness.
+
+---
+
 ## 2026-10-24 — Sourced problems and checked study branches
 
 TODO items: 7.4.
