@@ -2,7 +2,10 @@ import { test, expect, open, S } from './fixtures.mjs';
 
 test('CC0 puzzle collection filters rating groups and source themes with safe provenance links and no game/provider changes', async ({ page }) => {
   const requests = [];
-  page.on('request', r => { if ((/\/api\/ai\/(sample|embeddings)$/.test(r.url()) && r.method() === 'POST') || /https:\/\/(?:database\.)?lichess\.org/.test(r.url())) requests.push(r.url()); });
+  page.on('request', r => {
+    const url = new URL(r.url());
+    if ((/^\/api\/ai\/(sample|embeddings)$/.test(url.pathname) && r.method() === 'POST') || ['lichess.org', 'database.lichess.org'].includes(url.hostname)) requests.push(r.url());
+  });
   await open(page); const before = await S(page);
   await page.locator('[data-tab="lessons"]').click(); await page.locator('#curriculumModule').selectOption('lichess-puzzles');
   await expect(page.locator('#curriculumList [data-lesson-id]')).toHaveCount(2);

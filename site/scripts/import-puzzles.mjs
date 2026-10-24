@@ -9,6 +9,21 @@ import { parsePuzzleCsv, PUZZLE_LIMITS } from '../src/curriculum/puzzles.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const hash = value => createHash('sha256').update(value).digest('hex');
 
+/** Read through one open descriptor with a hard byte bound, avoiding stat/path-read races. */
+export async function readBounded(/** @type {string} */ filename, /** @type {number} */ limit) {
+  const file = await fs.open(filename, 'r');
+  try {
+    const buffer = Buffer.alloc(limit + 1); let length = 0;
+    while (length <= limit) {
+      const { bytesRead } = await file.read(buffer, length, limit + 1 - length, null);
+      if (!bytesRead) break;
+      length += bytesRead;
+    }
+    if (length > limit) throw new Error('Puzzle input too large');
+    return new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, length));
+  } finally { await file.close(); }
+}
+
 /** Validate provenance and produce the exact generated source, without writing or fetching. */
 export function compilePuzzleData(/** @type {string} */ csv, manifest) {
   if (manifest?.version !== 1 || manifest.licence !== 'CC0-1.0'
@@ -40,8 +55,7 @@ export async function importPuzzles(args) {
     else throw new Error('Usage: import-puzzles.mjs [--check] [--input CSV --manifest JSON --output JS]');
   }
   const input = path.resolve(root, options.input), metadata = path.resolve(root, options.manifest), output = path.resolve(root, options.output);
-  if ((await fs.stat(input)).size > PUZZLE_LIMITS.bytes || (await fs.stat(metadata)).size > 4096) throw new Error('Puzzle input too large');
-  const { output: body, puzzles } = compilePuzzleData(await fs.readFile(input, 'utf8'), JSON.parse(await fs.readFile(metadata, 'utf8')));
+  const { output: body, puzzles } = compilePuzzleData(await readBounded(input, PUZZLE_LIMITS.bytes), JSON.parse(await readBounded(metadata, 4096)));
   if (options.check) {
     if (await fs.readFile(output, 'utf8') !== body) throw new Error('Generated puzzle data is stale; run scripts/import-puzzles.mjs');
   } else {

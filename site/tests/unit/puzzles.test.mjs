@@ -1,12 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { Chess } from 'chess.js';
 import { parsePuzzleCsv, compilePuzzle, puzzleExerciseId, PUZZLE_FIELDS, PUZZLE_LIMITS } from '../../src/curriculum/puzzles.js';
 import { PUZZLES, PUZZLE_SOURCE } from '../../src/curriculum/puzzle-data.js';
 import { CURRICULUM } from '../../src/curriculum/catalogue.js';
 import { compileCurriculum, curriculumModules } from '../../src/curriculum/curriculum.js';
-import { compilePuzzleData, importPuzzles } from '../../scripts/import-puzzles.mjs';
+import { compilePuzzleData, importPuzzles, readBounded } from '../../scripts/import-puzzles.mjs';
 
 const csv = await fs.readFile(new URL('../../data/puzzles/lichess-starter.csv', import.meta.url), 'utf8');
 const manifest = JSON.parse(await fs.readFile(new URL('../../data/puzzles/lichess-starter.json', import.meta.url), 'utf8'));
@@ -14,6 +16,16 @@ const rows = csv.trimEnd().split('\n');
 const sample = values => PUZZLE_FIELDS.join(',') + '\n' + values.join(',') + '\n';
 const row = () => rows[1].split(',');
 const fixture = (fen, moves, themes = 'endgame') => sample(['abc12', fen, moves, '1000', '80', '90', '100', themes, 'https://lichess.org/Abc12345#1', '', '']);
+
+test('file reads enforce byte bounds through the opened descriptor and reject malformed UTF-8', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'kibitz-puzzle-read-')), file = path.join(dir, 'input.csv');
+  try {
+    await fs.writeFile(file, 'x'.repeat(50));
+    assert.equal(await readBounded(file, 50), 'x'.repeat(50));
+    await assert.rejects(readBounded(file, 49), /too large/);
+    await fs.writeFile(file, Buffer.from([0xff])); await assert.rejects(readBounded(file, 50), TypeError);
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});
 
 test('the recorded 64-row CC0 export deterministically regenerates every bundled record and manifest', async () => {
   assert.equal(PUZZLE_SOURCE.licence, 'CC0-1.0'); assert.equal(PUZZLE_SOURCE.sha256, manifest.sha256);
