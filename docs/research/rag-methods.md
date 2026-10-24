@@ -2,6 +2,8 @@
 
 Research date: **2026-10-23**. Recommendations for [TODO 7–8](../TODO.md), based on the repository at **`0176c62`**. No retrieval experiments or new infrastructure have been implemented by this document.
 
+**Subsequent implementation:** passage indexing, optional embeddings, hybrid fusion, fuzzy pawn distance and cited coach retrieval have since shipped. The [2026-10-24 algorithm comparison](position-retrieval-comparison.md) records current paths and measurements; the implementation descriptions and proposed slices below retain the original audit's scope.
+
 ## What RAG means here
 
 An index is a way to find records. Retrieval-augmented generation adds a second step: retrieved evidence conditions the generated answer. It does not require embeddings, a vector database or a knowledge graph. The original [Lewis et al. RAG paper (2020)](https://arxiv.org/abs/2005.11401) combines a learned retriever with a generator for knowledge-intensive tasks; its training architecture is one implementation, not a requirement to retrain Kibitz's providers.
@@ -16,15 +18,15 @@ For this project, distinguish three evidence types:
 
 A passage can be relevant but wrong; a correct engine line can be a poor teaching example. Retrieval and chess validation need separate checks.
 
-### Where the Primer and current code stand
+### Where the Primer and the original code audit stand
 
-The [Primer](../primer/Primer_v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. [knowledge.js](../../site/src/chess/knowledge.js) currently implements:
+The [Primer](../primer/Primer_v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. At the original audit, [knowledge.js](../../site/src/chess/knowledge.js) implemented:
 
 - `retrieveLiterature`: weighted book metadata/theme/level matches, without book full text;
 - `buildPositionIndex` / `similarPositions`: exact EPD and exact pawn-signature buckets, with limits on structural matches;
 - pure features and motif candidates, rather than an embedding model.
 
-[classics.js](../../site/src/library/classics.js) adds tagged games/studies; [chat.js](../../site/src/coach/chat.js) supports bounded metadata searches. [ai.mjs](../../site/server/ai.mjs) has embedding configuration/client helpers, but there is no embedding ingestion/search route or connected text/vector index in the app. A reading recommendation based on a book's tags must not be presented as a retrieved quotation or passage from the book.
+[classics.js](../../site/src/library/classics.js) added tagged games/studies; [chat.js](../../site/src/coach/chat.js) supported bounded metadata searches. [ai.mjs](../../site/server/ai.mjs) had embedding configuration/client helpers, but that audited version had no embedding ingestion/search route or connected text/vector index. A reading recommendation based on a book's tags must not be presented as a retrieved quotation or passage from the book.
 
 ## 1. Establish a proper plain-text baseline
 
@@ -50,7 +52,7 @@ PDF extraction needs its own quality check: reading order, diagrams, figurines, 
 
 For the planned SQLite storage, [FTS5](https://www.sqlite.org/fts5.html) offers a concrete lexical baseline without a separate search service. Its `bm25()` score sorts with **lower values first**. Test tokenisation for SAN, hyphenated names, German chess terms and punctuation; keep structured fields for ECO, UCI and player IDs instead of expecting tokenisation to preserve them. If using FTS snippets, render text safely: its highlighting markup must not bypass Kibitz's text-only rendering policy.
 
-For hybrid fusion, first apply access/licence filters, retrieve separate candidate lists and merge identical passage IDs. [Reciprocal Rank Fusion (Cormack et al., 2009)](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) combines ranks with a sum of `1 / (k + rank)`. Tune the constant and candidate budgets on held-out queries; do not add raw BM25 and cosine scores with incompatible scales. A subsequent reranker can consider source quality, position relevance and teaching level as well as text relevance.
+For hybrid fusion, first apply access/licence filters, retrieve separate candidate lists and merge identical passage IDs. [Reciprocal Rank Fusion (Cormack et al., 2009)](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf) combines ranks with a sum of `1 / (k + rank)`. Tune the constant and candidate budgets on held-out queries; do not add raw BM25 and cosine scores with incompatible scales. A subsequent reranker can consider source quality, position relevance and teaching level as well as text relevance.
 
 The [BEIR benchmark (Thakur et al., 2021)](https://arxiv.org/abs/2104.08663) found substantial variation across retrieval tasks, with BM25 a robust baseline and more elaborate methods carrying computational tradeoffs. Kibitz needs its own chess queries before selecting a dense model or claiming an improvement.
 
