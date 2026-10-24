@@ -76,7 +76,7 @@ export function filterGames(games, input = {}, labels = {}) {
     const g = /** @type {Record<string, unknown>} */ (game);
     const tags = Array.isArray(g.tags) ? g.tags.filter(v => typeof v === 'string').slice(0, 64) : [];
     const themes = tags.flatMap(tag => [tag, Object.hasOwn(TAG_LABELS, tag) ? TAG_LABELS[tag] : '', Object.hasOwn(labels, tag) ? labels[tag] : '']).join(' ');
-    const players = searchTextKey([text(g.white), text(g.black)].join(' ')), openings = searchTextKey([text(g.eco), text(g.opening)].join(' '));
+    const players = searchTextKey([text(g.white), text(g.black)].join(' ')), openings = searchTextKey([text(g.eco), text(g.opening), text(g.searchOpening)].join(' '));
     if (!hasWords(players, player) || !hasWords(openings, opening)) return false;
     if (input.theme && Object.hasOwn(TAG_LABELS, input.theme) ? !tags.includes(input.theme) : !hasWords(searchTextKey(themes), theme)) return false;
     const year = recordedYear(g.date);

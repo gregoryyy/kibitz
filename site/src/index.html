@@ -850,6 +850,7 @@ import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentR
 import { STYLES, styleOf, pickStyled } from './chess/style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './chess/modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './library/classics.js';
+import { openingName, openingMatches } from './openings/names-de.js';
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
 import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
 import { gameSearchData, gameSearchMetadata, filterGames } from './library/search.js';
@@ -1491,7 +1492,8 @@ function renderOpening() {
   const op = openingAt(S.cursor) || openingAt(last());
   // Opening names (eco.json) and a game's own title are data; the fallbacks are ours.
   $('#openingName').translate = !op && !S.meta?.title;
-  $('#openingName').textContent = op ? op.name : (S.meta?.title || (S.start === START ? 'Starting position' : 'Custom position'));
+  $('#openingName').textContent = op ? openingName(op.name, LANG) : (S.meta?.title || (S.start === START ? 'Starting position' : 'Custom position'));
+  $('#openingName').title = op?.name || ''; $('#openingName').setAttribute('data-raw', '');
   $('#openingEco').textContent = op ? op.eco : '';
 }
 function renderMoves() {
@@ -2017,7 +2019,7 @@ function renderLibraryStorage() {
 
 // Built-in examples (public-domain games, annotations by Kibitz) so the library and retrieval have something to show.
 // The built-in classics (classics.js, TODO 7.3): in the library, the position index and the reading list.
-const EXAMPLES = classicGames();
+const EXAMPLES = classicGames({ language: LANG });
 const PROBLEMS = new Map(CURATED_PROBLEMS.map(p => [p.id, p]));
 const PROBLEM_TABLEBASE_LOOKUP = tablebaseIndex(Chess, [...TABLEBASE_SNAPSHOTS, ...PROBLEM_TABLEBASES]);
 let INDEX = K.buildPositionIndex([]);
@@ -2058,7 +2060,7 @@ function allGames() { return [...Lib.games.values(), ...EXAMPLES]; }
 function librarySearchMetadata(g) {
   const source = EXAMPLES.includes(g) ? 'classic' : 'library', cached = openingCache.get(`${source}:${g.id}`);
   const info = gameSearchMetadata(g, cached?.search || null, ECO);
-  return { ...info, record: g, searchTitle: source === 'classic' ? t(info.title) : info.title };
+  return { ...info, record: g, searchTitle: source === 'classic' ? t(info.title) : info.title, searchOpening: openingName(info.opening, LANG) };
 }
 function searchableLibraryGames() { return allGames().map(librarySearchMetadata); }
 const libraryThemeLabels = Object.fromEntries(Object.entries(K.TAG_LABELS).map(([tag, label]) => [tag, t(label)]));
@@ -2153,7 +2155,7 @@ function renderNamedOpenings() {
   const current = ECO[K.epd(fen)] || (data.current[0] && [data.current[0].eco, data.current[0].name]);
   if (current || study.opening) {
     const name = current || [study.opening.eco, study.opening.name];
-    body.append(el('p', { id: 'namedOpeningCurrent' }, el('span', {}, current ? 'Current opening: ' : 'Earlier in this line: '), el('span', { translate: 'no' }, `${name[0]} ${name[1]}`)));
+    body.append(el('p', { id: 'namedOpeningCurrent' }, el('span', {}, current ? 'Current opening: ' : 'Earlier in this line: '), el('span', { translate: 'no', 'data-raw': '', title: name[1] }, `${name[0]} ${openingName(name[1], LANG)}`)));
   } else body.append(el('p', { id: 'namedOpeningCurrent', class: 'hint' }, K.epd(fen) === K.epd(START) ? 'Starting position' : 'No exact opening name here.'));
   body.append(el('p', { class: 'hint' }, 'Hover or focus to preview. In analysis, try a scratch line; during play, click to make your move.'),
     el('p', { class: 'hint' }, 'Opening names come from the catalogue; game frequencies are shown in the explorer.'));
@@ -2177,7 +2179,7 @@ function renderNamedOpenings() {
       } else exploreMove(move.uci, fen, 'Named opening variation');
     };
     const names = el('div', { class: 'named-opening-names' });
-    for (const n of move.names) names.append(el('p', {}, el('span', { translate: 'no' }, `${n.eco} ${n.name}`), n.plies ? el('span', { class: 'hint' }, n.plies === 1 ? ' · 1 more ply to this name' : ` · ${n.plies} more plies to this name`) : null));
+    for (const n of move.names) names.append(el('p', {}, el('span', { translate: 'no', 'data-raw': '', title: n.name }, `${n.eco} ${openingName(n.name, LANG)}`), n.plies ? el('span', { class: 'hint' }, n.plies === 1 ? ' · 1 more ply to this name' : ` · ${n.plies} more plies to this name`) : null));
     // Actual pointer movement previews; scroll-induced mouseenter must not override keyboard focus.
     list.append(el('div', { class: 'named-opening-row', 'data-uci': move.uci, onmousemove: show, onmouseleave: hide },
       el('button', { class: 'btn small named-opening-move', translate: 'no', title: live ? 'Play this move in your game' : 'Try this move on the scratch board', disabled: live && !canMove(), onfocus: show, onblur: hide, onclick: play }, label), names));
@@ -2199,7 +2201,7 @@ function renderOpeningGuidePanel() {
     body.append(el('p', { class: 'hint' }, 'No study note matches this position yet. Load an opening or explore another position.'));
     return;
   }
-  if (study.opening) body.append(el('p', { class: 'mono', translate: 'no' }, `${study.opening.eco} ${study.opening.name}`));
+  if (study.opening) body.append(el('p', { class: 'mono', translate: 'no', 'data-raw': '', title: study.opening.name }, `${study.opening.eco} ${openingName(study.opening.name, LANG)}`));
   for (const g of study.guides) {
     const details = el('dl');
     for (const [label, text] of [['Idea', g.idea], ['Typical plans', g.plans], ['Pawn structures', g.structure]]) {
@@ -2819,7 +2821,7 @@ function renderLibrary() {
   if (!mine.length && !searching) mount(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
   for (const info of result.games) {
     const g = info.record;
-    const meta = [info.date, info.eco && `${info.eco} ${info.opening || ''}`, g.plies ? t('{n} moves', { n: Math.ceil(g.plies / 2) }) : ''].filter(Boolean).join(' · ');
+    const meta = [info.date, info.eco && `${info.eco} ${openingName(info.opening || '', LANG)}`, g.plies ? t('{n} moves', { n: Math.ceil(g.plies / 2) }) : ''].filter(Boolean).join(' · ');
     if (previous.has(g)) {
       const card = previous.get(g), label = card.querySelector('.game-search-meta');
       label.textContent = meta; mount(card); continue; // Preserve open source forms, focus and unsaved edits on ECO readiness.
@@ -3491,7 +3493,7 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
     const hits = ref ? [{ id: ref.id }] : searchGames(searchableLibraryGames(), { query: words, color, result }, libraryThemeLabels);
     if (!hits.length) {
       await loadOpenings();
-      const op = OPENINGS.find(o => o[1].toLowerCase().includes(query.toLowerCase()));
+      const op = OPENINGS.find(o => openingMatches(o[0], o[1], query, LANG));
       if (op) return chatAction('load_opening', { moves: op[2].split(' ') }, run);
       return { error: 'No matching game or opening was found.' };
     }
@@ -3535,7 +3537,7 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
   if (name === 'search_openings') {
     await loadOpenings();
     const words = input.query.toLowerCase().split(/\s+/);
-    return { openings: OPENINGS.filter(o => words.every(w => `${o[0]} ${o[1]}`.toLowerCase().includes(w))).slice(0, 8).map(o => ({ eco: o[0], name: o[1], moves: o[2].split(' ') })) };
+    return { openings: OPENINGS.filter(o => openingMatches(o[0], o[1], words.join(' '), LANG)).slice(0, 8).map(o => ({ eco: o[0], name: o[1], moves: o[2].split(' ') })) };
   }
   if (name === 'load_game') {
     await Lib.ready;
@@ -4310,7 +4312,7 @@ function renderReading() {
   const a = anaOf(fen);
   if (a?.best && showEngine()) K.moveMotifs(Chess, fen, a.best).forEach(m => feats.push({ ...m, weight: 2 }));
   const chips = $('#themeChips'); chips.replaceChildren();
-  if (op) chips.append(el('span', { class: 'chip static on', title: op.name, translate: 'no', 'data-raw': '' }, `${op.eco} ${op.name.split(':')[0]}`));
+  if (op) chips.append(el('span', { class: 'chip static on', title: op.name, translate: 'no', 'data-raw': '' }, `${op.eco} ${openingName(op.name.split(':')[0], LANG)}`));
   for (const f of feats) if (!(op && K.openingFamily(op.name) === f.tag)) chips.append(el('span', { class: 'chip static', title: f.why, 'data-raw': ecoWhy(f.why) }, K.TAG_LABELS[f.tag] || f.tag));
   const books = K.retrieveLiterature(feats, { level: S.level, limit: 5, userBooks: userBooks() });
   const bl = $('#bookList'); bl.replaceChildren();
@@ -4657,16 +4659,17 @@ function renderOpeningResults() {
   const box = $('#openingResults'); box.replaceChildren();
   const words = $('#openingSearch').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (!OPENINGS || !words.length) return;
-  const hits = OPENINGS.filter(o => words.every(w => (o[0] + ' ' + o[1]).toLowerCase().includes(w))).slice(0, 8);
+  const hits = OPENINGS.filter(o => openingMatches(o[0], o[1], words.join(' '), LANG)).slice(0, 8);
   const cur = S.startPick.opening;
-  for (const [eco, name, moves] of hits) box.append(el('button', { 'aria-pressed': String(cur?.name === name && cur?.moves === moves), title: sansText(moves.split(' ')),
-    translate: 'no', onclick: () => { S.startPick.opening = { eco, name, moves }; saveSettings(); renderOpeningResults(); renderStartPick(); } }, el('span', { class: 'eco-code' }, eco), name));
+  for (const [eco, name, moves] of hits) box.append(el('button', { 'aria-pressed': String(cur?.name === name && cur?.moves === moves), title: `${name} · ${sansText(moves.split(' '))}`,
+    translate: 'no', 'data-raw': '', onclick: () => { S.startPick.opening = { eco, name, moves }; saveSettings(); renderOpeningResults(); renderStartPick(); } }, el('span', { class: 'eco-code' }, eco), openingName(name, LANG)));
   if (!hits.length) box.append(el('span', { class: 'hint' }, 'No opening matches that.'));
 }
 function renderStartPick() {
   const p = S.startPick, hint = $('#startHint');
   $('#startOpening').hidden = p.kind !== 'opening'; $('#startFen').hidden = p.kind !== 'fen';
-  if (p.kind === 'opening') hint.textContent = p.opening ? `${p.opening.eco} ${p.opening.name}: the game starts after ${sansText(String(p.opening.moves).split(' '))}` : 'Search for an opening and pick it.';
+  hint.translate = p.kind !== 'opening';
+  if (p.kind === 'opening') hint.textContent = p.opening ? t('{opening}: the game starts after {moves}', { opening: `${p.opening.eco} ${openingName(p.opening.name, LANG)}`, moves: sansText(String(p.opening.moves).split(' ')) }) : t('Search for an opening and pick it.');
   else if (p.kind === 'fen') { const r = checkStart(Chess, p.fen); hint.textContent = !p.fen ? 'Paste a position in FEN, e.g. from a book diagram or another site.' : r.error || `${turnOf(r.fen) === 'w' ? 'White' : 'Black'} to move. Starts with the next game.`; }
   else hint.textContent = '';
 }
