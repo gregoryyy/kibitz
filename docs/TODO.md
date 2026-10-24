@@ -205,7 +205,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 - [x] 9.1 Browser-local player profile: explanation level, optional self-reported rating/pool/time control and bounded learning goals. Acknowledged saves, future-format preservation, stale-tab draft protection and quoted request context keep preferences separate from measured ability/opponent strength; [lifecycle and limits](PROFILE.md)
 - [x] 9.2 Own-game review trends: source-bound historical analysis reports, measured-move/error/accuracy coverage by estimated phase and bounded engine-confirmed opportunities. Refuted/unverified motifs and restored values gain no credit; reruns replace contributions, while deletion/source/library changes remove them. Localized source navigation and future-format preservation follow existing guards; [evidence and limits](REVIEWS.md)
-- [ ] 9.3 Puzzles generated from the user's own mistakes
+- [x] 9.3 Puzzles generated from compatible own-game review mistakes: fresh bounded Stockfish targets, arbitrary legal alternatives, explicit promotions, independent practice board and source/help/generation guards; [criteria and limits](OWN-PUZZLES.md)
 - [ ] 9.4 Spaced-repetition scheduler for puzzles, openings and lessons
 - [x] 9.5 Study plan suggestions *(prototype)*
 
