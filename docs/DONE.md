@@ -9,7 +9,7 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ## 2026-10-24 — Standalone data exports and confirmed browser/server erasure
 
-TODO items: 10.3 (implementation complete; full browser validation pending).
+TODO items: 10.3.
 
 ### Implementation notes
 
@@ -18,7 +18,7 @@ TODO items: 10.3 (implementation complete; full browser validation pending).
 - Added cookie/scope/revision/confirmation-checked `POST /api/library/erase`, with the existing same-origin/host, JSON/size/rate boundaries. SQLite atomically removes only that owner's games/references and retains an advanced revision tombstone so older pending writes cannot resurrect data, including after restart. Other owners and browser records remain separate. Acknowledged server deletion removes only the verified owner's cache; cache failure and uncertain server acknowledgement get distinct messages.
 - The page supports English/German, a phone-sized native modal, keyboard cancellation/focus, literal source contents and no reflection/prompt rendering. [Data formats and lifecycle](DATA.md) document raw exports, no automatic restore, caps, concurrent-tab limits, backups, physical SQLite remnants, provider/host-managed account exclusions and operator responsibilities.
 - Five unit scenarios cover raw export fidelity/namespaces, cache acknowledgement, changed previews/partial failures, future formats, localized copy and build output. Three server scenarios check transactional owner/tombstone/restart behavior, malformed erasure and explicit session/origin/confirmation/CAS constraints. Six new browser cases verify downloads, app navigation/autosave isolation, scoped cache removal, stale writes/previews, cancellation, partial/uncertain outcomes and German phone controls.
-- Validation: ESLint/JSDoc checks, build, all 525 unit tests (one live-provider skip), 16 focused server cases and all six data browser cases pass. The earlier focused run passed existing localization/settings/library-storage regressions; the German data translator binding was corrected and rechecked. German phone confirmation screenshot inspected. The complete browser suite is running.
+- Validation: ESLint/JSDoc checks, build, all 525 unit tests (one live-provider skip), 16 focused server cases, all six data browser cases and all 330 browser tests (one optional live-model skip) pass. The earlier focused run passed existing localization/settings/library-storage regressions; the German data translator binding was corrected and rechecked. German phone confirmation screenshot inspected; production dependency audit reports zero vulnerabilities.
 
 ### Deviations
 
