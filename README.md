@@ -17,6 +17,8 @@ The app lives in [`site/`](site/): page source, build scripts, opening data, the
 
 The page loads ES modules and Web Workers, so it must be served over HTTP. Opening `index.html` straight from disk (`file://`) won't work.
 
+The supported target is a **local single-user app**, served on loopback by default. Cloud AI remains optional; Ollama and the in-browser model offer local inference. [Deployment decision](docs/DEPLOYMENT.md) records the scope and implications for accounts, keys and security.
+
 ## Quick start
 
 ```bash

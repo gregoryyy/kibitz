@@ -61,7 +61,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 2.6 Ollama adapter (local models, so nothing leaves the machine)
 - [x] 2.7 Structured output for board annotations on every provider (JSON schema or tool calling, plus fallback parsing)
 - [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
-- [ ] 2.9 Key management: keys come from server env or an encrypted per-user store, and never reach the browser, logs or prompts. Remaining: the per-user store (depends on 10.1); env keys are done.
+- [x] 2.9 Key management for the selected local single-user deployment: operator keys come from server env and never reach the browser, logs or prompts. An encrypted per-account store is deferred with hosted accounts; [deployment decision](DEPLOYMENT.md)
 - [x] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
 - [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Done: timeouts, a daily token budget for the server, per-user budgets in tokens and dollars for paid models, and the tokens and cost of each answer and of the player's day in the dialogue. Users are told apart by a cookie, so the per-user budgets are soft until there are accounts. Remaining: a per-user rate limit, budgets tied to accounts (10.2), and usage kept across server restarts.
 - [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
@@ -211,8 +211,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 ## 10. Accounts, privacy and reach *(added)*
 
-- [ ] 10.1 Decide on the deployment mode: single-user local app or hosted multi-user service
-- [ ] 10.2 Authentication, if hosted: sessions plus passkeys or OAuth
+- [x] 10.1 Local single-user app, confirmed by the project owner: loopback Node server, browser-first storage, optional private SQLite library and operator env keys; [decision and plan consequences](DEPLOYMENT.md)
+- [ ] 10.2 Authentication, if hosted: sessions plus passkeys or OAuth. *Deferred by 10.1's local deployment decision; no hosted authentication is claimed.*
 - [ ] 10.3 Data export and deletion
 - [ ] 10.4 Privacy notice: what goes to which AI provider, with opt-in per provider
 - [ ] 10.5 Accessibility: keyboard play, colour-blind-safe arrows, reduced motion
