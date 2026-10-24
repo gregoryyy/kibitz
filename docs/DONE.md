@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Private databases excluded from every served root
+
+TODO items: 11.2.1; finding [#96](https://github.com/gregoryyy/kibitz/issues/96).
+
+### Implementation notes
+
+- The shared private-file guard now checks library and usage database paths against both the static root and any separate model directory, resolving directory aliases before creating files or missing parents. Existing private-file modes, final-symlink rejection and string-root callers remain supported; a disk database with no declared public roots is refused.
+- The CLI resolves/validates the model directory before initializing either database. `--models` now requires an existing directory, giving path validation a definite public root; the normal download-first offline workflow already creates it. Missing/invalid model roots fail startup without creating private database files or their parent directories.
+- Added unit coverage for both roots, parent aliases, absent parents, preservation of existing bytes and valid neighboring private paths. Three real-CLI Playwright cases cover library with/without the AI gateway, usage, real/aliased model roots, missing model directories and valid private storage beside synthetic public weights. The rejection regression fails on the old server because it starts and creates the exposed database.
+- Validation: checks/build pass; 567 unit/server cases pass (one opt-in live skip); the three new CLI regressions and all twelve existing library-storage/usage browser cases pass. Fixtures use temporary synthetic files and the mock provider; no actual model, key or personal record is used. Documentation and the threat/OWASP finding disposition reflect the implemented boundary.
+
+### Deviations
+
+- A missing explicit model directory is rejected instead of treating it as an empty served tree. This prevents ambiguous future paths from bypassing database validation. Static/model file-descriptor races, model trust, download bounds and default logging remain separate findings; this does not complete the release gate.
+
+### Insights
+
+- A “private file outside the web root” check must know every tree the process can serve. Resolving public roots before private storage initialization makes that contract testable even when a second route has a strict filename allowlist.
+
 ## 2026-10-24 — OWASP Top 10 code mapping and tracked findings
 
 TODO items: 11.2.

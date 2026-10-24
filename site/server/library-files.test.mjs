@@ -4,6 +4,27 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { openPrivateLibrary } from './library-files.mjs';
+import { privateDatabaseFile } from './private-files.mjs';
+
+test('all served roots are checked before private file creation, including model aliases and absent parents', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-all-private-roots-'));
+  const root = path.join(dir, 'public'), models = path.join(dir, 'models'), alias = path.join(dir, 'alias');
+  fs.mkdirSync(root); fs.mkdirSync(models); fs.symlinkSync(models, alias);
+  try {
+    for (const base of [root, models, alias]) {
+      const file = path.join(base, 'absent', 'private.sqlite');
+      assert.throws(() => privateDatabaseFile(file, [root, alias]), /outside/);
+      assert.throws(() => openPrivateLibrary(file, [root, alias]), /outside/);
+      assert.equal(fs.existsSync(path.dirname(file)), false);
+    }
+    const original = path.join(models, 'original.sqlite'); fs.writeFileSync(original, 'preserve', { mode: 0o600 });
+    assert.throws(() => openPrivateLibrary(original, [root, alias]), /outside/); assert.equal(fs.readFileSync(original, 'utf8'), 'preserve');
+    const file = path.join(dir, 'models-neighbor', 'private.sqlite');
+    assert.throws(() => privateDatabaseFile(file, []), /served directory/); assert.equal(fs.existsSync(path.dirname(file)), false);
+    assert.throws(() => privateDatabaseFile(file, [root, path.join(dir, 'missing-model-root')]), /ENOENT/); assert.equal(fs.existsSync(path.dirname(file)), false);
+    const store = openPrivateLibrary(file, [root, alias]); store.close(); assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
 
 test('private database files are outside the static tree, mode 0600, persistent, and reject direct/parent symlinks', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-library-paths-')), root = path.join(dir, 'dist'); fs.mkdirSync(root);

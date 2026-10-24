@@ -34,16 +34,22 @@ const { values: opt, positionals } = parseArgs({
 });
 if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]'); process.exit(2); }
 const root = fs.realpathSync(positionals[0]);
+let modelsDir = '';
+if (opt.models) {
+  try { modelsDir = fs.realpathSync(opt.models); if (!fs.statSync(modelsDir).isDirectory()) throw new Error(); }
+  catch { console.error('The model directory must already exist and be a directory; download the selected model first or omit --models.'); process.exit(2); }
+}
+// Validate every public tree before creating a private database or any missing parents.
+const servedRoots = [root, ...(modelsDir ? [modelsDir] : [])];
 let library = null, libraryStore = null;
 if (opt.library) {
   const { openPrivateLibrary } = await import('../server/library-files.mjs');
   const { createLibraryApi } = await import('../server/library-api.mjs');
-  libraryStore = openPrivateLibrary(opt.library, root);
+  libraryStore = openPrivateLibrary(opt.library, servedRoots);
   library = createLibraryApi({ store: libraryStore });
   process.once('exit', () => libraryStore.close());
 }
 
-const modelsDir = opt.models ? path.resolve(opt.models) : '';
 let api = null, apiStatus = '';
 if (opt.api) {
   if (opt.env) try { process.loadEnvFile(opt.env); } catch (e) { if (e.code !== 'ENOENT') throw e; }
@@ -57,7 +63,7 @@ if (opt.api) {
   const { sqliteUsageStore } = await import('../server/usage-store.mjs');
   const { privateDatabaseFile } = await import('../server/private-files.mjs');
   const { usageAccounting } = await import('../server/usage.mjs');
-  const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, root));
+  const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
   process.once('exit', () => usageStore.close());
   api = createApi({ config, ...usageAccounting(config, { store: usageStore }) });
   apiStatus = config.available ? `AI coach: ${config.provider} / ${config.model}` : `AI coach off: ${config.reason}`;
