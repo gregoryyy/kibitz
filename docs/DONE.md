@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Play lesson positions against Stockfish
+
+TODO items: 6.8.
+
+### Implementation notes
+
+- Added pure `curriculum/playout.js` and an owned cancellable confirmation dialog. The lesson player offers either colour from its displayed exercise/worked-example position, preserving full FEN counters and applicable rights. Finished/invalid diagrams cannot start a game or silently fall back to the opening position. The chosen colour applies to this game without changing the saved start/colour preferences.
+- Both normal starts and the lesson handoff use the same engine/clock lifecycle, current strength/time settings, save and review controls. Opponent-first positions schedule a normal Stockfish reply. Starting practice makes no automatic exercise-completion claim. Native confirmation explains the selected side/settings and saves an active game with moves as unfinished before replacement; failed saves leave the game intact and support retry.
+- Pending requests serialize across detached saves. Abort signals, owned dialog identity, lesson render/session identity and the main game's generation/checkpoint reject cancelled, changed and held actions. The checkpoint also covers metadata/comments. Generic game confirmations require their original connected element and game generation, preventing a cancelled old resignation from ending a new lesson game.
+- Four logic scenarios cover exact source positions, side selection, counters/en passant/castling normalization, terminal versus theoretical drawn positions and invalid input. Ten browser scenarios cover worked-position starts, opponent-first replies, saving/reopening custom-FEN practice, cancel/confirm, storage failure/retry, old confirmations, lesson navigation, delayed saves with main-game or lesson changes, serialized replacement requests and German phone layout. The phone dialog was inspected visually.
+- Verification: ESLint, JSDoc types and build pass; 410 unit/gateway tests and 247 browser tests pass, with one opt-in live test skipped per suite. Provider calls use mocks/fake clients. The preceding progress PR is green in CI.
+
+### Deviations
+
+- The current game keeps running while confirmation or saving is pending. A changed position/state prevents replacement and asks the player to start again; a previously authorized detached snapshot may already have saved. This preserves running-game behavior without pausing/resuming clocks around a separate lesson board. Practice games use ordinary game progress/review rather than being graded as lesson solutions.
+
+### Insights
+
+- A lesson's displayed worked position can differ from both its initial diagram and the attempted solution. The explicit handoff must capture that full FEN and validate that it remains playable. A theoretical tablebase draw is still a useful practice position; a rules-ended game is not.
+- Cancelling a dialog does not cancel a storage write already in flight. Serializing subsequent handoffs and checking both the lesson and main-game context after the write prevents an older request from replacing a newly selected game.
+
+---
+
 ## 2026-10-24 — Saved lesson and theme progress
 
 TODO items: 6.7.
