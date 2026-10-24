@@ -97,6 +97,8 @@ The chat also accepts local commands without a model: `play e4`, `open the Opera
 
 The gateway only accepts requests from its own page: other websites, and attackers using a look-alike host name to get the browser to treat their page as local, are refused. It also limits requests per minute (`AI_RATE_LIMIT_PER_MINUTE`) and, optionally, tokens per day for the whole server (`AI_TOKEN_BUDGET_PER_DAY`), and tokens or dollars per user and day on paid models (`AI_TOKEN_BUDGET_PER_USER_PER_DAY`, `AI_COST_BUDGET_PER_USER_PER_DAY`). Each answer shows its tokens and cost, and the dialogue shows what you have used today; costs need prices in `AI_PRICES`.
 
+Default server logs omit URLs, cookies, prompts and raw provider messages; [local monitoring and retention](docs/OPERATIONS.md) explains the event fields and no-inference health checks.
+
 **Coach settings** (in the Coach tab, when running locally):
 - Switch between the providers your `.env` sets up.
 - See the model each task uses (`<PROVIDER>_MODEL_QUICK`, `_MODEL_REVIEW`).

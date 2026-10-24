@@ -233,6 +233,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 11.2 OWASP Top 10:2025: [code/evidence checklist](OWASP-TOP10.md), supported local deployment and open findings tracked in issues #96–99. Review completion is not release approval; high-rated scanner alerts and security follow-ups remain unresolved
   - [x] 11.2.1 Reject library/usage databases inside either served root, including aliases; validate model directories before file creation. Issue #96, unit and real-CLI Playwright regressions
   - [x] 11.2.2 Bound model downloads by pinned bytes and a total deadline; verify before publishing, clean up handled failures and preserve earlier weights before publication. Issue #97, synthetic CLI and stream/filesystem tests
+  - [x] 11.2.3 Remove raw URL/provider/config/path text from default runtime logs; fixed category/code/status events, startup diagnostics and local monitoring. Issue #98; hostile marker, malformed-target and CLI regressions
 - [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item:
   - [x] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
   - [ ] 11.3.2 LLM02 Sensitive information disclosure: API keys, other users' data
@@ -252,6 +253,6 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 - [ ] 12.1 Semantic versioning and a changelog
 - [ ] 12.2 Packaging: Docker image for the Node server and static client
-- [ ] 12.3 Logging and monitoring, with no personal data or prompts in logs by default
+- [x] 12.3 Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; [operator checks and retention](OPERATIONS.md), fake-SDK and real-CLI regressions
 - [ ] 12.4 Docs: user guide, provider setup, self-hosting with Ollama
   - [x] 12.4.1 Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation remains open

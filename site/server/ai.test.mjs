@@ -173,7 +173,7 @@ test('mock provider streams a canned reply', async () => {
 });
 
 // ---------------------------------------------------------------- errors and limits
-test('a provider\'s reason is shown and logged without anything that looks like a key', () => {
+test('a provider\'s reason is shown to the requesting page without anything that looks like a key', () => {
   const e = Object.assign(new Error('401 Incorrect API key provided: sk-proj-********************************************sU5G. You can find your API key at https://platform.openai.com/account/api-keys.'), { status: 401 });
   const why = providerReason(e);
   assert.ok(!/sU5G|sk-proj/.test(why), why);

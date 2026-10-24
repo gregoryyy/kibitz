@@ -390,8 +390,8 @@ export function createEmbedder(cfg, /** @type {{ client?: any, inspectModel?: (m
   };
 }
 
-// The provider's own words for an error, safe to show and log: anything that looks like a key
-// (sk-..., even masked) is cut, and it's one short line. The SDKs put the provider's message in
+// A bounded provider reason for the requesting page: recognized key patterns are cut. This
+// may still contain personal text and must never enter runtime logs. SDKs put the message in
 // e.error.message; e.message adds the status in front.
 export function providerReason(e) {
   const m = e?.error?.message || e?.error?.error?.message || e?.message || '';

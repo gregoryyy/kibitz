@@ -1,0 +1,50 @@
+// Runtime logs contain only fixed vocabulary, numbers and booleans. Never serialize a
+// request, SDK error, config object or arbitrary string, even after key-pattern redaction.
+const PROVIDERS = new Set(['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock']);
+const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']);
+const ACTIONS = new Set(['sample', 'structured', 'test', 'embeddings']);
+const CODES = new Set(['auth_failed', 'bad_request', 'bad_output', 'budget_exceeded', 'cancelled', 'consent_required', 'forbidden', 'in_browser', 'model_not_found', 'not_found', 'prompt_too_large', 'provider_error', 'provider_rejected', 'rate_limited', 'refused', 'stale_embeddings', 'timeout', 'unavailable', 'usage_unavailable']);
+const SYSTEM_CODES = new Set(['EACCES', 'EADDRINUSE', 'EADDRNOTAVAIL', 'EEXIST', 'EINVAL', 'EISDIR', 'ENOENT', 'ENOTDIR', 'EPERM', 'ERR_INVALID_ARG_VALUE', 'ERR_SOCKET_BAD_PORT', 'ERR_PARSE_ARGS_UNKNOWN_OPTION', 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE', 'ERR_PARSE_ARGS_UNEXPECTED_POSITIONAL']);
+const ROUTES = new Map(['status', 'config', 'test', 'sample', 'structured', 'embeddings'].map(name => [`/api/ai/${name}`, `ai.${name}`]));
+export const logProvider = value => PROVIDERS.has(value) ? value : 'other';
+const statusNumber = value => Number.isInteger(value) && value >= 100 && value <= 599 ? value : 0;
+const line = fields => JSON.stringify({ at: new Date().toISOString(), ...fields });
+
+export function routeCategory(url) {
+  let pathname;
+  try { pathname = new URL(url, 'http://x').pathname; } catch { return 'invalid'; }
+  return ROUTES.get(pathname) || (pathname.startsWith('/api/library/') ? 'library' : pathname.startsWith('/api/') ? 'api.other' : pathname.startsWith('/models/') ? 'model' : 'static');
+}
+
+/** One event on completion or disconnect, including streamed responses; no identity fields. */
+export function logRequest(req, res, log = console) {
+  const route = routeCategory(req.url), method = METHODS.has(req.method) ? req.method : 'OTHER', started = performance.now();
+  let recorded = false;
+  const record = () => {
+    if (recorded) return;
+    recorded = true;
+    log.log(line({ event: 'http', method, route, status: res.writableFinished ? statusNumber(res.statusCode) : 0,
+      complete: !!res.writableFinished, ms: Math.min(86_400_000, Math.max(0, Math.round(performance.now() - started))) }));
+  };
+  res.once('finish', record); res.once('close', record);
+}
+
+export function aiErrorEvent(action, provider, code, status) {
+  return line({ event: 'ai_error', action: ACTIONS.has(action) ? action : 'other', provider: logProvider(provider),
+    code: CODES.has(code) ? code : 'other', status: statusNumber(status) });
+}
+
+export function aiConfigEvent(config) {
+  return line({ event: 'ai_config', provider: logProvider(config.provider), available: !!config.available, localOnly: !!config.localOnly });
+}
+
+// These application-owned messages are exact matches, never arbitrary exception prose.
+const STARTUP_HINTS = new Map([
+  ['The database must be outside every served directory.', 'The database must be outside every served directory.'],
+  ['The database must be a private regular file (mode 0600).', 'The database must be a private regular file (mode 0600).'],
+  ['Specify a private database file.', 'Specify a private database file.'],
+]);
+export function serverErrorEvent(error) {
+  return line({ event: 'server_error', code: SYSTEM_CODES.has(error?.code) ? error.code : 'other',
+    hint: STARTUP_HINTS.get(error?.message) || (error?.code === 'EADDRINUSE' ? 'Listener already in use; stop the other server or pick another port.' : 'Check command options, directory existence, file permissions and server configuration.') });
+}

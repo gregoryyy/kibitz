@@ -16,10 +16,11 @@
 //                           explicit bounded batches; no server text/vector storage
 import crypto from 'crypto';
 import net from 'net';
-import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, providerReason, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
+import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageAccounting, usageLedger, userLedger } from './usage.mjs';
 import { createEmbeddingApi } from './embeddings.mjs';
+import { aiConfigEvent, aiErrorEvent } from './logging.mjs';
 import { CONSENT_HEADER, providerConsentHeader } from '../src/platform/privacy.js';
 
 const MAX_BODY = 1_000_000;
@@ -55,7 +56,13 @@ export function createApi({
       checkHost(req);
       const uid = userOf(req, res);
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
-      if (pathname === '/api/ai/embeddings' && req.method === 'POST') { checkPost(req); requireConsent(req, embeddings.status(uid).provider, 'embeddings'); return json(res, 200, await embeddings.embed(uid, await readJson(req), res)); }
+      if (pathname === '/api/ai/embeddings' && req.method === 'POST') {
+        checkPost(req);
+        const body = await readJson(req), providerName = embeddings.status(uid).provider;
+        requireConsent(req, providerName, 'embeddings');
+        try { return json(res, 200, await embeddings.embed(uid, body, res)); }
+        catch (e) { report('embeddings', providerName, e); throw e; }
+      }
       if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid));
       if (pathname === '/api/ai/config' && req.method === 'POST') return await setConfig(req, res, uid);
       if (pathname === '/api/ai/test' && req.method === 'POST') return await testConnection(req, res, uid);
@@ -69,6 +76,10 @@ export function createApi({
     }
     return true;
   };
+
+  function report(action, providerName, error, mapped = toGatewayError(error)) {
+    if (mapped.code !== 'cancelled') log.error(aiErrorEvent(action, providerName, mapped.code, error?.status));
+  }
 
   // Same origin and a JSON body, for every POST.
   function checkPost(req) {
@@ -85,7 +96,7 @@ export function createApi({
     if (next !== config) {
       config = next; provider = config.available ? makeProvider(config) : null;
       embeddings.policyChanged();
-      log.info?.(`AI coach: ${config.available ? `${config.provider} / ${config.model}` : `off (${config.reason})`}${config.localOnly ? ', local only' : ''}`);
+      log.info?.(aiConfigEvent(config));
     }
     return json(res, 200, status(uid));
   }
@@ -103,7 +114,9 @@ export function createApi({
     checkBudgets(uid);
     if (!allow(uid)) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
     const model = modelFor(config, 'quick'), t0 = Date.now(), isPaid = paid(), selected = provider, providerName = config.provider;
-    const r = await complete(selected, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256 });
+    let r;
+    try { r = await complete(selected, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256 }); }
+    catch (e) { report('test', providerName, e); throw e; }
     return json(res, 200, { ok: true, provider: providerName, model, ms: Date.now() - t0, usage: count(uid, model, r.usage, isPaid), user: users.today(uid) });
   }
 
@@ -137,8 +150,7 @@ export function createApi({
       write({ done: true, truncated: !!r.value?.truncated, ...(toolCalls ? { toolCalls } : {}), usage: count(uid, model, r.value?.usage, isPaid), user: users.today(uid) });
     } catch (e) {
       const g = toGatewayError(e, ac.signal);
-      // Log the code and the provider's message, never the prompt.
-      if (g.code !== 'cancelled') { log.error(`AI ${providerName}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`); write({ error: { code: g.code, message: g.message } }); }
+      if (g.code !== 'cancelled') { report('sample', providerName, e, g); write({ error: { code: g.code, message: g.message } }); }
     }
     res.end();
     return true;
@@ -156,7 +168,7 @@ export function createApi({
     }
     catch (e) {
       const g = toGatewayError(e, ac.signal);
-      if (g.code !== 'cancelled') log.error(`AI ${providerName}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`);
+      report('structured', providerName, e, g);
       throw g;
     }
   }

@@ -16,6 +16,9 @@ import path from 'path';
 import { parseArgs } from 'util';
 import { BASE_HEADERS, cspFor, isHiddenPath, offlineHtml } from '../server/static.mjs';
 import { modelEnv, servableModel } from '../server/models.mjs';
+import { aiConfigEvent, logProvider, logRequest, serverErrorEvent } from '../server/logging.mjs';
+
+async function main() {
 
 const { values: opt, positionals } = parseArgs({
   allowPositionals: true,
@@ -66,7 +69,8 @@ if (opt.api) {
   const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
   process.once('exit', () => usageStore.close());
   api = createApi({ config, ...usageAccounting(config, { store: usageStore }) });
-  apiStatus = config.available ? `AI coach: ${config.provider} / ${config.model}` : `AI coach off: ${config.reason}`;
+  console.log(aiConfigEvent(config));
+  apiStatus = config.available ? `AI coach: ${logProvider(config.provider)} (configured)` : 'AI coach off: check Settings or server configuration';
 }
 
 const TYPES = {
@@ -100,7 +104,10 @@ function sendModel(req, res, name) {
 }
 
 http.createServer(async (req, res) => {
-  res.on('finish', () => console.log(res.statusCode, req.method, req.url));
+  logRequest(req, res);
+  // API routers also parse the target. Reject malformed URLs before an async rejection
+  // could reach Node's default stack printer with its raw `input` property.
+  try { new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request'); }
   if (library && await library(req, res)) return;
   if (api && await api(req, res)) return;
   if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
@@ -129,10 +136,15 @@ http.createServer(async (req, res) => {
     fs.createReadStream(real).pipe(res);
   });
 }).on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
-  console.error(e.code === 'EADDRINUSE' ? `Port ${opt.port} on ${opt.host} is already in use; stop the other server or pick another port.` : e.message);
+  console.error(serverErrorEvent(e));
   process.exit(1);
-}).listen(Number(opt.port), opt.host, () => {
-  console.log(`Serving ${path.relative(process.cwd(), root) || '.'} at http://${opt.host}:${opt.port}/`);
+}).listen(Number(opt.port), opt.host, function () {
+  const port = this.address().port;
+  const host = ['127.0.0.1', 'localhost', '::1'].includes(opt.host) ? (opt.host === '::1' ? '[::1]' : opt.host) : null;
+  console.log(host ? `Serving Kibitz at http://${host}:${port}/` : `Serving Kibitz on configured interface, port ${port}`);
   if (apiStatus) { console.log(apiStatus); console.log(opt.usage === ':memory:' ? 'AI usage: in memory; restart resets counters' : 'AI usage: private persistent counters'); }
   if (opt.offline) console.log('Offline: the page loads nothing from other hosts');
 });
+
+}
+main().catch(error => { console.error(serverErrorEvent(error)); process.exitCode = 1; });
