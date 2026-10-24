@@ -21,6 +21,8 @@ The supported target is a **local single-user app**, served on loopback by defau
 
 The [threat model](docs/THREAT-MODEL.md) maps data flows, local trust assumptions, tested controls and remaining security verification work. The [OWASP Top 10 checklist](docs/OWASP-TOP10.md) records the code/evidence review and tracked findings; release verification remains open.
 
+The [flipbook](docs/flipbook/README.md) follows the Opera Game into source search, opening repertoires, lessons and local practice, including German phone views.
+
 ## Quick start
 
 ```bash

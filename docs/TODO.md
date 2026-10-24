@@ -254,3 +254,4 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [ ] 12.2 Packaging: Docker image for the Node server and static client
 - [ ] 12.3 Logging and monitoring, with no personal data or prompts in logs by default
 - [ ] 12.4 Docs: user guide, provider setup, self-hosting with Ollama
+  - [ ] 12.4.1 Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; prepare with mocks, then publish clearly identified coaching after the paid-run guard
