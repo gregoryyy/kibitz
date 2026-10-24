@@ -7,6 +7,30 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Isolated lesson player and authored tutor hints
+
+TODO items: 6.6.
+
+### Implementation notes
+
+- Added pure `curriculum/session.js` and a separate `player.js` renderer, composed by the page. Catalogue exercise buttons open a detached Chessground board with the lesson introduction/objectives, exercise selector, legal destinations, SAN/UCI input (including German piece letters), worked-line navigation and reveal/restart/close. Main-game state and analysis are untouched; lesson use starts no model/engine request.
+- Mate tasks accept any legal actual checkmate, including alternatives to the recorded move; legal non-mates in one-move tasks receive a rules-based explanation. Other source puzzles check recorded-line recall and automatically replay one recorded opponent reply. Outside-reference legal choices keep the board unchanged and receive no independent strength verdict. Written reflections require a bounded literal answer, then a locked rubric comparison and explicit self-assessment. Revealing records a viewed example rather than a solve.
+- Tutor hints use authored objectives, then the current origin square and recorded next SAN. Hint stages reset after a successful move while total help use stays attached to the attempt. Worked-example use and reveal remain separate. Completion callbacks distinguish mate proof, source recall, reflection self-assessment and revealed examples, with attempt/outside/help metadata for 6.7; no progress store is claimed yet.
+- Explicit promotion dialogs handle both board moves and bare typed promotion squares, retaining the selected piece. Session identity, render versions, dialog identity and the captured main-game generation reject held events; game replacement closes the player. Worked-view arrows/Home/End stay scoped to its board, controls restore keyboard focus and close returns to the originating catalogue button. Localized accessibility attributes bypass the page’s second translation pass.
+- Six logic scenarios cover all 100 exercises, detached state, alternate actual mates, legal non-mates, source recall/replies, explicit underpromotion, bounded literal reflections, self-assessment/reveal and rejecting lines past automatic game end. Six browser scenarios cover isolated play/hints, source setup and replies, worked-key navigation and held controls, reflection, promotion/replacement, game-generation invalidation, close/focus and German phone layout. The phone preview was inspected visually.
+- Verification: ESLint, JSDoc type checking and build pass; 399 unit/gateway tests and 230 browser tests pass, with one opt-in live test skipped per suite. Provider calls use mocks/fake clients. The inherited puzzle-source PR’s CodeQL and browser CI corrections are green.
+
+### Deviations
+
+- Tutor hints and explanations are authored and available offline. Source-line recall and reflection self-assessment are labelled as such; no model-generated correctness grade, fresh strength verdict for arbitrary alternatives or measured learning gain is claimed. Persistence and per-theme aggregation remain 6.7; playing a lesson against Stockfish remains 6.8.
+
+### Insights
+
+- A rules-proven mate, recall of a source solution and an authored reflection rubric are different evidence classes. Separate completion kinds let later progress summaries preserve those distinctions rather than count every interaction as mastered chess.
+- Session identity alone does not reject a held navigation button after a worked-view cursor change. A render version guards those controls too, and promotion callbacks additionally require their original dialog. Manual localization must cover attributes as well as text nodes to avoid duplicate translation.
+
+---
+
 ## 2026-10-24 — Lichess puzzle source and offline import pipeline
 
 TODO items: 6.5.

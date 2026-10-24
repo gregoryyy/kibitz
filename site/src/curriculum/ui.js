@@ -8,9 +8,9 @@ import { translator } from '../platform/i18n.js';
  * starts engine/model work, stores progress or treats a prerequisite as a progress lock.
  * @param {HTMLElement} root Catalogue container.
  * @param {import('./curriculum.js').Curriculum} catalogue Validated, detached records.
- * @param {{language?: string, level?: number, t?: (text: string, vars?: object) => string}} [options]
+ * @param {{language?: string, level?: number, t?: (text: string, vars?: object) => string, onOpen?: (lessonId: string, exerciseId: string) => void}} [options]
  */
-export function createCurriculumPanel(root, catalogue, { language = 'en', level = 4, t: translate } = {}) {
+export function createCurriculumPanel(root, catalogue, { language = 'en', level = 4, t: translate, onOpen } = {}) {
   const doc = root.ownerDocument;
   const fallback = translator({});
   /** @type {(text: string, vars?: object) => string} */
@@ -41,7 +41,7 @@ export function createCurriculumPanel(root, catalogue, { language = 'en', level 
   const lessons = new Map();
   for (const m of catalogue.modules) for (const l of m.lessons) lessons.set(l.id, l);
   /** @param {import('./curriculum.js').Exercise} exercise */
-  function exerciseCard(exercise) {
+  function exerciseCard(exercise, lessonId) {
     const row = el('li', { 'data-exercise-id': exercise.id }, prose('strong', exercise.title), prose('p', exercise.prompt));
     const evidence = exercise.tablebase;
     if (evidence?.checkedAt) {
@@ -59,6 +59,10 @@ export function createCurriculumPanel(root, catalogue, { language = 'en', level 
         el('a', { href: p.gameUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Source game')),
       el('p', { class: 'hint puzzle-themes' }, el('span', {}, 'Source themes:'), ' ', el('span', { translate: 'no' }, p.themes.join(', '))));
     }
+    if (onOpen) {
+      const open = el('button', { type: 'button', class: 'btn', 'data-open-exercise': exercise.id }, 'Open exercise');
+      open.addEventListener('click', () => onOpen(lessonId, exercise.id)); row.append(open);
+    }
     return row;
   }
   function render() {
@@ -72,7 +76,7 @@ export function createCurriculumPanel(root, catalogue, { language = 'en', level 
           el('summary', {}, prose('span', l.title), ' · ', el('span', { translate: 'no' }, t(['', 'Beginner', 'Club', 'Advanced', 'Expert'][l.level]))),
           prose('p', l.introduction), el('h4', {}, 'Learning goals'), el('ul', {}, ...l.objectives.map(o => prose('li', o))));
         if (l.prerequisites.length) details.append(el('p', {}, el('span', {}, 'Before this lesson:'), ' ', el('span', { translate: 'no' }, l.prerequisites.map(id => lessonText(lessons.get(id).title, language)).join(', '))));
-        details.append(el('h4', { translate: 'no' }, t(l.exercises.length === 1 ? '1 exercise' : '{n} exercises', { n: l.exercises.length })), el('ol', {}, ...l.exercises.map(exerciseCard)));
+        details.append(el('h4', { translate: 'no' }, t(l.exercises.length === 1 ? '1 exercise' : '{n} exercises', { n: l.exercises.length })), el('ol', {}, ...l.exercises.map(e => exerciseCard(e, l.id))));
         section.append(details);
       }
       return section;
