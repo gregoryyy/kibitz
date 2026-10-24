@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Keyboard board play, patterned marks and reduced motion
+
+TODO items: 10.5.
+
+### Implementation notes
+
+- Added pure navigation/rules models and a native roving-focus grid in `chess/keyboard-board.js`. One Tab stop exposes all 64 labelled squares; orientation-aware arrows, row/corner keys, Enter/Space selection, Escape and legal destinations use the existing game/scratch move path. Read-only states and game/FEN changes clear captured selections; previews hide the grid and global history/flip shortcuts leave it alone.
+- Promotion focuses explicit translated choices, supports keyboard underpromotion/cancellation, restores focus and checks captured game/scratch identity. A held pointer choice cannot promote in a replacement game even at the same FEN. Clearing the pointer selection before a keyboard selection prevents Chessground's king-to-rook castling shortcut from becoming an unintended move.
+- Added `chess/board-marks.js`: six distinct automatic arrow patterns supplement existing colours, with literal localized descriptions of squares, meanings, patterns and validated labels. User-drawn marks also have patterns/descriptions. Prior coach marks disappear when live help becomes restricted; previews do not retain descriptions for the wrong board. All descriptions use text nodes.
+- The reduced-motion media query now disables the actual Chessground animator and cancels a running animation, including preference changes while the page is open. Existing CSS motion suppression remains in effect. German controls and labels avoid a second translation pass.
+- Six unit scenarios cover navigation, orientation, actual rules/king safety, castling, en passant, promotion destinations, unique patterns and hostile mark data. Ten browser scenarios cover focus/Tab, live and analysis play, game replacement, either-colour underpromotion, stale pointer promotion, mixed pointer/keyboard castling, help/preview/scratch isolation, real animator state and German dark phone layout. The stale-promotion test was run against prior head `3914e1c` and fails there because the obsolete chooser remains active.
+- Validation: checks/build, all 538 unit/server tests (one live-provider skip), all ten new browser cases and all 349 browser tests (one optional live-model skip) pass. Production dependency audit reports zero vulnerabilities. German phone focus screenshot inspected; the stale-promotion regression fails on the prior build as described above.
+
+### Deviations
+
+- Existing typed SAN/UCI input and independent lesson/drill/own-mistake controls remain available. The new square grid targets the main board and free scratch board rather than replacing every practice widget.
+- [Controls and verification limits](ACCESSIBILITY.md) document Chrome automation/visual inspection and the remaining need for hands-on assistive-technology testing; no WCAG conformance claim is made.
+
+### Insights
+
+- A CSS reduced-motion rule does not stop a JavaScript board animator. Keyboard selection also needs to clear the pointer renderer's previous origin before selecting another piece.
+
 ## 2026-10-24 — Explicit provider/purpose opt-in and privacy notice
 
 TODO items: 10.4.
