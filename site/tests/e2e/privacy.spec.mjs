@@ -2,12 +2,14 @@ import { test, expect, open, openSettings, closeSettings } from './fixtures.mjs'
 const consent = (page, provider = 'openai', purpose = 'coach') => page.locator(`[data-consent-provider="${provider}"][data-consent-purpose="${purpose}"]`);
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 async function fakeCoach(page) {
-  const state = { calls: [], held: null };
+  const state = { calls: [], held: null, provider: 'openai' }; let original = null;
+  const status = () => ({ ...original, provider: state.provider, model: 'fake', models: { quick: 'fake', chat: 'fake', review: 'fake' }, available: true,
+    providers: original.providers.map(p => ['openai', 'mistral'].includes(p.name) ? { ...p, available: true, model: 'fake' } : p) });
   await page.route('**/api/ai/status', async route => {
-    const response = await route.fetch(), body = await response.json();
-    await route.fulfill({ json: { ...body, provider: 'openai', model: 'fake', models: { quick: 'fake', chat: 'fake', review: 'fake' }, available: true, providers: body.providers.map(p => p.name === 'openai' ? { ...p, available: true, model: 'fake' } : p) } });
+    const response = await route.fetch(); original = await response.json(); await route.fulfill({ json: status() });
   });
-  await page.route('**/api/ai/test', async route => { state.calls.push(route.request().headers()['x-kibitz-consent']); await route.fulfill({ json: { ok: true, provider: 'openai', model: 'fake', ms: 1 } }); });
+  await page.route('**/api/ai/config', async route => { state.provider = route.request().postDataJSON().provider || state.provider; await route.fulfill({ json: status() }); });
+  await page.route('**/api/ai/test', async route => { state.calls.push(route.request().headers()['x-kibitz-consent']); await route.fulfill({ json: { ok: true, provider: state.provider, model: 'fake', ms: 1 } }); });
   await page.route('**/api/ai/sample', async route => {
     state.calls.push(route.request().headers()['x-kibitz-consent']); const held = state.held; if (held) await held.promise;
     await route.fulfill({ contentType: 'application/x-ndjson', body: JSON.stringify({ text: 'PRIVATE LATE ANSWER' }) + '\n' + JSON.stringify({ done: true }) + '\n' }).catch(() => {});
@@ -22,6 +24,21 @@ test('network permission starts off; a saved coach grant allows only that provid
   await page.locator('#btnTestAi').click(); await expect(page.locator('#testAiMsg')).toContainText('Connected'); expect(api.calls).toEqual(['v1:openai:coach']);
   await closeSettings(page); await page.reload(); await openSettings(page); await expect(consent(page)).toBeChecked();
   await consent(page).uncheck(); await page.locator('#btnTestAi').click(); await expect(page.locator('#testAiMsg')).toContainText('Settings → Privacy'); expect(api.calls).toHaveLength(1);
+});
+
+test('switching to another provider updates the permission prompt without reusing the previous grant', async ({ page }) => {
+  const api = await fakeCoach(page); await open(page); await openSettings(page); await consent(page).check();
+  await page.locator('#optProvider [data-v="mistral"]').click(); await closeSettings(page); await expect(page.locator('#coachOff')).toContainText('Settings → Privacy');
+  await openSettings(page); await page.locator('#btnTestAi').click(); await expect(page.locator('#testAiMsg')).toContainText('Settings → Privacy'); expect(api.calls).toHaveLength(0);
+  await consent(page, 'mistral').check(); await page.locator('#btnTestAi').click(); await expect(page.locator('#testAiMsg')).toContainText('Connected'); expect(api.calls).toEqual(['v1:mistral:coach']);
+});
+
+test('quick browser routing becomes available while the configured cloud coach remains unconsented', async ({ page }) => {
+  const api = await fakeCoach(page); await open(page); await expect(page.locator('#coachOff')).toBeVisible(); await expect(page.locator('#coachChips .chip').first()).toBeDisabled();
+  await openSettings(page); await expect(page.locator('#optQuickInBrowser')).toBeVisible(); await page.locator('#optQuickInBrowser').check(); await closeSettings(page);
+  await expect(page.locator('#coachOff')).toBeHidden(); await expect(page.locator('#coachChips .chip').first()).toBeEnabled(); await openSettings(page); await expect(consent(page)).not.toBeChecked();
+  await page.locator('#btnTestAi').click(); await expect(page.locator('#testAiMsg')).toContainText('Settings → Privacy'); expect(api.calls).toHaveLength(0);
+  await page.locator('#optQuickInBrowser').uncheck(); await closeSettings(page); await expect(page.locator('#coachOff')).toContainText('Settings → Privacy');
 });
 
 test('failed grants stay off and failed revocations deny immediately with a separate safe retry', async ({ page }) => {

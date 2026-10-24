@@ -3018,7 +3018,7 @@ $('#btnLoadModel').addEventListener('click', () => {
   renderBrowserModel();
 });
 $('#btnUnloadModel').addEventListener('click', () => { BROWSER.model?.unload(); renderBrowserModel(); });
-$('#optQuickInBrowser').addEventListener('change', e => { S.quickInBrowser = e.target.checked; saveSettings(); renderBrowserModel(); });
+$('#optQuickInBrowser').addEventListener('change', e => { S.quickInBrowser = e.target.checked; saveSettings(); renderBrowserModel(); setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); });
 // Tokens and cost of one answer, shown under it: "412 + 96 tokens · $0.0021".
 function usageNote(u) {
   if (!u || !(u.input + u.output)) return null;
@@ -3067,7 +3067,7 @@ async function changeGateway(body) {
   renderCoachSettings();
   renderStudySearch();
   setCoach(canUseCoach() ? coachSample : null);
-  if (!GATEWAY?.available) coachOffText(GATEWAY);
+  if (!canUseCoach()) coachOffText(GATEWAY);
 }
 $('#optProvider').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled && b.dataset.v !== GATEWAY?.provider) changeGateway({ provider: b.dataset.v }); });
 $('#optLocalOnly').addEventListener('change', e => changeGateway({ localOnly: e.target.checked }));
