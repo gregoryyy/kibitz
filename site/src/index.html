@@ -780,6 +780,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <section class="settings-sec">
       <h3>General</h3>
       <div class="field"><label class="lbl-sm" for="optLang">Language</label><select id="optLang" class="lang" translate="no"></select></div>
+      <div class="field"><label class="lbl-sm" for="optMoveNotation">Move display</label><select id="optMoveNotation"><option value="san">English SAN (Nf3)</option><option value="german">German letters (Sf3)</option><option value="figurine">Figurines (♘f3)</option></select></div>
       <p><a href="data.html" id="manageData">Export or erase your data</a></p>
     </section>
     <section class="settings-sec" id="playerProfile">
@@ -876,7 +877,7 @@ import { toolModelKey, toolsUnsupported, toolInstructions, withToolInstructions,
 import { CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames } from './coach/chat.js';
 import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './chess/play.js';
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/pgn.js';
-import { sanToSpeech, parseMoveInput } from './chess/notation.js';
+import { sanToSpeech, parseMoveInput, displaySan, notationMode } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import { createConsentStore, createPrivacyGate, PRIVACY_KEY } from './platform/privacy.js';
 import { createPrivacyPanel } from './platform/privacy-ui.js';
@@ -928,6 +929,25 @@ const DEBUG = location.search.includes('debug');
 const LANG = pickLang(store.get('lang'), navigator.languages || [navigator.language]);
 const I18N = translator(LANG === 'de' ? DE : {});
 const t = (text, vars) => I18N.t(text, vars);
+let MOVE_NOTATION = notationMode(store.get('moveNotation'));
+function paintSan(node) {
+  const san = node.dataset.san; node.textContent = displaySan(san, MOVE_NOTATION);
+  if (MOVE_NOTATION === 'figurine') node.setAttribute('aria-label', sanToSpeech(san, LANG)); else node.removeAttribute('aria-label');
+}
+function sanNode(san) {
+  const node = el('span', { class: 'san-display', 'data-san': san, translate: 'no', 'data-raw': '' }); paintSan(node); return node;
+}
+function refreshMoveNotation() {
+  $('#optMoveNotation').value = MOVE_NOTATION;
+  $$('.san-display[data-san]').forEach(paintSan);
+}
+refreshMoveNotation();
+$('#optMoveNotation').addEventListener('change', event => {
+  const next = notationMode(event.target.value);
+  if (!store.set('moveNotation', next)) { event.target.value = MOVE_NOTATION; toast(t('Move display could not be saved. The previous setting remains.')); return; }
+  MOVE_NOTATION = next; refreshMoveNotation();
+});
+window.addEventListener('storage', event => { if (event.key === 'kibitz.moveNotation' || event.key === null) { MOVE_NOTATION = notationMode(store.get('moveNotation')); refreshMoveNotation(); } });
 const ProviderConsent = createConsentStore(browserStorage()), Privacy = createPrivacyGate(ProviderConsent);
 const COACH_RULES = coachRules(LANG);
 const I18N_ATTRS = ['title', 'placeholder', 'aria-label'];
@@ -1489,7 +1509,7 @@ function renderMoves() {
     // Without an engine glyph, the game's own annotations (NAGs from an imported PGN) show instead.
     const nagMove = !show && n.nags?.find(isMoveNag), nags = !show && n.nags?.length ? nagText(n.nags) : '';
     const tone = n.cls ? 'c-' + n.cls : nagMove ? 'c-' + NAG_CLASS[nagMove] : '';
-    const b = el('button', { class: (i === S.cursor ? 'cur ' : '') + tone, onclick: () => goTo(i), title: n.cls && flagVisible(i) ? CLS_LABEL[n.cls] : '' }, n.san, show ? el('span', { class: 'g' }, GLYPH[n.cls]) : nags ? el('span', { class: 'g' }, nags) : null);
+    const b = el('button', { class: (i === S.cursor ? 'cur ' : '') + tone, onclick: () => goTo(i), title: n.cls && flagVisible(i) ? CLS_LABEL[n.cls] : '' }, sanNode(n.san), show ? el('span', { class: 'g' }, GLYPH[n.cls]) : nags ? el('span', { class: 'g' }, nags) : null);
     box.append(b);
   }
   if (S.over) box.append(el('span', { class: 'result-line' }, S.over.result));
@@ -4134,7 +4154,7 @@ function renderScratch() {
   SCRATCH.sans.forEach((san, k) => {
     const [, side, , , , num] = SCRATCH.fens[k].split(' ');
     box.append(el('button', { 'aria-current': String(SCRATCH.i === k + 1), onclick: () => { SCRATCH.i = k + 1; syncScratch(); renderScratch(); analyseScratch(); } },
-      side === 'w' ? `${num}. ${san}` : k === 0 ? `${num}… ${san}` : san));
+      side === 'w' ? `${num}. ` : k === 0 ? `${num}… ` : '', sanNode(san)));
   });
   $('#scratchPrev').disabled = SCRATCH.i === 0;
   $('#scratchNext').disabled = SCRATCH.i >= SCRATCH.sans.length;
@@ -4231,7 +4251,7 @@ function addSan(node, text, fen, marks = null) {
     const mark = marks?.[0]?.san === m[0] ? marks.shift() : null;
     if (mark?.status === 'square') { node.append(m[0]); lastIdx = m.index + m[0].length; continue; }
     const flag = mark?.status === 'invalid' ? ' invalid' : mark?.status === 'legal' ? ' unchecked' : '';
-    const span = el('span', { class: 'san' + flag, title: mark?.why || '' }, m[0]);
+    const span = el('span', { class: 'san' + flag, title: mark?.why || '' }, sanNode(m[0]));
     if (mark?.lineRef) lineMove(span, mark.lineRef, mark.ply);
     node.append(span); lastIdx = m.index + m[0].length;
   }
