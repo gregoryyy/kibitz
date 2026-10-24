@@ -4,6 +4,26 @@ import { test, expect, open } from './fixtures.mjs';
 import { POSITIONS } from '../../eval/positions.mjs';
 import { evalPositions } from '../../eval/positions-de.mjs';
 import { runPosition } from '../../scripts/eval.mjs';
+import { quoteOf } from '../../scripts/coach-page.mjs';
+import { keyPointHits } from '../../eval/score.mjs';
+
+test('eval capture scores coach prose without source, engine or interface text', async ({ page }) => {
+  await page.goto('about:blank');
+  await page.setContent(`<div id="answer" class="msg coach">
+    <span class="who">Coach</span><button class="message-context">Game at move 12</button>
+    <div><p>Actual prose: <strong>alpha</strong> <span class="san invalid">Qh9</span> <span class="san">Nf3</span>.</p>
+      <p class="check-note">A claim was flagged.</p><div class="board-marks"><button>Show marks</button></div>
+      <details class="retrieval-sources"><summary>Passages supplied</summary><article><p>Brückenbau <span class="san invalid">Qa9</span></p></article></details>
+    </div>
+    <details class="evidence"><summary>Engine evidence</summary><ul><li>mate <span class="san invalid">Qb9</span></li></ul></details>
+    <p class="usage-note">123 tokens</p>
+  </div>`);
+  const captured = await page.locator('#answer').evaluate(quoteOf);
+  expect(captured.text).toBe('Actual prose: alpha ~~Qh9~~ Nf3.');
+  expect(captured.checks).toEqual({ all: 2, invalid: 1, unchecked: 0 });
+  expect(keyPointHits(captured.text, [{ point: 'bridge', all: ['Brückenbau'] }, { point: 'mate', all: ['mate'] }])).toEqual([false, false]);
+  expect(captured.capture).toBe('coach-prose-v2');
+});
 
 test('every eval position runs in the app: loaded, analysed, asked through its chip, answer captured', async ({ page }) => {
   test.setTimeout(240_000);
@@ -11,6 +31,8 @@ test('every eval position runs in the app: loaded, analysed, asked through its c
   for (const pos of POSITIONS) {
     const r = await runPosition(page, pos);
     expect(r.answer, pos.id).toContain('Mock coach');
+    expect(r.capture).toBe('coach-prose-v2');
+    expect(r.answer).not.toMatch(/Passages supplied to the coach|Show the mark|Stockfish checked/);
     expect(r.checks, pos.id).toMatchObject({ invalid: 0 });
     expect(r.context, pos.id).toMatch(/Stockfish 19 \(depth \d+\) top lines/);
     expect(r.question.length, pos.id).toBeGreaterThan(10);
@@ -33,6 +55,7 @@ test('every German eval position uses its translated chip, German coaching instr
   for (const position of evalPositions('de')) {
     const result = await runPosition(page, position);
     expect(result.answer, position.id).toContain('Mock coach'); expect(result.error, position.id).toBeNull(); expect(result.checks.invalid, position.id).toBe(0);
+    expect(result.capture).toBe('coach-prose-v2'); expect(result.answer).not.toMatch(/Dem Coach bereitgestellte Textstellen|Markierungen auf dem Brett|Stockfish checked/);
     expect(result.context, position.id).toMatch(/Stockfish 19 \(depth \d+\) top lines/); expect(result.question.length, position.id).toBeGreaterThan(10);
     expect(JSON.stringify(sent.at(-1).messages), position.id).toContain('Answer in German (Deutsch)');
   }

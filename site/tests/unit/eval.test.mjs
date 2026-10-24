@@ -90,6 +90,9 @@ test('German reports use German key points and language metadata; indices distin
     score: scoreAnswer({ text: answer, keyPoints: position.keyPoints, checks: { invalid: 0 } }) };
   const run = { language: 'de', coach: 'mock / mock', judge: null, date: '2026-10-24', file: 'mock-de.md', summary: summarise([result]), results: [result] };
   const markdown = report(run); assert.match(markdown, /Language: de/); assert.match(markdown, /nennt Ra8#/); assert.ok(!markdown.includes('names Ra8'));
+  assert.match(markdown, /positions-de\.mjs/); assert.match(markdown, /rendered-message-v1/); assert.match(markdown, /not model-only quality scores/);
+  const prose = report({ ...run, capture: 'coach-prose-v2', referencePositions: [{ ...position, keyPoints: [{ point: 'recorded cue', all: ['Ta8'] }] }] });
+  assert.match(prose, /Coach prose only/); assert.match(prose, /recorded cue/); assert.doesNotMatch(prose, /Legacy rendered message/);
   const directory = await mkdtemp(path.join(tmpdir(), 'kibitz-eval-language-'));
   try {
     await writeFile(path.join(directory, 'de.json'), JSON.stringify(run)); await writeFile(path.join(directory, 'en.json'), JSON.stringify({ ...run, language: undefined, file: 'legacy.md' }));
