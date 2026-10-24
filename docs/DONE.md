@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Local application threat model
+
+TODO items: 11.1.
+
+### Implementation notes
+
+- Added [the threat model](THREAT-MODEL.md) with an explicit local single-user scope, a data-flow diagram, protected assets, trusted operator files and the separate AI/library cookie boundaries. It maps browser/engine/storage, gateway/providers, imported PGN and retrieval passages, optional embeddings, local model loading, offline bundles, operational counters, exports and fonts.
+- Ten attack scenarios link implemented controls to concrete modules/tests and retain their limitations: prompt injection, untrusted output/actions, stale games/owners, retrieval poisoning/disclosure, resource spending, supply-chain/local-file trust, misconfiguration, erasure/consent acknowledgement and logging. Future hosted/runtime changes explicitly require a boundary update.
+- Corrected the architecture's overbroad claims about own-page-only access and nothing leaving the machine, and its obsolete planned-evaluation note. Added README/architecture navigation to the model.
+- Validation: documentation links checked against the repository; diagram and flow descriptions reviewed against the referenced implementation. Runtime files are unchanged from preparation parent e2b752c, whose checks/build, 566 unit/server cases (one live skip) and all four bilingual mock benchmark cases pass. No live provider or security scan result is inferred from this documentation change.
+
+### Deviations
+
+- This completes the threat-model item rather than the separate OWASP/ASVS/scanning/release gates. Existing code-scanning alerts, model/file handling, log privacy and resource-bound review remain explicit follow-ups under 11.2–11.6/12.3. Cookie grouping and provider consent attestations are not described as hosted authentication.
+
+### Insights
+
+- A legal move, a source hash, a permitted endpoint and a successful feature test establish different facts. Keeping these boundaries explicit prevents a citation or a local deployment label from implying stronger guarantees than the implementation provides.
+
 ## 2026-10-24 — Prepare German tutor evaluation and explicit live-run plan
 
 TODO items: 10.8.4.1; live provider matrix 10.8.4.2 remains open.

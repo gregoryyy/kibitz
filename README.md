@@ -19,6 +19,8 @@ The page loads ES modules and Web Workers, so it must be served over HTTP. Openi
 
 The supported target is a **local single-user app**, served on loopback by default. Cloud AI remains optional; Ollama and the in-browser model offer local inference. [Deployment decision](docs/DEPLOYMENT.md) records the scope and implications for accounts, keys and security.
 
+The [threat model](docs/THREAT-MODEL.md) maps data flows, local trust assumptions, tested controls and remaining security verification work.
+
 ## Quick start
 
 ```bash

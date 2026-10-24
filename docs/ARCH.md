@@ -273,13 +273,15 @@ Offline mode (`just offline`, TODO 2.16) runs the coach's language model inside 
   - The model unloads after ten idle minutes.
 - **Sharing the machine.** On the CPU, the model and Stockfish compete for cores: while the model generates, the analyst runs with fewer threads, applied between searches. On WebGPU the CPU is left to Stockfish.
 - **Same interface.** `browser-llm.js` exposes the same `sample()` call as the gateway client: streaming, cancellation, JSON-schema output. So the coach code doesn't care where the model runs. A setting can send only the quick requests (chips, automatic comments) to the in-browser model and everything else to a cloud provider.
-- **Offline guarantee.** In offline mode the server loads no `.env` and turns on local-only mode. It serves the page without Google Fonts and with a CSP that allows no other host: nothing leaves the machine.
+- **Offline page and provider policy.** Offline serving removes Google Fonts and restricts browser connections to the same origin. The standard offline recipe loads no `.env` and selects browser inference with local-only provider policy. An operator-configured Ollama endpoint can be on another machine; see the [network boundaries](THREAT-MODEL.md).
 - **What it's good for.** A 1–2 billion parameter model is weak at chess judgement but adequate for putting the engine's facts into words. That is why the neurosymbolic split matters most here: the smaller the model, the more the engine and the answer check carry.
 
 ## 5. Security in brief
 
+The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, data-flow diagram, asset/privilege boundaries, evidence and residual risks. The notes below are a brief overview rather than a release checklist.
+
 - **Keys stay on the server.** They are read from `.env` and used only by the gateway. They never appear in responses, logs or the page. The status endpoint names providers and models only.
-- **The gateway only serves its own page.** It accepts JSON only from its own origin (against CSRF), only under a local host name (against DNS rebinding), and only up to a size limit. The Ollama base URL is checked against an allowlist (against SSRF).
+- **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Host checks accept localhost or IP literals. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
 - **Page hardening:**
   - a hash-based CSP: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`;
   - cross-origin isolation;
@@ -303,7 +305,7 @@ Offline mode (`just offline`, TODO 2.16) runs the coach's language model inside 
   - The page tests run against the mock provider, and the in-browser model is replaced by a fake runtime.
 - **Live tests** with real providers or the real in-browser model run only when an environment flag is set (`KIBITZ_LIVE_AI=1`, `KIBITZ_LIVE_MODEL=1`).
 - **Playwright** drives the built page in Chrome: full games, the engine fallbacks, the coach, the layout, and a regression test for every fixed bug.
-- **Planned:** a tutor eval set scores the coach's answers on reference positions per provider, with engine checks plus a model as judge (3.8).
+- **Tutor evaluation:** fixed positions, recorded engine checks, lexical cue coverage and an optional judge remain separate evidence. German preparation retains the same concepts and language-specific references; mock results and lexical matches do not establish provider quality.
 
 ### Persistent local accounting
 
