@@ -114,6 +114,7 @@ test('owner/model changes require a new explicit build and dimension drift clear
 
 test('local-only and restricted live help purge vectors even in a closed Library tab', async ({ page }) => {
   const api = await setup(page); api.descriptor.provider = 'openai'; api.descriptor.local = false;
+  await openSettings(page); await page.locator('[data-consent-provider="openai"][data-consent-purpose="embeddings"]').check(); await closeSettings(page);
   await page.locator('#studyDenseRefresh').click(); await expect(page.locator('#studyDenseBuild')).toBeEnabled(); await build(page);
   await openSettings(page); await page.locator('#optLocalOnly').check(); await closeSettings(page);
   await expect(page.locator('#studyDenseMetadata')).toBeEmpty(); await expect(page.locator('#studyDenseBuild')).toBeDisabled();

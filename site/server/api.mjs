@@ -20,9 +20,16 @@ import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageLedger, userLedger } from './usage.mjs';
 import { createEmbeddingApi } from './embeddings.mjs';
+import { CONSENT_HEADER, providerConsentHeader } from '../src/platform/privacy.js';
 
 const MAX_BODY = 1_000_000;
 const SECURITY_HEADERS = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
+
+// Explicit local-operator attestation, not an authentication token. Bind it to actual routing.
+function requireConsent(req, provider, purpose) {
+  const expected = providerConsentHeader(provider, purpose);
+  if (expected && req.headers[CONSENT_HEADER] !== expected) throw new GatewayError('consent_required', 'Allow this provider in Settings → Privacy before sending data.', 403);
+}
 
 // The settings UI can switch provider and local-only mode while the server runs (until restart);
 // `makeProvider` builds the new provider's client.
@@ -48,7 +55,7 @@ export function createApi({
       checkHost(req);
       const uid = userOf(req, res);
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
-      if (pathname === '/api/ai/embeddings' && req.method === 'POST') { checkPost(req); return json(res, 200, await embeddings.embed(uid, await readJson(req), res)); }
+      if (pathname === '/api/ai/embeddings' && req.method === 'POST') { checkPost(req); requireConsent(req, embeddings.status(uid).provider, 'embeddings'); return json(res, 200, await embeddings.embed(uid, await readJson(req), res)); }
       if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid));
       if (pathname === '/api/ai/config' && req.method === 'POST') return await setConfig(req, res, uid);
       if (pathname === '/api/ai/test' && req.method === 'POST') return await testConnection(req, res, uid);
@@ -92,6 +99,7 @@ export function createApi({
   async function testConnection(req, res, uid) {
     checkPost(req);
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
+    requireConsent(req, config.provider, 'coach');
     checkBudgets(uid);
     if (!allow()) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
     const model = modelFor(config, 'quick'), t0 = Date.now();
@@ -104,6 +112,7 @@ export function createApi({
   async function accept(req, uid) {
     checkPost(req);
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
+    requireConsent(req, config.provider, 'coach');
     const body = await readJson(req);
     const messages = validateMessages(body);
     const model = modelFor(config, body?.task);

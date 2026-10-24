@@ -25,6 +25,23 @@ const session = async request => {
 };
 const save = (request, owner, changes, extra = {}) => request(undefined, { method: 'POST', headers: { cookie: owner.cookie }, body: { scope: owner.scope, revision: owner.revision, changes, ...extra } });
 
+test('explicit cookie-scoped erasure requires confirmation and a current revision; no body can select another owner', () => withApi(async request => {
+  const a = await session(request), b = await session(request);
+  await save(request, a, [game('same')]); await save(request, b, [game('same')]);
+  const erase = body => request('/api/library/erase', { method: 'POST', headers: { cookie: a.cookie }, body });
+  const body = { scope: a.scope, revision: 1, confirm: true };
+  assert.equal((await request('/api/library/erase')).status, 405);
+  assert.equal((await request('/api/library/erase', { method: 'POST', body })).status, 401);
+  assert.equal((await erase({ ...body, confirm: false })).status, 400);
+  assert.equal((await erase({ ...body, owner: b.scope })).status, 400);
+  assert.equal((await erase({ ...body, scope: b.scope })).status, 409);
+  assert.equal((await erase({ ...body, revision: 0 })).status, 409);
+  const foreign = await request('/api/library/erase', { method: 'POST', headers: { cookie: a.cookie, origin: 'https://foreign.example' }, body }); assert.equal(foreign.status, 403);
+  const erased = await erase(body); assert.equal(erased.status, 200); assert.deepEqual(erased.data.games, []); assert.equal(erased.data.revision, 2);
+  assert.equal(erased.headers['cache-control'], 'no-store'); assert.equal((await save(request, { ...a, revision: 1 }, [game('late')])).status, 409);
+  assert.equal((await request(undefined, { headers: { cookie: b.cookie } })).data.games.length, 1);
+}));
+
 test('status offers storage without creating a session; explicit reads issue private cookies and no-store scoped snapshots', () => withApi(async request => {
   const status = await request('/api/library/status'); assert.deepEqual(status.data, { available: true, scope: null }); assert.equal(status.headers['set-cookie'], undefined);
   const response = await request(), cookie = response.headers['set-cookie'][0];

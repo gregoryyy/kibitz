@@ -7,6 +7,50 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Explicit provider/purpose opt-in and privacy notice
+
+TODO items: 10.4.
+
+### Implementation notes
+
+- Added pure `platform/privacy.js` and localized `privacy-ui.js`: initially off, acknowledged per-provider coach/test and passage/query-embedding permissions for Anthropic, OpenAI, Mistral and Ollama. A bounded v1/revision store preserves malformed/future data closed to network sharing, rejects stale sequential-tab edits and publishes grants only after save. A failed revocation denies this tab immediately and retains a distinct safe retry without temporarily re-granting permission.
+- A central transport rereads choices before requests, combines cancellation signals, attaches exact version/provider/purpose attestations and fences late results. UI/native storage changes cancel pending coach/embedding transports, clear reusable conversation/semantic state and update availability. Existing in-browser model loading consent and local mock behavior remain distinct; quick in-browser routing can work while a network coach is blocked.
+- The gateway checks actual routing before spending/rate-budget admission for sample, structured, connection-test and embedding calls. Provider changes cannot reuse another provider's header, and coach consent cannot authorize embeddings. Existing fake-provider budget/embedding fixtures now explicitly attest their intended calls; no real service is contacted.
+- Settings place permissions beside provider controls, with an accessible jump button, English/German data-flow notice and literal provider names. Provider switches update the grant prompt immediately; enabling quick in-browser routing restores its controls while network sharing remains blocked. The notice covers questions/history, game/engine/tool context, retrieved/source text, profile fields, separately selected embedding passages/queries, configurable compatible/Ollama endpoints, fonts, local model loading and provider retention limits. Local-model wording no longer promises that all network traffic stops. [Privacy/API contract](PRIVACY.md) distinguishes explicit direct-client attestation from authentication or signed consent records.
+- Six unit scenarios cover initially closed choices, separate scopes, acknowledged grants, failed revocation, stale tabs, unknown formats and cancelled held results. A fake-SDK gateway scenario verifies missing/wrong-provider/wrong-purpose/version refusals without spending. Nine browser cases cover persistence, provider switching, blocked-cloud/quick-browser routing, failed grant/revocation retry, held replies, actual cross-tab revocation, future formats, separate embeddings and German phone controls. Existing cloud-embedding policy tests explicitly grant permission before testing their later restrictions.
+- Validation: checks/build and all 532 unit/server/fake-provider tests (one live-provider skip), 27 focused server cases, 19 focused browser/regression cases, all nine new privacy cases and all 339 browser tests (one optional live-model skip) pass. Production audit reports zero vulnerabilities. Readable German phone notice/control screenshots inspected.
+
+### Deviations
+
+- Per-purpose controls are narrower than a single provider toggle. Mock mode and the browser model do not need a network-provider permission; browser model loading retains its existing resource consent. Host-managed artifacts keep their separate host contract.
+- Consent headers attest a local operator/browser choice and provide routing/version preconditions; they are not authentication or legal consent receipts. Revocation cannot recall transmitted data or stop all provider-side work already accepted. Truly simultaneous localStorage writers lack a transaction; failed revocations warn about other tabs/reloads until saved. No provider-retention/compliance guarantee is invented.
+
+### Insights
+
+- A connection test also contacts a provider and needs consent. Embedding ingestion has a different data scope from coach context, so sharing a provider name is insufficient permission to send passages or queries.
+
+## 2026-10-24 — Standalone data exports and confirmed browser/server erasure
+
+TODO items: 10.3.
+
+### Implementation notes
+
+- Added standalone `src/data.html` and `platform/data.js`/`data-page.js`, linked from Settings and copied by the build. The data page does not boot app autosave, engine or game state. It downloads bounded versioned JSON without model calls: raw Kibitz browser values preserve unknown/future formats and original PGNs, while current-cookie server exports refresh and validate their exact owner snapshot. Other origin-storage keys, server env keys, transient drafts and provider histories are excluded.
+- Separate native confirmation dialogs distinguish browser data from the current server collection. Browser erasure compares its preview before/after cache deletion, waits for native IndexedDB deletion, removes only the Kibitz localStorage namespace and named library cache, and verifies completion without recreating app preferences. Changed previews, storage/cache failures and partial removals never claim a complete erase; retry inspects the remaining data again.
+- Added cookie/scope/revision/confirmation-checked `POST /api/library/erase`, with the existing same-origin/host, JSON/size/rate boundaries. SQLite atomically removes only that owner's games/references and retains an advanced revision tombstone so older pending writes cannot resurrect data, including after restart. Other owners and browser records remain separate. Acknowledged server deletion removes only the verified owner's cache; cache failure and uncertain server acknowledgement get distinct messages.
+- The page supports English/German, a phone-sized native modal, keyboard cancellation/focus, literal source contents and no reflection/prompt rendering. [Data formats and lifecycle](DATA.md) document raw exports, no automatic restore, caps, concurrent-tab limits, backups, physical SQLite remnants, provider/host-managed account exclusions and operator responsibilities.
+- Five unit scenarios cover raw export fidelity/namespaces, cache acknowledgement, changed previews/partial failures, future formats, localized copy and build output. Three server scenarios check transactional owner/tombstone/restart behavior, malformed erasure and explicit session/origin/confirmation/CAS constraints. Six new browser cases verify downloads, app navigation/autosave isolation, scoped cache removal, stale writes/previews, cancellation, partial/uncertain outcomes and German phone controls.
+- Validation: ESLint/JSDoc checks, build, all 525 unit tests (one live-provider skip), 16 focused server cases, all six data browser cases and all 330 browser tests (one optional live-model skip) pass. The earlier focused run passed existing localization/settings/library-storage regressions; the German data translator binding was corrected and rechecked. German phone confirmation screenshot inspected; production dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- The selected local single-user target uses browser and optional cookie-owned Node storage. Host-managed artifact account libraries, provider retention and operator backups remain outside these controls and are identified explicitly. No hosted-account deletion or forensic disk erasure is claimed.
+- Browser key removal is not a transaction. Other tabs can recreate in-memory copies, so the page asks the player to close them; partial failure stays visible. Exports preserve saved raw values without adding an import/restore workflow.
+
+### Insights
+
+- Deletion needs both a persistence boundary and an acknowledgement boundary: stopping autosave prevents local recreation, while a retained server revision blocks older writes and keeps uncertain receipts from becoming false success messages.
+
 ## 2026-10-24 — Select the local single-user deployment
 
 TODO items: 10.1; 2.9's existing env-key path resolved by this decision. Hosted 10.2 deferred.

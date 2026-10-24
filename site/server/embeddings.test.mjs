@@ -17,7 +17,7 @@ async function gateway(t, options = {}) {
   const base = `http://127.0.0.1:${server.address().port}/api/ai/`;
   let cookie = '';
   const request = async (path, body, headers = {}, signal) => {
-    const res = await fetch(base + path, { ...(body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) }), headers: { 'Content-Type': 'application/json', cookie, ...headers }, signal });
+    const res = await fetch(base + path, { ...(body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) }), headers: { 'Content-Type': 'application/json', cookie, ...(path === 'embeddings' && body !== undefined ? { 'x-kibitz-consent': `v1:${embeddingConfig.provider}:embeddings` } : {}), ...headers }, signal });
     const next = res.headers.get('set-cookie'); if (next) cookie = next.split(';')[0];
     return { status: res.status, data: await res.json() };
   };
