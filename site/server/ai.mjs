@@ -6,6 +6,9 @@ import { exampleFor, providerSchema } from './schema.mjs';
 import { TOOLS, CAPS as TOOL_CAPS } from '../src/coach/tools.js';
 import { toolsUnsupported } from '../src/coach/coach-tools.js';
 import { normaliseVector } from '../src/library/dense-search.js';
+import { providerOperation, ProviderLimitError, PROVIDER_LIMITS } from './provider-limits.mjs';
+
+const SDK_LOGGER = Object.freeze({ debug() {}, info() {}, warn() {}, error() {} });
 
 export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock'];
 // Small, fast models by default: coaching replies are short and grounded in engine output.
@@ -178,13 +181,20 @@ export function validateTools(names) {
 //   tools: from validateTools; the model may call them instead of (or after) writing text.
 // complete() below collects a whole reply. `client` can be injected for tests.
 export function createProvider(cfg, /** @type {{ client?: any }} */ { client } = {}) {
+  if (['anthropic', 'openai', 'mistral', 'ollama'].includes(cfg.provider)) return {
+    async *chat(messages, /** @type {ChatOptions} */ opts = {}) {
+      const operation = providerOperation(cfg.timeoutMs, opts.signal);
+      try {
+        const baseURL = cfg.provider === 'ollama' ? cfg.baseURL.replace(/\/+$/, '') + '/v1' : cfg.baseURL;
+        const options = { apiKey: cfg.apiKey, baseURL, timeout: operation.timeoutMs, fetch: operation.fetch, maxRetries: 0, logger: SDK_LOGGER };
+        const sdk = client ?? (cfg.provider === 'anthropic' ? new Anthropic(options) : new OpenAI(options));
+        const provider = cfg.provider === 'anthropic' ? anthropicProvider(cfg, sdk) : openAICompatProvider(cfg, sdk);
+        return yield* operation.read(provider.chat(messages, { ...opts, signal: operation.signal }));
+      } catch (error) { throw operation.error || error; }
+      finally { operation.close(); }
+    },
+  };
   switch (cfg.provider) {
-    case 'anthropic':
-      return anthropicProvider(cfg, client ?? new Anthropic({ apiKey: cfg.apiKey, baseURL: cfg.baseURL, timeout: cfg.timeoutMs }));
-    case 'openai': case 'mistral': case 'ollama': {
-      const baseURL = cfg.provider === 'ollama' ? cfg.baseURL.replace(/\/+$/, '') + '/v1' : cfg.baseURL;
-      return openAICompatProvider(cfg, client ?? new OpenAI({ apiKey: cfg.apiKey, baseURL, timeout: cfg.timeoutMs }));
-    }
     case 'mock': return mockProvider();
     case 'browser': return {
       // eslint-disable-next-line require-yield -- never yields: the page runs this model itself
@@ -358,32 +368,36 @@ export function createEmbedder(cfg, /** @type {{ client?: any, inspectModel?: (m
     if (texts.length > EMBED_LIMITS.texts || texts.some(t => t.length > EMBED_LIMITS.chars)) throw new GatewayError('prompt_too_large', `At most ${EMBED_LIMITS.texts} texts of ${EMBED_LIMITS.chars} characters`, 413);
   };
   const baseURL = cfg.provider === 'ollama' ? cfg.baseURL.replace(/\/+$/, '') + '/v1' : cfg.baseURL;
-  const c = cfg.provider === 'mock' ? null : client ?? new OpenAI({ apiKey: cfg.apiKey, baseURL, timeout: cfg.timeoutMs });
   // Ollama can relay cloud models too. Its provider label alone is not proof of local inference.
   // Inspect only model metadata before sending text; old/unknown metadata fails closed.
-  const inspect = inspectModel || (async (model, signal) => {
-    const r = await fetch(cfg.baseURL.replace(/\/+$/, '') + '/api/show', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model }),
-      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(cfg.timeoutMs)]) : AbortSignal.timeout(cfg.timeoutMs) });
-    if (!r.ok) throw new GatewayError('provider_error', 'Could not verify a local Ollama embedding model', 502);
-    return r.json();
-  });
   /** Ordered finite vectors plus observed model/usage; absent usage gets a conservative byte estimate. */
   async function embedBatch(texts, /** @type {{signal?: AbortSignal}} */ { signal } = {}) {
     check(texts);
     if (cfg.provider === 'mock') return { vectors: texts.map(t => Array.from({ length: 8 }, (_, k) => [...t].reduce((a, ch, i) => a + (i % 8 === k ? ch.charCodeAt(0) : 0), 0) / 1000)), providerModel: 'mock', usage: { input: texts.reduce((s, t) => s + t.length, 0), output: 0, estimated: true } };
-    if (cfg.provider === 'ollama') {
-      const info = await inspect(cfg.model, signal);
-      if (info?.remote_model || info?.remote_host || !['gguf', 'safetensors'].includes(info?.details?.format) || !info?.model_info?.['general.architecture'] || !info?.capabilities?.includes('embedding')) throw new GatewayError('forbidden', 'Ollama embeddings require a verified local embedding model', 409);
-    }
-    const res = await c.post('/embeddings', { body: { model: cfg.model, input: texts, encoding_format: 'float' }, signal });
-    const data = Array.isArray(res?.data) ? [...res.data].sort((a, b) => a?.index - b?.index) : [];
-    if (data.length !== texts.length || data.some((d, i) => d?.index !== i)) throw new GatewayError('provider_error', 'The embedding provider returned invalid input indices', 502);
-    try { const dimensions = data[0]?.embedding?.length; data.forEach(d => normaliseVector(d.embedding, dimensions)); }
-    catch { throw new GatewayError('provider_error', 'The embedding provider returned invalid vectors', 502); }
-    const tokens = res.usage?.prompt_tokens ?? res.usage?.total_tokens;
-    if (tokens !== undefined && (!Number.isSafeInteger(tokens) || tokens < 0)) throw new GatewayError('provider_error', 'The embedding provider returned invalid usage', 502);
-    return { vectors: data.map(d => d.embedding), providerModel: typeof res.model === 'string' ? res.model.slice(0, 200) : null,
-      usage: { input: tokens ?? texts.reduce((s, t) => s + Buffer.byteLength(t, 'utf8') + 1, 0), output: 0, estimated: tokens === undefined } };
+    const operation = providerOperation(cfg.timeoutMs, signal, { maxDecodedBytes: PROVIDER_LIMITS.bytes });
+    try {
+      if (cfg.provider === 'ollama') {
+        const info = await operation.wait(async () => {
+          if (inspectModel) return inspectModel(cfg.model, operation.signal);
+          const r = await operation.fetch(cfg.baseURL.replace(/\/+$/, '') + '/api/show', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: cfg.model }) });
+          if (!r.ok) throw new GatewayError('provider_error', 'Could not verify a local Ollama embedding model', 502);
+          return r.json();
+        });
+        if (info?.remote_model || info?.remote_host || !['gguf', 'safetensors'].includes(info?.details?.format) || !info?.model_info?.['general.architecture'] || !info?.capabilities?.includes('embedding')) throw new GatewayError('forbidden', 'Ollama embeddings require a verified local embedding model', 409);
+      }
+      const c = client ?? new OpenAI({ apiKey: cfg.apiKey, baseURL, timeout: operation.timeoutMs, fetch: operation.fetch, maxRetries: 0, logger: SDK_LOGGER });
+      const res = await operation.wait(() => c.post('/embeddings', { body: { model: cfg.model, input: texts, encoding_format: 'float' }, signal: operation.signal }));
+      operation.count(res);
+      const data = Array.isArray(res?.data) ? [...res.data].sort((a, b) => a?.index - b?.index) : [];
+      if (data.length !== texts.length || data.some((d, i) => d?.index !== i)) throw new GatewayError('provider_error', 'The embedding provider returned invalid input indices', 502);
+      try { const dimensions = data[0]?.embedding?.length; data.forEach(d => normaliseVector(d.embedding, dimensions)); }
+      catch { throw new GatewayError('provider_error', 'The embedding provider returned invalid vectors', 502); }
+      const tokens = res.usage?.prompt_tokens ?? res.usage?.total_tokens;
+      if (tokens !== undefined && (!Number.isSafeInteger(tokens) || tokens < 0)) throw new GatewayError('provider_error', 'The embedding provider returned invalid usage', 502);
+      return { vectors: data.map(d => d.embedding), providerModel: typeof res.model === 'string' ? res.model.slice(0, 200) : null,
+        usage: { input: tokens ?? texts.reduce((s, t) => s + Buffer.byteLength(t, 'utf8') + 1, 0), output: 0, estimated: tokens === undefined } };
+    } catch (error) { throw operation.error || error; }
+    finally { operation.close(); }
   }
   return {
     embedBatch,
@@ -407,6 +421,7 @@ export function providerReason(e) {
 // Maps SDK and network errors to the codes the page understands (see coachError in index.html).
 export function toGatewayError(e, signal) {
   if (e instanceof GatewayError) return e;
+  if (e instanceof ProviderLimitError) return new GatewayError(e.code, e.message, e.status);
   if (signal?.aborted || e?.name === 'AbortError' || e instanceof Anthropic.APIUserAbortError || e instanceof OpenAI.APIUserAbortError) {
     return new GatewayError('cancelled', 'Cancelled', 499);
   }

@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Independent provider operation deadlines and response bounds
+
+TODO item: 11.3.10.1; completes the reviewed local resource controls in 11.3.10. Parent 11.3 remains open for model identity and unrestricted claim verification.
+
+### Implementation notes
+
+- Added per-call `provider-limits.mjs` scopes for gateway-created chat/embedding SDK clients. One independent clock covers headers, streamed/error bodies, SDK iteration/parsing and decoded results: configured positive timeout rounded up, default sixty seconds and maximum fifteen minutes. Monotonic checks reject late results even when synchronous work delays timer delivery. Each operation owns its controller/readers/counters, closes on completion/failure/return and propagates caller abort without aborting the caller's controller.
+- Count HTTP body bytes after decompression, including SSE overhead, invisible fields, tool arguments and error bodies, against an 8 MiB cumulative cap. Decoded coaching text plus result/tool metadata has a smaller 128 KiB cap before emission to the browser; embedding JSON retains an 8 MiB allowance. Ollama model inspection and vector retrieval share clock/body limits, preserving refusal before text upload when metadata is unverified. Injected SDK clients still receive independent decoded/time bounds.
+- Construct SDK clients per operation, disable automatic SDK retries/backoff and explicitly silence vendor loggers, including inherited debug settings. Existing native/JSON, tool-round and Anthropic server-side refusal fallbacks retain separate bounded calls. Timeout/overflow stop structured work without triggering a format retry. Added fixed `response_too_large` logging/UI mapping and German messages, including the connection-test failure prefix. Connection tests now propagate browser disconnects through their request signal.
+- Validation: lint/JSDoc/build pass. The final full unit/server scope passes with bounded concurrency (651 passes, one opt-in live skip), followed sequentially by twelve passing focused CLI/browser cases against the same settled build. Twenty-one new unit/server cases cover raw/decoded limits, UTF-8 counts, stalls, cancellation/late headers, EOF/faults, synchronous-deadline checks, injected SDKs, all four production SDKs over actual loopback HTTP, structured/embedding/metadata paths, concurrent calls and actual gateway disconnect cleanup. Eight new CLI/browser cases cover headers/partial-body stalls, invisible/error/tool/text overflow, German coach/connection-test hints, failed-work accounting and private diagnostics even with SDK debug configured; existing rejection and restart-usage cases pass too. The body-stall browser regression fails on actual prior `3c0bf82` server code: the answer never receives its timeout state within three seconds. No external provider, operator `.env`, model download or paid inference is used.
+- Updated environment example, source map, usage/operations guidance, LLM evidence, threat model and TODO. Documentation explicitly separates per-call bounds from token/billing/concurrency reservations and preserves the historical reproduced missing-deadline evidence. Local links and diff whitespace checked; no new dependency.
+
+### Deviations
+
+- Gateway-created SDK clients no longer retry transient errors automatically; callers see a failure sooner and can deliberately retry. Format/tool/server-side fallbacks can still add calls and total time. Already accepted provider work may continue or be billed after abort, and incomplete usage can remain unreported. These controls are not hard financial caps.
+- JavaScript cannot preempt a synchronous parser mid-instruction; bytes bound its input, and the deadline is checked before accepting its result. The SDK's own JSON timer can win the race, so tests verify the stable mapped timeout rather than require one internal error class. The settled full verification was repeated after an earlier build/test overlap; final source/build checks have no intervening rebuild.
+
+### Insights
+
+- Limiting only visible text misses oversized SSE framing, tool arguments and error bodies. Limiting only wire bytes can still admit a very large paragraph into browser rendering; the decoded coaching cap addresses that separate boundary.
+- A caller's abort signal and a provider operation's lifetime are related but distinct. Per-call state avoids cancellation/counter interference between concurrent requests and keeps late results from escaping cleanup.
+- SDK request/header timeouts do not establish a total streamed-body deadline. Actual loopback and old-server regressions distinguish that failure from a synthetic timer-only assertion.
+
 ## 2026-10-25 — Keep provider rejection prose out of public errors
 
 TODO item: 11.3.2.1; completes the reviewed local controls in 11.3.2. Parent 11.3 remains open for model identity, unrestricted misinformation and runtime-stream consumption.

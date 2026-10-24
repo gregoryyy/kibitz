@@ -111,7 +111,8 @@ test('anthropic: streams text deltas and sends model and effort; no fallbacks fo
   assert.deepEqual(params.output_config, { effort: 'medium' });
   assert.equal('fallbacks' in params, false);
   assert.equal('betas' in params, false);
-  assert.equal(opts.signal, ac.signal);
+  assert.ok(opts.signal instanceof AbortSignal);
+  assert.equal(ac.signal.aborted, false, 'operation cleanup never aborts its caller');
 });
 
 test('anthropic: larger models get the server-side refusal fallback', async () => {

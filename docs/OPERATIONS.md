@@ -26,6 +26,8 @@ tool/chat/format/schema/context failures, or a generic rejection. Raw provider p
 model IDs, endpoints and reflected credentials are not copied into those page-facing
 messages. Tool capability handling uses the same explicit support classifier. Other
 model output and operator/runtime diagnostics retain their separate trust boundaries.
+Production gateway SDK loggers are silenced even when vendor debug environment
+settings are inherited; application events remain the diagnostic interface.
 
 Startup also prints fixed readiness/usage/offline messages. Loopback startup reports
 its local URL and actual port; other bindings report only the port and “configured
@@ -90,8 +92,10 @@ failed stream is terminated, while an HTML read failure before headers returns 5
 Descriptors close after completion, HEAD, empty files, errors and disconnects.
 
 Watch repeated `auth_failed`/`model_not_found` failures for configuration problems,
-`rate_limited`/`budget_exceeded` for admission limits, and `timeout`/`provider_error`
-for unavailable services. A streamed answer may have HTTP status 200 and still emit
+`rate_limited`/`budget_exceeded` for admission limits, `timeout`/`provider_error`
+for unavailable services, and `response_too_large` for exceeded response bounds.
+See [total deadlines, byte caps and accounting limits](USAGE.md#provider-response-bounds).
+A streamed answer may have HTTP status 200 and still emit
 an `ai_error`, so inspect both event types. HTTP disconnects alone do not establish an
 attack. There are no hosted dashboards, automatic paging or user-level audit trails;
 monitoring in this deployment is operator-run. Review CI/security findings separately
