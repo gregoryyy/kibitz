@@ -29,7 +29,8 @@ test('fusion uses canonical sources and reranking favours complete literal cover
   const index = buildHybridIndex(Chess, [b, a]);
   const hits = searchHybrid(index, 'king shelter', { fen: IQP, dense: [{ passage: { ...b, text: 'forged' }, score: 1e30 }, { passage: { ...a, sourceId: 'forged' }, score: -1e30 }] });
   assert.deepEqual(hits.map(h => h.passage.id), ['a', 'b']); assert.equal(hits[0].evidence.complete, true);
-  assert.equal(hits[0].passage.sourceId, 'source:a'); assert.match(hits[0].excerpt.text, /<script>/);
+  // This asserts complete literal data preservation; it is not an HTML filter.
+  assert.equal(hits[0].passage.sourceId, 'source:a'); assert.equal(hits[0].excerpt.text, '<script>king shelter</script>');
   assert.equal(hits[1].evidence.board, 'exact'); assert.deepEqual(hits[0].evidence.channels, ['keywords', 'meaning']);
   hits[0].passage.locator.start = 100; assert.equal(index.text.documents[1].passage.locator.start, 5);
 });

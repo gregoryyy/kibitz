@@ -31,6 +31,10 @@ The problems collection retains the published Réti/Saavedra diagram/score facts
 |---|---|
 | [@anthropic-ai/sdk](https://github.com/anthropics/anthropic-sdk-typescript) | MIT |
 | [openai](https://github.com/openai/openai-node) (OpenAI, Mistral and Ollama) | Apache-2.0 |
+| [parse5](https://github.com/inikulin/parse5), 8.0.1, Ivan Nikulin and contributors — parses build-owned HTML for CSP script hashes | MIT |
+| [entities](https://github.com/fb55/entities), 8.1.0, Felix Böhm and contributors — parse5's character decoder, pinned transitively in the lockfile | BSD-2-Clause |
+
+The parser and decoder stay in server-side `node_modules/`; their licence files remain with the installed packages. They are not browser modules or model dependencies.
 
 Development tools (Playwright, ESLint, TypeScript and their dependencies) are not shipped; their licences are in `site/node_modules/`.
 
