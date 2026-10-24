@@ -7,6 +7,23 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Exclude agent instructions from aggregate PDFs
+
+TODO items: none; requested documentation tooling maintenance.
+
+### Implementation notes
+
+- `just pdfs` excludes `AGENTS.md` alongside `CLAUDE.md`, including nested instruction files and explicit path selections. Individual documents can still be rendered with `just pdf FILE`.
+- Validation: exercised the aggregate recipe with a recording `just pdf` stub; regular Markdown remained selected, while root and nested agent instructions and GitHub templates were excluded. Checked the explicit `AGENTS.md` selection and `justfile` parsing.
+
+### Deviations
+
+- No application changes or new dependencies; no TODO milestone applies.
+
+### Insights
+
+- Aggregate document generation can skip agent instructions without disabling explicit single-document conversion.
+
 ## 2026-10-24 — Select the local single-user deployment
 
 TODO items: 10.1; 2.9's existing env-key path resolved by this decision. Hosted 10.2 deferred.

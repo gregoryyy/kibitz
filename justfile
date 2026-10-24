@@ -142,8 +142,8 @@ pdf file:
     printf '%s %s\n' "$hash" "$(shasum -a 256 "$out" | cut -d' ' -f1)" > "$stamp"
     echo "wrote $out"
 
-# Default: every Markdown file in the repo (tracked or new, not ignored), except CLAUDE.md (it only
-# points at AGENTS.md) and .github/ (templates).
+# Default: every Markdown file in the repo (tracked or new, not ignored), except AGENTS.md,
+# CLAUDE.md (agent instructions) and .github/ (templates).
 # PDF for every Markdown file under PATHS, e.g. `just pdfs docs`
 pdfs *PATHS:
     #!/usr/bin/env bash
@@ -154,7 +154,7 @@ pdfs *PATHS:
         echo "── $f"
         just pdf "$f" || { echo "FAILED: $f" >&2; fail=1; }
     done < <(git ls-files --cached --others --exclude-standard -- {{PATHS}} \
-             | grep -E '\.md$' | grep -v '\(^\|/\)CLAUDE\.md$' | grep -v '^\.github/')
+             | grep -E '\.md$' | grep -Ev '(^|/)(AGENTS|CLAUDE)\.md$' | grep -v '^\.github/')
     exit $fail
 
 # Remove build output
