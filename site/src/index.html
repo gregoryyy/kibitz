@@ -784,13 +784,14 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div id="coachSettings" hidden>
         <div class="field"><span class="lbl-sm">AI provider</span><div class="choice" id="optProvider"></div><span class="hint" id="providerHint"></span></div>
         <dl class="kv" id="coachModels"></dl>
-        <label class="row"><input type="checkbox" id="optLocalOnly"> Local only: nothing leaves this machine (Ollama or the in-browser model)</label>
+        <label class="row"><input type="checkbox" id="optLocalOnly"> Local model providers only (Ollama or the in-browser model)</label>
         <label class="row" id="quickInBrowserRow" hidden><input type="checkbox" id="optQuickInBrowser"> Quick questions and comments use the in-browser model</label>
-        <div class="row"><button class="btn small" id="btnTestAi">Test connection</button><span class="hint" id="testAiMsg" role="status"></span></div>
+        <div class="row"><button class="btn small" id="btnTestAi">Test connection</button><button class="btn small" id="btnPrivacy">Provider permissions</button><span class="hint" id="testAiMsg" role="status"></span></div>
         <p class="hint" id="coachUsage" translate="no"></p>
         <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
       </div>
     </section>
+    <section class="settings-sec" id="providerPrivacy"></section>
     <section class="settings-sec">
       <h3>Engine</h3>
       <div class="field">
@@ -850,6 +851,8 @@ import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeCont
 import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/pgn.js';
 import { sanToSpeech, parseMoveInput } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
+import { createConsentStore, createPrivacyGate, PRIVACY_KEY } from './platform/privacy.js';
+import { createPrivacyPanel } from './platform/privacy-ui.js';
 import DE from './platform/i18n-de.js';
 import { compileCurriculum, lessonText } from './curriculum/curriculum.js';
 import { CURRICULUM } from './curriculum/catalogue.js';
@@ -894,6 +897,7 @@ const DEBUG = location.search.includes('debug');
 const LANG = pickLang(store.get('lang'), navigator.languages || [navigator.language]);
 const I18N = translator(LANG === 'de' ? DE : {});
 const t = (text, vars) => I18N.t(text, vars);
+const ProviderConsent = createConsentStore(browserStorage()), Privacy = createPrivacyGate(ProviderConsent);
 const COACH_RULES = coachRules(LANG);
 const I18N_ATTRS = ['title', 'placeholder', 'aria-label'];
 const I18N_GAPS = new Map(); // ?debug: text shown without a translation (all of it in English) -> where
@@ -955,9 +959,10 @@ async function localSample() {
   try { const r = await fetch('api/ai/status'); status = r.ok ? await r.json() : null; } catch { status = null; }
   GATEWAY = status; renderCoachSettings();
   if (!status?.available) { coachOffText(status); return null; }
-  return coachSample;
+  return canUseCoach() ? coachSample : null;
 }
 function coachOffText(status) {
+  if (status?.available && !canUseCoach()) { $('#coachOff').textContent = t('Allow this provider in Settings → Privacy before sending data.'); return; }
   $('#coachOff').textContent = status ? `The coach is off: ${status.reason}. Change it in the coach settings below, or in .env and restart the server. Stockfish analysis, flags and review still work.`
     : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
 }
@@ -968,15 +973,17 @@ function coachSample(input, opts = {}) {
   return inBrowser ? browserSample(input, opts) : gatewaySample(input, opts);
 }
 async function gatewaySample(input, { signal, onText, task, tools } = {}) {
+  return Privacy.run(GATEWAY?.provider, 'coach', async ({ signal: privacySignal, headers: privacyHeaders }) => {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
     let text = '', truncated = false, usage = null, toolCalls = [];
     try {
-      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages, task, ...(tools ? { tools } : {}) }), signal });
+      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json', ...privacyHeaders }, body: JSON.stringify({ messages, task, ...(tools ? { tools } : {}) }), signal: privacySignal });
       if (!res.ok) { const err = (await res.json().catch(() => null))?.error; throw { code: err?.code || 'unavailable', message: err?.message }; }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buf = '';
       for (;;) {
         const { value, done } = await reader.read();
+        if (privacySignal.aborted) throw { code: 'cancelled' };
         if (done) break;
         buf += value;
         let nl;
@@ -990,10 +997,11 @@ async function gatewaySample(input, { signal, onText, task, tools } = {}) {
         }
       }
     } catch (e) {
-      if (signal?.aborted) throw { code: 'cancelled' };
+      if (privacySignal.aborted || signal?.aborted) throw { code: 'cancelled' };
       throw e?.code ? e : { code: 'unavailable' };
     }
     return { text, truncated, usage, toolCalls };
+  }, signal);
 }
 // Screen-reader announcements (moves, navigation); the toast above is a status region too.
 // Answers in German may still write moves with German letters (Sf3); they become SAN before they
@@ -2584,10 +2592,12 @@ function renderDenseControls() {
 }
 /** Transport only the selected literal texts. Keys/endpoint selection remain on the gateway. */
 async function requestEmbeddings(texts, descriptor, signal) {
-  const r = await fetch('api/ai/embeddings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texts, fingerprint: descriptor.fingerprint, scope: descriptor.scope }), signal });
+  return Privacy.run(descriptor.provider, 'embeddings', async ({ headers, signal: privacySignal }) => {
+  const r = await fetch('api/ai/embeddings', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ texts, fingerprint: descriptor.fingerprint, scope: descriptor.scope }), signal: privacySignal });
   const j = await r.json();
   if (!r.ok) throw Object.assign(new Error('Embedding request failed'), { code: j?.error?.code });
   return j;
+  }, signal);
 }
 /** Build/search are separate explicit actions. Recheck destination, owner, sources and game after awaits. */
 async function runDenseAction(action) {
@@ -2620,7 +2630,7 @@ async function runDenseAction(action) {
       if (current()) DENSE.hits = hits;
     }
   } catch (e) {
-    if (current() && e?.name !== 'AbortError') { if (e.code === 'stale_embeddings') DENSE.session.cancel(); DENSE.message = 'Embedding request failed. Check the provider or rebuild the index.'; }
+    if (current() && e?.name !== 'AbortError') { if (e.code === 'stale_embeddings') DENSE.session.cancel(); DENSE.message = e.code === 'consent_required' ? 'Allow this provider in Settings → Privacy before sending data.' : 'Embedding request failed. Check the provider or rebuild the index.'; }
   } finally { if (current()) { DENSE.busy = ''; renderStudySearch(); refreshGateway(); } }
 }
 function clearDenseIndex() { DENSE.request++; DENSE.session.cancel(); DENSE.busy = ''; DENSE.hits = null; DENSE.query = ''; DENSE.message = 'Semantic index cleared.'; renderStudySearch(); }
@@ -3040,10 +3050,13 @@ function usageText(u, server = false) {
   return s + '.';
 }
 async function gatewayPost(path, body) {
-  const r = await fetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const send = async (headers = {}, signal = undefined) => {
+  const r = await fetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body), signal });
   const j = await r.json().catch(() => null);
   if (!r.ok) throw { code: j?.error?.code || 'unavailable', message: j?.error?.message };
   return j;
+  };
+  return path === 'test' ? Privacy.run(GATEWAY?.provider, 'coach', ({ headers, signal }) => send(headers, signal)) : send();
 }
 async function refreshGateway() {
   if (!GATEWAY) return;
@@ -3053,7 +3066,7 @@ async function changeGateway(body) {
   try { GATEWAY = await gatewayPost('config', body); } catch (e) { toast(e.message || coachError(e)); }
   renderCoachSettings();
   renderStudySearch();
-  setCoach(GATEWAY?.available ? coachSample : null);
+  setCoach(canUseCoach() ? coachSample : null);
   if (!GATEWAY?.available) coachOffText(GATEWAY);
 }
 $('#optProvider').addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled && b.dataset.v !== GATEWAY?.provider) changeGateway({ provider: b.dataset.v }); });
@@ -3184,7 +3197,7 @@ function bookLine(r) {
 }
 /** Source/account/help/model changes revoke pending evidence even while Library is closed. */
 function coachSourceOwner() { return JSON.stringify([Lib.where, Lib.uid, libraryIndexGen]); }
-function coachSourcePolicy() { return JSON.stringify([coachSourceOwner(), S.help, GATEWAY?.provider, GATEWAY?.models, !!GATEWAY?.localOnly, activeProfileKey]); }
+function coachSourcePolicy() { return JSON.stringify([coachSourceOwner(), S.help, GATEWAY?.provider, GATEWAY?.models, !!GATEWAY?.localOnly, activeProfileKey, ProviderConsent.key]); }
 function coachSourceScope() { return JSON.stringify([coachSourcePolicy(), engineView(S)]); }
 function syncCoachSources() {
   const scope = coachSourceScope();
@@ -4484,6 +4497,17 @@ function applyPlayerProfile(profile) {
 }
 const profilePanel = createProfilePanel($('#playerProfile'), { store: PlayerProfile, onChange: applyPlayerProfile, t });
 window.addEventListener('storage', event => { if (event.key === PROFILE_KEY || event.key === null) profilePanel.reload(); });
+function canUseCoach() { return !!GATEWAY?.available && (ProviderConsent.allowed(GATEWAY.provider, 'coach') || !!(S.quickInBrowser && GATEWAY.browser)); }
+function applyProviderPermissions() {
+  if (window.claude?.hot) return;
+  Privacy.changed(); cancelChat(); DENSE.request++; DENSE.session.cancel(); DENSE.busy = false; DENSE.message = ''; DENSE.hits = null;
+  chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false;
+  setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); renderStudySearch();
+}
+const privacyPanel = createPrivacyPanel($('#providerPrivacy'), { store: ProviderConsent, onChange: applyProviderPermissions, t });
+$('#btnPrivacy').addEventListener('click', () => $('#providerPrivacy').scrollIntoView({ block: 'start' }));
+$('#providerPrivacy').hidden = !!window.claude?.hot;
+window.addEventListener('storage', event => { if (event.key === PRIVACY_KEY || event.key === null) privacyPanel.reload(); });
 choice('#libFilter', 'all', () => renderLibrary());
 $('#explorerSource').value = ['all', 'classic', 'library'].includes(store.get('explorerSource')) ? store.get('explorerSource') : 'all';
 $('#explorerSource').addEventListener('change', () => { store.set('explorerSource', $('#explorerSource').value); renderOpeningExplorer(); });

@@ -26,6 +26,8 @@ cp .env.example .env   # then set AI_PROVIDER and that provider's key and model
 just serve             # install if needed, build, serve on http://127.0.0.1:8765/
 ```
 
+Before using a network provider, open **Settings → Coach → Provider permissions** and explicitly allow coach requests or embeddings for that provider. Keys alone do not enable sharing. [Privacy and data flows](docs/PRIVACY.md) explain configured endpoints, separate choices and revocation limits.
+
 On start the server prints `AI coach: <provider> / <model>`, or why the coach is off. Other recipes:
 
 ```bash
