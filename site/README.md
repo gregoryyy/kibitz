@@ -79,7 +79,7 @@ npm run build
 node scripts/serve.mjs dist --index _test.html --api --env ../.env --library ../.kibitz-data/library.sqlite
 ```
 
-Then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Database files must be private regular files outside the served directory, including through symlinks. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.
+Then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Library and usage databases must be private regular files outside both the static and any separate `--models` directory, including through symlinks. An explicit model directory must already exist; startup checks it before creating databases. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.
 
 Server libraries use an anonymous HttpOnly browser cookie. Clearing that cookie starts another library, leaving the earlier records in SQLite. Accounts and cross-device sign-in remain TODO 10.1–10.2. IndexedDB caches acknowledged records by the verified server scope. A failed cache write still reports a successful server save. Known-owner cached snapshots are read-only; a fresh load must verify the cookie owner before showing cached server data. Offline writes are not queued. Conflicts or an uncertain acknowledgement require **Refresh server library** before retrying; repeat imports then deduplicate against the refreshed records.
 
@@ -200,7 +200,7 @@ server/api.mjs        GET /api/ai/status; POST /api/ai/sample (NDJSON stream), /
                       Host/Origin/size guards
 server/library-store.mjs SQLite owner/collection records, schema version, atomic revisions and quotas
 server/library-api.mjs Anonymous cookie scope, same-origin HTTP routes and validated record writes
-server/library-files.mjs Private database creation outside the static root
+server/library-files.mjs Private library creation outside all served roots
 server/fixtures/      Provider responses for the contract tests (recorded, or hand-written where marked)
 server/static.mjs     Security headers (incl. COOP/COEP for cross-origin isolation) and the hash-based CSP for served pages
 tests/unit/           node:test for the page modules; server/*.test.mjs for the gateway, incl. contract tests

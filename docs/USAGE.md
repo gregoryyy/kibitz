@@ -34,7 +34,7 @@ Admission commits server/user minute slots before inference. Completion commits 
 
 The private file contains current-day numeric totals (requests, tokens, estimated costs, unpriced/paid tokens), recent admission timestamps and SHA-256 hashes of cookie IDs. It contains no raw cookies, prompts, answers, game scores, notes, API keys or model IDs. The library and usage databases are separate, versioned schemas. Unknown schemas/data remain intact and fail closed.
 
-New directories use mode 0700 and files 0600. Paths inside the static root, including parent symlink aliases, public-readable files and final symlinks are refused. SQLite sidecars remain operator-managed private files. Paths are operator-selected and never supplied by HTTP callers.
+New directories use mode 0700 and files 0600. Paths inside either served root (static files and any separate `--models` directory), including parent symlink aliases, public-readable files and final symlinks are refused. An explicit model directory must already exist; invalid/missing model roots fail startup before database files or their parents are created. The same path policy protects library databases. SQLite sidecars remain operator-managed private files. Paths are operator-selected and never supplied by HTTP callers.
 
 Only current-day counters are consulted. The next successful accounting write prunes older-day rows; a stopped/unused server can retain its previous day until used again. Expired minute timestamps are removed when the corresponding scope next receives an accepted request; they remain bounded by its minute allowance. SQLite free pages, WAL files and backups can retain older bytes. No forensic-erasure guarantee is made.
 

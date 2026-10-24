@@ -2,6 +2,10 @@
 import { createLibraryStore } from './library-store.mjs';
 import { privateDatabaseFile } from './private-files.mjs';
 
-export function openPrivateLibrary(filename, staticRoot) {
-  return createLibraryStore(privateDatabaseFile(filename, staticRoot));
+/**
+ * @param {string} filename
+ * @param {string|string[]} servedRoots
+ */
+export function openPrivateLibrary(filename, servedRoots) {
+  return createLibraryStore(privateDatabaseFile(filename, servedRoots));
 }
