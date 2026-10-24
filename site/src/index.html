@@ -268,6 +268,7 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .library-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 10px; }
 .library-filters label { display: grid; gap: 4px; min-width: 0; }
 .library-filters input, .library-filters select { width: 100%; min-width: 0; }
+#libStoragePanel { border: 1px solid var(--line); border-radius: var(--r); padding: 12px; margin: 12px 0; }
 .lesson-promotion, .lesson-play-confirm { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; max-width: calc(100vw - 32px); }
 .lesson-promotion::backdrop, .lesson-play-confirm::backdrop { background: rgb(0 0 0 / .35); }
 .lesson-promotion button, .lesson-play-confirm button { margin: 8px 4px 0 0; }
@@ -572,6 +573,15 @@ a.ext { color: var(--accent); font-size: 14px; }
 
     <div class="pane" data-pane="library" hidden>
       <div class="row"><h2 style="margin-right:auto">Games library</h2><span class="hint" id="libWhere"></span></div>
+      <section class="box" id="libStoragePanel" aria-label="Library storage" hidden>
+        <p class="hint">The browser library and server library stay separate. Switching does not copy games or references.</p>
+        <div class="row" style="flex-wrap:wrap">
+          <button class="btn small" id="libUseServer" aria-pressed="false">Use server library</button>
+          <button class="btn small ghost" id="libUseBrowser" aria-pressed="true">Use browser library</button>
+          <button class="btn small ghost" id="libServerRefresh">Refresh server library</button>
+        </div>
+        <p class="hint" id="libStorageStatus" role="status" aria-live="polite" translate="no" data-raw></p>
+      </section>
       <section class="study-search" aria-labelledby="studySearchTitle">
         <h3 id="studySearchTitle">Search study text</h3>
         <p class="hint" id="studySearchLocked" hidden>Study text is hidden while you play. Choose Full engine help or finish the game to search.</p>
@@ -775,6 +785,7 @@ import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './lib
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
 import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
 import { gameSearchData, gameSearchMetadata, filterGames } from './library/search.js';
+import { createServerLibrary } from './library/server-session.js';
 import { CURATED_PROBLEMS } from './library/problem-data.js';
 import { verifiedProblemEvidence } from './library/problems.js';
 import { PROBLEM_TABLEBASES } from './library/problem-tablebases.js';
@@ -1667,31 +1678,53 @@ const LOCAL_FULL = 'Browser storage is full, so this wasn\'t saved. Delete some 
 let libLoaded;
 const Lib = {
   where: 'loading', games: new Map(), books: new Map(), db: null, uid: null, unsub: [], indexed: Promise.resolve(),
+  storageGen: 0, serverSnapshot: null, serverReady: Promise.resolve(),
   importAcks: new Map(), // acknowledged account imports not yet delivered by the account snapshot
   // Writes wait for this, so a save during start-up can't overwrite the stored library with an empty one.
   ready: new Promise(r => { libLoaded = r; }),
   async init() {
+    const gen = ++this.storageGen;
     const [db, user] = await Promise.all([use('db'), use('user')]);
     let uid = null; try { uid = user ? await user.id() : null; } catch { /* no signed-in user: local library */ }
+    if (gen !== this.storageGen) return;
     if (db && uid) {
       this.db = db; this.uid = uid; this.where = 'cloud';
       const base = db.doc(`data/users/${uid}/kibitz`);
       this.gamesCol = base.collection('games'); this.booksCol = base.collection('books');
       this.unsub.push(this.gamesCol.onSnapshot(s => {
+        if (gen !== this.storageGen || this.where !== 'cloud' || this.uid !== uid) return;
         this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
         for (const id of this.importAcks.keys()) if (this.games.has(id)) this.importAcks.delete(id);
         onLibChange();
-      }, () => this.fallback({ lost: true })));
-      this.unsub.push(this.booksCol.onSnapshot(s => { this.books = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => {}));
+      }, () => { if (gen === this.storageGen) this.fallback({ lost: true }); }));
+      this.unsub.push(this.booksCol.onSnapshot(s => { if (gen !== this.storageGen || this.where !== 'cloud' || this.uid !== uid) return; this.books = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => {}));
       libLoaded();
-    } else this.fallback();
+    } else if (!HOSTED && store.get('serverLibrary', false) === true) await this.useServer();
+    else this.fallback();
+  },
+  context() { return `${this.storageGen}:${this.where}:${this.uid || ''}`; },
+  leaveSource() {
+    this.storageGen++;
+    for (const unsubscribe of this.unsub.splice(0)) { try { unsubscribe(); } catch { /* old hosted callback is also guarded by its generation */ } }
+    this.importAcks.clear();
+  },
+  async useServer() {
+    if (this.where === 'cloud' || importBusy) return;
+    this.leaveSource(); const gen = this.storageGen;
+    this.where = 'server'; this.uid = null; this.db = null; this.serverSnapshot = null;
+    this.games = new Map(); this.books = new Map(); onLibChange();
+    if (!store.set('serverLibrary', true)) toast('The library selection could not be remembered for reload.');
+    this.serverReady = SERVER_LIBRARY.connect().catch(error => { if (gen === this.storageGen && error.code !== 'library_cancelled') toast('The server library is unavailable.'); })
+      .finally(() => { libLoaded(); renderLibraryStorage(); });
+    await this.serverReady;
   },
   fallback({ lost = false } = {}) {
     if (lost) toast('Your account library is unavailable. Saving in this browser until you reload.');
-    this.where = 'local'; this.db = null; this.importAcks.clear();
+    this.leaveSource(); this.where = 'local'; this.db = null; this.uid = null; this.serverSnapshot = null; SERVER_LIBRARY.disconnect();
     this.games = new Map((store.get('games', [])).map(g => [g.id, g]));
     this.books = new Map((store.get('books', [])).map(b => [b.id, b]));
     libLoaded(); onLibChange();
+    if (!HOSTED) void SERVER_LIBRARY.probe();
   },
   persistLocal(map) { return store.set(map === this.games ? 'games' : 'books', [...map.values()]); },
   // Applies a change to the local maps and persists it; on failure the change is undone and reported.
@@ -1705,6 +1738,10 @@ const Lib = {
   // Saves several games with one write (local) and one library refresh; returns how many were saved.
   async putGames(list, { expected = null, importReport = null } = {}) {
     await this.ready;
+    const selection = this.storageGen;
+    if (this.where === 'server') await this.serverReady;
+    if (selection !== this.storageGen) return 0;
+    const destination = this.context();
     try {
       list = list.map(g => {
         const p = readProvenance(g); if (!p.value) throw new Error();
@@ -1712,7 +1749,22 @@ const Lib = {
       });
       await Promise.all(list.map(g => librarySnapshot(g, 'library')));
     } catch { toast('Source metadata or PGN is invalid or unsupported. Stored games have been kept.'); return 0; }
+    if (destination !== this.context()) return 0;
     if (expected && this.games.get(expected.id) !== expected) return 0;
+    if (this.where === 'server') {
+      let count = 0;
+      try {
+        await SERVER_LIBRARY.change(current => {
+          if (destination !== this.context() || expected && this.games.get(expected.id) !== expected) throw { code: 'library_cancelled' };
+          let records = list;
+          if (importReport) { const plan = deduplicatePgnImport(Chess, records, current.games); records = plan.records; importReport.duplicates = plan.duplicates; }
+          count = records.length;
+          return records.map(g => ({ collection: 'games', id: g.id, record: g }));
+        });
+        if (destination !== this.context()) return 0;
+        await this.indexed; return destination === this.context() ? count : 0;
+      } catch { toast('The server save could not be confirmed. Refresh before retrying.'); return 0; }
+    }
     if (importReport) {
       // Recheck after asynchronous validation against the latest acknowledged library state.
       const plan = deduplicatePgnImport(Chess, list, [...this.games.values(), ...this.importAcks.values()]);
@@ -1724,6 +1776,7 @@ const Lib = {
       for (const g of list) {
         try {
           await this.gamesCol.doc(g.id).set(g); n++;
+          if (destination !== this.context()) return 0;
           if (importReport && !this.games.has(g.id)) this.importAcks.set(g.id, g);
         }
         catch (e) { toast(e?.code === 'quota_exceeded' ? 'Library is full. Delete some games first.' : 'Could not save to your library.'); break; }
@@ -1734,23 +1787,78 @@ const Lib = {
     if (ok) await this.indexed;
     return ok ? list.length : 0;
   },
-  async delGame(id) {
+  async delGame(id, expected = null) {
     await this.ready;
+    const selection = this.storageGen;
+    if (this.where === 'server') await this.serverReady;
+    if (selection !== this.storageGen) return;
+    if (expected && this.games.get(id) !== expected) return;
+    const destination = this.context();
     this.importAcks.delete(id);
+    if (this.where === 'server') {
+      try { await SERVER_LIBRARY.change(() => {
+        if (destination !== this.context() || expected && this.games.get(id) !== expected) throw { code: 'library_cancelled' };
+        return [{ collection: 'games', id, record: null }];
+      }); } catch { toast('Could not delete that game.'); } return;
+    }
     if (this.where === 'cloud') { try { await this.gamesCol.doc(id).delete(); } catch { toast('Could not delete that game.'); } }
     else this.localChange(this.games, () => this.games.delete(id));
   },
   async putBook(b) {
     await this.ready;
-    if (this.where === 'cloud') { try { await this.booksCol.doc(b.id).set(b); return true; } catch { toast('Could not save that reference.'); return false; } }
+    const selection = this.storageGen;
+    if (this.where === 'server') {
+      await this.serverReady; const destination = this.context();
+      if (selection !== this.storageGen) return false;
+      try { await SERVER_LIBRARY.change(() => { if (destination !== this.context()) throw { code: 'library_cancelled' }; return [{ collection: 'books', id: b.id, record: b }]; }); return destination === this.context(); }
+      catch { toast('Could not save that reference.'); return false; }
+    }
+    if (this.where === 'cloud') { try { await this.booksCol.doc(b.id).set(b); return selection === this.storageGen; } catch { toast('Could not save that reference.'); return false; } }
     return this.localChange(this.books, () => this.books.set(b.id, b));
   },
-  async delBook(id) {
+  async delBook(id, expected = null) {
     await this.ready;
+    const selection = this.storageGen;
+    if (this.where === 'server') await this.serverReady;
+    if (selection !== this.storageGen) return;
+    if (expected && this.books.get(id) !== expected) return;
+    const destination = this.context();
+    if (this.where === 'server') {
+      try { await SERVER_LIBRARY.change(() => { if (destination !== this.context() || expected && this.books.get(id) !== expected) throw { code: 'library_cancelled' }; return [{ collection: 'books', id, record: null }]; }); }
+      catch { toast('Could not remove that reference.'); } return;
+    }
     if (this.where === 'cloud') { try { await this.booksCol.doc(id).delete(); } catch { toast('Could not remove that reference.'); } }
     else this.localChange(this.books, () => this.books.delete(id));
   },
 };
+const SERVER_LIBRARY = createServerLibrary({ onChange: state => {
+  if (Lib.where === 'server' && Lib.serverSnapshot !== state.snapshot) {
+    Lib.serverSnapshot = state.snapshot; Lib.uid = state.snapshot?.scope || null;
+    Lib.games = new Map((state.snapshot?.games || []).map(g => [g.id, g]));
+    Lib.books = new Map((state.snapshot?.books || []).map(b => [b.id, b]));
+    onLibChange();
+  }
+  renderLibraryStorage();
+} });
+function renderLibraryStorage() {
+  const state = SERVER_LIBRARY.state, selected = Lib.where === 'server';
+  $('#libStoragePanel').hidden = Lib.where === 'cloud' || !selected && !state.available;
+  $('#libUseServer').hidden = selected; $('#libUseBrowser').hidden = !selected; $('#libServerRefresh').hidden = !selected;
+  $('#libUseServer').disabled = state.busy || importBusy || !state.available;
+  $('#libUseBrowser').disabled = importBusy; $('#libServerRefresh').disabled = state.busy || importBusy;
+  $('#libUseServer').setAttribute('aria-pressed', String(selected)); $('#libUseBrowser').setAttribute('aria-pressed', String(!selected));
+  const locations = { online: 'Saved on this server', cached: 'Cached server library (read only)', conflict: 'Server library needs refresh', connecting: 'Connecting…', unavailable: 'Server library unavailable' };
+  $('#libWhere').textContent = selected ? locations[state.mode] || 'Server library unavailable' : Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
+  const errors = { conflict: 'The server library changed elsewhere. Refresh before retrying; your current edit remains in the form.',
+    session_changed: 'The server library session changed. Reconnect before saving changes.', no_session: 'The server library session changed. Reconnect before saving changes.',
+    quota: 'The server library is full. Delete some games or references before retrying.', invalid_record: 'The server rejected a record. Check its PGN or source fields.',
+    invalid_changes: 'The server rejected a record. Check its PGN or source fields.', rate_limited: 'Too many server library writes. Try again in a minute.' };
+  const message = !selected ? '' : state.error && Object.hasOwn(errors, state.error) ? errors[state.error]
+    : state.mode === 'cached' ? 'Showing a cached server library. Refresh before saving changes.'
+    : state.mode === 'unavailable' ? 'The server library is unavailable. Reconnect or choose the browser library.'
+    : state.cacheAvailable === false ? 'Saved on this server. The browser cache is unavailable.' : '';
+  $('#libStorageStatus').textContent = t(message);
+}
 
 // Built-in examples (public-domain games, annotations by Kibitz) so the library and retrieval have something to show.
 // The built-in classics (classics.js, TODO 7.3): in the library, the position index and the reading list.
@@ -2261,7 +2369,7 @@ async function saveCurrentGame({ quiet = false, result } = {}) {
   if (S.meta?.kind === 'example') { rec.id = 'g' + Date.now().toString(36); rec.kind = 'study'; S.gameId = rec.id; }
   S.meta = { ...(S.meta || {}), ...rec, kind: rec.kind };
   const ok = await Lib.putGame(rec);
-  if (ok && !quiet) toast(Lib.where === 'cloud' ? 'Saved to your library' : 'Saved in this browser');
+  if (ok && !quiet) toast(Lib.where === 'server' ? 'Saved on this server' : Lib.where === 'cloud' ? 'Saved to your library' : 'Saved in this browser');
 }
 // Saved games store whiteCp(); K.scoreToCp encodes "mate in n" as ±(10000 - 10n). Undo that, so a
 // restored mate shows as a mate instead of being clamped to ±20 pawns.
@@ -2515,7 +2623,7 @@ function renderLibrary() {
   renderStudySearch();
   const input = librarySearchInput(), searching = Object.keys(input).length > 0;
   const filt = $('#libFilter [aria-pressed="true"]')?.dataset.v || 'all';
-  $('#libWhere').textContent = Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
+  renderLibraryStorage();
   const mine = [...Lib.games.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   $('#libCount').textContent = mine.length ? String(mine.length) : '';
   // The classics (classics.js) under their own filter; in "All" only while the library is empty or a search is on.
@@ -2549,7 +2657,7 @@ function renderLibrary() {
     const c = youIdx ? g.counts?.[youIdx] : null;
     const pills = c ? el('span', { class: 'pills' }, c.blunder ? el('span', { class: 'c-blunder' }, `${c.blunder}??`) : null, c.mistake ? el('span', { class: 'c-mistake' }, `${c.mistake}?`) : null, c.inaccuracy ? el('span', { class: 'c-inaccuracy' }, `${c.inaccuracy}?!`) : null) : null;
     const del = el('button', { class: 'btn small ghost danger', onclick: () => {
-      const confirmation = el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id) }, 'Delete'), el('button', { class: 'btn small', onclick: () => confirmation.replaceWith(del) }, 'Keep'));
+      const confirmation = el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id, g) }, 'Delete'), el('button', { class: 'btn small', onclick: () => confirmation.replaceWith(del) }, 'Keep'));
       del.replaceWith(confirmation);
     } }, 'Delete');
     const card = el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
@@ -2561,7 +2669,7 @@ function renderLibrary() {
       el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g, problem ? 0 : null) }, g.reviewed ? 'Open review' : 'Open'),
         el('button', { class: 'btn small ghost', onclick: () => copyText(g.pgn, 'PGN copied') }, 'Copy PGN'),
         el('button', { class: 'btn small ghost', onclick: () => downloadPGN(g) }, 'Save .pgn'),
-        g.kind === 'example' ? null : del), sourceDetails(g));
+        EXAMPLES.includes(g) ? null : del), sourceDetails(g));
     libraryCardRecords.set(card, g); mount(card);
   }
 }
@@ -2610,6 +2718,7 @@ async function importPGN() {
   } catch { status('The games could not be saved.'); }
   finally {
     importBusy = false; $('#btnImport').disabled = false;
+    renderLibraryStorage();
     for (const id of importIds) if (!Lib.games.has(id) && !Lib.importAcks.has(id)) libraryCache.delete('library:' + id);
   }
 }
@@ -3997,11 +4106,12 @@ function renderReading() {
   const books = K.retrieveLiterature(feats, { level: S.level, limit: 5, userBooks: userBooks() });
   const bl = $('#bookList'); bl.replaceChildren();
   for (const r of books) {
+    const owned = r.book.user ? Lib.books.get(r.book.id) : null;
     bl.append(el('div', { class: 'book' }, el('div', { class: 'bt' }, r.book.user ? el('span', { class: 'badge' }, 'Yours') : null, el('span', { translate: 'no' }, r.book.title)),
       el('div', { class: 'ba', translate: 'no' }, [r.book.author, r.book.year].filter(Boolean).join(' · ')),
-      el('div', { class: 'bw' }, r.book.about), r.where ? el('div', { class: 'where' }, 'Start with ' + r.where + '.') : null,
+      el('div', { class: 'bw', translate: r.book.user ? 'no' : null }, r.book.about), r.where ? el('div', { class: 'where' }, 'Start with ' + r.where + '.') : null,
       el('div', { class: 'bm' }, ...r.hits.slice(0, 4).map(h => el('span', { title: h.why, 'data-raw': ecoWhy(h.why) }, K.TAG_LABELS[h.tag] || h.tag))),
-      r.book.user ? el('div', {}, el('button', { class: 'btn small ghost danger', onclick: () => Lib.delBook(r.book.id) }, 'Remove')) : null));
+      r.book.user ? el('div', {}, el('button', { class: 'btn small ghost danger', onclick: () => Lib.delBook(r.book.id, owned) }, 'Remove')) : null));
   }
   if (!books.length) bl.append(el('p', { class: 'empty-note' }, 'No references matched this position yet.'));
   const seen = K.similarPositions(INDEX, fen, { excludeGameId: S.gameId, limit: 5 });
@@ -4045,10 +4155,14 @@ function renderRefTags() {
   REF_TAGS.forEach(t => box.append(el('button', { class: 'chip', 'aria-pressed': 'false', onclick: e => { const on = e.currentTarget.classList.toggle('on'); e.currentTarget.setAttribute('aria-pressed', String(on)); } , 'data-tag': t }, K.TAG_LABELS[t])));
 }
 async function addRef() {
-  const title = $('#refTitle').value.trim(); const tags = $$('#refTags .chip.on').map(b => b.dataset.tag);
+  const original = ['#refTitle', '#refAuthor', '#refNote'].map(id => $(id).value), title = original[0].trim();
+  const tags = $$('#refTags .chip.on').map(b => b.dataset.tag), destination = Lib.context();
   if (!title || !tags.length) { $('#refMsg').textContent = 'Add a title and at least one theme.'; return; }
-  if (!(await Lib.putBook({ id: 'b' + Date.now().toString(36), title, author: $('#refAuthor').value.trim(), note: $('#refNote').value.trim(), tags, updatedAt: Date.now() }))) { $('#refMsg').textContent = 'The reference could not be saved.'; return; }
-  $('#refTitle').value = $('#refAuthor').value = $('#refNote').value = ''; renderRefTags();
+  if (!(await Lib.putBook({ id: 'b' + crypto.randomUUID(), title, author: original[1].trim(), note: original[2].trim(), tags, updatedAt: Date.now() }))) { $('#refMsg').textContent = 'The reference could not be saved.'; return; }
+  if (destination === Lib.context() && original.every((value, i) => value === $(['#refTitle', '#refAuthor', '#refNote'][i]).value)
+    && JSON.stringify(tags) === JSON.stringify($$('#refTags .chip.on').map(b => b.dataset.tag))) {
+    $('#refTitle').value = $('#refAuthor').value = $('#refNote').value = ''; renderRefTags();
+  }
   $('#refMsg').textContent = 'Added. It will show up when a matching position comes up.';
 }
 
@@ -4299,6 +4413,13 @@ $('#chatUndo').addEventListener('click', () => submitChat('undo'));
 $('#coachInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#coachSend').click(); } });
 $('#coachStop').addEventListener('click', cancelChat);
 $('#libSearch').addEventListener('input', renderLibrary);
+$('#libUseServer').addEventListener('click', () => Lib.useServer());
+$('#libServerRefresh').addEventListener('click', () => Lib.useServer());
+$('#libUseBrowser').addEventListener('click', () => {
+  if (importBusy) return;
+  if (!store.set('serverLibrary', false)) toast('The library selection could not be remembered for reload.');
+  Lib.fallback();
+});
 for (const id of ['#libPlayer', '#libOpening', '#libYearFrom', '#libYearTo']) $(id).addEventListener('input', renderLibrary);
 for (const id of ['#libResult', '#libTheme']) $(id).addEventListener('change', renderLibrary);
 for (const [tag, label] of Object.entries(K.TAG_LABELS)) $('#libTheme').append(el('option', { value: tag }, label));

@@ -28,6 +28,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Environment / secrets
+.kibitz-data/
 .env
 .env.*
 !.env.example
