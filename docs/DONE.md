@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — LLM security evidence and reproduced open boundaries
+
+TODO item: 11.3.11; implemented/tested local controls mapped for 11.3.1, 11.3.4–8. Parent 11.3 and categories 11.3.2/3/9/10 remain open.
+
+### Implementation notes
+
+- Added `OWASP-LLM.md`, mapping every explicitly planned 2025 category to actual code, adversarial tests, deployment assumptions and remaining limits. Primary OWASP category pages are linked individually. The project repository publishes a 2026 edition; a numbering crosswalk and hidden-context note preserve the planned 2025 IDs without claiming full 2026 certification. Updated TODO and the threat model accordingly.
+- Added four gateway/real-SDK tests, one per adapter, with every provider fetch intercepted. Disclosure questions do not add configured server credentials to successful model-context/status/response/log paths; invalid system-role messages are rejected before work, a forged system field cannot override policy, and authentication remains in transport headers. These test application separation rather than pretend a mock model proved prompt secrecy or injection resistance. Clarified the quoting helper's comment: data framing is not a model-behavior guarantee.
+- Reproduced three limits without paid inference or operator `.env`: a synthetic 400 through the real SDK reflects a dummy non-prefixed credential into `provider_rejected`; a false three-kings/immune-queen sentence returns zero recognized problems; an actual loopback HTTP stream remains pending at 350 ms with a 100 ms SDK timeout after sending a first chunk. Both stream probes explicitly abort/close their resources. Added actionable follow-ups 11.3.2.1 and 11.3.10.1 rather than closing those categories.
+- Validation: lint/JSDoc/build and the complete unit/server scope pass with bounded concurrency (626 passes, one opt-in live skip), including all four new tests. Twenty-eight focused browser cases pass for hostile board output, imported-PGN injection framing, bounded tools, live-game confirmation, consent/revocation, dense/citation scope and stale work, and persistent usage after restart. Existing tests provide additional category evidence, without an exhaustive live-model adversarial evaluation. Local documentation targets and diff whitespace checked. No production runtime behavior changed.
+- Recorded the previous recorder PR's actual post-correction CodeQL evidence: source `f8ccd10` yields alert 24 fixed on merge snapshot `9df2f7b`, with the gate passing. Medium capture/cookie findings and historical main-branch triage remain open; no query/test was excluded and no alert state manually changed.
+
+### Deviations
+
+- Review completion does not complete parent 11.3. Existing annotation, tool, vector and usage work made several old TODO notes stale, but configured-credential error leakage, mutable model identity, unrestricted prose and runtime-stream consumption gaps remain explicit. The next fix is the reproduced rejection leak, followed by independent stream bounds.
+- No model identity, source digest, legal line, matching citation or regex cue count certifies semantic correctness. Provider-side training/retention, operator filesystem ownership and hosted authentication remain separate trust decisions.
+
+### Insights
+
+- Credential separation on successful model requests does not imply safe provider-error reflection. Prefix redaction misses credentials without that syntax.
+- A provider timeout can stop connection/header work while a partially delivered body remains open. A total runtime deadline and response cap need their own implementation and regressions.
+- A zero recognized-error count is compatible with entirely false prose. The original “every chess claim” requirement cannot be marked complete from the existing checker or mock tests.
+
 ## 2026-10-25 — Bound and privately stage provider fixture recording
 
 TODO item: 11.2.8; capture context 9 under [#99](https://github.com/gregoryyy/kibitz/issues/99). Real missing-provider recordings (2.15) remain open.
