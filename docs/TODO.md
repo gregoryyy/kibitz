@@ -223,6 +223,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
   - [x] 10.8.3 Opening names in German (eco.json is English), and the classic games' PGN comments
   - [ ] 10.8.4 The tutor eval set in German: the same positions with German key points, run against each provider
+    - [x] 10.8.4.1 German versions of the same ten positions/28 concepts, actual UI chips, language-bound reports and no-call planning; mock/unit/browser validation
+    - [ ] 10.8.4.2 Record live German trials against the configured providers after explicit paid-run approval; [prepared plan](eval/german-plan.md)
 
 ## 11. Security testing (before every release)
 

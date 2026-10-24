@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Prepare German tutor evaluation and explicit live-run plan
+
+TODO items: 10.8.4.1; live provider matrix 10.8.4.2 remains open.
+
+### Implementation notes
+
+- Added `eval/positions-de.mjs`: the same ten IDs, legal FEN/move sequences and 28 concept counts, with German titles, actual translated UI chips and German lexical cues accepting canonical/German move letters. Detached selections reject unknown languages/IDs. English source data/default behavior remains available.
+- The runner supports `--lang`, a no-request `--plan`, dedicated `--out` and server-only `--env` paths for worktrees. Load completion checks game generation instead of English UI text. German filenames end in `-de`; reports capture language, reference positions/cues, actual answer context and language-specific key points. The combined index separates languages and identifies regex scores as cue coverage.
+- A fresh benchmark browser grants only its selected coach provider through the existing privacy UI after the paid-run guard permits execution. It loads no personal profile/library, keeps keys server-side and preserves first-error/no-completed-report behavior. Startup timers are cleared, and plans report configured provider/model availability without calling a coach/judge or writing a result.
+- Validation: checks/build, all 566 unit/server tests on the integrated milestone base (one live-provider skip), nine focused scoring/paid-plan cases, all four English/German browser benchmark/error cases and a real one-position mock CLI report pass. The browser cases cover all ten positions in each language. All four configured-provider plans were inspected without model requests; Mistral's initial startup timeout passed on retry.
+
+### Deviations
+
+- The [live-run plan](eval/german-plan.md) records model IDs and pending trials separately. No provider result is fabricated from a mock run, English report, configured key or failed connection. The existing paid-run approval requirement remains in effect; 10.8.4 is not marked complete before live trials are recorded.
+- Regex cues can match negations and irrelevant mentions. A test explicitly records this limit; translated patterns do not establish semantic correctness or calibrated cross-language rankings. Printed position counts are not hard request/cost caps when agent follow-ups and rate-limit retries occur.
+
+### Insights
+
+- Language-specific quick-question labels and load-success messages belong to the actual UI path. A valid German benchmark must preserve chess positions/concepts while retaining the language and source text used for every reported cue score.
+
 ## 2026-10-24 — German opening labels and authored classic-game notes
 
 TODO items: 10.8.3.
