@@ -7,6 +7,31 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Freshly checked exercises from own-game mistakes
+
+TODO items: 9.3.
+
+### Implementation notes
+
+- Added `player/mistake-puzzles.js`: up to 50 scoped candidates from compatible own-game measured mistakes/blunders, including quiet errors. Source prose, studies, unsupported reports and restored classes do not create exercises. Explicit preparation rechecks root/reference/original-child evidence, declines unsupported old errors and retains full-FEN source identity. A current reference needs at least a one-pawn improvement over the original, or an outcome improvement to winning mate.
+- Arbitrary legal answers can qualify through fresh child searches, rather than only a listed PV move. The target is within 50 raw centipawns of the qualified reference; winning-mate alternatives stay outcome-based. Actual immediate mate succeeds by rules. Missing/shallow/bounded/illegal evidence gives no incorrect-attempt penalty. Shared evidence checks use a line's actual depth rather than a deeper sibling MultiPV result. These are bounded FEN-diagram exercises, without pre-diagram repetition claims or a unique/perfect-move certificate.
+- Added `player/puzzle-player.js` with an independent Chessground board, source chooser, typed/board moves, explicit White/Black promotions, German input, two-stage hints, separate reveal and source navigation. Busy/generation/source/library/help guards reject stale searches, disconnected controls and held promotion actions. Dedicated practice searches leave the main game/clock/library intact. Source titles/moves render literally; browsing/solving makes no provider request.
+- Extracted `chess/evidence.js` and `chess/practice.js` for rules/history, canonical PVs, per-line depth, move parsing, promotion intent and destinations. Authored lesson behavior remains unchanged. A global keyboard boundary prevents focused lesson/practice boards from navigating/flipping the main board; an authored-lesson regression fails on the previous behavior.
+- Opaque SHA-256 IDs bind selected-owner/document/ply/full-FEN/actual-move keys; checked target/policy revisions support subsequent scheduling. Completion outcomes and help remain session-local here, without a durable-save claim. [Exercise criteria and lifetime](OWN-PUZZLES.md) document the scope.
+- Four shared-evidence and seven generated-exercise unit scenarios cover depth/bounds/history, canonical inputs, source scope/provenance, fresh targets, arbitrary alternatives, unknown evidence, cancellation, Black promotion, outcome-aware mate and source immutability. Eight browser cases cover actual wiring, main-state/collection isolation, alternatives, unknown/hint/reveal distinctions, underpromotion, held searches/actions, library changes, German phone controls and authored keyboard isolation. Deterministic injected analyses cover failure/alternative paths; a real-WASM mate-before-stalemate case checks the actual worker path.
+- Validation: ESLint/JSDoc checks, build, 507 unit tests (one live-provider skip), 20 foundation logic cases and ten focused browser/localization cases pass. The dependency audit reports zero vulnerabilities. The complete browser suite is running; the final phone screenshot will be inspected from that run.
+
+### Deviations
+
+- Exercises target current engine move quality and accept alternatives; they do not claim forced wins, calibrated difficulty, flawless endgame grading or learner mastery. Help/reveal/rules-mate/engine-target remain distinct. Durable practice scheduling remains 9.4. No model request, new dependency, source upload or persistent schema migration is introduced.
+
+### Insights
+
+- A historical classification is a candidate source, not a current solution. Rechecking both the reference and the player's original move avoids generating an obsolete exercise; grading other legal answers avoids confusing a bounded reference with a unique good move.
+- Independent boards need keyboard and asynchronous boundaries as well as separate chess objects. Guarding only mouse moves would still let focused practice controls alter the main board or receive late results from another context.
+
+---
+
 ## 2026-10-24 — Review-derived phase trends and checked opportunities
 
 TODO items: 9.2.

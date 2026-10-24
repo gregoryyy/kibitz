@@ -66,6 +66,8 @@ The same tab lets you build named repertoires for **White or Black**. Enter a PG
 
 **Review → Review trends** summarizes compatible reviews of your own games in the selected library, with phase coverage and confirmed tactical opportunities. Repeated reviews replace their contribution; geometric candidates and missing evidence do not count as confirmed misses. [Review evidence and limits](docs/REVIEWS.md) explain the historical records and bounded checks.
 
+**Practise your own mistakes** turns compatible reviewed mistakes into independent-board exercises. Stockfish rechecks the reference and original move, then grades any legal answer against a bounded target. Hints, reveal and rules-proven mate stay separate; [exercise scope and grading](docs/OWN-PUZZLES.md) explain the limits.
+
 The **Lessons** tab offers bilingual tactics, strategy, endgames and sourced puzzles, with an isolated exercise board, authored hints and local progress. **Play against Stockfish** takes the displayed lesson position into a normal game as either colour, using your current strength and clock settings; an active game is confirmed and saved first.
 
 The **Classics** library includes 21 games with published score sources and separate score/note rights. Twelve complete games from Capablanca's *Chess Fundamentals* expand the collection; historical teaching versions are labelled, and all notes are original Kibitz material. [Source records and offline checks](site/data/classics/README.md) document the games. **Problems** browses twelve sourced mates/studies with bilingual questions, diagram-first opening and checked recorded branches. [Evidence and scope](site/data/problems/README.md) distinguish actual mates, tablebase outcomes and authored reflections.
