@@ -3,6 +3,7 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  '{opening}: the game starts after {moves}': '{opening}: Die Partie beginnt nach {moves}',
   'Move display': 'Zugdarstellung',
   'English SAN (Nf3)': 'Englische SAN (Nf3)',
   'German letters (Sf3)': 'Deutsche Figurenbuchstaben (Sf3)',

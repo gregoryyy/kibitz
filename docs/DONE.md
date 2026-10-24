@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — German opening labels and authored classic-game notes
+
+TODO items: 10.8.3.
+
+### Implementation notes
+
+- Added project-authored German labels for all 141 opening-family prefixes in the 3,865-row catalogue, common variant terminology and literal bounded matching across original/German names and ECO codes. Canonical English names and family IDs stay unchanged in game state, engine features and PGN headers. Proper names and uncommon nicknames keep their spelling; unknown custom text remains literal.
+- Opening selection, board labels, continuation/guide controls, Reading and library metadata display the selected language, while searches accept either name. Added a search-only alias without changing stored records or calling a provider.
+- Translated all 63 distinct authored classic comments (64 occurrences). The 33 bundled games/problems keep identical legal moves, headers, positions and source/licence metadata; English remains the pure catalogue function's default. German comment PGNs have their own natural source hashes and precise searchable locators. Imported notes and already saved copies keep their original language; recorded problem evidence retains its exact original scope.
+- [Translation scope and source identity](GERMAN-STUDY.md) document family coverage, retained names, existing saved copies and the separate unchanged English retrieval benchmark. The app requests the selected language's built-ins without rewriting a personal library.
+- Validation: the isolated study build passed checks/build, all 555 unit/server cases (one optional live skip), four new browser scenarios plus localization/opening regressions, and a complete 365-pass browser rerun (one optional live-model skip). After integrating the published usage milestone, combined checks/build, all 563 unit/server cases (one optional live skip) and all 34 relevant study/coach/embedding/data/privacy/usage browser scenarios pass. German phone layout inspected; production audit reports zero vulnerabilities. On the isolated study build, the offline-builder follow-up produces byte-identical worker, offline document and install manifest for the actual tested 98-asset build; its file-handling regression and corrected activation fixture were also verified separately.
+
+### Deviations
+
+- The first full browser run had 364 passes and one initial offline-install assertion timeout. Its 20-second assertion was shorter than the app's existing 120-second installation deadline; the corrected wait passed all seven focused offline cases and the entire subsequent 365-case run. The final dependency update changes build/test handling, with identical generated app bytes as described above.
+- German lexical/source-navigation tests do not claim a new retrieval-quality score or prove translated prose/chess claims. The existing frozen English benchmark and canonical chess data remain separate.
+
+### Insights
+
+- A translated annotated PGN is a different source document even when every chess move is unchanged. Its hashes and citation offsets must be generated from the actual language-specific text.
+
 ## 2026-10-24 — Persistent local AI usage and per-browser request limits
 
 TODO items: 2.11, scoped by the selected local single-user deployment (10.1).

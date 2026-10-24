@@ -28,6 +28,8 @@ Click **Analyse** during a game to pause it and its clock immediately. Explore m
 
 **Settings → General → Move display** selects English SAN, German letters or figurines for the main/scratch score and recognized moves in coach answers. Earlier answers update immediately; figurines have spoken labels. Typed moves accept German letters and figurines too. [Notation, input and PGN behavior](../docs/NOTATION.md).
 
+The German interface also provides [German opening labels and authored classic-game comments](../docs/GERMAN-STUDY.md). Opening lookup accepts original/German labels and ECO codes; German built-in notes work in local search and source navigation. Imported comments retain their original text.
+
 **Settings → Offline app → Prepare or check updates** saves the engine, browser library UI, reference games and lessons for a later reload without the server. Model weights need their separate explicit load/cache; Ollama still needs the local Node gateway. Updates wait for open app tabs to close, and removal preserves saved games. [Preparation, coach choices and storage limits](../docs/OFFLINE.md).
 
 **Settings → Player profile** saves explanation level, optional reported rating/pool/time control and up to 500 characters of learning goals in this browser. Level changes save immediately; use **Save profile** for the other fields. Goals accompany coach requests as quoted user data. Failed saves retain drafts, and stale tab edits require an explicit reload. Profile changes invalidate pending/cached teaching context while preserving the game and opponent strength. [Format and limits](../docs/PROFILE.md) distinguish preferences from measured ability.
