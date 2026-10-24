@@ -44,8 +44,8 @@ test('declared motif metadata must be known, tagged and present in the legal exa
 
 test('advanced themes remain discoverable at their level and module tags do not admit unrelated lessons', () => {
   const data = compileCurriculum(Chess, CURRICULUM);
-  assert.equal(curriculumModules(data, { level: 2, theme: 'interference' }).length, 0);
-  const modules = curriculumModules(data, { level: 3, theme: 'interference' });
+  assert.equal(curriculumModules(data, { module: 'tactics', level: 2, theme: 'interference' }).length, 0);
+  const modules = curriculumModules(data, { module: 'tactics', level: 3, theme: 'interference' });
   assert.deepEqual(modules.flatMap(m => m.lessons.map(l => l.id)), ['interference']);
   assert.equal(curriculumModules(data, { module: 'tactics', level: 3 })[0].lessons.length, 13);
 });

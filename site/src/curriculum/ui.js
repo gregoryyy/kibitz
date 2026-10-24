@@ -50,6 +50,15 @@ export function createCurriculumPanel(root, catalogue, { language = 'en', level 
         t('Syzygy: {result} · checked {date}', { result: t(result), date: evidence.checkedAt.slice(0, 10) })),
       el('p', { class: 'hint' }, 'Checked for this position and recorded line.'));
     }
+    if (exercise.puzzle) {
+      const p = exercise.puzzle;
+      row.append(el('p', { class: 'hint puzzle-source' },
+        el('span', { translate: 'no' }, t('Lichess rating: {rating} ±{deviation}', { rating: p.rating, deviation: p.ratingDeviation })), ' · ',
+        el('span', { translate: 'no' }, 'CC0-1.0'), ' · ',
+        el('a', { href: p.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open source puzzle'), ' · ',
+        el('a', { href: p.gameUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Source game')),
+      el('p', { class: 'hint puzzle-themes' }, el('span', {}, 'Source themes:'), ' ', el('span', { translate: 'no' }, p.themes.join(', '))));
+    }
     return row;
   }
   function render() {

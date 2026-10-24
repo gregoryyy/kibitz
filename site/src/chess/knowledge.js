@@ -14,7 +14,7 @@ export const TAG_LABELS = {
   'benoni-structure': 'Benoni structure', hedgehog: 'Hedgehog', stonewall: 'Stonewall',
   'open-center': 'Open centre', 'closed-center': 'Closed centre', 'opposite-castling': 'Opposite-side castling',
   'passed-pawn': 'Passed pawn', 'isolated-pawn': 'Isolated pawn', 'doubled-pawns': 'Doubled pawns',
-  'bishop-pair': 'Bishop pair', 'pawn-endgame': 'King and pawn ending', 'rook-endgame': 'Rook ending', 'opposition': 'Opposition',
+  'bishop-pair': 'Bishop pair', 'pawn-endgame': 'King and pawn ending', 'rook-endgame': 'Rook ending', 'opposition': 'Opposition', zugzwang: 'Zugzwang',
   'rook-pawn-vs-rook': 'Rook + pawn vs rook', ocb: 'Opposite-coloured bishops',
   'minor-endgame': 'Minor-piece ending', 'queen-endgame': 'Queen ending', 'rook-vs-minor': 'Rook vs minor piece',
   fork: 'Fork', pin: 'Pin', skewer: 'Skewer', 'discovered-attack': 'Discovered attack', 'double-check': 'Double check',

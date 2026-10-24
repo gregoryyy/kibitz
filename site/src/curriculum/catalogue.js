@@ -1,9 +1,11 @@
-// Original Kibitz teaching material; no imported prose or external puzzle database (TODO 6.1).
+// Kibitz teaching notes, with a separately attributed CC0 Lichess puzzle starter collection.
 import { TACTICS } from './tactics.js';
 import { STRATEGY } from './strategy.js';
 import { ENDGAMES } from './endgames.js';
+import { PUZZLES } from './puzzle-data.js';
+import { puzzleModule } from './puzzles.js';
 const words = (en, de) => ({ en, de });
-const source = { title: words('Kibitz original curriculum', 'Kibitz: eigene Lerninhalte'), author: 'Kibitz contributors', licence: 'GPL-3.0-or-later' };
+const source = { title: words('Kibitz teaching notes', 'Lehrtexte von Kibitz'), author: 'Kibitz contributors', licence: 'GPL-3.0-or-later' };
 /** @type {import('./curriculum.js').Curriculum} */
 export const CURRICULUM = { version: 1, source, modules: [
   { id: 'tactics', title: words('Tactical foundations', 'Taktische Grundlagen'), level: 1, tags: [...new Set(['mate', 'back-rank', ...TACTICS.flatMap(l => l.tags)])], lessons: [
@@ -45,4 +47,5 @@ export const CURRICULUM = { version: 1, source, modules: [
       ] },
     ...ENDGAMES,
   ] },
+  puzzleModule(PUZZLES),
 ] };

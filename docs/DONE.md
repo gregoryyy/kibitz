@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Lichess puzzle source and offline import pipeline
+
+TODO items: 6.5.
+
+### Implementation notes
+
+- Added the first 64 unchanged rows of the public Lichess CC0 export as a small starter source, with the exact CSV, retrieval/selection metadata, ETag/Last-Modified and SHA-256 digest. `scripts/import-puzzles.mjs` regenerates bounded JS records offline; `--check` verifies the saved bytes and generated output. No download runs implicitly. Source attribution ships in the third-party notices.
+- The pure importer accepts quoted CSV, BOM/CRLF and current eleven-column or legacy ten-column schemas, with 1 MB/1,000-record bounds. It validates IDs, numeric metadata, theme/opening tokens, safe Lichess URLs, diagrams, rights, UCI moves, end conditions and mate claims. It applies the first opponent move before exposing the learner’s FEN/solution, retaining the source FEN, setup UCI/SAN, counters, original themes, ratings, opening tags and game/puzzle links.
+- Four editorial rating groups contain 20/27/13/4 puzzles and join the Lessons catalogue. The complete catalogue has 34 lessons/groups and 100 exercises. Case-sensitive source IDs are encoded into stable lowercase curriculum IDs. The compiler revalidates records and binds exercise IDs, full FENs, lines and mapped themes to source-derived facts. Source themes remain distinct from motif detection; the new Zugzwang filter label adds no detector. Ratings, CC0 attribution, raw themes and validated external links render safely in English/German.
+- Seven unit scenarios cover exact offline regeneration/digests, setup semantics and counters, every saved legal line, en passant/castling/underpromotion, mate checks, CSV/schema/bounds, malformed source data, URL rejection, metadata normalization, Unicode opening tags, case-sensitive IDs and source-to-exercise binding. Two browser scenarios cover rating/theme filters, links/attribution, no remote/provider requests, board isolation, unsafe metadata rejection and German phone/keyboard use.
+- Verification: ESLint, JSDoc types, build and both offline data audits pass. Unit/gateway suite: 392 passed, one opt-in live test skipped. Full browser suite: 224 passed, one opt-in live test skipped. After the final import hardening, the rebuilt source also passed the complete unit suite and all twelve curriculum browser scenarios. Provider calls use mocks/fake clients.
+
+### Deviations
+
+- Bundled a documented starter prefix rather than the entire multi-million-puzzle database. It demonstrates ingestion and source-aware catalogue use, not representative theme coverage, calibrated teaching difficulty or measured learning benefit. Lichess rating bands are editorial navigation, not playing Elo. Interactive solving, hints and alternative-answer grading remain 6.6. Local legality/mate checks do not independently verify other source strength or theme claims.
+
+### Insights
+
+- Lichess’s first UCI move belongs to the opponent. Showing the raw database FEN would present the wrong side and task; applying the setup move is a data-model invariant rather than a UI convention.
+- Source IDs use both cases. Lowercasing them would merge distinct puzzles; encoding each character preserves identity within the curriculum’s existing ID alphabet. Keeping the original CSV also makes generated records auditable when the live export later changes.
+
+---
+
 ## 2026-10-24 — Endgame lessons with recorded Syzygy evidence
 
 TODO items: 6.4.
