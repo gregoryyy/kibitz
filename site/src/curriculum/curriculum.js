@@ -1,10 +1,10 @@
 // Curriculum records and queries (TODO 6.1). Pure; rules are injected, never an AI verdict.
-import { TAG_LABELS } from '../chess/knowledge.js';
+import { TAG_LABELS, moveMotifs, lineMotifs } from '../chess/knowledge.js';
 import { checkStart } from '../chess/play.js';
 import { playLine } from '../coach/annotations.js';
 
 /** @typedef {{en: string, de: string}} LessonText */
-/** @typedef {{id: string, title: LessonText, level: number, tags: string[], prompt: LessonText, fen: string, goal: 'mate'|'reflection', line: string[], rubric: LessonText[]}} Exercise */
+/** @typedef {{id: string, title: LessonText, level: number, tags: string[], prompt: LessonText, fen: string, goal: 'mate'|'reflection', line: string[], rubric: LessonText[], pattern?: string}} Exercise */
 /** @typedef {{id: string, title: LessonText, level: number, tags: string[], prerequisites: string[], introduction: LessonText, objectives: LessonText[], exercises: Exercise[]}} Lesson */
 /** @typedef {{id: string, title: LessonText, level: number, tags: string[], lessons: Lesson[]}} LessonModule */
 /** @typedef {{version: number, source: {title: LessonText, author: string, licence: string}, modules: LessonModule[]}} Curriculum */
@@ -61,6 +61,13 @@ export function compileCurriculum(Chess, input) {
         require(Array.isArray(e.line) && e.line.length > 0 && e.line.length <= CURRICULUM_LIMITS.line && e.line.every(m => UCI.test(m)), 'exercise line');
         const line = playLine(Chess, e.fen, e.line);
         require(line && line.ucis.length === e.line.length, 'illegal exercise line');
+        // A declared pattern records recognizable geometry in this exact example. The
+        // detectors do not establish a best move, forced continuation or material payoff.
+        if (e.pattern !== undefined) {
+          require(typeof e.pattern === 'string' && Object.hasOwn(TAG_LABELS, e.pattern) && e.tags.includes(e.pattern), 'pattern metadata');
+          const motifs = [...moveMotifs(Chess, e.fen, e.line[0]), ...lineMotifs(Chess, e.fen, e.line).flat()];
+          require(motifs.some(m => m.tag === e.pattern), 'pattern is not present in the example');
+        }
         if (e.goal === 'mate') {
           const end = new Chess(line.fens.at(-1));
           require(end.isCheckmate() && end.turn() !== new Chess(e.fen).turn(), 'mate is not established for the learner');

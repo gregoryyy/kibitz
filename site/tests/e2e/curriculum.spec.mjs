@@ -54,6 +54,6 @@ test('an invalid saved player level cannot prevent the catalogue or game from st
   await page.addInitScript(() => localStorage.setItem('kibitz.settings', JSON.stringify({ level: 99 })));
   await open(page); await page.locator('[data-tab="lessons"]').click();
   await expect(page.locator('#curriculumLevel')).toHaveValue('2');
-  await expect(page.locator('#curriculumList [data-lesson-id]')).toHaveCount(3);
+  await expect(page.locator('#curriculumList [data-lesson-id]')).toHaveCount(11);
   expect((await S(page)).nodes).toBe(1);
 });
