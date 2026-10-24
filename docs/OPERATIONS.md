@@ -21,8 +21,11 @@ See [field construction](../site/server/logging.mjs).
 These events omit request URLs, paths, queries, IPs, cookies, request/response bodies,
 prompts, answers, tokens identifying a browser, model IDs, endpoint overrides and raw
 SDK messages/stacks. Redacting key-shaped strings alone would still permit reflected
-personal text. A bounded, key-redacted provider rejection reason may still be returned
-to the requesting page; it is excluded from server logs.
+personal text. Provider HTTP 400 errors now return fixed public hints for recognized
+tool/chat/format/schema/context failures, or a generic rejection. Raw provider prose,
+model IDs, endpoints and reflected credentials are not copied into those page-facing
+messages. Tool capability handling uses the same explicit support classifier. Other
+model output and operator/runtime diagnostics retain their separate trust boundaries.
 
 Startup also prints fixed readiness/usage/offline messages. Loopback startup reports
 its local URL and actual port; other bindings report only the port and “configured

@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { exampleFor, providerSchema } from './schema.mjs';
 import { TOOLS, CAPS as TOOL_CAPS } from '../src/coach/tools.js';
+import { toolsUnsupported } from '../src/coach/coach-tools.js';
 import { normaliseVector } from '../src/library/dense-search.js';
 
 export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock'];
@@ -390,12 +391,17 @@ export function createEmbedder(cfg, /** @type {{ client?: any, inspectModel?: (m
   };
 }
 
-// A bounded provider reason for the requesting page: recognized key patterns are cut. This
-// may still contain personal text and must never enter runtime logs. SDKs put the message in
-// e.error.message; e.message adds the status in front.
+// Classify provider prose into fixed public hints. Prefix/length redaction cannot protect
+// arbitrary credentials, endpoints or reflected user text. Never return a substring of the input.
 export function providerReason(e) {
   const m = e?.error?.message || e?.error?.error?.message || e?.message || '';
-  return String(m).replace(/\b(?:sk|pk|key|api[-_]?key)[-_][\w*.-]+/gi, '[key]').replace(/\s+/g, ' ').trim().slice(0, 200);
+  const text = typeof m === 'string' ? m.slice(0, 8192) : '';
+  if (toolsUnsupported({ code: 'provider_rejected', message: text })) return 'This model does not support tools.';
+  if (/\b(?:does not|doesn't|cannot|can't)\s+support\s+chat\b/i.test(text)) return 'This model does not support chat.';
+  if (/\b(?:response_format|json_schema|structured output)\b.{0,40}\b(?:not supported|unsupported)\b/i.test(text)) return 'This model does not support the requested JSON format.';
+  if (/\binvalid\s+(?:response\s+)?schema\b/i.test(text)) return 'The provider rejected the response schema.';
+  if (/\b(?:context length|context window|maximum context)\b/i.test(text)) return 'The request exceeds the model context limit.';
+  return '';
 }
 
 // Maps SDK and network errors to the codes the page understands (see coachError in index.html).
@@ -411,9 +417,7 @@ export function toGatewayError(e, signal) {
     case 401: case 403: return new GatewayError('auth_failed', 'The AI provider refused the request; check the API key and that your plan includes the model', 502);
     case 404: return new GatewayError('model_not_found', 'The AI provider does not know this model', 502);
     case 413: return new GatewayError('prompt_too_large', 'The request is too large for the model', 413);
-    // A request the provider rejected: its reason says what to fix, e.g. Ollama's
-    // "\"deepseek-R1:latest\" does not support chat" for a model pulled by an older Ollama.
-    case 400: { const why = providerReason(e); if (why) return new GatewayError('provider_rejected', `The AI provider rejected the request: ${why}`, 502); }
+    case 400: return new GatewayError('provider_rejected', providerReason(e) || 'The AI provider rejected the request. Check the selected model and request settings.', 502);
   }
   return new GatewayError('provider_error', 'The AI provider returned an error', 502);
 }
