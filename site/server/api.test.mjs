@@ -194,7 +194,7 @@ test('settings: switch provider, local-only mode, connection test; all same-orig
   const base = `http://127.0.0.1:${s.address().port}/api/ai`;
   const post = (path, body, headers = {}) => fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) });
 
-  const t = await (await post('/test', {})).json();
+  const t = await (await post('/test', {}, { 'x-kibitz-consent': 'v1:anthropic:coach' })).json();
   assert.equal(t.ok, true); assert.equal(t.provider, 'anthropic'); assert.equal(typeof t.ms, 'number');
   let st = await (await post('/config', { provider: 'ollama' })).json();
   assert.equal(st.provider, 'ollama'); assert.deepEqual(made, ['ollama']);
@@ -218,7 +218,7 @@ async function serverWith({ provider: name = 'mock', env = {}, ...opts } = {}) {
   const s = http.createServer((req, res) => api(req, res));
   await new Promise(r => s.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${s.address().port}/api/ai`;
-  const send = (cookie = '') => fetch(base + '/sample', { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: '{"prompt":"hi"}' });
+  const send = (cookie = '') => fetch(base + '/sample', { method: 'POST', headers: { 'content-type': 'application/json', cookie, 'x-kibitz-consent': `v1:${name}:coach` }, body: '{"prompt":"hi"}' });
   return { s, base, send };
 }
 const uidOf = r => /kibitz_uid=([^;]+)/.exec(r.headers.get('set-cookie') || '')?.[1];

@@ -26,7 +26,7 @@ Click **Analyse** during a game to pause it and its clock immediately. Explore m
 
 **Review trends** summarizes compatible reports from your own reviewed games in the selected library. Counts and average move accuracy retain measured-move coverage by estimated phase. Bounded engine checks distinguish confirmed opportunities from refuted/unverified candidates; sample continuations open their exact source position. Re-running replaces a report, and deleting/changing its source or library removes its contribution. [Evidence and limits](../docs/REVIEWS.md) describe the historical-record boundary.
 
-**Practise your own mistakes** uses compatible own-game review positions on a separate board. Explicit preparation rechecks the original error; any legal alternative can meet the current engine target. SAN/coordinates/German input and explicit promotions work, with staged hints and separate reveal/mate/engine outcomes. Missing evidence has no failed-attempt penalty. The main game, clock and source collection stay intact. Results are session-local until scheduling work in 9.4; [scope and grading](../docs/OWN-PUZZLES.md).
+**Practise your own mistakes** uses compatible own-game review positions on a separate board. Explicit preparation rechecks the original error; any legal alternative can meet the current engine target. SAN/coordinates/German input and explicit promotions work, with staged hints and separate reveal/mate/engine outcomes. Missing evidence has no failed-attempt penalty. The main game, clock and source collection stay intact. See [scope and grading](../docs/OWN-PUZZLES.md). Completed results feed browser-local [spaced practice](../docs/PRACTICE.md), with acknowledged saves and visible retries.
 
 In **Openings**, choose a saved White or Black repertoire and press **Review due moves** to practise new or due positions. Play on the drill board or type SAN/coordinates; the saved opponent reply follows automatically. Any saved choice at that position is accepted, including transpositions. A starting-square hint counts as help, and a legal move outside your repertoire counts as a recall miss rather than a chess judgement. Review dates and recall/help statistics stay in this browser. The drill leaves your game intact and follows its live-help setting; switch to Analyse to train without a running game.
 
@@ -51,6 +51,10 @@ The **Problems** filter browses four mates in one and eight studies/reflections,
 **Combined** search adds rank fusion and optional current-board relevance over exact/pawn/feature-tag signals. **Why this result** explains the match. **Require every search term** supports literal lookups with empty results; it can exclude paraphrases and does not verify an answer. Board and option changes cancel stale results without sending a replacement. [Hybrid design and results](../docs/HYBRID-SEARCH.md) record the measured ranking/recall tradeoffs; `just retrieval-eval --mode hybrid` runs the explicit provider comparison over authored data only.
 
 With board relevance enabled, **Include similar pawn structures** optionally admits at least 75% colour-specific pawn-square overlap. Match details show shared and unmatched squares; exact positions keep their own label. [Pawn distance and its limits](../docs/PAWN-DISTANCE.md) include an offline benchmark (`just retrieval-eval --mode pawns`) and the known miss when the only pawn advances one square. The option defaults off and sends no new request until Search.
+
+## Provider privacy
+
+**Settings → Coach → Provider permissions** provides separate, initially off opt-ins for coach requests and passage/query embeddings per network provider, including Ollama. Acknowledged grants precede transport; revocations abort/fence pending work, with a safe retry if persistence fails. [Privacy notice and API attestation](../docs/PRIVACY.md) explain content, configured destinations, fonts and retention limits.
 
 ## Spaced practice
 
