@@ -751,9 +751,23 @@ a.ext { color: var(--accent); font-size: 14px; }
     <section class="settings-sec">
       <h3>General</h3>
       <div class="field"><label class="lbl-sm" for="optLang">Language</label><select id="optLang" class="lang" translate="no"></select></div>
+    </section>
+    <section class="settings-sec" id="playerProfile">
+      <h3>Player profile</h3>
       <div class="field"><span class="lbl-sm">Your level (sets the coach's language and reading list)</span>
         <div class="choice" id="optLevel"><button data-v="1" aria-pressed="false">Beginner</button><button data-v="2" aria-pressed="true">Club</button><button data-v="3" aria-pressed="false">Advanced</button><button data-v="4" aria-pressed="false">Expert</button></div>
       </div>
+      <form data-profile="form">
+        <div class="library-filters">
+          <label for="profileRating">Your rating estimate (optional)<input id="profileRating" data-profile="rating" type="text" inputmode="numeric" maxlength="4" aria-describedby="profileHelp profileMessage"></label>
+          <label for="profilePool">Rating pool<select id="profilePool" data-profile="pool"></select></label>
+          <label for="profileTimeControl">Rating time control<select id="profileTimeControl" data-profile="timeControl"></select></label>
+        </div>
+        <div class="field" style="margin-top:8px"><label for="profileGoals">Learning goals</label><textarea id="profileGoals" data-profile="goals" rows="3" maxlength="500" translate="no" aria-describedby="profileHelp profileMessage"></textarea></div>
+        <p class="hint" id="profileHelp">Saved in this browser. Your level, rating and goals accompany coach requests. Ratings are your own report, not a measured Kibitz rating.</p>
+        <div class="row"><button class="btn small primary" type="submit" data-profile="save">Save profile</button><button class="btn small" type="button" data-profile="reload">Reload profile</button></div>
+      </form>
+      <p class="hint" id="profileMessage" role="status" data-profile="message" translate="no"></p>
     </section>
     <section class="settings-sec">
       <h3>Coach</h3>
@@ -789,6 +803,8 @@ import { Chessground } from './chessground.js';
 import * as K from './chess/knowledge.js';
 import { Engine, stockfishAttempts } from './chess/engine.js';
 import { createStore, browserStorage } from './platform/store.js';
+import { createProfileStore, profileKey, profileContext, PROFILE_KEY } from './player/profile.js';
+import { createProfilePanel } from './player/profile-ui.js';
 import { gameCheckpoint } from './chess/sessions.js';
 import { quote } from './coach/prompt.js';
 import { createBrowserModel, cpuThreads } from './coach/browser-llm.js';
@@ -851,7 +867,7 @@ const el = (tag, attrs = {}, ...kids) => {
   for (const k of kids.flat()) if (k !== null && k !== undefined && k !== false) n.append(k.nodeType ? k : String(k));
   return n;
 };
-const LEVELS = { 1: 'beginner (under 1200)', 2: 'club player (1200–1800)', 3: 'advanced player (1800–2200)', 4: 'expert (2200+)' };
+const LEVELS = { 1: 'beginner', 2: 'club player', 3: 'advanced player', 4: 'expert' };
 const GLYPH = { inaccuracy: '?!', mistake: '?', blunder: '??', best: '', good: '', book: '' };
 const CLS_LABEL = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', best: 'the best move', good: 'a good move', book: 'a book move' };
 const store = createStore(browserStorage());
@@ -1001,9 +1017,11 @@ analyst.ready.then(() => {
 
 // ---------------------------------------------------------------- State
 const saved = store.get('settings', {});
+const PlayerProfile = createProfileStore(browserStorage(), { legacyLevel: saved.level });
+let activeProfileKey = profileKey(PlayerProfile.value);
 const S = {
   mode: 'play', userColor: saved.userColor || 'w', colorPick: saved.colorPick || 'w', elo: saved.elo || 1400, style: styleOf(saved.style).id,
-  help: saved.help || 'flags', level: [1, 2, 3, 4].includes(saved.level) ? saved.level : 2, depth: saved.depth || 14, orientation: 'white',
+  help: saved.help || 'flags', level: PlayerProfile.value.level, depth: saved.depth || 14, orientation: 'white',
   start: START, nodes: [{ fen: START, ply: 0 }], cursor: 0, over: null, thinking: false, hints: 0,
   gameId: null, meta: null, playing: false, reviewDone: false, summary: '', comments: {},
   gen: 0, // bumped whenever the game is replaced, so async work started for the old game can tell it's stale
@@ -3065,6 +3083,7 @@ function contextFor(i, { view = 'all', scratch = null } = {}) {
     const names = namedOpeningContext(namedContinuations(Chess, NAMED_OPENINGS, fen));
     if (names) lines.push(names);
   }
+  lines.push(profileContext(PlayerProfile.value));
   lines.push(`Player: ${LEVELS[S.level]}${S.mode === 'play' ? `, playing ${S.userColor === 'w' ? 'White' : 'Black'} against Stockfish set to about ${S.elo} Elo, ${styleOf(S.style).label.toLowerCase()} style` : ', analysing a game'}.`);
   if (S.meta?.white) lines.push(`Game: ${quote(S.meta.white, 80)} vs ${quote(S.meta.black, 80)}${S.meta.result ? ', result ' + quote(S.meta.result, 10) : ''}.`);
   lines.push(`Moves so far: ${c.pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '').trim() || '(none)'}`);
@@ -3118,7 +3137,7 @@ function bookLine(r) {
 }
 /** Source/account/help/model changes revoke pending evidence even while Library is closed. */
 function coachSourceOwner() { return JSON.stringify([Lib.where, Lib.uid, libraryIndexGen]); }
-function coachSourcePolicy() { return JSON.stringify([coachSourceOwner(), S.help, GATEWAY?.provider, GATEWAY?.models, !!GATEWAY?.localOnly]); }
+function coachSourcePolicy() { return JSON.stringify([coachSourceOwner(), S.help, GATEWAY?.provider, GATEWAY?.models, !!GATEWAY?.localOnly, activeProfileKey]); }
 function coachSourceScope() { return JSON.stringify([coachSourcePolicy(), engineView(S)]); }
 function syncCoachSources() {
   const scope = coachSourceScope();
@@ -3513,7 +3532,7 @@ async function askCoach(question, { atNode = null, task = 'chat', literal = fals
   }
 }
 function conversationContext(i, view, scratch) {
-  return CHAT.general ? `The player chose General chess. No current board position or engine data is supplied. Historical sources are separate reference material. Discuss general ideas; do not invent concrete variations. Use load tools only if the player asks to see a game or position. Player: ${LEVELS[S.level]}.`
+  return CHAT.general ? `The player chose General chess. No current board position or engine data is supplied. Historical sources are separate reference material. Discuss general ideas; do not invent concrete variations. Use load tools only if the player asks to see a game or position. Player: ${LEVELS[S.level]}.\n${profileContext(PlayerProfile.value)}`
     : `Active panel: ${$('.tabs [aria-selected="true"]')?.dataset.tab || 'game'}.\n${contextFor(i, { view, scratch })}`;
 }
 // ---------------------------------------------------------------- Engine tools (TODO 4.11)
@@ -3746,7 +3765,7 @@ async function commentOn(i, { scratch = null } = {}) {
     retrieval = await coachSources([...use, ...themes, 'plans pawn structure'].join(' '), fen, view, scope, ctl.signal);
     if (!current()) { bubble.remove(); return; }
   } catch (e) { bubble.remove(); if (TUTOR.ctl === ctl) TUTOR.ctl = null; return; }
-  const position = JSON.stringify([board.state.start, context.game.ucis, scratch?.start, scratch?.ucis, fen, retrieval.key]);
+  const position = JSON.stringify([board.state.start, context.game.ucis, scratch?.start, scratch?.ucis, fen, retrieval.key, activeProfileKey]);
   const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact', lang: LANG, position });
   let text = TUTOR.cache.get(key), usage = null;
   const cached = text !== undefined;
@@ -4099,7 +4118,8 @@ function reviewFacts() {
 }
 async function writeSummary() {
   if (!COACH.sample) return;
-  const gen = S.gen, context = answerContext(last(), 'all', null, S, { review: true });
+  const gen = S.gen, profile = activeProfileKey, context = answerContext(last(), 'all', null, S, { review: true });
+  const current = () => S.gen === gen && profile === activeProfileKey;
   const btn = $('#btnSummary'); const box = $('#summaryBox');
   btn.disabled = true; box.replaceChildren(el('span', { class: 'empty-note' }, 'Thinking…'));
   const { c, acc } = tally(); const names = playerNames();
@@ -4107,14 +4127,14 @@ async function writeSummary() {
   const allFeats = new Map();
   [Math.min(16, last()), Math.floor(last() / 2), last(), ...keyMoments(6).map(k => k.i)].forEach(i => K.positionFeatures(new Chess(S.nodes[i].fen), { ply: i, opening: openingAt(i) }).forEach(f => { const o = allFeats.get(f.tag); if (!o || o.weight < f.weight) allFeats.set(f.tag, f); }));
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });
-  const prompt = `${COACH_RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
+  const prompt = `${COACH_RULES}\n\nWrite a post-game review for the player.\n\n${profileContext(PlayerProfile.value)}\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
   try {
-    const render = text => { if (S.gen === gen) renderRich(box, text, context.fen, checkFor(text, context)); };
+    const render = text => { if (current()) renderRich(box, text, context.fen, checkFor(text, context)); };
     const { text } = await COACH.sample(prompt, { onText: ({ text }) => render(text), cache: false, task: 'review' });
-    if (S.gen !== gen) return;
+    if (!current()) return;
     S.summary = text; render(text);
     if (S.gameId) saveCurrentGame({ quiet: true });
-  } catch (e) { box.replaceChildren(e?.text ? e.text : coachError(e)); }
+  } catch (e) { if (current()) box.replaceChildren(e?.text ? e.text : coachError(e)); }
   finally { btn.disabled = !COACH.sample; btn.textContent = 'Rewrite'; }
 }
 
@@ -4163,10 +4183,10 @@ async function studyPlan() {
   if (!COACH.sample) return;
   const box = $('#studyPlan'); const btn = $('#btnStudyPlan');
   btn.disabled = true; box.replaceChildren(el('div', { class: 'summary' }, el('span', { class: 'empty-note' }, 'Thinking…')));
-  const target = box.firstElementChild, gen = S.gen, i = S.cursor, view = engineView(S), board = captureBoard(), label = positionLabel();
+  const target = box.firstElementChild, gen = S.gen, profile = activeProfileKey, i = S.cursor, view = engineView(S), board = captureBoard(), label = positionLabel();
   const scratch = scratchFacts(), context = answerContext(i, view, scratch, board.state);
   const render = text => {
-    if (S.gen !== gen) return;
+    if (S.gen !== gen || profile !== activeProfileKey) return;
     target.replaceChildren(); pinMessage(target, label, board);
     const body = el('div'); renderRich(body, text, context.fen, checkFor(text, context)); target.append(body);
   };
@@ -4174,7 +4194,7 @@ async function studyPlan() {
     const prompt = `${COACH_RULES}\n\n${contextFor(i, { view, scratch })}\n\nTask: Suggest a short study plan (3 steps) built around the themes of this position. For each step name the theme, what to look for in the player's own games, and one reference from the retrieved list with the part to read. Under 200 words.`;
     const { text } = await COACH.sample(prompt, { onText: ({ text }) => render(text), cache: { gcTime: 600000 }, task: 'review' });
     render(text);
-  } catch (e) { if (S.gen === gen) target.replaceChildren(coachError(e)); }
+  } catch (e) { if (S.gen === gen && profile === activeProfileKey) target.replaceChildren(coachError(e)); }
   finally { btn.disabled = !COACH.sample; }
 }
 const REF_TAGS = ['opening', 'sicilian', 'french', 'caro-kann', 'open-games', 'queens-gambit', 'kid', 'english', 'iqp', 'carlsbad', 'maroczy', 'passed-pawn', 'king-attack', 'fork', 'pin', 'mate', 'calculation', 'planning', 'pawn-endgame', 'rook-endgame', 'minor-endgame', 'ocb'];
@@ -4330,7 +4350,14 @@ modeHint(); renderProgress();
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 }
 $('#btnComment').addEventListener('click', () => commentOn(S.cursor, { scratch: scratchFacts() }));
-choice('#optLevel', S.level, v => { S.level = +v; saveSettings(); renderAll(); renderPlayers(); });
+function applyPlayerProfile(profile) {
+  const nextKey = profileKey(profile); if (nextKey === activeProfileKey) return;
+  activeProfileKey = nextKey; S.level = profile.level;
+  cancelChat(); chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false;
+  renderAll(); renderPlayers();
+}
+const profilePanel = createProfilePanel($('#playerProfile'), { store: PlayerProfile, onChange: applyPlayerProfile, t });
+window.addEventListener('storage', event => { if (event.key === PROFILE_KEY || event.key === null) profilePanel.reload(); });
 choice('#libFilter', 'all', () => renderLibrary());
 $('#explorerSource').value = ['all', 'classic', 'library'].includes(store.get('explorerSource')) ? store.get('explorerSource') : 'all';
 $('#explorerSource').addEventListener('change', () => { store.set('explorerSource', $('#explorerSource').value); renderOpeningExplorer(); });

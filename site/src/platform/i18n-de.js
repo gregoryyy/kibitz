@@ -3,6 +3,27 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  "Player profile": "Spielerprofil",
+  "Your rating estimate (optional)": "Deine geschätzte Spielstärke (optional)",
+  "Rating pool": "Wertungssystem",
+  "Rating time control": "Bedenkzeit der Wertung",
+  "Saved in this browser. Your level, rating and goals accompany coach requests. Ratings are your own report, not a measured Kibitz rating.": "In diesem Browser gespeichert. Niveau, Wertung und Ziele werden mit deinen Coach-Anfragen übermittelt. Wertungen sind deine Angaben, keine von Kibitz gemessene Spielstärke.",
+  "Save profile": "Profil speichern",
+  "Reload profile": "Profil neu laden",
+  "Unspecified pool": "Kein Wertungssystem angegeben",
+  "National federation": "Nationaler Verband",
+  "Other rating pool": "Anderes Wertungssystem",
+  "Unspecified time control": "Keine Bedenkzeit angegeben",
+  "Classical": "Klassisch",
+  "Rapid": "Schnellschach",
+  "Blitz": "Blitz",
+  "Bullet": "Bullet",
+  "The saved profile cannot be read. It has been kept without changes.": "Das gespeicherte Profil kann nicht gelesen werden. Es bleibt unverändert erhalten.",
+  "Profile saved in this browser.": "Profil in diesem Browser gespeichert.",
+  "Check the rating and use at most 500 characters for goals.": "Prüfe die Wertung und verwende höchstens 500 Zeichen für die Ziele.",
+  "The profile could not be saved. Your draft is still here.": "Das Profil konnte nicht gespeichert werden. Dein Entwurf bleibt erhalten.",
+  "The profile changed in another tab. Reload the profile before saving.": "Das Profil wurde in einem anderen Tab geändert. Lade es vor dem Speichern neu.",
+
   'Standard initial position': 'Standard-Ausgangsstellung',
   'Early mainline from the standard initial position': 'Frühe Hauptvariante aus der Standard-Ausgangsstellung',
   'Search detected patterns': 'Erkannte Muster suchen',
