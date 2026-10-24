@@ -9,7 +9,7 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ## 2026-10-24 — Local spaced practice across lessons, openings and own mistakes
 
-TODO items: 9.4 (implementation complete; full browser validation pending).
+TODO items: 9.4.
 
 ### Implementation notes
 
@@ -18,7 +18,7 @@ TODO items: 9.4 (implementation complete; full browser validation pending).
 - Kept opening reviews canonical in their existing store. Lesson/own schedules use a bounded v1 envelope, exact task/target revisions, owner/source pointers, recent completion IDs, acknowledged writes and rereads before save. Old/future/corrupt data stays intact, failed saves retain receipts and delayed older results cannot replace newer due dates. Opening reviews gained reload/sequential-tab preservation and the same delayed-result protection.
 - Lesson progress acknowledges first, then a separate schedule receipt saves/retries without recounting the lesson. Own-game results show their grade independently of a failed scheduling save and expose retry in Review. Pending lesson scheduling remains visible even under restricted live help. Existing isolated players own grading; the queue opens the selected opening card or freshly qualifies an own target. Main-game/source/repertoire/policy guards reject held actions; focused opening boards now share the keyboard isolation boundary.
 - Ten unit scenarios exercise intervals/evidence, identities/revisions, ordering/filter/cap, owner/deletion boundaries, invalid data, failed writes/retries, sequential tabs and late results. Eight new browser cases cover due/reload/interval advancement, opening routing, source/target refresh, failed-save boundaries, future formats, task revisions, held policy/owner actions, literal names and German phone layout. Existing opening/lesson/own-player regressions also run unchanged.
-- Validation: ESLint/JSDoc checks, build, all 517 unit tests (one live-provider skip), 19 scheduling/opening logic cases and 16 focused browser cases pass; the earlier focused run also passed all existing opening/lesson regressions. Production dependency audit reports zero vulnerabilities. German phone screenshot inspected. The complete browser suite is running.
+- Validation: ESLint/JSDoc checks, build, all 517 unit tests (one live-provider skip), 19 scheduling/opening logic cases, 16 focused browser cases and all 324 browser tests (one optional live-model skip) pass; the earlier focused run also passed all existing opening/lesson regressions. Production dependency audit reports zero vulnerabilities. German phone screenshot inspected.
 
 ### Deviations
 
