@@ -559,6 +559,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <div class="pane" data-pane="lessons" hidden>
       <h2>Lessons</h2>
       <p class="hint">Explore modules, lesson goals and exercises by level or theme.</p>
+      <section class="box" id="practiceSchedule" aria-label="Spaced practice"></section>
       <section id="lessonProgress" aria-label="Lesson progress"></section>
       <section id="lessonPlayer" hidden aria-label="Lesson player"></section>
       <div id="curriculumPanel"></div>
@@ -572,6 +573,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div id="reviewBody"><p class="empty-note">Play or load a game, then run the review. Stockfish checks every position at the depth set on the Game tab, scores each move, and finds the turning points. Claude then writes the summary.</p></div>
       <section class="box" id="reviewHistory" aria-label="Review trends"></section>
       <section class="box" id="ownPuzzlePlayer" aria-label="Own-game practice"></section>
+      <div id="ownPracticeSave"><p id="ownPracticeSaveStatus" role="status" translate="no"></p><button type="button" class="btn small" id="ownPracticeRetry" hidden>Retry practice saves</button></div>
     </div>
 
     <div class="pane" data-pane="library" hidden>
@@ -852,7 +854,9 @@ import { compileCurriculum, lessonText } from './curriculum/curriculum.js';
 import { CURRICULUM } from './curriculum/catalogue.js';
 import { createCurriculumPanel } from './curriculum/ui.js';
 import { createLessonPlayer } from './curriculum/player.js';
-import { createLessonProgressStore, summarizeLessonProgress, LESSON_PROGRESS_KEY } from './curriculum/progress.js';
+import { createLessonProgressStore, summarizeLessonProgress, lessonProgressIndex, LESSON_PROGRESS_KEY } from './curriculum/progress.js';
+import { createPracticeSchedule, ownPracticeCards, lessonScheduleReceipt, scheduleCardKey, SCHEDULE_KEY } from './player/schedule.js';
+import { createPracticePanel } from './player/schedule-ui.js';
 import { createLessonProgressPanel } from './curriculum/progress-ui.js';
 import { prepareLessonGame } from './curriculum/playout.js';
 import { confirmLessonGame } from './curriculum/playout-confirm.js';
@@ -860,6 +864,7 @@ import { confirmLessonGame } from './curriculum/playout-confirm.js';
 let lessonPlayer = null;
 let ownPuzzlePlayer = null;
 let refreshLessonProgress = () => {};
+let refreshPractice = () => {};
 let lessonGameTail = Promise.resolve();
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -1163,6 +1168,7 @@ let previewing = false, namedPreview = null; // previews never change game/scrat
 function syncBoard(refreshOpenings = true) {
   lessonPlayer?.sync();
   ownPuzzlePlayer?.sync();
+  refreshPractice();
   namedPreview = null;
   if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
   // A scratch board stays until the game moves on or changes under it (a move, navigation, a load).
@@ -2330,6 +2336,7 @@ function saveDrillAnswer() {
     DRILL.message = record.grade === 'good' ? 'Correct recall. Review scheduled.' : record.grade === 'hard' ? 'Saved choice found with a hint. Review scheduled.' : 'Recall needs another try. Review scheduled in 10 minutes.';
   }
   renderRepertoireDrill(selectedRepertoire());
+  refreshPractice();
 }
 /** Check SAN/UCI recall; a legal alternative is a repertoire miss, never a verdict about its chess quality. */
 function answerDrill(input, revealed = false) {
@@ -2359,16 +2366,17 @@ function drillBoardMove(orig, dest) {
   box.replaceChildren(choices); box.hidden = false;
   box.onclick = e => { if (e.target === box) { box.hidden = true; renderDrillQuestion(); } };
 }
-$('#drillStart').addEventListener('click', () => {
+function startDrill(requestedKey = '') {
   if (!showEngine() || Repertoires.unreadable || DrillReviews.unreadable || DRILL) return;
   const selected = selectedRepertoire(); if (!selected) return;
-  const cards = drillQueue(repertoireCards(selected), DrillReviews.records, Date.now());
+  const cards = drillQueue(repertoireCards(selected).filter(c => !requestedKey || c.key === requestedKey), DrillReviews.records, Date.now());
   if (!cards.length) { renderRepertoireDrill(selected); return; }
   DRILL = { rep: selected.id, revision: Repertoires.revision, gen: S.gen, cards, index: 0, answer: null, saved: false,
     mistakes: 0, hints: 0, clean: 0, helped: 0, message: 'Recall a saved move. You can also type it below.' };
   $('#repDeleteConfirm').hidden = true; $('#drillMove').value = '';
   renderRepertoires(); $('#drillPanel').scrollIntoView({ block: 'nearest' }); focusDrillQuestion();
-});
+}
+$('#drillStart').addEventListener('click', () => startDrill());
 $('#drillMoveForm').addEventListener('submit', e => {
   e.preventDefault(); if (!canAnswerDrill()) return;
   const input = $('#drillMove'), card = DRILL.cards[DRILL.index];
@@ -2785,6 +2793,7 @@ let reviewCtl = null;
 let reviewHistoryRecords = null, reviewHistorySummary = null;
 function refreshReviewHistory() {
   ownPuzzlePlayer?.sync();
+  refreshPractice();
   if (reviewHistoryRecords !== LIBRARY_RECORDS) {
     reviewHistoryRecords = LIBRARY_RECORDS; reviewHistorySummary = summarizeReviews(Chess, [...LIBRARY_RECORDS.values()]);
   }
@@ -4253,6 +4262,17 @@ async function addRef() {
 
 // Curriculum browsing and lesson play use separate state/boards and no provider requests.
 const curriculum = compileCurriculum(Chess, CURRICULUM);
+const PracticeSchedule = createPracticeSchedule(browserStorage()), practiceIndex = lessonProgressIndex(curriculum), pendingPractice = [];
+const practiceScope = () => JSON.stringify([Lib.where, Lib.uid]);
+function flushPracticeResults() {
+  for (let i = 0; i < pendingPractice.length;) {
+    const receipt = pendingPractice[i];
+    if (receipt.card.kind === 'own' && receipt.card.scope !== practiceScope()) { i++; continue; }
+    if (PracticeSchedule.record(receipt.card, receipt.event)) break;
+    pendingPractice.splice(i, 1);
+  }
+  refreshPractice();
+}
 ownPuzzlePlayer = createOwnPuzzlePlayer($('#ownPuzzlePlayer'), { Chess, mountBoard: Chessground, language: LANG, t,
   engine: async (fen, { depth, lines }) => {
     const result = await analyst.go(fen, { depth, multipv: lines, maxMs: ANALYSIS_CAP_MS, tag: 'practice' }).catch(() => null);
@@ -4264,6 +4284,11 @@ ownPuzzlePlayer = createOwnPuzzlePlayer($('#ownPuzzlePlayer'), { Chess, mountBoa
   onSource: (candidate, valid) => {
     const current = () => valid() && !paneHidden('review') && LIBRARY_RECORDS.get(`library:${candidate.g.id}`)?.g === candidate.g;
     if (current()) openGame(candidate.g, candidate.occurrence.ply, current);
+  },
+  onComplete: result => {
+    pendingPractice.push({ card: { kind: 'own', scope: practiceScope(), id: result.id, revision: result.revision, source: result.sourceKey },
+      event: { id: crypto.randomUUID(), at: Date.now(), basis: result.kind, mistakes: result.mistakes, hints: result.hints, revealed: result.revealed } });
+    flushPracticeResults();
   },
 });
 const LessonProgress = createLessonProgressStore(browserStorage(), curriculum), pendingLessonResults = [];
@@ -4279,9 +4304,11 @@ function flushLessonResults() {
   while (pendingLessonResults.length) {
     lessonProgressError = LessonProgress.record(pendingLessonResults[0]);
     if (lessonProgressError) break;
-    pendingLessonResults.shift();
+    const receipt = lessonScheduleReceipt(practiceIndex, pendingLessonResults.shift());
+    if (receipt) pendingPractice.push(receipt);
   }
   refreshLessonProgress();
+  flushPracticeResults();
 }
 lessonPlayer = createLessonPlayer($('#lessonPlayer'), curriculum, { Chess, mountBoard: Chessground, language: LANG, t, generation: () => S.gen,
   onComplete: result => { pendingLessonResults.push({ id: crypto.randomUUID(), at: Date.now(), ...result }); flushLessonResults(); }, onPlay: playLessonPosition });
@@ -4290,6 +4317,53 @@ curriculumPanel = createCurriculumPanel($('#curriculumPanel'), curriculum, { lan
   onOpen: (lesson, exercise) => lessonPlayer.open(lesson, exercise), getProgress: () => lessonProgressSummary });
 window.addEventListener('storage', event => {
   if (event.key === LESSON_PROGRESS_KEY || event.key === null) { LessonProgress.reload(); refreshLessonProgress(); }
+});
+
+let practiceRepRevision = -1, practiceOpeningCards = [];
+const practiceLessons = curriculum.modules.flatMap(m => m.lessons.flatMap(l => l.exercises.map(e => ({
+  kind: 'lesson', scope: 'curriculum', id: e.id, revision: practiceIndex.get(e.id).revision,
+  lesson: l.id, level: e.level, label: lessonText(l.title, LANG) + ' · ' + lessonText(e.title, LANG),
+}))));
+const practicePanel = createPracticePanel($('#practiceSchedule'), { language: LANG, t,
+  onRetry: flushPracticeResults,
+  state: () => {
+    const gen = S.gen, records = LIBRARY_RECORDS, context = Lib.context(), revision = Repertoires.revision, entries = PracticeSchedule.entries;
+    if (practiceRepRevision !== revision) {
+      practiceRepRevision = revision;
+      practiceOpeningCards = Repertoires.items.flatMap(rep => buildDrillCards(Chess, rep).map(card => ({ ...card, kind: 'opening', rep: rep.id, label: rep.name + ' · ' + card.name })));
+    }
+    const reviews = DrillReviews.records;
+    const lessons = PracticeSchedule.unreadable ? [] : practiceLessons.filter(c => c.level <= S.level || entries.has(scheduleCardKey(c))).map(c => ({ ...c, basis: entries.get(scheduleCardKey(c))?.basis }));
+    const own = PracticeSchedule.unreadable ? [] : ownPracticeCards(ownPuzzlePlayer.candidates(), entries, practiceScope()).map(c => ({ ...c,
+      label: String(c.candidate.g.title || c.candidate.g.white || '').slice(0, 140) + ' · ' + c.candidate.playedLabel,
+      basis: c.fresh ? null : entries.get(scheduleCardKey(c))?.basis }));
+    return { cards: [...lessons, ...(Repertoires.unreadable || DrillReviews.unreadable ? [] : practiceOpeningCards.map(c => ({ ...c, review: reviews.get(c.key) }))), ...own], entries,
+      now: Date.now(), allowed: showEngine(), unreadable: PracticeSchedule.unreadable || Repertoires.unreadable || DrillReviews.unreadable,
+      pending: pendingPractice.filter(r => r.card.kind === 'lesson' || r.card.scope === practiceScope()).length,
+      current: () => gen === S.gen && records === LIBRARY_RECORDS && context === Lib.context() && revision === Repertoires.revision && showEngine() };
+  },
+  onOpen: (card, current) => {
+    if (!current()) return;
+    if (card.kind === 'lesson') { lessonPlayer.open(card.lesson, card.id); return; }
+    if (card.kind === 'own') { openTab('review'); if (current()) ownPuzzlePlayer.open(card.source); return; }
+    if (DRILL) stopDrill(false);
+    repSelected = card.rep; store.set('repertoireSelected', repSelected); openTab('openings'); renderRepertoires(); startDrill(card.key);
+  },
+});
+refreshPractice = () => {
+  practicePanel.refresh();
+  const pending = pendingPractice.filter(r => r.card.kind === 'own' && r.card.scope === practiceScope()).length;
+  $('#ownPracticeSave').hidden = !showEngine();
+  $('#ownPracticeSaveStatus').textContent = pending ? t('Pending practice results: {n}. Retry saving before closing this tab.', { n: pending })
+    : PracticeSchedule.unreadable ? t('Some practice data cannot be read. Its original data is preserved; those reviews are unavailable.') : t('Completed own-game practice schedules are saved in this browser.');
+  $('#ownPracticeRetry').hidden = !pending;
+};
+$('#ownPracticeRetry').addEventListener('click', flushPracticeResults);
+refreshPractice();
+setInterval(() => { if (!paneHidden('lessons')) refreshPractice(); }, 60_000);
+window.addEventListener('storage', event => {
+  if (event.key === SCHEDULE_KEY || event.key === null) { PracticeSchedule.reload(); refreshPractice(); }
+  if (event.key === 'kibitz.repertoireReviews' || event.key === null) { DrillReviews.reload(); refreshPractice(); if (!DRILL) renderRepertoires(); }
 });
 
 // ---------------------------------------------------------------- Tabs & wiring
@@ -4340,6 +4414,7 @@ function openTab(name) {
   if (name === 'library') renderLibrary();
   if (name === 'reading') renderReading();
   if (name === 'openings') renderOpeningExplorer();
+  if (name === 'lessons') refreshPractice();
   store.set('tab', name);
 }
 // Reviewing a live game is an explicit pause. Keep both boards, including the review cursor and
@@ -4552,7 +4627,7 @@ $('#btnStudyPlan').addEventListener('click', studyPlan);
 $('#btnAddRef').addEventListener('click', addRef);
 document.addEventListener('keydown', e => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
-  if (document.activeElement?.closest('.lesson-player')) return;
+  if (document.activeElement?.closest('.lesson-player, #drillPanel')) return;
   if (SCRATCH && ['ArrowLeft', 'ArrowRight', 'Escape'].includes(e.key)) { e.preventDefault(); if (e.key === 'Escape') closeScratch(); else stepScratch(e.key === 'ArrowLeft' ? -1 : 1); return; }
   if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(S.cursor - 1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); goTo(S.cursor + 1); }

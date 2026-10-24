@@ -50,6 +50,10 @@ The **Problems** filter browses four mates in one and eight studies/reflections,
 
 With board relevance enabled, **Include similar pawn structures** optionally admits at least 75% colour-specific pawn-square overlap. Match details show shared and unmatched squares; exact positions keep their own label. [Pawn distance and its limits](../docs/PAWN-DISTANCE.md) include an offline benchmark (`just retrieval-eval --mode pawns`) and the known miss when the only pawn advances one square. The option defaults off and sends no new request until Search.
 
+## Spaced practice
+
+The Lessons tab's **Spaced practice** queue combines current lesson/puzzle tasks, repertoire recalls and selected-library own-game exercises. `src/player/schedule.js` reuses the opening interval heuristic; `schedule-ui.js` supplies the localized bounded queue. See [practice identity, acknowledgements and limits](../docs/PRACTICE.md). Schedules stay in this browser even when a game library uses the server.
+
 ## Server library
 
 Browser-only storage remains the default, and a hosted artifact keeps its account library. To offer a persistent local-server library, run from `site/`:

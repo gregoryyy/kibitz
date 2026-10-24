@@ -115,5 +115,6 @@ export function createOwnPuzzlePlayer(root, { Chess, mountBoard, engine, cancelE
     selected = Math.min(selected, Math.max(0, deck.length - 1)); render();
   }
   sync();
-  return { sync, close: () => { stop(); render(); }, setEngine: next => { stop(); engineRun = next; render(); }, destroy: () => { stop(); resize.disconnect(); root.replaceChildren(); } };
+  return { sync, candidates: () => deck.slice(), open: key => { const index = deck.findIndex(c => c.key === key); if (index >= 0) start(index); },
+    close: () => { stop(); render(); }, setEngine: next => { stop(); engineRun = next; render(); }, destroy: () => { stop(); resize.disconnect(); root.replaceChildren(); } };
 }

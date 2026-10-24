@@ -2,7 +2,7 @@
 
 TODO 9.3 adds **Review → Practise your own mistakes**. Choose a position from a compatible review of your own played games, then find a stronger move than the one recorded. Preparation and grading use the local Stockfish worker and chess.js. The independent board leaves the main game, clock, source records, lesson results and repertoire intact.
 
-This is a move-quality exercise rather than recall of a single historical line. Any legal alternative can qualify. Hints first name the origin square and then the reference move. Reveal exposes the checked example with a separate result; it does not receive independent-solve credit. Attempts and help are session-local in this milestone. Durable scheduling follows in 9.4.
+This is a move-quality exercise rather than recall of a single historical line. Any legal alternative can qualify. Hints first name the origin square and then the reference move. Reveal exposes the checked example with a separate result; it does not receive independent-solve credit. [Spaced practice](PRACTICE.md) saves completed scheduling receipts with help/miss counters; an unsaved receipt remains visible for retry in the tab.
 
 ## Candidates and fresh checking
 

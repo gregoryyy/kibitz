@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Local spaced practice across lessons, openings and own mistakes
+
+TODO items: 9.4 (implementation complete; full browser validation pending).
+
+### Implementation notes
+
+- Added `player/schedule.js` and `schedule-ui.js`: a localized Lessons queue combines oldest-due reviews before new tasks, with type/new filters, explicit/time-based refresh and a 20-item cap. Current lesson revisions, existing opening keys and selected-owner surviving own-exercise candidates define eligibility. New lessons follow the explanation-level ceiling while reviewed current tasks remain available.
+- Reused opening-drill intervals for all three types: misses/reveal/reflection-practice restart after ten minutes, help preserves at least a day and clean completion advances one/three/doubling days up to 180. Rules mate, recorded-line recall, engine-target results and rubric self-assessment retain separate labels and criteria. Unknown/illegal answers produce no completed receipt, and written responses never enter the scheduler.
+- Kept opening reviews canonical in their existing store. Lesson/own schedules use a bounded v1 envelope, exact task/target revisions, owner/source pointers, recent completion IDs, acknowledged writes and rereads before save. Old/future/corrupt data stays intact, failed saves retain receipts and delayed older results cannot replace newer due dates. Opening reviews gained reload/sequential-tab preservation and the same delayed-result protection.
+- Lesson progress acknowledges first, then a separate schedule receipt saves/retries without recounting the lesson. Own-game results show their grade independently of a failed scheduling save and expose retry in Review. Pending lesson scheduling remains visible even under restricted live help. Existing isolated players own grading; the queue opens the selected opening card or freshly qualifies an own target. Main-game/source/repertoire/policy guards reject held actions; focused opening boards now share the keyboard isolation boundary.
+- Ten unit scenarios exercise intervals/evidence, identities/revisions, ordering/filter/cap, owner/deletion boundaries, invalid data, failed writes/retries, sequential tabs and late results. Eight new browser cases cover due/reload/interval advancement, opening routing, source/target refresh, failed-save boundaries, future formats, task revisions, held policy/owner actions, literal names and German phone layout. Existing opening/lesson/own-player regressions also run unchanged.
+- Validation: ESLint/JSDoc checks, build, all 517 unit tests (one live-provider skip), 19 scheduling/opening logic cases and 16 focused browser cases pass; the earlier focused run also passed all existing opening/lesson regressions. Production dependency audit reports zero vulnerabilities. German phone screenshot inspected. The complete browser suite is running.
+
+### Deviations
+
+- Reused the project's existing deterministic interval heuristic rather than introducing a fitted memory model or dependency. No old lesson totals are retrospectively assigned invented intervals. Schedules remain browser-local and owner-scoped rather than synchronized with a selected server library.
+- Lesson counters and scheduling are separate acknowledged keys, not a cross-key transaction. Closing/reloading loses unsaved in-tab receipts; bounded retry IDs do not promise indefinite deduplication. Simultaneous localStorage writers still lack a transaction. [Practice lifecycle](PRACTICE.md) records these limits, date assumptions, caps and revision retention.
+
+### Insights
+
+- A due queue can share timing without conflating what each activity establishes. Keeping self-assessment, recall, engine evidence and rules mate visible is necessary before later personalization can interpret the records.
+
 ## 2026-10-24 — Freshly checked exercises from own-game mistakes
 
 TODO items: 9.3.

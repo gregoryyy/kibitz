@@ -85,3 +85,33 @@ test('the real WASM engine prepares a missed mate, and another actual mate succe
   await expect(page.locator('#ownPuzzleChoice')).toBeVisible(); const before = await S(page); await start(page, 'Missed mate before stalemate'); await answer(page, 'Qf8#');
   await expect(page.locator('#ownPuzzleStatus')).toHaveText('Checkmate, verified by the chess rules.'); expect(await S(page)).toEqual(before);
 });
+
+test('own-mistake schedules persist separately, open through the due queue and recheck the target', async ({ page }) => {
+  await setup(page); await start(page); await answer(page, 'Kd2');
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kibitz.practiceSchedule')));
+  expect(saved.entries[0]).toMatchObject({ card: { kind: 'own' }, basis: 'engine-target', record: { reviews: 1, intervalDays: 1 } });
+  await page.clock.setFixedTime(saved.entries[0].record.due + 1); await page.locator('[data-tab="lessons"]').click();
+  await page.locator('#practiceType').selectOption('own'); await page.locator('#practiceNew').uncheck();
+  await expect(page.locator('#practiceQueue > li')).toHaveCount(1); const calls = await page.evaluate(() => window.__ownCalls.length);
+  await page.locator('#practiceQueue button').click(); await expect(page.locator('#ownPuzzleMove')).toBeEnabled();
+  expect(await page.evaluate(() => window.__ownCalls.length)).toBe(calls + 3); await answer(page, 'Kd2');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kibitz.practiceSchedule')).entries[0].record.intervalDays)).toBe(3);
+  await page.locator('[data-tab="lessons"]').click(); await page.locator('#practiceNew').check();
+  await page.locator('#practiceQueue button').evaluate(button => { window.__heldOwnQueue = button; });
+  await page.locator('[data-tab="library"]').click(); await page.locator('#libUseServer').click(); await expect(page.locator('#libWhere')).toHaveText('Saved on this server');
+  await page.locator('[data-tab="lessons"]').click(); await expect(page.locator('#practiceCounts')).toHaveText('Due: 0 · new: 0 · upcoming: 0');
+  await page.evaluate(() => window.__heldOwnQueue.click()); await expect(page.locator('[data-pane="lessons"]')).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kibitz.practiceSchedule')).entries)).toHaveLength(1);
+});
+
+test('own grading remains visible when a schedule save fails and its source-bound receipt retries once', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__failOwnSchedule = true; const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) { if (key === 'kibitz.practiceSchedule' && window.__failOwnSchedule) throw new DOMException('quota', 'QuotaExceededError'); return set.call(this, key, value); };
+  });
+  await setup(page); await start(page); await answer(page, 'Kd2');
+  await expect(page.locator('#ownPuzzleStatus')).toHaveText('Your move meets the engine target.'); await expect(page.locator('#ownPracticeSaveStatus')).toContainText('Pending practice results: 1');
+  await page.evaluate(() => { window.__failOwnSchedule = false; }); await page.locator('#ownPracticeRetry').click();
+  await expect(page.locator('#ownPracticeRetry')).toBeHidden(); await expect(page.locator('#ownPracticeSaveStatus')).toContainText('saved in this browser');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kibitz.practiceSchedule')).entries[0].record.reviews)).toBe(1);
+});
