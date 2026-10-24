@@ -1,9 +1,10 @@
 // Original Kibitz teaching material; no imported prose or external puzzle database (TODO 6.1).
+import { TACTICS } from './tactics.js';
 const words = (en, de) => ({ en, de });
 const source = { title: words('Kibitz original curriculum', 'Kibitz: eigene Lerninhalte'), author: 'Kibitz contributors', licence: 'GPL-3.0-or-later' };
 /** @type {import('./curriculum.js').Curriculum} */
 export const CURRICULUM = { version: 1, source, modules: [
-  { id: 'tactics', title: words('Tactical foundations', 'Taktische Grundlagen'), level: 1, tags: ['mate', 'back-rank'], lessons: [
+  { id: 'tactics', title: words('Tactical foundations', 'Taktische Grundlagen'), level: 1, tags: [...new Set(['mate', 'back-rank', ...TACTICS.flatMap(l => l.tags)])], lessons: [
     { id: 'back-rank-mate', title: words('A trapped king on the back rank', 'Ein gefangener König auf der Grundreihe'), level: 1, tags: ['mate', 'back-rank'], prerequisites: [],
       introduction: words('A rook can give mate along the last rank when the enemy king has no safe square. Pawns in front of the king can block its escape. Check every escape square and every way to capture or block the checking piece.', 'Ein Turm kann auf der Grundreihe mattsetzen, wenn der gegnerische König kein sicheres Feld hat. Die eigenen Bauern vor dem König können die Flucht versperren. Prüfe alle Fluchtfelder und ob die Schachfigur geschlagen oder ihr Schach abgewehrt werden kann.'),
       objectives: [words('Identify the checking line and the king’s escape squares.', 'Erkenne die Schachlinie und die Fluchtfelder des Königs.'), words('Distinguish check from checkmate by checking every legal reply.', 'Unterscheide Schach und Matt, indem du alle legalen Antworten prüfst.')],
@@ -15,6 +16,7 @@ export const CURRICULUM = { version: 1, source, modules: [
           prompt: words('Black to move: find a checkmate in one move.', 'Schwarz am Zug: Finde ein Matt in einem Zug.'), fen: '4r1k1/5ppp/8/8/8/8/5PPP/6K1 b - - 0 1', line: ['e8e1'],
           rubric: [words('The same escape-square check works for either colour.', 'Dieselbe Prüfung der Fluchtfelder funktioniert für beide Farben.')] },
       ] },
+    ...TACTICS,
   ] },
   { id: 'strategy', title: words('Planning foundations', 'Grundlagen der Planung'), level: 2, tags: ['planning', 'king-activity'], lessons: [
     { id: 'active-king', title: words('Give the king a useful role', 'Gib dem König eine aktive Rolle'), level: 2, tags: ['planning', 'king-activity', 'pawn-endgame'], prerequisites: [],

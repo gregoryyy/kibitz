@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Tactical concept lessons and defensive counterexample
+
+TODO items: 6.2.
+
+### Implementation notes
+
+- Expanded `src/curriculum/tactics.js` with twelve original English/German lessons alongside the existing back-rank lesson, covering all thirteen listed tactical themes. The full catalogue now contains fifteen lessons and eighteen exercises across three modules. Levels and acyclic prerequisites keep basic relationships before intermediate/advanced combinations.
+- Added optional exercise `pattern` metadata. The compiler requires a known, tagged motif present in the existing move/line detectors for the recorded legal example. This verifies the claimed geometric relationship; it does not certify a best move, forced line or material payoff. Multi-move illustrative branches remain reflection exercises; mate goals still require terminal checkmate.
+- Added a capturable-fork counterexample with the legal defending rook capture recorded. Deflection/overloading lessons compare the same relationship from different perspectives; prose asks readers to check alternative defences. The new queen/bishop mate example ends in rules-verified checkmate.
+- Four new unit scenarios check complete theme coverage, bilingual examples, the concrete defensive capture, false/untagged pattern rejection and level/theme filtering. Two browser scenarios browse the full tactics module, the counterexample and an advanced theme, including German phone layout. Updated the catalogue count expectations.
+- Verification: ESLint, JSDoc type checking and build pass; 374 unit/gateway tests and 218 browser tests pass, with one opt-in live test skipped per suite. Provider requests use mocks or fake clients.
+
+### Deviations
+
+- This completes authored tactical material for catalogue use. Interactive solving and grading remain 6.6. Recorded branches and geometric recognition are explicitly separated from engine-confirmed tactical strength; no empirical difficulty or learner-benefit claim is made.
+
+### Insights
+
+- A legal refuting capture is a useful teaching example: a fork can be correctly recognized while the move loses its knight. A motif label must not serve as a correctness grade.
+- The same legal branch can illustrate deflection and overloading. Explicit objectives and rubrics explain the relationship without treating either label as a new proof of strength.
+
+---
+
 ## 2026-10-24 — Curriculum records and Lessons catalogue
 
 TODO items: 6.1.
