@@ -228,6 +228,15 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .opening-guide h4 { margin: 6px 0; }
 .opening-guide dt { font-weight: 600; margin-top: 8px; }
 .opening-guide dd { margin: 4px 0; }
+.curriculum-filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.curriculum-filters label { flex: 1 1 140px; display: grid; gap: 5px; min-width: 0; }
+.curriculum-filters select { width: 100%; min-width: 0; }
+.curriculum-module { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 12px 0; overflow-wrap: anywhere; }
+.curriculum-module h3 { margin: 0 0 10px; font-size: 16px; }
+.curriculum-lesson { border-top: 1px solid var(--line); padding: 10px 0; }
+.curriculum-lesson summary { cursor: pointer; }
+.curriculum-lesson h4 { margin: 12px 0 6px; }
+.curriculum-lesson li { margin-bottom: 6px; }
 #namedOpeningBody { display: grid; gap: 10px; padding-top: 12px; }
 #namedOpeningBody > p { margin: 0; }
 .named-opening-list { display: grid; gap: 10px; max-height: min(340px, 45vh); overflow-y: auto; overscroll-behavior: contain; padding: 3px; }
@@ -245,6 +254,36 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 #drillBoard { width: 100%; height: 100%; }
 #drillPosition, #drillLineName { overflow-wrap: anywhere; }
 #drillFeedback { margin: 0; }
+.lesson-player { display: grid; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.lesson-player p, .lesson-player h3 { margin: 0; }
+.lesson-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.lesson-board-wrap { width: min(100%, 420px); aspect-ratio: 1; }
+#lessonBoard, #ownPuzzleBoard { width: 100%; height: 100%; }
+.lesson-task { display: grid; align-content: start; gap: 12px; min-width: 0; overflow-wrap: anywhere; }
+.lesson-controls { flex-wrap: wrap; }
+#lessonMove { min-width: 0; width: auto; flex: 1; }
+#lessonLine { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; }
+#lessonLine [aria-pressed="true"] { border-color: var(--accent); }
+#libFilter { flex-wrap: wrap; max-width: 100%; }
+.library-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 10px; }
+.library-filters label { display: grid; gap: 4px; min-width: 0; }
+.library-filters input, .library-filters select { width: 100%; min-width: 0; }
+#libStoragePanel { border: 1px solid var(--line); border-radius: var(--r); padding: 12px; margin: 12px 0; }
+.lesson-promotion, .lesson-play-confirm { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; max-width: calc(100vw - 32px); }
+.lesson-promotion::backdrop, .lesson-play-confirm::backdrop { background: rgb(0 0 0 / .35); }
+.lesson-promotion button, .lesson-play-confirm button { margin: 8px 4px 0 0; }
+.lesson-play-confirm { width: 460px; }
+.lesson-play-controls { display: grid; gap: 8px; }
+.lesson-play-controls .row { flex-wrap: wrap; }
+.lesson-progress { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.lesson-progress p, .lesson-progress h3 { margin: 0; }
+.lesson-progress summary { cursor: pointer; }
+.lesson-progress-table { table-layout: fixed; width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.lesson-progress-table caption { text-align: left; font-weight: 600; margin-bottom: 6px; }
+.lesson-progress-table th, .lesson-progress-table td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 6px; overflow-wrap: anywhere; }
+.lesson-progress-table th:first-child { width: 32%; }
+.lesson-progress-table th:nth-child(2) { width: 17%; }
+@media (max-width: 600px) { .lesson-content { grid-template-columns: minmax(0, 1fr); } }
 .tabs .count { font: 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
 .pane { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .pane h2, .settings h2 { font: 600 18px/1.2 var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
@@ -464,6 +503,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <button role="tab" data-tab="library" aria-selected="false">Library<span class="count" id="libCount"></span></button>
       <button role="tab" data-tab="reading" aria-selected="false">Reading</button>
       <button role="tab" data-tab="openings" aria-selected="false">Openings</button>
+      <button role="tab" data-tab="lessons" aria-selected="false">Lessons</button>
       </div>
     </div>
 
@@ -516,15 +556,37 @@ a.ext { color: var(--accent); font-size: 14px; }
       </div>
     </div>
 
+    <div class="pane" data-pane="lessons" hidden>
+      <h2>Lessons</h2>
+      <p class="hint">Explore modules, lesson goals and exercises by level or theme.</p>
+      <section class="box" id="practiceSchedule" aria-label="Spaced practice"></section>
+      <section id="lessonProgress" aria-label="Lesson progress"></section>
+      <section id="lessonPlayer" hidden aria-label="Lesson player"></section>
+      <div id="curriculumPanel"></div>
+    </div>
+
     <div class="pane" data-pane="review" hidden>
       <div class="row"><h2 style="margin-right:auto" id="reviewTitle">Game review</h2><button class="btn primary" id="btnReview">Run review</button><button class="btn" id="btnReviewStop" hidden>Stop</button></div>
       <p class="hint" id="reviewGame" translate="no"></p>
       <div class="progress" id="reviewProgress" hidden><div></div></div>
+      <p class="hint" id="reviewStage" role="status" hidden></p>
       <div id="reviewBody"><p class="empty-note">Play or load a game, then run the review. Stockfish checks every position at the depth set on the Game tab, scores each move, and finds the turning points. Claude then writes the summary.</p></div>
+      <section class="box" id="reviewHistory" aria-label="Review trends"></section>
+      <section class="box" id="ownPuzzlePlayer" aria-label="Own-game practice"></section>
+      <div id="ownPracticeSave"><p id="ownPracticeSaveStatus" role="status" translate="no"></p><button type="button" class="btn small" id="ownPracticeRetry" hidden>Retry practice saves</button></div>
     </div>
 
     <div class="pane" data-pane="library" hidden>
       <div class="row"><h2 style="margin-right:auto">Games library</h2><span class="hint" id="libWhere"></span></div>
+      <section class="box" id="libStoragePanel" aria-label="Library storage" hidden>
+        <p class="hint">The browser library and server library stay separate. Switching does not copy games or references.</p>
+        <div class="row" style="flex-wrap:wrap">
+          <button class="btn small" id="libUseServer" aria-pressed="false">Use server library</button>
+          <button class="btn small ghost" id="libUseBrowser" aria-pressed="true">Use browser library</button>
+          <button class="btn small ghost" id="libServerRefresh">Refresh server library</button>
+        </div>
+        <p class="hint" id="libStorageStatus" role="status" aria-live="polite" translate="no" data-raw></p>
+      </section>
       <section class="study-search" aria-labelledby="studySearchTitle">
         <h3 id="studySearchTitle">Search study text</h3>
         <p class="hint" id="studySearchLocked" hidden>Study text is hidden while you play. Choose Full engine help or finish the game to search.</p>
@@ -561,15 +623,43 @@ a.ext { color: var(--accent); font-size: 14px; }
         <p class="hint" id="studySearchStatus" role="status" aria-live="polite"></p>
         <div id="studySearchResults" class="lib-list"></div>
       </section>
+      <details class="box" id="patternSearch">
+        <summary>Search detected patterns</summary>
+        <p class="hint" data-pattern="locked" hidden>Patterns are hidden while you play. Choose Full engine help or finish the game to search.</p>
+        <div data-pattern="controls">
+          <p class="hint">Browse themes and recorded moves. Candidates do not prove a forced tactic or best plan.</p>
+          <div class="library-filters">
+            <label for="patternTag">Detected pattern<select id="patternTag" data-pattern="tag"><option value="">Choose a pattern</option></select></label>
+            <label for="patternCollection">Pattern sources<select id="patternCollection" data-pattern="collection"><option value="">All games and studies</option><option value="library">My games and studies</option><option value="classic">Classics and problems</option></select></label>
+            <label for="patternStatus">Pattern evidence<select id="patternStatus" data-pattern="status"><option value="">Any evidence class</option><option value="heuristic">Position heuristics</option><option value="candidate">Move candidates</option><option value="rules">Rules-checked facts</option></select></label>
+          </div>
+        </div>
+        <p class="hint" data-pattern="message" role="status" translate="no"></p>
+        <div class="lib-list" data-pattern="results" translate="no"></div>
+      </details>
       <div class="row">
-        <input type="text" id="libSearch" placeholder="Search player, opening, result" style="flex:1;min-width:160px">
-        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button></div>
+        <input type="search" id="libSearch" aria-label="Search games" placeholder="Search player, opening, year, result, theme" maxlength="200" style="flex:1;min-width:160px">
+        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button><button data-v="problems" aria-pressed="false">Problems</button></div>
       </div>
+      <details class="box" id="libSearchFilters">
+        <summary>Filter games</summary>
+        <div class="library-filters">
+          <label for="libPlayer">Player (either colour)<input id="libPlayer" maxlength="200" type="search"></label>
+          <label for="libOpening">Opening or ECO<input id="libOpening" maxlength="200" type="search"></label>
+          <label for="libYearFrom">From year<input id="libYearFrom" type="text" inputmode="numeric" maxlength="4" aria-describedby="libSearchHelp libSearchStatus"></label>
+          <label for="libYearTo">To year<input id="libYearTo" type="text" inputmode="numeric" maxlength="4" aria-describedby="libSearchHelp libSearchStatus"></label>
+          <label for="libResult">Recorded result<select id="libResult"><option value="">Any result</option><option value="1-0">White wins</option><option value="1/2-1/2">Draw</option><option value="0-1">Black wins</option><option value="*">Unfinished / unknown</option></select></label>
+          <label for="libTheme">Theme<select id="libTheme"><option value="">All themes</option></select></label>
+        </div>
+        <p class="hint" id="libSearchHelp">Filters combine. Years use recorded dates; unknown years are excluded from a year range. Themes are catalogue metadata.</p>
+      </details>
+      <div class="row"><p class="hint" id="libSearchStatus" role="status" aria-live="polite" translate="no" data-raw></p><button class="btn small ghost" id="libSearchClear">Clear search</button></div>
       <div id="libList" class="lib-list"></div>
       <details class="box"><summary>Import PGN (games or annotated studies)</summary>
         <div class="field"><textarea id="importText" rows="5" placeholder="Paste one or more PGN games. Comments in { } are indexed so the coach can quote them when a similar position comes up."></textarea></div>
+        <p class="hint">Repeated copies are skipped; different annotations or source details stay separate.</p>
         <details><summary>Source and licences (optional)</summary><div id="importSourceFields"></div></details>
-        <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg"></span></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg" role="status" aria-live="polite" data-raw translate="no"></span></div>
       </details>
       <div class="row"><button class="btn small" id="btnSaveCurrent">Save current game</button><button class="btn small" id="btnExportAll">Copy all as PGN</button></div>
     </div>
@@ -666,9 +756,23 @@ a.ext { color: var(--accent); font-size: 14px; }
     <section class="settings-sec">
       <h3>General</h3>
       <div class="field"><label class="lbl-sm" for="optLang">Language</label><select id="optLang" class="lang" translate="no"></select></div>
+    </section>
+    <section class="settings-sec" id="playerProfile">
+      <h3>Player profile</h3>
       <div class="field"><span class="lbl-sm">Your level (sets the coach's language and reading list)</span>
         <div class="choice" id="optLevel"><button data-v="1" aria-pressed="false">Beginner</button><button data-v="2" aria-pressed="true">Club</button><button data-v="3" aria-pressed="false">Advanced</button><button data-v="4" aria-pressed="false">Expert</button></div>
       </div>
+      <form data-profile="form">
+        <div class="library-filters">
+          <label for="profileRating">Your rating estimate (optional)<input id="profileRating" data-profile="rating" type="text" inputmode="numeric" maxlength="4" aria-describedby="profileHelp profileMessage"></label>
+          <label for="profilePool">Rating pool<select id="profilePool" data-profile="pool"></select></label>
+          <label for="profileTimeControl">Rating time control<select id="profileTimeControl" data-profile="timeControl"></select></label>
+        </div>
+        <div class="field" style="margin-top:8px"><label for="profileGoals">Learning goals</label><textarea id="profileGoals" data-profile="goals" rows="3" maxlength="500" translate="no" aria-describedby="profileHelp profileMessage"></textarea></div>
+        <p class="hint" id="profileHelp">Saved in this browser. Your level, rating and goals accompany coach requests. Ratings are your own report, not a measured Kibitz rating.</p>
+        <div class="row"><button class="btn small primary" type="submit" data-profile="save">Save profile</button><button class="btn small" type="button" data-profile="reload">Reload profile</button></div>
+      </form>
+      <p class="hint" id="profileMessage" role="status" data-profile="message" translate="no"></p>
     </section>
     <section class="settings-sec">
       <h3>Coach</h3>
@@ -704,6 +808,11 @@ import { Chessground } from './chessground.js';
 import * as K from './chess/knowledge.js';
 import { Engine, stockfishAttempts } from './chess/engine.js';
 import { createStore, browserStorage } from './platform/store.js';
+import { createProfileStore, profileKey, profileContext, PROFILE_KEY } from './player/profile.js';
+import { createProfilePanel } from './player/profile-ui.js';
+import { buildReviewReport, summarizeReviews, REVIEW_VERSION } from './player/reviews.js';
+import { renderReviewHistory } from './player/review-history.js';
+import { createOwnPuzzlePlayer } from './player/puzzle-player.js';
 import { gameCheckpoint } from './chess/sessions.js';
 import { quote } from './coach/prompt.js';
 import { createBrowserModel, cpuThreads } from './coach/browser-llm.js';
@@ -712,6 +821,16 @@ import { STYLES, styleOf, pickStyled } from './chess/style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './chess/modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './library/classics.js';
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
+import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
+import { gameSearchData, gameSearchMetadata, filterGames } from './library/search.js';
+import { buildPatternIndex } from './library/patterns.js';
+import { createPatternBrowser } from './library/pattern-browser.js';
+import { createServerLibrary } from './library/server-session.js';
+import { CURATED_PROBLEMS } from './library/problem-data.js';
+import { verifiedProblemEvidence } from './library/problems.js';
+import { PROBLEM_TABLEBASES } from './library/problem-tablebases.js';
+import { TABLEBASE_SNAPSHOTS } from './curriculum/tablebase-snapshots.js';
+import { tablebaseIndex } from './curriculum/tablebase.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings/openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './openings/opening-guides.js';
 import { annotationPassages, guidePassages, searchText } from './library/text-search.js';
@@ -731,6 +850,22 @@ import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/
 import { sanToSpeech, parseMoveInput } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import DE from './platform/i18n-de.js';
+import { compileCurriculum, lessonText } from './curriculum/curriculum.js';
+import { CURRICULUM } from './curriculum/catalogue.js';
+import { createCurriculumPanel } from './curriculum/ui.js';
+import { createLessonPlayer } from './curriculum/player.js';
+import { createLessonProgressStore, summarizeLessonProgress, lessonProgressIndex, LESSON_PROGRESS_KEY } from './curriculum/progress.js';
+import { createPracticeSchedule, ownPracticeCards, lessonScheduleReceipt, scheduleCardKey, SCHEDULE_KEY } from './player/schedule.js';
+import { createPracticePanel } from './player/schedule-ui.js';
+import { createLessonProgressPanel } from './curriculum/progress-ui.js';
+import { prepareLessonGame } from './curriculum/playout.js';
+import { confirmLessonGame } from './curriculum/playout-confirm.js';
+
+let lessonPlayer = null;
+let ownPuzzlePlayer = null;
+let refreshLessonProgress = () => {};
+let refreshPractice = () => {};
+let lessonGameTail = Promise.resolve();
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -744,7 +879,7 @@ const el = (tag, attrs = {}, ...kids) => {
   for (const k of kids.flat()) if (k !== null && k !== undefined && k !== false) n.append(k.nodeType ? k : String(k));
   return n;
 };
-const LEVELS = { 1: 'beginner (under 1200)', 2: 'club player (1200–1800)', 3: 'advanced player (1800–2200)', 4: 'expert (2200+)' };
+const LEVELS = { 1: 'beginner', 2: 'club player', 3: 'advanced player', 4: 'expert' };
 const GLYPH = { inaccuracy: '?!', mistake: '?', blunder: '??', best: '', good: '', book: '' };
 const CLS_LABEL = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', best: 'the best move', good: 'a good move', book: 'a book move' };
 const store = createStore(browserStorage());
@@ -894,9 +1029,11 @@ analyst.ready.then(() => {
 
 // ---------------------------------------------------------------- State
 const saved = store.get('settings', {});
+const PlayerProfile = createProfileStore(browserStorage(), { legacyLevel: saved.level });
+let activeProfileKey = profileKey(PlayerProfile.value);
 const S = {
   mode: 'play', userColor: saved.userColor || 'w', colorPick: saved.colorPick || 'w', elo: saved.elo || 1400, style: styleOf(saved.style).id,
-  help: saved.help || 'flags', level: saved.level || 2, depth: saved.depth || 14, orientation: 'white',
+  help: saved.help || 'flags', level: PlayerProfile.value.level, depth: saved.depth || 14, orientation: 'white',
   start: START, nodes: [{ fen: START, ply: 0 }], cursor: 0, over: null, thinking: false, hints: 0,
   gameId: null, meta: null, playing: false, reviewDone: false, summary: '', comments: {},
   gen: 0, // bumped whenever the game is replaced, so async work started for the old game can tell it's stale
@@ -934,7 +1071,7 @@ function loadNamedOpenings() {
   return namedRequest;
 }
 loadNamedOpenings();
-fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); })
+fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); renderLibrary(); })
   .catch(() => toast('Opening names could not be loaded. Everything else still works.'));
 function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth, tc: S.tc, startKind: S.startPick.kind, startOpening: S.startPick.opening, startFen: S.startPick.fen, aspects: S.aspects, commentWhen: S.commentWhen, quickInBrowser: S.quickInBrowser, lines: S.lines, window: S.window }); }
 
@@ -1029,6 +1166,9 @@ function canMove() {
 }
 let previewing = false, namedPreview = null; // previews never change game/scratch state
 function syncBoard(refreshOpenings = true) {
+  lessonPlayer?.sync();
+  ownPuzzlePlayer?.sync();
+  refreshPractice();
   namedPreview = null;
   if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
   // A scratch board stays until the game moves on or changes under it (a move, navigation, a load).
@@ -1203,7 +1343,7 @@ async function analyse(fen, depth, tag = 'live', onInfo) {
   return anaOf(fen);
 }
 function toWhite(lines, stm) {
-  return lines.filter(Boolean).map(l => ({ pv: l.pv, depth: l.depth, score: stm === 'w' ? { ...l.score } : (l.score.mate !== undefined ? { mate: -l.score.mate } : { cp: -l.score.cp }) }));
+  return lines.filter(Boolean).map(l => ({ pv: l.pv, depth: l.depth, ...(l.bound ? { bound: l.bound } : {}), score: stm === 'w' ? { ...l.score } : (l.score.mate !== undefined ? { mate: -l.score.mate } : { cp: -l.score.cp }) }));
 }
 function classifyNode(i) {
   if (i < 1) return;
@@ -1391,11 +1531,17 @@ function newGame({ confirmed = false } = {}) {
   }
   let start = startPosition();
   if (start.error) { toast(start.error + ' Starting from the normal position instead.'); start = { fen: START, sans: [], title: null }; }
+  beginGame(start);
+}
+// Both the start form and a validated lesson request use the same engine/clock lifecycle.
+function beginGame(start, { color = null } = {}) {
+  const nodes = nodesFor(start.fen, start.sans);
   cancelChat(); CHAT.undo = []; CHAT.returnGame = null; CHAT.studyBoard = null; CHAT.studyCheckpoint = null; CHAT.general = false; CHAT.generalTurns = [];
+  $('#confirmSlot').replaceChildren();
   analyst.cancel(); cancelReply(); S.gen++;
   S.mode = 'play'; S.start = start.fen; S.over = null; S.thinking = false; S.hints = 0;
-  S.nodes = nodesFor(start.fen, start.sans); S.startPly = start.sans.length; S.cursor = last();
-  S.userColor = S.colorPick === 'r' ? (Math.random() < .5 ? 'w' : 'b') : S.colorPick;
+  S.nodes = nodes; S.startPly = start.sans.length; S.cursor = last();
+  S.userColor = color || (S.colorPick === 'r' ? (Math.random() < .5 ? 'w' : 'b') : S.colorPick);
   S.orientation = S.userColor === 'w' ? 'white' : 'black';
   S.gameId = 'g' + Date.now().toString(36); S.meta = start.title ? { title: start.title } : null; S.playing = true; S.reviewDone = false; S.summary = ''; S.comments = {};
   const tc = timeControlOf(S.tc); S.gameTc = tc.base ? tc : null; S.clock = tc.base ? newClock(tc) : null;
@@ -1446,9 +1592,46 @@ async function offerDraw() {
   toast('Stockfish declines the draw and plays on.'); renderControls();
 }
 function confirmBox(text, yesLabel, onYes) {
-  const slot = $('#confirmSlot'); slot.replaceChildren(el('div', { class: 'confirm' }, el('span', {}, text), el('span', { class: 'spacer' }),
-    el('button', { class: 'btn small primary', onclick: () => { slot.replaceChildren(); onYes(); } }, yesLabel),
-    el('button', { class: 'btn small', onclick: () => slot.replaceChildren() }, 'Cancel')));
+  const slot = $('#confirmSlot'), gen = S.gen;
+  const box = el('div', { class: 'confirm' }, el('span', {}, text), el('span', { class: 'spacer' }),
+    el('button', { class: 'btn small primary', onclick: () => {
+      if (!box.isConnected || !slot.contains(box)) return;
+      slot.replaceChildren(); if (S.gen === gen) onYes();
+    } }, yesLabel),
+    el('button', { class: 'btn small', onclick: () => { if (slot.contains(box)) slot.replaceChildren(); } }, 'Cancel'));
+  slot.replaceChildren(box);
+}
+
+/** Start only the captured lesson/main-game context; a failed save never replaces the game. */
+async function playLessonPosition(request) {
+  // An aborted earlier request may still be saving a detached snapshot. Wait for its cleanup.
+  const previous = lessonGameTail; let release;
+  lessonGameTail = new Promise(resolve => { release = resolve; });
+  await previous;
+  try {
+    if (request.signal.aborted || !request.isCurrent()) return { cancelled: true };
+    const prepared = prepareLessonGame(Chess, request); if (prepared.error) return { error: prepared.error };
+    const gameKey = () => JSON.stringify([gameCheckpoint(S), S.meta, S.comments]);
+    const gen = S.gen, checkpoint = gameKey();
+    const current = () => !request.signal.aborted && request.isCurrent() && S.gen === gen && gameKey() === checkpoint;
+    if (S.playing && S.nodes.length > 1) {
+      const confirmed = await confirmLessonGame(document, { side: t(request.color === 'w' ? 'White' : 'Black'), signal: request.signal, t });
+      if (!confirmed) return { cancelled: true };
+      if (!current()) return { error: 'The current game changed. Start the lesson position again when ready.' };
+      const record = currentRecord({ result: '*' });
+      // A packaged example is copied, never overwritten by a played variant.
+      if (record.kind === 'example') { record.id = 'g' + Date.now().toString(36); record.kind = 'study'; }
+      const saved = await Lib.putGame(record);
+      if (!current()) return request.signal.aborted || !request.isCurrent() ? { cancelled: true }
+        : { error: 'The current game changed. Start the lesson position again when ready.' };
+      if (!saved) return { error: 'The current game could not be saved. The lesson position has not been started.' };
+    }
+    if (!current()) return { cancelled: true };
+    beginGame(prepared.start, { color: prepared.color });
+    openTab('game'); $('.boardcol').scrollIntoView({ block: 'start' });
+    (canMove() ? $('#moveInput') : $('[data-tab="game"]')).focus();
+    return {};
+  } finally { release(); }
 }
 async function hint() {
   const fen = nodeFen(), i = S.cursor, gen = S.gen;
@@ -1543,26 +1726,53 @@ const LOCAL_FULL = 'Browser storage is full, so this wasn\'t saved. Delete some 
 let libLoaded;
 const Lib = {
   where: 'loading', games: new Map(), books: new Map(), db: null, uid: null, unsub: [], indexed: Promise.resolve(),
+  storageGen: 0, serverSnapshot: null, serverReady: Promise.resolve(),
+  importAcks: new Map(), // acknowledged account imports not yet delivered by the account snapshot
   // Writes wait for this, so a save during start-up can't overwrite the stored library with an empty one.
   ready: new Promise(r => { libLoaded = r; }),
   async init() {
+    const gen = ++this.storageGen;
     const [db, user] = await Promise.all([use('db'), use('user')]);
     let uid = null; try { uid = user ? await user.id() : null; } catch { /* no signed-in user: local library */ }
+    if (gen !== this.storageGen) return;
     if (db && uid) {
       this.db = db; this.uid = uid; this.where = 'cloud';
       const base = db.doc(`data/users/${uid}/kibitz`);
       this.gamesCol = base.collection('games'); this.booksCol = base.collection('books');
-      this.unsub.push(this.gamesCol.onSnapshot(s => { this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => this.fallback({ lost: true })));
-      this.unsub.push(this.booksCol.onSnapshot(s => { this.books = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => {}));
+      this.unsub.push(this.gamesCol.onSnapshot(s => {
+        if (gen !== this.storageGen || this.where !== 'cloud' || this.uid !== uid) return;
+        this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
+        for (const id of this.importAcks.keys()) if (this.games.has(id)) this.importAcks.delete(id);
+        onLibChange();
+      }, () => { if (gen === this.storageGen) this.fallback({ lost: true }); }));
+      this.unsub.push(this.booksCol.onSnapshot(s => { if (gen !== this.storageGen || this.where !== 'cloud' || this.uid !== uid) return; this.books = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => {}));
       libLoaded();
-    } else this.fallback();
+    } else if (!HOSTED && store.get('serverLibrary', false) === true) await this.useServer();
+    else this.fallback();
+  },
+  context() { return `${this.storageGen}:${this.where}:${this.uid || ''}`; },
+  leaveSource() {
+    this.storageGen++;
+    for (const unsubscribe of this.unsub.splice(0)) { try { unsubscribe(); } catch { /* old hosted callback is also guarded by its generation */ } }
+    this.importAcks.clear();
+  },
+  async useServer() {
+    if (this.where === 'cloud' || importBusy) return;
+    this.leaveSource(); const gen = this.storageGen;
+    this.where = 'server'; this.uid = null; this.db = null; this.serverSnapshot = null;
+    this.games = new Map(); this.books = new Map(); onLibChange();
+    if (!store.set('serverLibrary', true)) toast('The library selection could not be remembered for reload.');
+    this.serverReady = SERVER_LIBRARY.connect().catch(error => { if (gen === this.storageGen && error.code !== 'library_cancelled') toast('The server library is unavailable.'); })
+      .finally(() => { libLoaded(); renderLibraryStorage(); });
+    await this.serverReady;
   },
   fallback({ lost = false } = {}) {
     if (lost) toast('Your account library is unavailable. Saving in this browser until you reload.');
-    this.where = 'local'; this.db = null;
+    this.leaveSource(); this.where = 'local'; this.db = null; this.uid = null; this.serverSnapshot = null; SERVER_LIBRARY.disconnect();
     this.games = new Map((store.get('games', [])).map(g => [g.id, g]));
     this.books = new Map((store.get('books', [])).map(b => [b.id, b]));
     libLoaded(); onLibChange();
+    if (!HOSTED) void SERVER_LIBRARY.probe();
   },
   persistLocal(map) { return store.set(map === this.games ? 'games' : 'books', [...map.values()]); },
   // Applies a change to the local maps and persists it; on failure the change is undone and reported.
@@ -1574,8 +1784,12 @@ const Lib = {
   },
   async putGame(g, options = {}) { return (await this.putGames([g], options)) === 1; },
   // Saves several games with one write (local) and one library refresh; returns how many were saved.
-  async putGames(list, { expected = null } = {}) {
+  async putGames(list, { expected = null, importReport = null } = {}) {
     await this.ready;
+    const selection = this.storageGen;
+    if (this.where === 'server') await this.serverReady;
+    if (selection !== this.storageGen) return 0;
+    const destination = this.context();
     try {
       list = list.map(g => {
         const p = readProvenance(g); if (!p.value) throw new Error();
@@ -1583,11 +1797,36 @@ const Lib = {
       });
       await Promise.all(list.map(g => librarySnapshot(g, 'library')));
     } catch { toast('Source metadata or PGN is invalid or unsupported. Stored games have been kept.'); return 0; }
+    if (destination !== this.context()) return 0;
     if (expected && this.games.get(expected.id) !== expected) return 0;
+    if (this.where === 'server') {
+      let count = 0;
+      try {
+        await SERVER_LIBRARY.change(current => {
+          if (destination !== this.context() || expected && this.games.get(expected.id) !== expected) throw { code: 'library_cancelled' };
+          let records = list;
+          if (importReport) { const plan = deduplicatePgnImport(Chess, records, current.games); records = plan.records; importReport.duplicates = plan.duplicates; }
+          count = records.length;
+          return records.map(g => ({ collection: 'games', id: g.id, record: g }));
+        });
+        if (destination !== this.context()) return 0;
+        await this.indexed; return destination === this.context() ? count : 0;
+      } catch { toast('The server save could not be confirmed. Refresh before retrying.'); return 0; }
+    }
+    if (importReport) {
+      // Recheck after asynchronous validation against the latest acknowledged library state.
+      const plan = deduplicatePgnImport(Chess, list, [...this.games.values(), ...this.importAcks.values()]);
+      list = plan.records; importReport.duplicates = plan.duplicates;
+    }
+    if (!list.length) return 0; // duplicate-only imports make no write or index change
     if (this.where === 'cloud') {
       let n = 0;
       for (const g of list) {
-        try { await this.gamesCol.doc(g.id).set(g); n++; }
+        try {
+          await this.gamesCol.doc(g.id).set(g); n++;
+          if (destination !== this.context()) return 0;
+          if (importReport && !this.games.has(g.id)) this.importAcks.set(g.id, g);
+        }
         catch (e) { toast(e?.code === 'quota_exceeded' ? 'Library is full. Delete some games first.' : 'Could not save to your library.'); break; }
       }
       return n;
@@ -1596,27 +1835,86 @@ const Lib = {
     if (ok) await this.indexed;
     return ok ? list.length : 0;
   },
-  async delGame(id) {
+  async delGame(id, expected = null) {
     await this.ready;
+    const selection = this.storageGen;
+    if (this.where === 'server') await this.serverReady;
+    if (selection !== this.storageGen) return;
+    if (expected && this.games.get(id) !== expected) return;
+    const destination = this.context();
+    this.importAcks.delete(id);
+    if (this.where === 'server') {
+      try { await SERVER_LIBRARY.change(() => {
+        if (destination !== this.context() || expected && this.games.get(id) !== expected) throw { code: 'library_cancelled' };
+        return [{ collection: 'games', id, record: null }];
+      }); } catch { toast('Could not delete that game.'); } return;
+    }
     if (this.where === 'cloud') { try { await this.gamesCol.doc(id).delete(); } catch { toast('Could not delete that game.'); } }
     else this.localChange(this.games, () => this.games.delete(id));
   },
   async putBook(b) {
     await this.ready;
-    if (this.where === 'cloud') { try { await this.booksCol.doc(b.id).set(b); return true; } catch { toast('Could not save that reference.'); return false; } }
+    const selection = this.storageGen;
+    if (this.where === 'server') {
+      await this.serverReady; const destination = this.context();
+      if (selection !== this.storageGen) return false;
+      try { await SERVER_LIBRARY.change(() => { if (destination !== this.context()) throw { code: 'library_cancelled' }; return [{ collection: 'books', id: b.id, record: b }]; }); return destination === this.context(); }
+      catch { toast('Could not save that reference.'); return false; }
+    }
+    if (this.where === 'cloud') { try { await this.booksCol.doc(b.id).set(b); return selection === this.storageGen; } catch { toast('Could not save that reference.'); return false; } }
     return this.localChange(this.books, () => this.books.set(b.id, b));
   },
-  async delBook(id) {
+  async delBook(id, expected = null) {
     await this.ready;
+    const selection = this.storageGen;
+    if (this.where === 'server') await this.serverReady;
+    if (selection !== this.storageGen) return;
+    if (expected && this.books.get(id) !== expected) return;
+    const destination = this.context();
+    if (this.where === 'server') {
+      try { await SERVER_LIBRARY.change(() => { if (destination !== this.context() || expected && this.books.get(id) !== expected) throw { code: 'library_cancelled' }; return [{ collection: 'books', id, record: null }]; }); }
+      catch { toast('Could not remove that reference.'); } return;
+    }
     if (this.where === 'cloud') { try { await this.booksCol.doc(id).delete(); } catch { toast('Could not remove that reference.'); } }
     else this.localChange(this.books, () => this.books.delete(id));
   },
 };
+const SERVER_LIBRARY = createServerLibrary({ onChange: state => {
+  if (Lib.where === 'server' && Lib.serverSnapshot !== state.snapshot) {
+    Lib.serverSnapshot = state.snapshot; Lib.uid = state.snapshot?.scope || null;
+    Lib.games = new Map((state.snapshot?.games || []).map(g => [g.id, g]));
+    Lib.books = new Map((state.snapshot?.books || []).map(b => [b.id, b]));
+    onLibChange();
+  }
+  renderLibraryStorage();
+} });
+function renderLibraryStorage() {
+  const state = SERVER_LIBRARY.state, selected = Lib.where === 'server';
+  $('#libStoragePanel').hidden = Lib.where === 'cloud' || !selected && !state.available;
+  $('#libUseServer').hidden = selected; $('#libUseBrowser').hidden = !selected; $('#libServerRefresh').hidden = !selected;
+  $('#libUseServer').disabled = state.busy || importBusy || !state.available;
+  $('#libUseBrowser').disabled = importBusy; $('#libServerRefresh').disabled = state.busy || importBusy;
+  $('#libUseServer').setAttribute('aria-pressed', String(selected)); $('#libUseBrowser').setAttribute('aria-pressed', String(!selected));
+  const locations = { online: 'Saved on this server', cached: 'Cached server library (read only)', conflict: 'Server library needs refresh', connecting: 'Connecting…', unavailable: 'Server library unavailable' };
+  $('#libWhere').textContent = selected ? locations[state.mode] || 'Server library unavailable' : Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
+  const errors = { conflict: 'The server library changed elsewhere. Refresh before retrying; your current edit remains in the form.',
+    session_changed: 'The server library session changed. Reconnect before saving changes.', no_session: 'The server library session changed. Reconnect before saving changes.',
+    quota: 'The server library is full. Delete some games or references before retrying.', invalid_record: 'The server rejected a record. Check its PGN or source fields.',
+    invalid_changes: 'The server rejected a record. Check its PGN or source fields.', rate_limited: 'Too many server library writes. Try again in a minute.' };
+  const message = !selected ? '' : state.error && Object.hasOwn(errors, state.error) ? errors[state.error]
+    : state.mode === 'cached' ? 'Showing a cached server library. Refresh before saving changes.'
+    : state.mode === 'unavailable' ? 'The server library is unavailable. Reconnect or choose the browser library.'
+    : state.cacheAvailable === false ? 'Saved on this server. The browser cache is unavailable.' : '';
+  $('#libStorageStatus').textContent = t(message);
+}
 
 // Built-in examples (public-domain games, annotations by Kibitz) so the library and retrieval have something to show.
 // The built-in classics (classics.js, TODO 7.3): in the library, the position index and the reading list.
 const EXAMPLES = classicGames();
+const PROBLEMS = new Map(CURATED_PROBLEMS.map(p => [p.id, p]));
+const PROBLEM_TABLEBASE_LOOKUP = tablebaseIndex(Chess, [...TABLEBASE_SNAPSHOTS, ...PROBLEM_TABLEBASES]);
 let INDEX = K.buildPositionIndex([]);
+let PATTERN_INDEX = buildPatternIndex([]);
 let OPENING_INDEX = buildOpeningIndex([]);
 const openingCache = new Map(); // source + id -> {pgn, record}; invalidate on content, not timestamps
 const Repertoires = createRepertoireStore(Chess, browserStorage());
@@ -1626,6 +1924,15 @@ let DRILL = null, drillGround = null, drillDeckKey = '', drillDeck = [];
 const libraryCache = new Map(); // collection + id -> exact input key and immutable snapshot promise
 let LIBRARY_RECORDS = new Map(), libraryIndexGen = 0;
 let TEXT_INDEX = null, HYBRID_INDEX = null, TEXT_NOTES = [], TEXT_GUIDES = [], guideTextPromise = null, guideTextError = false;
+const PatternBrowser = createPatternBrowser($('#patternSearch'), {
+  t,
+  state: () => ({ index: PATTERN_INDEX, generation: `${S.gen}:${libraryIndexGen}`, ready: !!TEXT_INDEX, allowed: showEngine(), visible: !paneHidden('library') }),
+  onOpen: ({ g, p, pattern }, valid) => {
+    const entry = LIBRARY_RECORDS.get(`${g.collection}:${g.id}`);
+    const current = () => valid() && entry === LIBRARY_RECORDS.get(`${g.collection}:${g.id}`) && entry?.snapshot?.document.revision === p.revision && p.patterns.includes(pattern);
+    if (current()) openGame(g, p.ply, current);
+  },
+});
 const DENSE = { session: new DenseSession(requestEmbeddings), context: '', queryContext: '', gen: S.gen, descriptor: null, loading: false, request: 0, busy: '', done: 0, total: 0, hits: null, query: '', message: '' };
 /** Rebuild from the current account's records only; static authored guides may be shared locally. */
 function rebuildTextIndex() { HYBRID_INDEX = buildHybridIndex(Chess, [...TEXT_NOTES, ...TEXT_GUIDES]); TEXT_INDEX = HYBRID_INDEX.text; }
@@ -1633,21 +1940,33 @@ function rebuildTextIndex() { HYBRID_INDEX = buildHybridIndex(Chess, [...TEXT_NO
 function librarySnapshot(g, collection) {
   const key = `${collection}:${g.id}`, input = JSON.stringify([g.pgn, g.provenance, g.kind]);
   let cached = libraryCache.get(key);
-  if (!cached || cached.input !== input) libraryCache.set(key, cached = { input, promise: compileLibraryGame(Chess, g, collection) });
+  if (!cached || cached.input !== input) libraryCache.set(key, cached = { input, promise: compileLibraryGame(Chess, g, collection).then(snapshot => {
+    const definition = collection === 'classic' ? PROBLEMS.get(g.id) : null;
+    const evidence = verifiedProblemEvidence(Chess, snapshot, definition, PROBLEM_TABLEBASE_LOOKUP);
+    return evidence ? { ...snapshot, problem: { ...snapshot.problem, verification: 'tablebase-branch', ...evidence } } : snapshot;
+  }) });
   return cached.promise;
 }
 function allGames() { return [...Lib.games.values(), ...EXAMPLES]; }
+function librarySearchMetadata(g) {
+  const source = EXAMPLES.includes(g) ? 'classic' : 'library', cached = openingCache.get(`${source}:${g.id}`);
+  const info = gameSearchMetadata(g, cached?.search || null, ECO);
+  return { ...info, record: g, searchTitle: source === 'classic' ? t(info.title) : info.title };
+}
+function searchableLibraryGames() { return allGames().map(librarySearchMetadata); }
+const libraryThemeLabels = Object.fromEntries(Object.entries(K.TAG_LABELS).map(([tag, label]) => [tag, t(label)]));
 function onLibChange() {
   const gen = ++libraryIndexGen, items = [...[...Lib.games.values()].map(g => ({ g, collection: 'library' })), ...EXAMPLES.map(g => ({ g, collection: 'classic' }))];
   const ids = new Set(items.map(({ g, collection }) => `${collection}:${g.id}`));
   for (const id of libraryCache.keys()) if (!ids.has(id)) libraryCache.delete(id);
   // Never expose deleted/replaced records while hashing their replacements.
-  INDEX = K.buildPositionIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null; HYBRID_INDEX = null;
+  INDEX = K.buildPositionIndex([]); PATTERN_INDEX = buildPatternIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null; HYBRID_INDEX = null;
+  refreshReviewHistory();
   const records = [], keys = new Set();
   for (const [source, collection] of [['library', [...Lib.games.values()]], ['classic', EXAMPLES]]) for (const g of collection) {
     const key = `${source}:${g.id}`; keys.add(key);
     let entry = openingCache.get(key);
-    if (!entry || entry.pgn !== g.pgn) openingCache.set(key, entry = { pgn: g.pgn, record: openingGame(Chess, g, source) });
+    if (!entry || entry.pgn !== g.pgn) openingCache.set(key, entry = { pgn: g.pgn, record: openingGame(Chess, g, source), search: gameSearchData(Chess, g) });
     records.push(entry.record);
   }
   for (const key of openingCache.keys()) if (!keys.has(key)) openingCache.delete(key);
@@ -1659,7 +1978,9 @@ function onLibChange() {
   })).then(entries => {
     if (gen !== libraryIndexGen) return; // an older load must not resurrect changed/deleted sources
     LIBRARY_RECORDS = new Map(entries.map(e => [`${e.collection}:${e.g.id}`, e]));
+    refreshReviewHistory();
     INDEX = K.buildPositionIndex(entries.filter(e => e.snapshot).map(({ g, collection, snapshot }) => ({ ...g, collection, sourceSnapshot: snapshot, positions: indexedLibraryPositions(snapshot, g.cls) })));
+    PATTERN_INDEX = buildPatternIndex(entries.filter(e => e.snapshot).map(({ g, collection, snapshot }) => ({ ...g, collection, positions: snapshot.occurrences })));
     TEXT_NOTES = entries.filter(e => e.snapshot).flatMap(e => annotationPassages(e.snapshot)); rebuildTextIndex();
     // Evidence readiness must not replace an open source form and erase an unsaved correction.
     refreshLibraryEvidence(); renderReading(); renderStudySearch();
@@ -2015,6 +2336,7 @@ function saveDrillAnswer() {
     DRILL.message = record.grade === 'good' ? 'Correct recall. Review scheduled.' : record.grade === 'hard' ? 'Saved choice found with a hint. Review scheduled.' : 'Recall needs another try. Review scheduled in 10 minutes.';
   }
   renderRepertoireDrill(selectedRepertoire());
+  refreshPractice();
 }
 /** Check SAN/UCI recall; a legal alternative is a repertoire miss, never a verdict about its chess quality. */
 function answerDrill(input, revealed = false) {
@@ -2044,16 +2366,17 @@ function drillBoardMove(orig, dest) {
   box.replaceChildren(choices); box.hidden = false;
   box.onclick = e => { if (e.target === box) { box.hidden = true; renderDrillQuestion(); } };
 }
-$('#drillStart').addEventListener('click', () => {
+function startDrill(requestedKey = '') {
   if (!showEngine() || Repertoires.unreadable || DrillReviews.unreadable || DRILL) return;
   const selected = selectedRepertoire(); if (!selected) return;
-  const cards = drillQueue(repertoireCards(selected), DrillReviews.records, Date.now());
+  const cards = drillQueue(repertoireCards(selected).filter(c => !requestedKey || c.key === requestedKey), DrillReviews.records, Date.now());
   if (!cards.length) { renderRepertoireDrill(selected); return; }
   DRILL = { rep: selected.id, revision: Repertoires.revision, gen: S.gen, cards, index: 0, answer: null, saved: false,
     mistakes: 0, hints: 0, clean: 0, helped: 0, message: 'Recall a saved move. You can also type it below.' };
   $('#repDeleteConfirm').hidden = true; $('#drillMove').value = '';
   renderRepertoires(); $('#drillPanel').scrollIntoView({ block: 'nearest' }); focusDrillQuestion();
-});
+}
+$('#drillStart').addEventListener('click', () => startDrill());
 $('#drillMoveForm').addEventListener('submit', e => {
   e.preventDefault(); if (!canAnswerDrill()) return;
   const input = $('#drillMove'), card = DRILL.cards[DRILL.index];
@@ -2100,6 +2423,7 @@ function currentRecord(extra = {}) {
     eco: op?.eco || '', opening: op?.name || '', plies: last(), pgn: toPGN({ annotate: false }),
     cls: S.nodes.map(n => n.cls || null), evals: S.nodes.map((_, i) => whiteCp(i)), best: S.nodes.map(n => anaOf(n.fen)?.best || null),
     accuracy: counts.acc, counts: counts.c, summary: S.summary || '', hints: S.hints, reviewed: !!S.reviewDone, updatedAt: Date.now(),
+    ...(S.meta?.analysisReview !== undefined ? { analysisReview: S.meta.analysisReview } : {}),
   };
 }
 async function saveCurrentGame({ quiet = false, result } = {}) {
@@ -2109,7 +2433,7 @@ async function saveCurrentGame({ quiet = false, result } = {}) {
   if (S.meta?.kind === 'example') { rec.id = 'g' + Date.now().toString(36); rec.kind = 'study'; S.gameId = rec.id; }
   S.meta = { ...(S.meta || {}), ...rec, kind: rec.kind };
   const ok = await Lib.putGame(rec);
-  if (ok && !quiet) toast(Lib.where === 'cloud' ? 'Saved to your library' : 'Saved in this browser');
+  if (ok && !quiet) toast(Lib.where === 'server' ? 'Saved on this server' : Lib.where === 'cloud' ? 'Saved to your library' : 'Saved in this browser');
 }
 // Saved games store whiteCp(); K.scoreToCp encodes "mate in n" as ±(10000 - 10n). Undo that, so a
 // restored mate shows as a mate instead of being clamped to ±20 pawns.
@@ -2138,6 +2462,7 @@ function openGame(g, ply = null, valid = () => true) {
 // ---------------------------------------------------------------- Library UI
 /** Library search stays local/explicit; coach retrieval has its own request-scoped source bundle. */
 function renderStudySearch() {
+  PatternBrowser.render();
   const body = $('#studySearchResults'), status = $('#studySearchStatus'), allowed = showEngine();
   syncCoachSources();
   syncDenseContext();
@@ -2316,7 +2641,12 @@ function renderSourceEvidence(box, record) {
   if (!record?.snapshot) return;
   const data = record.snapshot;
   box.append(el('p', { class: 'hint source-counts' }, `${data.occurrences.length} position occurrences · ${data.annotations.length} annotations`));
-  if (data.problem) box.append(el('p', { class: 'hint' }, 'Study position with a recorded line. Move legality is checked; the solution and stated result are unverified.'));
+  if (data.problem?.verification === 'tablebase-branch') {
+    const evidence = data.problem.tablebase, outcome = t(evidence.outcome === 'draw' ? 'Draw' : evidence.outcome === 'white-win' ? 'White wins' : 'Black wins');
+    box.append(el('p', { class: 'hint', translate: 'no', 'data-raw': '' }, t('Recorded branch: {outcome}. Checked in saved Syzygy facts; other continuations are not certified.', { outcome })),
+      el('a', { class: 'ext', href: evidence.url, target: '_blank', rel: 'noopener noreferrer' }, 'Tablebase source'));
+    if (data.problem.goal === 'mate-in-one') box.append(el('p', { class: 'hint' }, 'The recorded move is an actual mate in one. Other mates may exist.'));
+  } else if (data.problem) box.append(el('p', { class: 'hint' }, 'Study position with a recorded line. Move legality is checked; the solution and stated result are unverified.'));
 }
 function refreshLibraryEvidence() {
   for (const card of $$('#libList .game')) {
@@ -2329,10 +2659,12 @@ function sourceDetails(g) {
   const box = el('details', { class: 'source-details' }, el('summary', {}, 'Source and licences'));
   if (!state.value) { box.append(el('p', { class: 'hint' }, 'Source metadata is invalid or from a newer version. Stored data has been kept; this record is omitted from similar-position results.')); return box; }
   const p = state.value;
+  if (g.scoreNote) box.append(el('p', { class: 'hint' }, g.scoreNote));
   box.append(el('p', {}, SOURCE_ORIGINS[p.origin]), el('p', { class: 'hint' }, 'Licences are recorded as supplied; blank fields mean not supplied.'));
   const evidence = el('div', { class: 'source-evidence' }); box.append(evidence);
   renderSourceEvidence(evidence, LIBRARY_RECORDS.get(`${collection}:${g.id}`));
   if (p.source.url) box.append(el('a', { class: 'ext', href: p.source.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open source'));
+  if (collection === 'classic' && g.problem?.reference?.url && g.problem.reference.url !== p.source.url) box.append(el('p', {}, el('a', { class: 'ext', href: g.problem.reference.url, target: '_blank', rel: 'noopener noreferrer' }, 'Method reference')));
   if (collection === 'classic') {
     for (const [label, value] of [['Source title', p.source.title], ['Source author or curator', p.source.author], ['Score licence as supplied', p.rights.score], ['Annotation licence as supplied', p.rights.annotations]]) box.append(el('p', {}, el('span', {}, label), ': ', value ? el('span', { translate: 'no' }, value) : el('span', {}, 'Not supplied')));
   } else {
@@ -2347,40 +2679,63 @@ function sourceDetails(g) {
   }
   return box;
 }
+const libraryCardRecords = new WeakMap();
+function librarySearchInput() {
+  return Object.fromEntries([['query', '#libSearch'], ['player', '#libPlayer'], ['opening', '#libOpening'], ['yearFrom', '#libYearFrom'], ['yearTo', '#libYearTo'], ['score', '#libResult'], ['theme', '#libTheme']]
+    .map(([key, selector]) => [key, $(selector).value.trim()]).filter(([, value]) => value !== ''));
+}
 function renderLibrary() {
   renderStudySearch();
-  const q = $('#libSearch').value.trim().toLowerCase();
+  const input = librarySearchInput(), searching = Object.keys(input).length > 0;
   const filt = $('#libFilter [aria-pressed="true"]')?.dataset.v || 'all';
-  $('#libWhere').textContent = Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
+  renderLibraryStorage();
   const mine = [...Lib.games.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   $('#libCount').textContent = mine.length ? String(mine.length) : '';
   // The classics (classics.js) under their own filter; in "All" only while the library is empty or a search is on.
-  const pool = filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !q ? [] : EXAMPLES)];
-  const list = pool.filter(g => {
+  const pool = filt === 'problems' ? EXAMPLES.filter(g => g.problem) : filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !searching ? [] : EXAMPLES)];
+  const result = filterGames(pool.filter(g => {
     if (filt === 'played' && g.kind !== 'played') return false;
     if (filt === 'study' && g.kind === 'played') return false;
-    if (!q) return true;
-    return [g.white, g.black, g.opening, g.eco, g.result, g.title].join(' ').toLowerCase().includes(q);
-  });
-  const box = $('#libList'); box.replaceChildren();
-  if (paneHidden('library')) return; // count and location above stay current; the list renders when the tab opens
-  if (!mine.length) box.append(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
-  for (const g of list) {
+    return true;
+  }).map(librarySearchMetadata), input, libraryThemeLabels);
+  $('#libSearchStatus').textContent = result.error ? t(result.error) : t(result.games.length === 1 ? '1 matching record.' : '{n} matching records.', { n: result.games.length });
+  $('#libSearchClear').disabled = !searching;
+  for (const id of ['#libYearFrom', '#libYearTo']) $(id).setAttribute('aria-invalid', result.error && (input.yearFrom || input.yearTo) ? 'true' : 'false');
+  const box = $('#libList'), previous = new Map([...box.querySelectorAll('.game')].map(card => [libraryCardRecords.get(card), card]));
+  if (paneHidden('library')) { box.replaceChildren(); return; } // count and location above stay current
+  const retained = new Set(result.games.map(info => info.record));
+  for (const child of [...box.children]) if (!retained.has(libraryCardRecords.get(child))) child.remove();
+  let row = 0;
+  const mount = card => { if (box.children[row] !== card) box.insertBefore(card, box.children[row] || null); row++; };
+  if (!mine.length && !searching) mount(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
+  for (const info of result.games) {
+    const g = info.record;
+    const meta = [info.date, info.eco && `${info.eco} ${info.opening || ''}`, g.plies ? t('{n} moves', { n: Math.ceil(g.plies / 2) }) : ''].filter(Boolean).join(' · ');
+    if (previous.has(g)) {
+      const card = previous.get(g), label = card.querySelector('.game-search-meta');
+      label.textContent = meta; mount(card); continue; // Preserve open source forms, focus and unsaved edits on ECO readiness.
+    }
+    const problem = EXAMPLES.includes(g) ? g.problem : null;
+    const names = problem ? `${t('White')} – ${t('Black')}` : `${info.white} – ${info.black}`;
     const youIdx = g.userColor;
     const acc = youIdx && g.accuracy?.[youIdx] != null ? `${Math.round(g.accuracy[youIdx])}% accuracy` : '';
     const c = youIdx ? g.counts?.[youIdx] : null;
     const pills = c ? el('span', { class: 'pills' }, c.blunder ? el('span', { class: 'c-blunder' }, `${c.blunder}??`) : null, c.mistake ? el('span', { class: 'c-mistake' }, `${c.mistake}?`) : null, c.inaccuracy ? el('span', { class: 'c-inaccuracy' }, `${c.inaccuracy}?!`) : null) : null;
     const del = el('button', { class: 'btn small ghost danger', onclick: () => {
-      del.replaceWith(el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id) }, 'Delete'), el('button', { class: 'btn small', onclick: renderLibrary }, 'Keep')));
+      const confirmation = el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id, g) }, 'Delete'), el('button', { class: 'btn small', onclick: () => confirmation.replaceWith(del) }, 'Keep'));
+      del.replaceWith(confirmation);
     } }, 'Delete');
-    box.append(el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
-      el('div', {}, el('div', { class: 'title' }, g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, `${g.white} – ${g.black}`)),
-        el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills)),
-      el('div', { class: 'res' }, g.result || '*'),
-      el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g) }, g.reviewed ? 'Open review' : 'Open'),
+    const card = el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
+      el('div', {}, el('div', { class: 'title' }, problem ? el('span', { class: 'badge ex' }, problem.goal === 'mate-in-one' ? 'Problem' : 'Study') : g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, names)),
+        el('div', { class: 'meta' }, el('span', { class: 'game-search-meta', translate: 'no' }, meta), acc ? ` · ${acc}` : '', ' ', pills),
+        g.scoreNote ? el('p', { class: 'hint' }, g.scoreNote) : null,
+        problem ? el('p', { class: 'problem-prompt', translate: 'no', 'data-raw': '' }, lessonText(problem.prompt, LANG)) : null),
+      el('div', { class: 'res' }, info.result || '*'),
+      el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g, problem ? 0 : null) }, g.reviewed ? 'Open review' : 'Open'),
         el('button', { class: 'btn small ghost', onclick: () => copyText(g.pgn, 'PGN copied') }, 'Copy PGN'),
         el('button', { class: 'btn small ghost', onclick: () => downloadPGN(g) }, 'Save .pgn'),
-        g.kind === 'example' ? null : del), sourceDetails(g)));
+        EXAMPLES.includes(g) ? null : del), sourceDetails(g));
+    libraryCardRecords.set(card, g); mount(card);
   }
 }
 async function copyText(t, msg) {
@@ -2393,31 +2748,62 @@ async function downloadPGN(g) {
   if (!dl) { copyText(g.pgn, 'Saving files isn\'t available here, so the PGN was copied instead'); return; }
   try { await dl.save({ filename: name, data: g.pgn }); } catch (e) { if (e?.code && e.code !== 'cancelled' && e.code !== 'declined') toast('The file was not saved.'); }
 }
-function splitPGN(txt) { return txt.split(/\n\s*\n(?=\[Event |\[White |\[Site )/).map(s => s.trim()).filter(Boolean); }
+let importBusy = false;
 async function importPGN() {
-  const original = $('#importText').value, parts = splitPGN(original);
+  if (importBusy) return;
+  const original = $('#importText').value, batch = splitPgnImport(original);
+  const status = text => { $('#importMsg').textContent = t(text); };
+  if (batch.error) { status(batch.error); return; }
+  const parts = batch.games;
   let provenance; try { provenance = makeProvenance('imported', sourceInput($('#importSourceFields'))); }
-  catch { $('#importMsg').textContent = 'Check the source fields and use an HTTP or HTTPS URL without credentials.'; return; }
-  const recs = []; let bad = 0;
-  for (const p of parts) {
-    try {
-      if (p.length > 200_000) { bad++; continue; }
-      const c = new Chess(); c.loadPgn(p); const h = c.getHeaders();
-      if (!c.history().length && !h.FEN) { bad++; continue; }
-      const r = new Chess(h.FEN || START); let op = null;
-      c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < OPENING_PLIES) op = e; });
-      const rec = { id: 'i' + crypto.randomUUID(), kind: 'study', provenance, title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() };
-      await librarySnapshot(rec, 'library'); recs.push(rec);
-    } catch { bad++; }
+  catch { status('Check the source fields and use an HTTP or HTTPS URL without credentials.'); return; }
+  importBusy = true; $('#btnImport').disabled = true; status('Importing games…');
+  const recs = [], importIds = []; let bad = 0;
+  try {
+    for (const p of parts) {
+      try {
+        if (p.length > 200_000) { bad++; continue; }
+        const c = new Chess(); c.loadPgn(p); const h = c.getHeaders();
+        if (!c.history().length && !h.FEN) { bad++; continue; }
+        const r = new Chess(h.FEN || START); let op = null;
+        c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < OPENING_PLIES) op = e; });
+        const rec = { id: 'i' + crypto.randomUUID(), kind: 'study', provenance, title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() };
+        importIds.push(rec.id); await librarySnapshot(rec, 'library'); recs.push(rec);
+      } catch { bad++; }
+    }
+    const report = { duplicates: 0 };
+    const ok = recs.length ? await Lib.putGames(recs, { importReport: report }) : 0; // one local write/re-index
+    const failed = recs.length - report.duplicates - ok, messages = [];
+    if (ok) messages.push(t(ok === 1 ? 'Added 1 game.' : 'Added {n} games.', { n: ok }));
+    if (report.duplicates) messages.push(t(report.duplicates === 1 ? 'Skipped 1 duplicate.' : 'Skipped {n} duplicates.', { n: report.duplicates }));
+    if (bad) messages.push(t(bad === 1 ? 'Skipped 1 unreadable game.' : 'Skipped {n} unreadable games.', { n: bad }));
+    if (failed) messages.push(t(failed === 1 ? 'Could not save 1 game. Retry the import.' : 'Could not save {n} games. Retry the import.', { n: failed }));
+    $('#importMsg').textContent = messages.join(' ') || t('No valid PGN found.');
+    if (!bad && !failed && (ok || report.duplicates) && $('#importText').value === original) $('#importText').value = '';
+  } catch { status('The games could not be saved.'); }
+  finally {
+    importBusy = false; $('#btnImport').disabled = false;
+    renderLibraryStorage();
+    for (const id of importIds) if (!Lib.games.has(id) && !Lib.importAcks.has(id)) libraryCache.delete('library:' + id);
   }
-  const ok = recs.length ? await Lib.putGames(recs) : 0; // one write and one re-index for the whole batch
-  const skipped = bad ? `, skipped ${bad} that couldn't be read` : '';
-  $('#importMsg').textContent = ok ? `Added ${ok} game${ok > 1 ? 's' : ''}${skipped}.` : recs.length ? 'The games could not be saved.' : 'No valid PGN found.';
-  if (ok === recs.length && ok && $('#importText').value === original) $('#importText').value = '';
 }
 
 // ---------------------------------------------------------------- Review
 let reviewCtl = null;
+let reviewHistoryRecords = null, reviewHistorySummary = null;
+function refreshReviewHistory() {
+  ownPuzzlePlayer?.sync();
+  refreshPractice();
+  if (reviewHistoryRecords !== LIBRARY_RECORDS) {
+    reviewHistoryRecords = LIBRARY_RECORDS; reviewHistorySummary = summarizeReviews(Chess, [...LIBRARY_RECORDS.values()]);
+  }
+  const gen = S.gen, records = LIBRARY_RECORDS, context = Lib.context();
+  const valid = () => showEngine() && !paneHidden('review') && gen === S.gen && records === LIBRARY_RECORDS && context === Lib.context();
+  renderReviewHistory($('#reviewHistory'), reviewHistorySummary, { allowed: showEngine(), t, onOpen: sample => {
+    const current = () => valid() && LIBRARY_RECORDS.get(`library:${sample.g.id}`)?.g === sample.g;
+    if (current()) openGame(sample.g, sample.occurrence.ply, current);
+  } });
+}
 function tally() {
   const c = { w: { best: 0, good: 0, book: 0, inaccuracy: 0, mistake: 0, blunder: 0 }, b: { best: 0, good: 0, book: 0, inaccuracy: 0, mistake: 0, blunder: 0 } };
   const accs = { w: [], b: [] };
@@ -2426,6 +2812,7 @@ function tally() {
   return { c, acc: { w: mean(accs.w), b: mean(accs.b) } };
 }
 function renderReviewHeader() {
+  refreshReviewHistory();
   $('#btnReview').textContent = S.reviewDone ? 'Re-run review' : 'Run review';
   $('#btnReview').disabled = S.nodes.length < 2 || !!reviewCtl || (S.playing && !S.over);
   $('#reviewTitle').translate = !S.meta?.white;
@@ -2436,11 +2823,12 @@ async function runReview() {
   if (S.nodes.length < 2 || reviewCtl) return;
   const ctl = reviewCtl = { stop: false };
   $('#btnReviewStop').hidden = false; renderReviewHeader();
+  $('#reviewStage').hidden = false; $('#reviewStage').textContent = 'Analysing game…';
   const bar = $('#reviewProgress'); bar.hidden = false;
   analyst.cancel('live'); liveToken++;
   // Snapshot the game: the user can load another game or branch off in analysis while this runs,
   // and results must never be applied to (or saved for) a different game.
-  const gen = S.gen, fens = S.nodes.map(n => n.fen), depth = S.depth, N = fens.length;
+  const gen = S.gen, fens = S.nodes.map(n => n.fen), depth = S.depth, N = fens.length, libraryContext = Lib.context();
   const unchanged = i => S.gen === gen && S.nodes[i]?.fen === fens[i];
   let changed = false;
   try {
@@ -2452,10 +2840,21 @@ async function runReview() {
       bar.firstElementChild.style.width = ((i + 1) / N * 100).toFixed(1) + '%';
       if (i % 6 === 0) renderMoves();
     }
+    const side = S.meta?.userColor || (S.mode === 'play' ? S.userColor : null);
+    const own = (S.meta?.kind || (S.mode === 'play' || S.meta?.played ? 'played' : 'study')) === 'played';
+    const supported = S.meta?.analysisReview === undefined || S.meta.analysisReview?.version === REVIEW_VERSION;
+    const current = () => !ctl.stop && S.gen === gen && libraryContext === Lib.context() && fens.every((fen, i) => S.nodes[i]?.fen === fen) && S.nodes.length === N;
+    if (!changed && current() && own && ['w', 'b'].includes(side) && supported) {
+      $('#reviewStage').textContent = 'Checking tactical opportunities…';
+      const report = await buildReviewReport(Chess, { start: S.start, ucis: S.nodes.slice(1).map(n => n.uci), side,
+        analysis: anaOf, current, engine: (fen, options) => analyse(fen, options.depth, 'review') });
+      if (report && current()) S.meta = { ...S.meta, analysisReview: report };
+    }
+    if (libraryContext !== Lib.context() || S.gen !== gen || S.nodes.length !== N || !fens.every((fen, i) => S.nodes[i]?.fen === fen)) changed = true;
   } finally {
-    reviewCtl = null; bar.hidden = true; $('#btnReviewStop').hidden = true;
+    reviewCtl = null; bar.hidden = true; $('#btnReviewStop').hidden = true; $('#reviewStage').hidden = true;
   }
-  if (changed) { analyst.cancel('review'); toast('Review stopped because the game changed.'); renderReviewHeader(); return; }
+  if (changed) { analyst.cancel('review'); toast(libraryContext !== Lib.context() ? 'Review stopped because the library changed.' : 'Review stopped because the game changed.'); renderReviewHeader(); return; }
   if (!ctl.stop) { S.reviewDone = true; if (S.gameId || S.mode === 'play') saveCurrentGame({ quiet: true }); }
   renderAll(); renderReview(); refreshAnalysis();
 }
@@ -2730,6 +3129,7 @@ function contextFor(i, { view = 'all', scratch = null } = {}) {
     const names = namedOpeningContext(namedContinuations(Chess, NAMED_OPENINGS, fen));
     if (names) lines.push(names);
   }
+  lines.push(profileContext(PlayerProfile.value));
   lines.push(`Player: ${LEVELS[S.level]}${S.mode === 'play' ? `, playing ${S.userColor === 'w' ? 'White' : 'Black'} against Stockfish set to about ${S.elo} Elo, ${styleOf(S.style).label.toLowerCase()} style` : ', analysing a game'}.`);
   if (S.meta?.white) lines.push(`Game: ${quote(S.meta.white, 80)} vs ${quote(S.meta.black, 80)}${S.meta.result ? ', result ' + quote(S.meta.result, 10) : ''}.`);
   lines.push(`Moves so far: ${c.pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '').trim() || '(none)'}`);
@@ -2783,7 +3183,7 @@ function bookLine(r) {
 }
 /** Source/account/help/model changes revoke pending evidence even while Library is closed. */
 function coachSourceOwner() { return JSON.stringify([Lib.where, Lib.uid, libraryIndexGen]); }
-function coachSourcePolicy() { return JSON.stringify([coachSourceOwner(), S.help, GATEWAY?.provider, GATEWAY?.models, !!GATEWAY?.localOnly]); }
+function coachSourcePolicy() { return JSON.stringify([coachSourceOwner(), S.help, GATEWAY?.provider, GATEWAY?.models, !!GATEWAY?.localOnly, activeProfileKey]); }
 function coachSourceScope() { return JSON.stringify([coachSourcePolicy(), engineView(S)]); }
 function syncCoachSources() {
   const scope = coachSourceScope();
@@ -2975,7 +3375,7 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
     const color = /\bblack\b/i.test(query) ? 'b' : /\bwhite\b/i.test(query) ? 'w' : undefined;
     const result = /\bloss|lost\b/i.test(query) ? 'loss' : /\bwin|won\b/i.test(query) ? 'win' : /\bdraw\b/i.test(query) ? 'draw' : undefined;
     const words = /\bmy\b/i.test(query) ? query.replace(/\b(my|last|latest|game|with|as|a|the|black|white|loss|lost|win|won|draw)\b/gi, '').trim() : query.replace(/^the\s+/i, '');
-    const hits = ref ? [{ id: ref.id }] : searchGames(allGames(), { query: words, color, result });
+    const hits = ref ? [{ id: ref.id }] : searchGames(searchableLibraryGames(), { query: words, color, result }, libraryThemeLabels);
     if (!hits.length) {
       await loadOpenings();
       const op = OPENINGS.find(o => o[1].toLowerCase().includes(query.toLowerCase()));
@@ -3018,7 +3418,7 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
   }
   const checked = checkChatCall(Chess, name, input, { ...actionState(), ...(preview && whatIfAllowed() ? { playing: false } : {}) });
   if (checked.error) return checked;
-  if (name === 'search_library') { await Lib.ready; return { games: searchGames(allGames(), input) }; }
+  if (name === 'search_library') { await Lib.ready; return { games: searchGames(searchableLibraryGames(), input, libraryThemeLabels) }; }
   if (name === 'search_openings') {
     await loadOpenings();
     const words = input.query.toLowerCase().split(/\s+/);
@@ -3178,7 +3578,7 @@ async function askCoach(question, { atNode = null, task = 'chat', literal = fals
   }
 }
 function conversationContext(i, view, scratch) {
-  return CHAT.general ? `The player chose General chess. No current board position or engine data is supplied. Historical sources are separate reference material. Discuss general ideas; do not invent concrete variations. Use load tools only if the player asks to see a game or position. Player: ${LEVELS[S.level]}.`
+  return CHAT.general ? `The player chose General chess. No current board position or engine data is supplied. Historical sources are separate reference material. Discuss general ideas; do not invent concrete variations. Use load tools only if the player asks to see a game or position. Player: ${LEVELS[S.level]}.\n${profileContext(PlayerProfile.value)}`
     : `Active panel: ${$('.tabs [aria-selected="true"]')?.dataset.tab || 'game'}.\n${contextFor(i, { view, scratch })}`;
 }
 // ---------------------------------------------------------------- Engine tools (TODO 4.11)
@@ -3355,6 +3755,7 @@ function answerChallenge(input) {
   }
 }
 function renderProgress() {
+  refreshLessonProgress();
   const p = TUTOR.progress, themes = Object.entries(p);
   const box = $('#challengeProgress');
   $('#challengeField').hidden = !themes.length;
@@ -3410,7 +3811,7 @@ async function commentOn(i, { scratch = null } = {}) {
     retrieval = await coachSources([...use, ...themes, 'plans pawn structure'].join(' '), fen, view, scope, ctl.signal);
     if (!current()) { bubble.remove(); return; }
   } catch (e) { bubble.remove(); if (TUTOR.ctl === ctl) TUTOR.ctl = null; return; }
-  const position = JSON.stringify([board.state.start, context.game.ucis, scratch?.start, scratch?.ucis, fen, retrieval.key]);
+  const position = JSON.stringify([board.state.start, context.game.ucis, scratch?.start, scratch?.ucis, fen, retrieval.key, activeProfileKey]);
   const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact', lang: LANG, position });
   let text = TUTOR.cache.get(key), usage = null;
   const cached = text !== undefined;
@@ -3763,7 +4164,8 @@ function reviewFacts() {
 }
 async function writeSummary() {
   if (!COACH.sample) return;
-  const gen = S.gen, context = answerContext(last(), 'all', null, S, { review: true });
+  const gen = S.gen, profile = activeProfileKey, context = answerContext(last(), 'all', null, S, { review: true });
+  const current = () => S.gen === gen && profile === activeProfileKey;
   const btn = $('#btnSummary'); const box = $('#summaryBox');
   btn.disabled = true; box.replaceChildren(el('span', { class: 'empty-note' }, 'Thinking…'));
   const { c, acc } = tally(); const names = playerNames();
@@ -3771,14 +4173,14 @@ async function writeSummary() {
   const allFeats = new Map();
   [Math.min(16, last()), Math.floor(last() / 2), last(), ...keyMoments(6).map(k => k.i)].forEach(i => K.positionFeatures(new Chess(S.nodes[i].fen), { ply: i, opening: openingAt(i) }).forEach(f => { const o = allFeats.get(f.tag); if (!o || o.weight < f.weight) allFeats.set(f.tag, f); }));
   const books = K.retrieveLiterature([...allFeats.values()], { level: S.level, limit: 5, userBooks: userBooks() });
-  const prompt = `${COACH_RULES}\n\nWrite a post-game review for the player.\n\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
+  const prompt = `${COACH_RULES}\n\nWrite a post-game review for the player.\n\n${profileContext(PlayerProfile.value)}\nPlayer: ${LEVELS[S.level]}${S.meta?.userColor || S.mode === 'play' ? `, played ${(S.meta?.userColor || S.userColor) === 'w' ? 'White' : 'Black'}` : ''}.\nWhite: ${quote(names.w.name, 80)}. Black: ${quote(names.b.name, 80)}. Result: ${quote(S.over?.result || S.meta?.result || '*', 10)}${S.over?.reason ? ' by ' + S.over.reason : ''}.\nOpening: ${openingAt(last())?.name || 'unknown'}.\nPGN: ${chessAt(last()).pgn({ maxWidth: 0 }).replace(/\[.*?\]\s*/g, '')}\nAccuracy: White ${acc.w?.toFixed(0) ?? '–'}, Black ${acc.b?.toFixed(0) ?? '–'}.\nCounts (blunder/mistake/inaccuracy): White ${c.w.blunder}/${c.w.mistake}/${c.w.inaccuracy}, Black ${c.b.blunder}/${c.b.mistake}/${c.b.inaccuracy}.\nTurning points from Stockfish:\n${km || '- none'}\nThemes seen in the game: ${[...allFeats.values()].map(f => K.TAG_LABELS[f.tag]).join(', ')}.\nRetrieved references:\n${books.map(r => `- ${bookLine(r)}`).join('\n')}\n\nFormat: one short paragraph on the opening and middlegame, then 2-4 bullets on the turning points (move number, what went wrong, the idea of the better move), then a paragraph starting "What to practise:" with up to three concrete training priorities and one or two references from the list. Up to 280 words.`;
   try {
-    const render = text => { if (S.gen === gen) renderRich(box, text, context.fen, checkFor(text, context)); };
+    const render = text => { if (current()) renderRich(box, text, context.fen, checkFor(text, context)); };
     const { text } = await COACH.sample(prompt, { onText: ({ text }) => render(text), cache: false, task: 'review' });
-    if (S.gen !== gen) return;
+    if (!current()) return;
     S.summary = text; render(text);
     if (S.gameId) saveCurrentGame({ quiet: true });
-  } catch (e) { box.replaceChildren(e?.text ? e.text : coachError(e)); }
+  } catch (e) { if (current()) box.replaceChildren(e?.text ? e.text : coachError(e)); }
   finally { btn.disabled = !COACH.sample; btn.textContent = 'Rewrite'; }
 }
 
@@ -3798,11 +4200,12 @@ function renderReading() {
   const books = K.retrieveLiterature(feats, { level: S.level, limit: 5, userBooks: userBooks() });
   const bl = $('#bookList'); bl.replaceChildren();
   for (const r of books) {
+    const owned = r.book.user ? Lib.books.get(r.book.id) : null;
     bl.append(el('div', { class: 'book' }, el('div', { class: 'bt' }, r.book.user ? el('span', { class: 'badge' }, 'Yours') : null, el('span', { translate: 'no' }, r.book.title)),
       el('div', { class: 'ba', translate: 'no' }, [r.book.author, r.book.year].filter(Boolean).join(' · ')),
-      el('div', { class: 'bw' }, r.book.about), r.where ? el('div', { class: 'where' }, 'Start with ' + r.where + '.') : null,
+      el('div', { class: 'bw', translate: r.book.user ? 'no' : null }, r.book.about), r.where ? el('div', { class: 'where' }, 'Start with ' + r.where + '.') : null,
       el('div', { class: 'bm' }, ...r.hits.slice(0, 4).map(h => el('span', { title: h.why, 'data-raw': ecoWhy(h.why) }, K.TAG_LABELS[h.tag] || h.tag))),
-      r.book.user ? el('div', {}, el('button', { class: 'btn small ghost danger', onclick: () => Lib.delBook(r.book.id) }, 'Remove')) : null));
+      r.book.user ? el('div', {}, el('button', { class: 'btn small ghost danger', onclick: () => Lib.delBook(r.book.id, owned) }, 'Remove')) : null));
   }
   if (!books.length) bl.append(el('p', { class: 'empty-note' }, 'No references matched this position yet.'));
   const seen = K.similarPositions(INDEX, fen, { excludeGameId: S.gameId, limit: 5 });
@@ -3816,7 +4219,7 @@ function renderReading() {
   if (!classics.length) cl.append(el('p', { class: 'empty-note' }, 'No classic game in the collection matches these themes.'));
   for (const r of classics) {
     const g = EXAMPLES.find(x => x.id === r.game.id);
-    cl.append(el('div', { class: 'seen' }, el('span', { class: 'k' }, r.hits.map(h => K.TAG_LABELS[h.tag] || h.tag).slice(0, 3).join(' · ')),
+    cl.append(el('div', { class: 'seen' }, el('span', { class: 'k', translate: 'no', 'data-raw': '' }, r.hits.map(h => t(K.TAG_LABELS[h.tag] || h.tag)).slice(0, 3).join(' · ')),
       el('button', { class: 'btn small', onclick: () => openGame(g, r.game.moment) }, 'Open'),
       el('div', {}, `${r.game.title} · ${r.game.white} – ${r.game.black}, ${r.game.event} ${r.game.date}`), el('q', {}, r.game.about)));
   }
@@ -3826,10 +4229,10 @@ async function studyPlan() {
   if (!COACH.sample) return;
   const box = $('#studyPlan'); const btn = $('#btnStudyPlan');
   btn.disabled = true; box.replaceChildren(el('div', { class: 'summary' }, el('span', { class: 'empty-note' }, 'Thinking…')));
-  const target = box.firstElementChild, gen = S.gen, i = S.cursor, view = engineView(S), board = captureBoard(), label = positionLabel();
+  const target = box.firstElementChild, gen = S.gen, profile = activeProfileKey, i = S.cursor, view = engineView(S), board = captureBoard(), label = positionLabel();
   const scratch = scratchFacts(), context = answerContext(i, view, scratch, board.state);
   const render = text => {
-    if (S.gen !== gen) return;
+    if (S.gen !== gen || profile !== activeProfileKey) return;
     target.replaceChildren(); pinMessage(target, label, board);
     const body = el('div'); renderRich(body, text, context.fen, checkFor(text, context)); target.append(body);
   };
@@ -3837,7 +4240,7 @@ async function studyPlan() {
     const prompt = `${COACH_RULES}\n\n${contextFor(i, { view, scratch })}\n\nTask: Suggest a short study plan (3 steps) built around the themes of this position. For each step name the theme, what to look for in the player's own games, and one reference from the retrieved list with the part to read. Under 200 words.`;
     const { text } = await COACH.sample(prompt, { onText: ({ text }) => render(text), cache: { gcTime: 600000 }, task: 'review' });
     render(text);
-  } catch (e) { if (S.gen === gen) target.replaceChildren(coachError(e)); }
+  } catch (e) { if (S.gen === gen && profile === activeProfileKey) target.replaceChildren(coachError(e)); }
   finally { btn.disabled = !COACH.sample; }
 }
 const REF_TAGS = ['opening', 'sicilian', 'french', 'caro-kann', 'open-games', 'queens-gambit', 'kid', 'english', 'iqp', 'carlsbad', 'maroczy', 'passed-pawn', 'king-attack', 'fork', 'pin', 'mate', 'calculation', 'planning', 'pawn-endgame', 'rook-endgame', 'minor-endgame', 'ocb'];
@@ -3846,12 +4249,122 @@ function renderRefTags() {
   REF_TAGS.forEach(t => box.append(el('button', { class: 'chip', 'aria-pressed': 'false', onclick: e => { const on = e.currentTarget.classList.toggle('on'); e.currentTarget.setAttribute('aria-pressed', String(on)); } , 'data-tag': t }, K.TAG_LABELS[t])));
 }
 async function addRef() {
-  const title = $('#refTitle').value.trim(); const tags = $$('#refTags .chip.on').map(b => b.dataset.tag);
+  const original = ['#refTitle', '#refAuthor', '#refNote'].map(id => $(id).value), title = original[0].trim();
+  const tags = $$('#refTags .chip.on').map(b => b.dataset.tag), destination = Lib.context();
   if (!title || !tags.length) { $('#refMsg').textContent = 'Add a title and at least one theme.'; return; }
-  if (!(await Lib.putBook({ id: 'b' + Date.now().toString(36), title, author: $('#refAuthor').value.trim(), note: $('#refNote').value.trim(), tags, updatedAt: Date.now() }))) { $('#refMsg').textContent = 'The reference could not be saved.'; return; }
-  $('#refTitle').value = $('#refAuthor').value = $('#refNote').value = ''; renderRefTags();
+  if (!(await Lib.putBook({ id: 'b' + crypto.randomUUID(), title, author: original[1].trim(), note: original[2].trim(), tags, updatedAt: Date.now() }))) { $('#refMsg').textContent = 'The reference could not be saved.'; return; }
+  if (destination === Lib.context() && original.every((value, i) => value === $(['#refTitle', '#refAuthor', '#refNote'][i]).value)
+    && JSON.stringify(tags) === JSON.stringify($$('#refTags .chip.on').map(b => b.dataset.tag))) {
+    $('#refTitle').value = $('#refAuthor').value = $('#refNote').value = ''; renderRefTags();
+  }
   $('#refMsg').textContent = 'Added. It will show up when a matching position comes up.';
 }
+
+// Curriculum browsing and lesson play use separate state/boards and no provider requests.
+const curriculum = compileCurriculum(Chess, CURRICULUM);
+const PracticeSchedule = createPracticeSchedule(browserStorage()), practiceIndex = lessonProgressIndex(curriculum), pendingPractice = [];
+const practiceScope = () => JSON.stringify([Lib.where, Lib.uid]);
+function flushPracticeResults() {
+  for (let i = 0; i < pendingPractice.length;) {
+    const receipt = pendingPractice[i];
+    if (receipt.card.kind === 'own' && receipt.card.scope !== practiceScope()) { i++; continue; }
+    if (PracticeSchedule.record(receipt.card, receipt.event)) break;
+    pendingPractice.splice(i, 1);
+  }
+  refreshPractice();
+}
+ownPuzzlePlayer = createOwnPuzzlePlayer($('#ownPuzzlePlayer'), { Chess, mountBoard: Chessground, language: LANG, t,
+  engine: async (fen, { depth, lines }) => {
+    const result = await analyst.go(fen, { depth, multipv: lines, maxMs: ANALYSIS_CAP_MS, tag: 'practice' }).catch(() => null);
+    return result ? { depth: result.depth, lines: toWhite(result.lines, turnOf(fen)) } : null;
+  },
+  cancelEngine: () => analyst.cancel('practice'),
+  state: () => ({ records: LIBRARY_RECORDS, scope: JSON.stringify([Lib.where, Lib.uid]), context: Lib.context(),
+    generation: S.gen, allowed: showEngine(), visible: !paneHidden('review') }),
+  onSource: (candidate, valid) => {
+    const current = () => valid() && !paneHidden('review') && LIBRARY_RECORDS.get(`library:${candidate.g.id}`)?.g === candidate.g;
+    if (current()) openGame(candidate.g, candidate.occurrence.ply, current);
+  },
+  onComplete: result => {
+    pendingPractice.push({ card: { kind: 'own', scope: practiceScope(), id: result.id, revision: result.revision, source: result.sourceKey },
+      event: { id: crypto.randomUUID(), at: Date.now(), basis: result.kind, mistakes: result.mistakes, hints: result.hints, revealed: result.revealed } });
+    flushPracticeResults();
+  },
+});
+const LessonProgress = createLessonProgressStore(browserStorage(), curriculum), pendingLessonResults = [];
+let lessonProgressError = null, lessonProgressSummary = null, curriculumPanel = null;
+const lessonProgressPanel = createLessonProgressPanel($('#lessonProgress'), { language: LANG, t, onRetry: () => flushLessonResults() });
+refreshLessonProgress = () => {
+  lessonProgressSummary = LessonProgress.unreadable ? null : summarizeLessonProgress(curriculum, LessonProgress.entries, TUTOR.progress);
+  lessonProgressPanel.render(lessonProgressSummary, { pending: pendingLessonResults.length, error: lessonProgressError, unreadable: LessonProgress.unreadable });
+  curriculumPanel?.refreshProgress();
+};
+function flushLessonResults() {
+  lessonProgressError = null;
+  while (pendingLessonResults.length) {
+    lessonProgressError = LessonProgress.record(pendingLessonResults[0]);
+    if (lessonProgressError) break;
+    const receipt = lessonScheduleReceipt(practiceIndex, pendingLessonResults.shift());
+    if (receipt) pendingPractice.push(receipt);
+  }
+  refreshLessonProgress();
+  flushPracticeResults();
+}
+lessonPlayer = createLessonPlayer($('#lessonPlayer'), curriculum, { Chess, mountBoard: Chessground, language: LANG, t, generation: () => S.gen,
+  onComplete: result => { pendingLessonResults.push({ id: crypto.randomUUID(), at: Date.now(), ...result }); flushLessonResults(); }, onPlay: playLessonPosition });
+refreshLessonProgress();
+curriculumPanel = createCurriculumPanel($('#curriculumPanel'), curriculum, { language: LANG, level: S.level, t,
+  onOpen: (lesson, exercise) => lessonPlayer.open(lesson, exercise), getProgress: () => lessonProgressSummary });
+window.addEventListener('storage', event => {
+  if (event.key === LESSON_PROGRESS_KEY || event.key === null) { LessonProgress.reload(); refreshLessonProgress(); }
+});
+
+let practiceRepRevision = -1, practiceOpeningCards = [];
+const practiceLessons = curriculum.modules.flatMap(m => m.lessons.flatMap(l => l.exercises.map(e => ({
+  kind: 'lesson', scope: 'curriculum', id: e.id, revision: practiceIndex.get(e.id).revision,
+  lesson: l.id, level: e.level, label: lessonText(l.title, LANG) + ' · ' + lessonText(e.title, LANG),
+}))));
+const practicePanel = createPracticePanel($('#practiceSchedule'), { language: LANG, t,
+  onRetry: flushPracticeResults,
+  state: () => {
+    const gen = S.gen, records = LIBRARY_RECORDS, context = Lib.context(), revision = Repertoires.revision, entries = PracticeSchedule.entries;
+    if (practiceRepRevision !== revision) {
+      practiceRepRevision = revision;
+      practiceOpeningCards = Repertoires.items.flatMap(rep => buildDrillCards(Chess, rep).map(card => ({ ...card, kind: 'opening', rep: rep.id, label: rep.name + ' · ' + card.name })));
+    }
+    const reviews = DrillReviews.records;
+    const lessons = PracticeSchedule.unreadable ? [] : practiceLessons.filter(c => c.level <= S.level || entries.has(scheduleCardKey(c))).map(c => ({ ...c, basis: entries.get(scheduleCardKey(c))?.basis }));
+    const own = PracticeSchedule.unreadable ? [] : ownPracticeCards(ownPuzzlePlayer.candidates(), entries, practiceScope()).map(c => ({ ...c,
+      label: String(c.candidate.g.title || c.candidate.g.white || '').slice(0, 140) + ' · ' + c.candidate.playedLabel,
+      basis: c.fresh ? null : entries.get(scheduleCardKey(c))?.basis }));
+    return { cards: [...lessons, ...(Repertoires.unreadable || DrillReviews.unreadable ? [] : practiceOpeningCards.map(c => ({ ...c, review: reviews.get(c.key) }))), ...own], entries,
+      now: Date.now(), allowed: showEngine(), unreadable: PracticeSchedule.unreadable || Repertoires.unreadable || DrillReviews.unreadable,
+      pending: pendingPractice.filter(r => r.card.kind === 'lesson' || r.card.scope === practiceScope()).length,
+      current: () => gen === S.gen && records === LIBRARY_RECORDS && context === Lib.context() && revision === Repertoires.revision && showEngine() };
+  },
+  onOpen: (card, current) => {
+    if (!current()) return;
+    if (card.kind === 'lesson') { lessonPlayer.open(card.lesson, card.id); return; }
+    if (card.kind === 'own') { openTab('review'); if (current()) ownPuzzlePlayer.open(card.source); return; }
+    if (DRILL) stopDrill(false);
+    repSelected = card.rep; store.set('repertoireSelected', repSelected); openTab('openings'); renderRepertoires(); startDrill(card.key);
+  },
+});
+refreshPractice = () => {
+  practicePanel.refresh();
+  const pending = pendingPractice.filter(r => r.card.kind === 'own' && r.card.scope === practiceScope()).length;
+  $('#ownPracticeSave').hidden = !showEngine();
+  $('#ownPracticeSaveStatus').textContent = pending ? t('Pending practice results: {n}. Retry saving before closing this tab.', { n: pending })
+    : PracticeSchedule.unreadable ? t('Some practice data cannot be read. Its original data is preserved; those reviews are unavailable.') : t('Completed own-game practice schedules are saved in this browser.');
+  $('#ownPracticeRetry').hidden = !pending;
+};
+$('#ownPracticeRetry').addEventListener('click', flushPracticeResults);
+refreshPractice();
+setInterval(() => { if (!paneHidden('lessons')) refreshPractice(); }, 60_000);
+window.addEventListener('storage', event => {
+  if (event.key === SCHEDULE_KEY || event.key === null) { PracticeSchedule.reload(); refreshPractice(); }
+  if (event.key === 'kibitz.repertoireReviews' || event.key === null) { DrillReviews.reload(); refreshPractice(); if (!DRILL) renderRepertoires(); }
+});
 
 // ---------------------------------------------------------------- Tabs & wiring
 // The panels under the dialogue (game, coach settings, review, library, reading) fold away, so the
@@ -3901,6 +4414,7 @@ function openTab(name) {
   if (name === 'library') renderLibrary();
   if (name === 'reading') renderReading();
   if (name === 'openings') renderOpeningExplorer();
+  if (name === 'lessons') refreshPractice();
   store.set('tab', name);
 }
 // Reviewing a live game is an explicit pause. Keep both boards, including the review cursor and
@@ -3961,7 +4475,14 @@ modeHint(); renderProgress();
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 }
 $('#btnComment').addEventListener('click', () => commentOn(S.cursor, { scratch: scratchFacts() }));
-choice('#optLevel', S.level, v => { S.level = +v; saveSettings(); renderAll(); renderPlayers(); });
+function applyPlayerProfile(profile) {
+  const nextKey = profileKey(profile); if (nextKey === activeProfileKey) return;
+  activeProfileKey = nextKey; S.level = profile.level;
+  cancelChat(); chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false;
+  renderAll(); renderPlayers();
+}
+const profilePanel = createProfilePanel($('#playerProfile'), { store: PlayerProfile, onChange: applyPlayerProfile, t });
+window.addEventListener('storage', event => { if (event.key === PROFILE_KEY || event.key === null) profilePanel.reload(); });
 choice('#libFilter', 'all', () => renderLibrary());
 $('#explorerSource').value = ['all', 'classic', 'library'].includes(store.get('explorerSource')) ? store.get('explorerSource') : 'all';
 $('#explorerSource').addEventListener('change', () => { store.set('explorerSource', $('#explorerSource').value); renderOpeningExplorer(); });
@@ -4072,6 +4593,20 @@ $('#chatUndo').addEventListener('click', () => submitChat('undo'));
 $('#coachInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#coachSend').click(); } });
 $('#coachStop').addEventListener('click', cancelChat);
 $('#libSearch').addEventListener('input', renderLibrary);
+$('#libUseServer').addEventListener('click', () => Lib.useServer());
+$('#libServerRefresh').addEventListener('click', () => Lib.useServer());
+$('#libUseBrowser').addEventListener('click', () => {
+  if (importBusy) return;
+  if (!store.set('serverLibrary', false)) toast('The library selection could not be remembered for reload.');
+  Lib.fallback();
+});
+for (const id of ['#libPlayer', '#libOpening', '#libYearFrom', '#libYearTo']) $(id).addEventListener('input', renderLibrary);
+for (const id of ['#libResult', '#libTheme']) $(id).addEventListener('change', renderLibrary);
+for (const [tag, label] of Object.entries(K.TAG_LABELS)) $('#libTheme').append(el('option', { value: tag }, label));
+$('#libSearchClear').addEventListener('click', () => {
+  for (const id of ['#libSearch', '#libPlayer', '#libOpening', '#libYearFrom', '#libYearTo', '#libResult', '#libTheme']) $(id).value = '';
+  renderLibrary(); $('#libSearch').focus();
+});
 $('#studyQuery').addEventListener('input', renderStudySearch);
 $('#studySource').addEventListener('change', renderStudySearch);
 $('#studyLanguage').addEventListener('change', renderStudySearch);
@@ -4092,6 +4627,7 @@ $('#btnStudyPlan').addEventListener('click', studyPlan);
 $('#btnAddRef').addEventListener('click', addRef);
 document.addEventListener('keydown', e => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+  if (document.activeElement?.closest('.lesson-player, #drillPanel')) return;
   if (SCRATCH && ['ArrowLeft', 'ArrowRight', 'Escape'].includes(e.key)) { e.preventDefault(); if (e.key === 'Escape') closeScratch(); else stepScratch(e.key === 'ArrowLeft' ? -1 : 1); return; }
   if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(S.cursor - 1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); goTo(S.cursor + 1); }
@@ -4122,7 +4658,7 @@ function start(data) {
   setTools(store.get('toolsOpen', true));
   Lib.init();
 }
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS };
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS, positionIndex: () => INDEX, patternIndex: () => PATTERN_INDEX, ownPuzzles: () => ownPuzzlePlayer };
 // The game on the board survives a reload (TODO 1.15). Inside the artifact the host takes the
 // snapshot when it needs it; the local app keeps it in localStorage ('current'), written shortly
 // after every change and when the page goes away, and read back at boot.

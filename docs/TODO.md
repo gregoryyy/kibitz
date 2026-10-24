@@ -168,29 +168,29 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 ## 6. Tactics and strategy curriculum
 
-- [ ] 6.1 Structure: modules → lessons → exercises, tagged by level
-- [ ] 6.2 Tactics: fork, pin, skewer, discovered attack, double check, deflection, decoy, overloading, interference, removing the defender, zwischenzug, back rank, mating patterns
-- [ ] 6.3 Strategy: pawn structures (IQP, Carlsbad, hanging pawns, …), weak squares, outposts, good and bad bishops, open files, king safety, piece activity, prophylaxis
-- [ ] 6.4 Endgames: basic mates, king and pawn, opposition, Lucena, Philidor; checked against tablebases (Syzygy) *(added)*
-- [ ] 6.5 Puzzle source: Lichess puzzle database (CC0), already tagged by theme
-- [ ] 6.6 Lesson player: explanation, worked positions, exercises with tutor hints
-- [ ] 6.7 Progress per lesson and per theme
-- [ ] 6.8 Play a lesson position out against Stockfish (the game start from 1.8 takes a FEN or moves)
+- [x] 6.1 Curriculum structure: validated modules → lessons → exercises with stable IDs, levels, themes, bilingual authored text, acyclic prerequisites and source/licence metadata. Lessons catalogue filters by level/module/theme; positions and recorded lines are checked with chess.js, including terminal mate checks for mate exercises
+- [x] 6.2 Tactics: 13 bilingual concept lessons covering forks, pins, skewers, discovered attacks, double checks, deflection, decoy, overloading, interference, removing a defender, zwischenzugs, back rank and mating patterns. Legal examples and declared motif geometry are checked; a capturable-fork counterexample distinguishes recognition from payoff
+- [x] 6.3 Strategy: eleven bilingual reflection lessons covering IQP, Carlsbad and hanging-pawn structures, weak squares, outposts, bishop quality, open files, king safety, piece/king activity and prophylaxis. Legal examples, explicit objectives/rubrics, checked structure tags and board-fact tests support the authored material; candidate plans are not engine verdicts
+- [x] 6.4 Endgames: six bilingual lessons cover queen/rook mates for both colours, king and pawn, the rook-pawn exception, opposition with either side to move, Lucena and Philidor. Ten exercises and all 28 worked plies are checked against recorded Syzygy outcomes for full FEN; offline audit and explicit refresh script preserve source/date/digests
+- [x] 6.5 Puzzle source: bounded Lichess CC0 CSV ingestion and 64 recorded starter puzzles, with source IDs/themes/ratings/licence, provenance/digest and offline regeneration. Setup moves are applied before learner positions; all solutions replay legally and mate claims are rules-checked. Four editorial rating groups join the catalogue
+- [x] 6.6 Lesson player: isolated interactive board, explanations, keyboard worked-line viewer, staged authored hints, explicit promotions and reveal/restart. Mate tasks accept every actual checkmate; source puzzles check recorded-line recall and replies; written reflections require rubric self-assessment. Completion events distinguish these outcomes and help use
+- [x] 6.7 Progress per lesson and theme: versioned browser-local results with separate mate/recall/self-assessment/reveal and help counters, retained task revisions, validated Coach challenge counters, catalogue badges, retryable failed saves and preserved unreadable data. Counts describe practice rather than measured mastery; no reflection response text is stored
+- [x] 6.8 Play the displayed lesson position against Stockfish as either colour, preserving its full FEN and using existing strength/clock settings. Active games require a confirmed successful save; cancellation, stale actions and save failures leave the current game intact
 
 ## 7. Reference library: games and problems
 
 - [x] 7.1 Source-aware data model: stable collection-scoped game/source IDs, shared EPD positions, full-FEN occurrences and revision-bound annotations/studies. Separate score/comment licences, exact mainline PGN locators, optional import/source editing and non-destructive legacy handling; [schema and lifecycle](LIBRARY.md)
-- [ ] 7.2 PGN import with deduplication *(prototype)*. Remaining: deduplication.
-- [ ] 7.3 Classic games collection: public game scores only, no copyrighted annotations. Started: 9 games and 4 studies in `classics.js`, tagged by theme, with our own notes, every score checked with chess.js; in the library under Classics. 7.1 now records their packaged source and project-authored annotation licence. Remaining: a larger collection and verified original score sources/licences per item
-- [ ] 7.4 Problems and studies collection. Started: four classic studies (Réti, Saavedra, Lucena, Philidor) in `classics.js`
-- [ ] 7.5 Search by player, opening, year, result, theme
-- [ ] 7.6 Storage: SQLite on the server, IndexedDB cache in the browser
+- [x] 7.2 PGN import with conservative document deduplication: skip repeat copies within a batch/current user library, allowing outside whitespace/header-order differences while preserving distinct annotations, variations, headers, full-FEN starts and source/licence assertions. Separate added/duplicate/unreadable/failed counts, bounded batches and retry-safe local/account writes
+- [x] 7.3 Classic games collection: 21 games, with per-game published score sources/rights and original Kibitz notes. Twelve complete Capablanca book scores join nine sourced teaching versions; 1,355 plies audit offline, including reconstruction of 980 descriptive book plies. Fixed revisions/page links, retained source licences, explicit historical/teaching distinctions and excluded incomplete scores are documented in [the source manifest](../site/data/classics/README.md). Problem/study sources are covered in 7.4
+- [x] 7.4 Problems and studies collection: twelve sourced positions, four actual mates in one and eight studies/reflections. Published Réti/Saavedra diagrams, explicit Lucena/Philidor teaching variants and eight authored curriculum examples have bilingual questions, a Problems filter and diagram-first opening. Exact source/FEN/line bindings check 48 worked plies against 50 saved tablebase records; imports/prose/other branches gain no certificate. [Sources, rights and offline audit](../site/data/problems/README.md)
+- [x] 7.5 Search by player, opening, recorded year range, result and theme: combined literal case/accent-insensitive metadata filters, localized titles/theme labels, legal PGN/ECO facts, explicit invalid/unknown-year handling and shared coach-tool matching. Accessible English/German controls retain category/reset behavior and source drafts/focus; [rules and limits](LIBRARY.md#catalogue-search)
+- [x] 7.6 Storage: optional private SQLite server library with anonymous cookie scopes, atomic optimistic writes, bounded legal records and a verified-scope IndexedDB cache. Explicit English/German selection keeps browser/account stores separate without uploads or migration; cache failures do not revoke server saves, and conflicts/uncertain receipts require refresh. [Storage lifecycle and limits](LIBRARY.md#server-library-and-browser-cache)
 - [x] 7.7 The user's own games *(prototype)*
 
 ## 8. RAG on positions and tactical patterns
 
-- [ ] 8.1 Position index: exact EPD and pawn-structure signature *(prototype)*, plus material signature and piece-placement features. Remaining: material and piece-placement signatures.
-- [ ] 8.2 Pattern tags per position and move, from the motif and theme detectors *(prototype)*
+- [x] 8.1 Position index: exact EPD and pawn signature plus versioned colour-specific material counts, full piece placement and occupied piece-square terms. Rules-replayed source occurrences retain full FEN/revisions; bounded, source-filtered feature lookups distinguish structural matches without changing default retrieval ranking. [Fields and limits](LIBRARY.md#material-and-piece-placement)
+- [x] 8.2 Pattern tags per source position and recorded move/three-ply branch, derived from legal replay with exact occurrence/revision identities. Position heuristics, geometric candidates and rules-proven mate/promotion facts remain distinct. Local English/German pattern search filters evidence/source and opens exact occurrences under live-help/source-generation guards; [fields and limits](LIBRARY.md#position-and-move-pattern-tags)
 - [x] 8.3 Text index for annotations and lesson text; embeddings from a separately configured provider (OpenAI, Mistral or Ollama; Anthropic has no embeddings API)
   - [x] 8.3.1 Local lexical passage index: mainline comments with source/occurrence locators, bilingual authored guide sections, filtered BM25 Library search, exact annotated-position navigation and a 28-query [passage benchmark](TEXT-SEARCH.md)
   - [x] 8.3.2 Explicit semantic indexing/search of selected passages, scoped in-memory vectors, local-only enforcement and provider/model/revision/dimension metadata. [Local bge-m3 comparison](eval/retrieval/dense-bge-m3.md) improves paraphrase recall but exposes uncalibrated no-answer false positives
@@ -203,10 +203,10 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 ## 9. Progress and personalization *(added)*
 
-- [ ] 9.1 User profile: level, rating estimate, goals
-- [ ] 9.2 Weakness tracking from game reviews (missed themes, weak game phases)
-- [ ] 9.3 Puzzles generated from the user's own mistakes
-- [ ] 9.4 Spaced-repetition scheduler for puzzles, openings and lessons
+- [x] 9.1 Browser-local player profile: explanation level, optional self-reported rating/pool/time control and bounded learning goals. Acknowledged saves, future-format preservation, stale-tab draft protection and quoted request context keep preferences separate from measured ability/opponent strength; [lifecycle and limits](PROFILE.md)
+- [x] 9.2 Own-game review trends: source-bound historical analysis reports, measured-move/error/accuracy coverage by estimated phase and bounded engine-confirmed opportunities. Refuted/unverified motifs and restored values gain no credit; reruns replace contributions, while deletion/source/library changes remove them. Localized source navigation and future-format preservation follow existing guards; [evidence and limits](REVIEWS.md)
+- [x] 9.3 Puzzles generated from compatible own-game review mistakes: fresh bounded Stockfish targets, arbitrary legal alternatives, explicit promotions, independent practice board and source/help/generation guards; [criteria and limits](OWN-PUZZLES.md)
+- [x] 9.4 Browser-local spaced practice across current lesson/puzzle tasks, opening recalls and selected-owner own mistakes: due-first bounded queue, shared deterministic intervals, distinct evidence labels, revision/source guards and acknowledged retry receipts; [lifecycle and limits](PRACTICE.md)
 - [x] 9.5 Study plan suggestions *(prototype)*
 
 ## 10. Accounts, privacy and reach *(added)*

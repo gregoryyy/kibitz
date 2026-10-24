@@ -1,0 +1,124 @@
+// Same-origin, cookie-scoped persistence. No provider calls or automatic browser-library upload.
+import crypto from 'node:crypto';
+import net from 'node:net';
+import { Chess } from 'chess.js';
+import { compileLibraryGame } from '../src/library/library.js';
+import { LIBRARY_LIMITS } from './library-store.mjs';
+
+const COOKIE = 'kibitz_library', TOKEN = /^[A-Za-z0-9_-]{43}$/;
+const HEADERS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', Vary: 'Cookie' };
+const ERRORS = {
+  forbidden: [403, 'Cross-origin library access is not allowed.'],
+  bad_request: [400, 'Invalid library request.'],
+  invalid_record: [400, 'A library record is invalid or unsupported.'],
+  invalid_changes: [400, 'Invalid library changes.'],
+  record_too_large: [413, 'A library record is too large.'],
+  too_large: [413, 'The library request is too large.'],
+  quota: [413, 'The server library is full.'],
+  conflict: [409, 'The library changed. Refresh before retrying.'],
+  session_changed: [409, 'The library session changed. Reconnect before retrying.'],
+  no_session: [401, 'Connect to the server library before saving.'],
+  unavailable: [503, 'Server library storage is unavailable.'],
+  not_found: [404, 'Not found.'],
+  method: [405, 'Method not allowed.'],
+  content_type: [415, 'Content-Type must be application/json.'],
+  rate_limited: [429, 'Too many library writes. Try again in a minute.'],
+};
+/** @returns {never} */
+const fail = code => { throw Object.assign(new Error(code), { code }); };
+const json = (res, status, body) => { res.writeHead(status, HEADERS); res.end(JSON.stringify(body)); return true; };
+const scopeOf = token => crypto.createHash('sha256').update('kibitz-library-v1\0' + token).digest('hex');
+const tokenOf = req => {
+  const found = /(?:^|;\s*)kibitz_library=([^;]*)/.exec(req.headers.cookie || '');
+  return found && TOKEN.test(found[1]) ? found[1] : null;
+};
+function checkOrigin(req) {
+  let host;
+  try { host = new URL(`http://${req.headers.host}`).hostname.replace(/^\[|\]$/g, ''); } catch { fail('forbidden'); }
+  if (host !== 'localhost' && !net.isIP(host) || req.headers['sec-fetch-site'] === 'cross-site') fail('forbidden');
+  if (req.headers.origin) {
+    const scheme = req.socket.encrypted ? 'https:' : 'http:';
+    let origin;
+    try { origin = new URL(req.headers.origin).origin; } catch { fail('forbidden'); }
+    if (origin !== new URL(`${scheme}//${req.headers.host}`).origin) fail('forbidden');
+  }
+}
+function readJson(req) {
+  return new Promise((resolve, reject) => {
+    let bytes = 0; const chunks = [];
+    req.on('data', chunk => { bytes += chunk.length; if (bytes <= LIBRARY_LIMITS.batchBytes) chunks.push(chunk); });
+    req.on('end', () => {
+      if (bytes > LIBRARY_LIMITS.batchBytes) return reject(Object.assign(new Error('too_large'), { code: 'too_large' }));
+      try { resolve(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)))); }
+      catch { reject(Object.assign(new Error('bad_request'), { code: 'bad_request' })); }
+    });
+    req.on('error', reject);
+    req.on('aborted', () => reject(Object.assign(new Error('bad_request'), { code: 'bad_request' })));
+  });
+}
+
+/** Validate untrusted writes separately from the store's opaque legacy-data reads. */
+export async function validateLibraryChanges(changes) {
+  if (!Array.isArray(changes) || changes.length > LIBRARY_LIMITS.changes) fail('invalid_changes');
+  for (const change of changes) {
+    if (!change || !['games', 'books'].includes(change.collection) || typeof change.id !== 'string') fail('invalid_record');
+    const record = change.record;
+    if (record === null) continue;
+    if (!record || typeof record !== 'object' || Array.isArray(record) || record.id !== change.id) fail('invalid_record');
+    if (Buffer.byteLength(JSON.stringify(record)) > LIBRARY_LIMITS.recordBytes) fail('record_too_large');
+    if (change.collection === 'games') {
+      try { await compileLibraryGame(Chess, record, 'library'); } catch { fail('invalid_record'); }
+    } else if (typeof record.title !== 'string' || !record.title.trim() || record.title.length > 240
+      || record.author !== undefined && (typeof record.author !== 'string' || record.author.length > 160)
+      || record.note !== undefined && (typeof record.note !== 'string' || record.note.length > 50_000)
+      || !Array.isArray(record.tags) || record.tags.length > 64 || record.tags.some(tag => typeof tag !== 'string' || tag.length > 80)) fail('invalid_record');
+  }
+}
+
+/**
+ * Mount before the AI gateway, which otherwise handles all /api/ paths.
+ * Status offers storage without creating a session; explicitly loading records creates one.
+ * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges}} [options]
+ */
+export function createLibraryApi({ store = null, validate = validateLibraryChanges } = {}) {
+  let windowAt = Date.now(), writes = 0;
+  return async (req, res) => {
+    const { pathname } = new URL(req.url, 'http://x');
+    if (pathname !== '/api/library' && !pathname.startsWith('/api/library/')) return false;
+    try {
+      checkOrigin(req);
+      if (pathname === '/api/library/status') {
+        if (req.method !== 'GET') fail('method');
+        const token = tokenOf(req);
+        return json(res, 200, { available: !!store, scope: store && token ? scopeOf(token) : null });
+      }
+      if (pathname !== '/api/library/records') fail('not_found');
+      if (!['GET', 'POST'].includes(req.method)) fail('method');
+      if (!store) fail('unavailable');
+      let token = tokenOf(req);
+      if (req.method === 'GET') {
+        if (!token) {
+          token = crypto.randomBytes(32).toString('base64url');
+          res.setHeader('Set-Cookie', `${COOKIE}=${token}; Path=/api/library/; HttpOnly; SameSite=Strict; Max-Age=31536000${req.socket.encrypted ? '; Secure' : ''}`);
+        }
+        return json(res, 200, store.read(scopeOf(token)));
+      }
+      if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) fail('content_type');
+      if (!token) fail('no_session');
+      if (Date.now() - windowAt >= 60_000) { windowAt = Date.now(); writes = 0; }
+      if (++writes > 120) fail('rate_limited');
+      const body = await readJson(req), scope = scopeOf(token);
+      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['scope', 'revision', 'changes'].includes(k))
+        || !Number.isSafeInteger(body.revision) || body.revision < 0) fail('bad_request');
+      if (body.scope !== scope) fail('session_changed'); // A precondition; only the cookie selects the owner.
+      await validate(body.changes);
+      if (res.destroyed) return true;
+      return json(res, 200, store.change(scope, body.revision, body.changes));
+    } catch (error) {
+      const code = typeof error?.code === 'string' && Object.hasOwn(ERRORS, error.code) ? error.code : 'unavailable';
+      const [status, message] = ERRORS[code];
+      if (!res.destroyed) json(res, status, { error: { code, message } });
+      return true;
+    }
+  };
+}

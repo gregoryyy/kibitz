@@ -1,6 +1,6 @@
 // Minimal static server for local development, no dependencies.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
-//                          [--models DIR [--model ID]] [--offline]
+//                          [--models DIR [--model ID]] [--offline] [--library FILE]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); that part needs the npm dependencies. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
@@ -28,10 +28,19 @@ const { values: opt, positionals } = parseArgs({
     models: { type: 'string', default: '' },
     model: { type: 'string', default: '' },
     offline: { type: 'boolean', default: false },
+    library: { type: 'string', default: '' },
   },
 });
-if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline]'); process.exit(2); }
+if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE]'); process.exit(2); }
 const root = fs.realpathSync(positionals[0]);
+let library = null, libraryStore = null;
+if (opt.library) {
+  const { openPrivateLibrary } = await import('../server/library-files.mjs');
+  const { createLibraryApi } = await import('../server/library-api.mjs');
+  libraryStore = openPrivateLibrary(opt.library, root);
+  library = createLibraryApi({ store: libraryStore });
+  process.once('exit', () => libraryStore.close());
+}
 
 const modelsDir = opt.models ? path.resolve(opt.models) : '';
 let api = null, apiStatus = '';
@@ -79,6 +88,7 @@ function sendModel(req, res, name) {
 
 http.createServer(async (req, res) => {
   res.on('finish', () => console.log(res.statusCode, req.method, req.url));
+  if (library && await library(req, res)) return;
   if (api && await api(req, res)) return;
   if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
   let rel;

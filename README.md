@@ -62,6 +62,22 @@ The **Openings** tab explores recorded continuations from the classics and your 
 
 The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. Drills are planned in TODO 5.4.
 
+**Settings → Player profile** keeps your explanation level, optional self-reported rating/pool/time control and learning goals in this browser. Saved preferences guide coach requests; goals are quoted user data, and the rating is separate from opponent strength. [Profile behavior and limits](docs/PROFILE.md) explain saving, request freshness and the absence of automatic rating inference.
+
+**Review → Review trends** summarizes compatible reviews of your own games in the selected library, with phase coverage and confirmed tactical opportunities. Repeated reviews replace their contribution; geometric candidates and missing evidence do not count as confirmed misses. [Review evidence and limits](docs/REVIEWS.md) explain the historical records and bounded checks.
+
+**Practise your own mistakes** turns compatible reviewed mistakes into independent-board exercises. Stockfish rechecks the reference and original move, then grades any legal answer against a bounded target. Hints, reveal and rules-proven mate stay separate; [exercise scope and grading](docs/OWN-PUZZLES.md) explain the limits.
+
+The **Lessons** tab offers bilingual tactics, strategy, endgames and sourced puzzles, with an isolated exercise board, authored hints and local progress. **Play against Stockfish** takes the displayed lesson position into a normal game as either colour, using your current strength and clock settings; an active game is confirmed and saved first.
+
+**Lessons → Spaced practice** combines due lessons, opening recalls and own-mistake exercises, with local schedules, save retries and separate evidence labels. The [intervals and storage lifecycle](docs/PRACTICE.md) describe the simple practice heuristic and source-revision boundaries.
+
+The **Classics** library includes 21 games with published score sources and separate score/note rights. Twelve complete games from Capablanca's *Chess Fundamentals* expand the collection; historical teaching versions are labelled, and all notes are original Kibitz material. [Source records and offline checks](site/data/classics/README.md) document the games. **Problems** browses twelve sourced mates/studies with bilingual questions, diagram-first opening and checked recorded branches. [Evidence and scope](site/data/problems/README.md) distinguish actual mates, tablebase outcomes and authored reflections.
+
+In **Library**, search words or combine player, opening/ECO, recorded year range, result and theme filters. Names and theme labels support English/German and accent-insensitive matching. Search works locally; the coach's library tool uses the same filters. **Search detected patterns** separately browses computed position themes and recorded move patterns, with explicit heuristic/candidate/rules labels and exact source navigation; [evidence limits](docs/LIBRARY.md#position-and-move-pattern-tags) distinguish geometric candidates from proven chess facts.
+
+An optional [server library](site/README.md#server-library) stores games and references in a private SQLite file, with a scoped IndexedDB browser cache. Choose it explicitly in Library; the existing browser library stays separate and is never uploaded automatically.
+
 The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
 
 - **Run locally:** the page talks to the AI gateway in `site/server/`, which `site/scripts/serve.mjs --api` mounts. The gateway reads `.env`, calls the chosen provider, and keeps the API keys on the server.

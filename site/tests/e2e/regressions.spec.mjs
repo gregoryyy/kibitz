@@ -1,5 +1,6 @@
 // One test per bug fixed after the 2026-10-20 code review; each fails on the old code.
 import { test, expect, open, move, loadPgn, reveal, S, OPERA } from './fixtures.mjs';
+import { CLASSICS } from '../../src/library/classics.js';
 
 test('review: loading another game mid-review stops the review cleanly', async ({ page }) => {
   await open(page);
@@ -57,7 +58,7 @@ test('full browser storage: saving says so instead of "Saved"', async ({ page })
   await page.locator('#btnSaveCurrent').click();
   await expect(page.locator('#toast')).toContainText('Browser storage is full');
   await expect(page.locator('#libCount')).toHaveText('');
-  await expect(page.locator('#libList .game')).toHaveCount(13); // just the built-in classics
+  await expect(page.locator('#libList .game')).toHaveCount(CLASSICS.length); // just the built-in classics
 });
 
 test('prompt injection: imported PGN text reaches the coach only as one-line quoted data', async ({ page }) => {

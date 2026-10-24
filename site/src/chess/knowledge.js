@@ -1,5 +1,7 @@
 // Kibitz knowledge layer: position features, literature catalog, retrieval.
 // Pure functions over chess.js objects so they can be tested outside the page.
+import { boardSignatures, checkedPieceTerms } from './signatures.js';
+export { boardSignatures, POSITION_SIGNATURE_VERSION } from './signatures.js';
 
 export const TAG_LABELS = {
   opening: 'Opening play', middlegame: 'Middlegame planning', endgame: 'Endgame',
@@ -14,7 +16,7 @@ export const TAG_LABELS = {
   'benoni-structure': 'Benoni structure', hedgehog: 'Hedgehog', stonewall: 'Stonewall',
   'open-center': 'Open centre', 'closed-center': 'Closed centre', 'opposite-castling': 'Opposite-side castling',
   'passed-pawn': 'Passed pawn', 'isolated-pawn': 'Isolated pawn', 'doubled-pawns': 'Doubled pawns',
-  'bishop-pair': 'Bishop pair', 'pawn-endgame': 'King and pawn ending', 'rook-endgame': 'Rook ending',
+  'bishop-pair': 'Bishop pair', 'pawn-endgame': 'King and pawn ending', 'rook-endgame': 'Rook ending', 'opposition': 'Opposition', zugzwang: 'Zugzwang',
   'rook-pawn-vs-rook': 'Rook + pawn vs rook', ocb: 'Opposite-coloured bishops',
   'minor-endgame': 'Minor-piece ending', 'queen-endgame': 'Queen ending', 'rook-vs-minor': 'Rook vs minor piece',
   fork: 'Fork', pin: 'Pin', skewer: 'Skewer', 'discovered-attack': 'Discovered attack', 'double-check': 'Double check',
@@ -23,6 +25,8 @@ export const TAG_LABELS = {
   'hanging-piece': 'Loose / hanging piece', promotion: 'Promotion', sacrifice: 'Sacrifice',
   'greek-gift': 'Bishop sacrifice on h7/h2', 'king-attack': 'Attack on the king', mate: 'Checkmate pattern',
   calculation: 'Calculation & blunder-checking', planning: 'Planning & imbalances', 'king-activity': 'King activity',
+  'weak-square': 'Weak squares', outpost: 'Outposts', 'bishop-quality': 'Good and bad bishops',
+  'open-file': 'Open files', 'king-safety': 'King safety', 'piece-activity': 'Piece activity', prophylaxis: 'Prophylaxis',
 };
 
 // --- Literature catalog -------------------------------------------------
@@ -165,8 +169,9 @@ export function positionFeatures(chess, ctx = {}) {
   // Phase
   const queens = count('w', 'q') + count('b', 'q');
   const isEnd = (npW <= 13 && npB <= 13 && queens === 0) || (npW + npB <= 20);
-  const phase = isEnd ? 'endgame' : (ply <= 20 && ctx.opening) ? 'opening' : 'middlegame';
-  add(phase, 1, phase === 'opening' ? `Move ${Math.ceil((ply || 1) / 2)}, still in known opening territory` : phase === 'endgame' ? 'Little material left on the board' : 'Pieces developed, out of the opening');
+  const initial = ctx.standardStart && ply === 0;
+  const phase = isEnd ? 'endgame' : initial || (ply <= 20 && (ctx.opening || ctx.standardStart)) ? 'opening' : 'middlegame';
+  add(phase, 1, phase === 'opening' ? initial ? 'Standard initial position' : ctx.opening ? `Move ${Math.ceil((ply || 1) / 2)}, still in known opening territory` : 'Early mainline from the standard initial position' : phase === 'endgame' ? 'Little material left on the board' : 'Pieces developed, out of the opening');
 
   if (ctx.opening) {
     const fam = openingFamily(ctx.opening.name);
@@ -374,12 +379,47 @@ const FAMILY_TAGS = new Set(FAMILY_RULES.map(r => r[1]));
 // Index games (PGN-derived position lists) for "seen before" retrieval.
 // games: [{id, title, positions:[{epd, pawns, ply, san, comment, cls}]}]
 export function buildPositionIndex(games) {
-  const byEpd = new Map(), byPawns = new Map();
+  const byEpd = new Map(), byPawns = new Map(), byMaterial = new Map(), byPlacement = new Map(), byPieceSquare = new Map(), signatures = new Map();
+  const add = (index, key, entry) => { if (!index.has(key)) index.set(key, []); index.get(key).push(entry); };
   for (const g of games) for (const p of g.positions || []) {
     (byEpd.get(p.epd) || byEpd.set(p.epd, []).get(p.epd)).push({ g, p });
     if (p.ply >= 12) (byPawns.get(p.pawns) || byPawns.set(p.pawns, []).get(p.pawns)).push({ g, p });
+    // New indexes derive from the actual encoded board, never imported feature assertions.
+    const fen = p.fen || p.epd;
+    if (!signatures.has(fen)) { try { signatures.set(fen, boardSignatures(fen)); } catch { signatures.set(fen, null); } }
+    const features = signatures.get(fen); if (!features) continue;
+    const entry = { g, p, features };
+    add(byMaterial, features.material, entry); add(byPlacement, features.placement, entry);
+    for (const term of features.pieces) add(byPieceSquare, term, entry);
   }
-  return { byEpd, byPawns };
+  return { byEpd, byPawns, byMaterial, byPlacement, byPieceSquare };
+}
+
+/**
+ * Bounded exact feature lookups, retaining every source occurrence in index order.
+ * These are structural predicates, not a teaching-relevance ranking or a chess proof.
+ * @param {ReturnType<typeof buildPositionIndex>} index Current owner's compiled position index.
+ * @param {string} fen Rules-checked query FEN/EPD.
+ * @param {{by?: 'material'|'placement'|'pieces', pieces?:string[], collection?:string, documentId?:string, limit?:number}} [options]
+ */
+export function positionFeatureMatches(index, fen, { by = 'material', pieces, collection, documentId, limit = 6 } = {}) {
+  if (!['material', 'placement', 'pieces'].includes(by) || !Number.isSafeInteger(limit) || limit < 1 || limit > 20
+    || collection !== undefined && !['classic', 'library'].includes(collection) || documentId !== undefined && (typeof documentId !== 'string' || documentId.length > 2048)
+    || by !== 'pieces' && pieces !== undefined) throw new Error('Invalid position-feature query');
+  const query = boardSignatures(fen), terms = by === 'pieces' ? checkedPieceTerms(query, pieces) : [];
+  let candidates;
+  if (by === 'material') candidates = index.byMaterial.get(query.material) || [];
+  else if (by === 'placement') candidates = index.byPlacement.get(query.placement) || [];
+  else candidates = terms.map(term => index.byPieceSquare.get(term) || []).sort((a, b) => a.length - b.length)[0];
+  const results = [];
+  for (const entry of candidates) {
+    const { g, p, features } = entry;
+    if (collection !== undefined && g.collection !== collection || documentId !== undefined && p.documentId !== documentId || terms.some(term => !features.pieces.includes(term))) continue;
+    results.push({ g, p, kind: by === 'material' ? 'same material' : by === 'placement' ? 'same piece placement' : 'matching piece squares',
+      matched: { material: features.material === query.material, placement: features.placement === query.placement, pieces: terms.length ? terms.slice() : features.pieces.filter(term => query.pieces.includes(term)) } });
+    if (results.length === limit) break;
+  }
+  return results;
 }
 export function similarPositions(index, fen, /** @type {{ excludeGameId?: any, limit?: number }} */ { excludeGameId, limit = 6 } = {}) {
   const e = epd(fen), s = pawnSignature(fen);

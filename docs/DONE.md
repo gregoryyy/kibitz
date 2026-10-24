@@ -7,6 +7,458 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Local spaced practice across lessons, openings and own mistakes
+
+TODO items: 9.4.
+
+### Implementation notes
+
+- Added `player/schedule.js` and `schedule-ui.js`: a localized Lessons queue combines oldest-due reviews before new tasks, with type/new filters, explicit/time-based refresh and a 20-item cap. Current lesson revisions, existing opening keys and selected-owner surviving own-exercise candidates define eligibility. New lessons follow the explanation-level ceiling while reviewed current tasks remain available.
+- Reused opening-drill intervals for all three types: misses/reveal/reflection-practice restart after ten minutes, help preserves at least a day and clean completion advances one/three/doubling days up to 180. Rules mate, recorded-line recall, engine-target results and rubric self-assessment retain separate labels and criteria. Unknown/illegal answers produce no completed receipt, and written responses never enter the scheduler.
+- Kept opening reviews canonical in their existing store. Lesson/own schedules use a bounded v1 envelope, exact task/target revisions, owner/source pointers, recent completion IDs, acknowledged writes and rereads before save. Old/future/corrupt data stays intact, failed saves retain receipts and delayed older results cannot replace newer due dates. Opening reviews gained reload/sequential-tab preservation and the same delayed-result protection.
+- Lesson progress acknowledges first, then a separate schedule receipt saves/retries without recounting the lesson. Own-game results show their grade independently of a failed scheduling save and expose retry in Review. Pending lesson scheduling remains visible even under restricted live help. Existing isolated players own grading; the queue opens the selected opening card or freshly qualifies an own target. Main-game/source/repertoire/policy guards reject held actions; focused opening boards now share the keyboard isolation boundary.
+- Ten unit scenarios exercise intervals/evidence, identities/revisions, ordering/filter/cap, owner/deletion boundaries, invalid data, failed writes/retries, sequential tabs and late results. Eight new browser cases cover due/reload/interval advancement, opening routing, source/target refresh, failed-save boundaries, future formats, task revisions, held policy/owner actions, literal names and German phone layout. Existing opening/lesson/own-player regressions also run unchanged.
+- Validation: ESLint/JSDoc checks, build, all 517 unit tests (one live-provider skip), 19 scheduling/opening logic cases, 16 focused browser cases and all 324 browser tests (one optional live-model skip) pass; the earlier focused run also passed all existing opening/lesson regressions. Production dependency audit reports zero vulnerabilities. German phone screenshot inspected.
+
+### Deviations
+
+- Reused the project's existing deterministic interval heuristic rather than introducing a fitted memory model or dependency. No old lesson totals are retrospectively assigned invented intervals. Schedules remain browser-local and owner-scoped rather than synchronized with a selected server library.
+- Lesson counters and scheduling are separate acknowledged keys, not a cross-key transaction. Closing/reloading loses unsaved in-tab receipts; bounded retry IDs do not promise indefinite deduplication. Simultaneous localStorage writers still lack a transaction. [Practice lifecycle](PRACTICE.md) records these limits, date assumptions, caps and revision retention.
+
+### Insights
+
+- A due queue can share timing without conflating what each activity establishes. Keeping self-assessment, recall, engine evidence and rules mate visible is necessary before later personalization can interpret the records.
+
+## 2026-10-24 — Freshly checked exercises from own-game mistakes
+
+TODO items: 9.3.
+
+### Implementation notes
+
+- Added `player/mistake-puzzles.js`: up to 50 scoped candidates from compatible own-game measured mistakes/blunders, including quiet errors. Source prose, studies, unsupported reports and restored classes do not create exercises. Explicit preparation rechecks root/reference/original-child evidence, declines unsupported old errors and retains full-FEN source identity. A current reference needs at least a one-pawn improvement over the original, or an outcome improvement to winning mate.
+- Arbitrary legal answers can qualify through fresh child searches, rather than only a listed PV move. The target is within 50 raw centipawns of the qualified reference; winning-mate alternatives stay outcome-based. Actual immediate mate succeeds by rules. Missing/shallow/bounded/illegal evidence gives no incorrect-attempt penalty. Shared evidence checks use a line's actual depth rather than a deeper sibling MultiPV result. These are bounded FEN-diagram exercises, without pre-diagram repetition claims or a unique/perfect-move certificate.
+- Added `player/puzzle-player.js` with an independent Chessground board, source chooser, typed/board moves, explicit White/Black promotions, German input, two-stage hints, separate reveal and source navigation. Busy/generation/source/library/help guards reject stale searches, disconnected controls and held promotion actions. Dedicated practice searches leave the main game/clock/library intact. Source titles/moves render literally; browsing/solving makes no provider request.
+- Extracted `chess/evidence.js` and `chess/practice.js` for rules/history, canonical PVs, per-line depth, move parsing, promotion intent and destinations. Authored lesson behavior remains unchanged. A global keyboard boundary prevents focused lesson/practice boards from navigating/flipping the main board; an authored-lesson regression fails on the previous behavior.
+- Opaque SHA-256 IDs bind selected-owner/document/ply/full-FEN/actual-move keys; checked target/policy revisions support subsequent scheduling. Completion outcomes and help remain session-local here, without a durable-save claim. [Exercise criteria and lifetime](OWN-PUZZLES.md) document the scope.
+- Four shared-evidence and seven generated-exercise unit scenarios cover depth/bounds/history, canonical inputs, source scope/provenance, fresh targets, arbitrary alternatives, unknown evidence, cancellation, Black promotion, outcome-aware mate and source immutability. Eight browser cases cover actual wiring, main-state/collection isolation, alternatives, unknown/hint/reveal distinctions, underpromotion, held searches/actions, library changes, German phone controls and authored keyboard isolation. Deterministic injected analyses cover failure/alternative paths; a real-WASM mate-before-stalemate case checks the actual worker path.
+- Validation: ESLint/JSDoc checks, build, 507 unit tests (one live-provider skip), 20 foundation logic cases, ten focused browser/localization cases and all 316 browser tests (one optional live-model skip) pass. The dependency audit reports zero vulnerabilities. The German phone screenshot was inspected; its independent board and translated controls fit the viewport.
+
+### Deviations
+
+- Exercises target current engine move quality and accept alternatives; they do not claim forced wins, calibrated difficulty, flawless endgame grading or learner mastery. Help/reveal/rules-mate/engine-target remain distinct. Durable practice scheduling remains 9.4. No model request, new dependency, source upload or persistent schema migration is introduced.
+
+### Insights
+
+- A historical classification is a candidate source, not a current solution. Rechecking both the reference and the player's original move avoids generating an obsolete exercise; grading other legal answers avoids confusing a bounded reference with a unique good move.
+- Independent boards need keyboard and asynchronous boundaries as well as separate chess objects. Guarding only mouse moves would still let focused practice controls alter the main board or receive late results from another context.
+
+---
+
+## 2026-10-24 — Review-derived phase trends and checked opportunities
+
+TODO items: 9.2.
+
+### Implementation notes
+
+- Added pure `player/reviews.js` for bounded historical review reports and current-library aggregation. Own decisions retain full start/UCI/side binding, depth-qualified White-relative before/after score/PV facts, phase and a separate motif result. Restored depth-zero, bounded, shallow, malformed or illegal-PV data stays unmeasured. Terminal outcomes use complete source history and rules facts; moves after an automatic game end cannot acquire measurement credit.
+- Numerical classification/accuracy reuse the existing functions from the player's perspective. The six largest measured mistakes/blunders share the existing motif verifier's EPD cache, twelve additional searches and fifteen-second search-admission budget. The exported verifier adds detached per-position proof records without changing tool-response JSON. Confirmed, refuted, unverified, no-pattern and unchecked cases remain distinct. Only supported alternatives enter theme totals; legal geometry alone does not establish payoff.
+- `runReview()` captures reports only for known own played games, rechecking stop state, game generation, every captured FEN and library context around asynchronous checks. Reports travel with the ordinary own-game JSON through existing acknowledgement/quotas. Future report versions remain unchanged during re-review. Bounds survive score-coordinate conversion; the existing worker already rejects bound lines.
+- Reader validation replays current legal source/history and checks format, side/mainline/FEN binding, numerical/PV bounds, phase and motif geometry. This validates a historical record rather than authenticating stored scores or rerunning Stockfish on library reads. Current-library aggregation counts each document once; reruns replace contributions, and deletion/source-line/storage/owner changes remove them. No second global history store or persistent schema migration is added.
+- `player/review-history.js` renders English/German phase totals/coverage and checked theme counts, with sample sizes, explicit missing-evidence limits and up to six source samples. Played move labels and recorded checked SAN continuations make samples distinguishable. Exact source navigation rechecks record/library/game/pane/policy; restricted live help hides trends. Source titles/moves remain literal, and the phone table scrolls inside its wrapper. History is not automatically appended to model prompts.
+- Ten new logic scenarios cover own/Black errors, confirmed/refuted/unknown opportunities, rules-proven mate/promotion, shallow/bounded/restored evidence, stale async capture, source/score/tag/branch tampering, deduplication/deletion, terminal facts and JSON-order independence. Six browser scenarios cover actual review persistence/repeated replacement, source claims versus compatible reports, exact navigation, storage/deletion guards, held worker cancellation, future metadata and German phone layout. Existing tool and localization tests also pass.
+- Validation: ESLint/JSDoc checks, build, 496 unit tests (one live-provider skip), 23 focused review/tool logic cases and eight focused browser/localization cases pass. Final source-continuation/stage feedback passes the focused browser cases, and the German phone screenshot was inspected. The complete browser suite passes 308 tests (one optional live-model skip); the dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- Tracking describes recorded engine decisions/opportunities and heuristic phases, without diagnosing a learner's thought process, estimating ability or proving every possible tactic. Checks cover a bounded subset; unverified is not absence. Old reviews need fresh compatible evidence, and unknown future formats remain preserved. Own-mistake exercises/scheduling remain 9.3–9.4. [Evidence and lifecycle](REVIEWS.md) explain the limits.
+
+### Insights
+
+- Reusing source classifications or prose would turn imported claims into measured weaknesses. Capturing fresh qualified analysis and keeping its coverage separate prevents legacy depth-zero values and unsupported motifs from receiving credit.
+- A global additive counter would double-count re-reviews and retain deleted/other-context contributions. Source-bound reports aggregated from the current library preserve replacement, deletion and ownership behavior without a second synchronization path.
+
+---
+
+## 2026-10-24 — Player profile and reported rating context
+
+TODO items: 9.1.
+
+### Implementation notes
+
+- Added `src/player/profile.js` and `profile-ui.js`, separating browser-local teaching preferences from opponent strength and game state. Version-one profiles retain explanation level, an optional self-reported rating/pool/time control and bounded learning goals. Missing records inherit the legacy level in memory without migration or inferred ratings; unknown/malformed/future data remains intact and read-only.
+- Settings preserve immediate level saves and offer explicit rating/goals save/reload controls. A successful single-key write precedes publication; failed writes retain drafts/effective preferences. Revisions and storage events reject stale sequential-tab forms and level clicks while preserving typed input. Returned profiles are detached and field/size/Unicode bounds are checked.
+- Reported ratings carry explicit provenance rather than a measured Kibitz Elo or cross-pool conversion. Level labels no longer imply a rating band. Goals reach position/general chat, tutor comments, review summaries and study plans through bounded `quote()` data, subordinate to app rules/help policy. Editing/saving makes no provider request and changes no game, clock or opponent strength.
+- Profile identity invalidates pending dialogue/tutor work, future model history and cached tutor context; stale review/study-plan results cannot apply after a preference change. Existing conversations/saved summaries/cache entries remain historical records. English/German settings and phone layouts explain local storage and sharing; [format/lifecycle](PROFILE.md) documents the limits. Source modules now include the separate `player/` responsibility.
+- Seven unit scenarios cover legacy/no-write loading, reported provenance, detached persistence, malformed/future formats, bounds, failed-write retry, stale revisions and quoted context identity. Seven browser scenarios cover reload/no implicit requests, literal goals, failed writes/level rollback, future formats, dirty cross-tab drafts, cancelled old responses, cache invalidation and German phone layout. Existing settings/localization regressions pass; the phone screenshot was inspected.
+- Validation: ESLint/JSDoc checks, build, 486 unit tests and 12 focused browser/settings/localization cases pass (one live-provider unit skip). The dependency audit reports zero vulnerabilities. The complete browser suite passes 302 tests (one optional live-model skip).
+
+### Deviations
+
+- This is a browser-local profile, without account synchronization or automatic performance-derived ability estimation. A reported rating is optional context, independent of explanation level and playing strength. Weakness tracking, own-mistake tasks and scheduling remain 9.2–9.4; broader export/deletion remains 10.3.
+
+### Insights
+
+- Explanation style, a rating from a particular pool/time control, and opponent strength are different settings. Removing implied rating bands avoids contradictory teaching context when a player deliberately chooses simpler or deeper explanations.
+- Draft fields and effective preferences need separate lifetimes. A storage event can update current coaching context while preserving typed input, but that draft must not silently overwrite a newer profile—even through an unrelated level click.
+
+---
+
+## 2026-10-24 — Source position themes and recorded move patterns
+
+TODO items: 8.2.
+
+### Implementation notes
+
+- Added pure `library/patterns.js`. Complete rules replay precedes detector indexing for every mainline occurrence, including source roots. Versioned position themes and move motifs retain revision-bound IDs, exact occurrence/start/end IDs, full branch FENs, UCI moves, source move labels and detector reasons/weights. Three-ply combinations retain the actual recorded reply/follow-up; truncated scores cannot supply them.
+- Evidence classes distinguish position heuristics, geometric move/line candidates and rules-proven mate/promotion facts. The unsound recorded fork counterexample stays a candidate after its legal capture. No engine search certifies payoff or best defence. Annotation/NAG verification and general study-solution status remain separate; raw catalogue tags, supplied pattern/position fields, source prose and opening names do not populate computed facts.
+- The source compiler supplies explicit standard-start context to the phase detector, including the untouched initial board. Late-counter/custom-start diagrams cannot establish early standard-start play. Tags stay on occurrences rather than shared EPD rows because contextual phase can differ on later repetitions. Existing hybrid phase eligibility and retrieval rankings remain unchanged.
+- A separate source pattern index offers exact tag/role/evidence/collection/document predicates with a 20-occurrence cap. `library/pattern-browser.js` implements English/German Library controls, literal source titles, visible evidence classes, recorded sequences and exact source navigation. Existing live-game confirmation and return remain in use. Restricted help hides results; held actions recheck current game/library generation, filters, revision and policy. Deletion/storage-context changes clear the pattern index.
+- Nine unit scenarios cover source-claim isolation, initial/custom phases, named pawn structures, unsound forks, mate/all promotions, detector vocabulary, three-ply boundaries, repeated/scoped/revised identities and query bounds. Six browser scenarios cover actual production data/navigation, literal markup, revision/deletion/storage invalidation, live-help/confirmation/return, no provider calls and German phone layout. The existing localization regression also checks the selector's translated labels; the phone screenshot was inspected.
+- Validation: ESLint/JSDoc checks, build, 479 unit tests and eight focused browser/localization cases pass. One live-provider test is skipped; the dependency audit reports zero vulnerabilities. The complete browser suite passes 295 tests (one optional live-model skip). Both recorded position/text baseline JSON results reproduce unchanged, including source hashes and per-query rankings.
+
+### Deviations
+
+- Tags reuse existing detectors and describe their current coverage; a missing tag is not proof of absence. No automatic engine sweep, learned ranking, metadata-theme merge, persistent schema migration or new provider/dependency is introduced. Engine-confirmed tactical payoff remains the separate bounded tool verifier. The new source phase context deliberately leaves the recorded hybrid policy intact.
+
+### Insights
+
+- A legal source move and a recognized geometric combination are insufficient evidence that a tactic works. Keeping candidate status alongside its exact branch makes that distinction inspectable and testable, even when the next recorded move refutes the motif.
+- Position identity alone cannot hold context-sensitive facts such as source phase. Occurrence-bound tags preserve these differences, while source revision and ownership guards keep old controls from opening replaced or unrelated records.
+
+---
+
+## 2026-10-24 — Material and piece-placement position indexes
+
+TODO items: 8.1.
+
+### Implementation notes
+
+- Added pure `chess/signatures.js`: versioned counts by colour and piece type, sorted occupied piece-square terms and complete placement keys. Every rules-replayed library occurrence and shared EPD position carries these derived fields; full FEN, source identity, revision, counters and verification status remain separate. Captures, en passant and all promotions update counts; castling updates squares while preserving material.
+- `buildPositionIndex()` adds material/placement/piece-square buckets from actual FEN/EPD, independently of imported feature assertions. `positionFeatureMatches()` provides bounded, collection/document-filtered exact predicates with explicit match reasons, retaining repeated and collection-scoped source occurrences. Selected-square queries require real query occupants. The production debug getter exposes the current index for integration checks.
+- Seven unit scenarios cover equal-value/different-material classes, transpositions, turn/rights/counters, real occupied terms, special moves, malformed inputs, forged assertions, scoped/repeated occurrences, query bounds and revision-bound compiler output. Three browser scenarios verify production indexing, original source status, no provider/game mutation, revision/deletion invalidation and equal placement with distinct full-FEN/exact-position results.
+- Validation: ESLint/JSDoc checks, build, 470 unit tests and the complete 289-test browser suite pass (one live-provider and one optional live-model skip respectively). The dependency audit reports zero vulnerabilities. Offline position and text benchmarks reproduce their complete recorded JSON results, including source/case hashes and per-query rankings, unchanged.
+
+### Deviations
+
+- This milestone supplies the missing position features and typed lookup API. Default Reading/Combined ranking remains unchanged; no similarity weights, learned metric, new UI controls or retrieval-quality improvement are claimed. Geometry checks validate encoding, while source compilation supplies rules validation. No database schema or stored library record is migrated.
+
+### Insights
+
+- Equal scalar piece value loses piece-class information; equal placement loses side to move, rights and counters. Explicit keys and match reasons preserve these different meanings without conflating a structural analogy with an exact game state or objective chess evidence.
+- Derived feature additions need not invalidate a frozen source benchmark. Replaying both recorded baselines demonstrates that this index extension leaves the existing measured retrieval behavior intact.
+
+---
+
+## 2026-10-24 — Optional SQLite library and scoped browser cache
+
+TODO items: 7.6.
+
+### Implementation notes
+
+- Added `server/library-store.mjs`, `library-api.mjs` and `library-files.mjs`. `serve.mjs --library FILE` offers a private SQLite library with or without the AI gateway, mounted before its wider API handler. Private file/directory creation and canonical static-root/symlink checks keep databases outside served assets; existing public-readable/symlink/future-schema files are preserved and rejected. `.kibitz-data/` is ignored. The bundled Node SQLite API adds no npm dependency.
+- Version-one owner/collection/local-ID records retain original PGN/JSON/provenance fields, with owner revisions, bound SQL, consistent reads, atomic mutations, WAL/full synchronous commits and explicit record/byte quotas. A dedicated random HttpOnly SameSite cookie selects the hashed owner; body scope/revision are preconditions. Same-origin/Host/Fetch-Site, JSON/fatal UTF-8, legality/provenance/reference validation and write-rate checks bound the HTTP surface. Error responses/logs do not expose source bodies or capabilities.
+- Added pure `library/storage.js`/`server-session.js` and `cache.js`. Explicit server selection keeps the existing browser and hosted-account stores separate, without migration or automatic uploads. Serialized mutation plans recheck imports/record identities against acknowledged state. Conflicts and uncertain receipts require refresh; a lost-ack import can then deduplicate without a second write. Storage generation/owner checks reject old responses and queued work; held account/delete callbacks cannot cross contexts. Actual collection ownership controls deletion, independently of an example-kind label.
+- IndexedDB caches versioned snapshots by a freshly verified scope, with bounded IDs/UTF-8 sizes and connection lifetime handling. Writes capture their input before awaiting and resolve on transaction completion; native aborts retain previous entries. Future databases/layouts/envelopes stay intact. Server acknowledgement determines save success even when the optional cache fails. Cached views are read-only, with no offline write queue; a fresh offline load cannot expose the previous cookie owner's cache.
+- English/German controls name the destination, separate server/browser choices and report cache/refresh/session failures. Unchanged document objects retain source drafts across acknowledgements. Reference saves keep newly typed form input while a prior write is pending, and user reference notes remain literal text. Main game/lesson/repertoire state keeps its existing storage path; switching the library leaves play intact.
+- Seventeen server tests cover restart persistence, owner/collection isolation, SQL-looking literal IDs, stale-revision rejection across connections, quota rollback, unknown schemas, private paths, HTTP cookie/origin/UTF-8/record validation and actual CLI modes. Three shared-format and nine client-session scenarios cover bounds, owner verification, serialized plans, cache-independent success, uncertain acknowledgements and stale work. Six real IndexedDB cases exercise request-success-then-abort, future formats, scopes and version changes. Eleven UI cases cover explicit selection/reload/no upload, changed cookies/offline startup, cache failure after commit, conflicts, lost acknowledgements/deduplication, held callbacks, references, save-location/deletion semantics and German phone layout. Existing import/source/search/localization regressions also pass.
+- Validation: ESLint/JSDoc checks, build, 463 unit tests and the complete 286-test browser suite pass (one live-provider and one optional live-model skip respectively). All 17 focused storage/cache UI cases and 25 existing library/import/localization cases pass; the German phone screenshot was inspected. The dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- SQLite stores original game/reference documents; source/position/passage indexes remain derived in-memory data. IndexedDB is the optional server library's cache, while the default browser collection remains in localStorage. No legacy migration, automatic library merge, offline write queue or authenticated account service is introduced. Anonymous cookie ownership supports the local-server workflow; deployment/accounts remain 10.1–10.2, full offline loading remains 10.7.
+
+### Insights
+
+- A durable server commit and a browser-cache transaction have different outcomes. Treating the latter as the save result would falsely report failure after a successful commit, inviting unnecessary duplicates. Explicit refresh and conservative import matching resolve uncertain receipts without blind overwrites.
+- An origin-local cache does not establish the current cookie owner. Verification must precede cached fallback after a fresh load, and changes of storage context must invalidate queued work and held controls as well as visible indexes.
+
+---
+
+## 2026-10-24 — Combined library metadata search
+
+TODO items: 7.5.
+
+### Implementation notes
+
+- Added pure `library/search.js`, with literal case/accent-insensitive AND matching over query words, both players, opening/ECO, recorded-year bounds, absolute score and catalogue themes. Known theme IDs match exact tag membership, avoiding a false Pin match through Opening. English/localized theme labels and built-in titles participate in free text. Inclusive year ranges exclude unknown/malformed recorded years; invalid/reversed filter bounds return no results with an explicit message. Bounded inputs never become user-created regular expressions.
+- Legal PGN headers supply canonical names/date/result, with legacy flat-field fallback; cached early mainline EPDs identify the deepest matching ECO label through 40 plies. Custom-start studies are not classified from final piece placement. PGN parsing is cached by collection/local ID and exact text, without changing stored records, provenance or source-verification status. Source/account updates use the existing cache invalidation boundary.
+- Library controls add labelled player/opening/year/result/theme fields, result/error status, invalid-year indication and reset/focus behavior. Search includes classics beside personal games in All while preserving category filters; reset keeps the category. Existing cards update in place on late ECO readiness, keeping source-form drafts and focus. Delete/Keep cancellation still works through retained renders. English/German phone layout is covered.
+- The coach's library tool shares the matcher and adds validated combined fields. Existing own-player colour/win/loss/draw semantics remain separate from absolute PGN score. At most eight bounded, quoted metadata hits return, newest known dates first; no PGN/comments are exposed by search. Local browsing makes no provider requests or storage writes and does not change the game on the board.
+- Seven new logic scenarios cover combined fields, exact themes, Unicode/literal text, date/range/bounds validation, legal PGN/ECO inference, legacy/curated records, own-player outcomes, quoted results and tool validation. Seven browser scenarios cover combined local search, classics with a personal library, category/reset/error behavior, literal imported markup, source-form focus through delayed ECO data, German phone labels/queries and mock-coach parity. A missing Draw translation found by existing localization regressions was corrected.
+- Validation: ESLint/JSDoc checks, build and 434 unit tests pass (one live-provider skip); the dependency audit reports zero vulnerabilities. All 35 focused browser regressions and the complete 269-test browser suite pass (one optional live-model skip). Final year-field styling is rechecked with nine search/localization cases, including phone input-height assertions and a screenshot inspection.
+
+### Deviations
+
+- Search is over recorded metadata, not automatic motif diagnosis, source prose or model-inferred history. Structured fields and search words are page-local rather than persisted preferences. Imported games without tags remain searchable by their other fields; position/move pattern indexing remains TODO 8.2.
+
+### Insights
+
+- Display, browse and coach search need the same date/result/opening facts. Legal PGN-derived labels avoid dependence on whether the opening catalogue happened to arrive before import, while explicit unknown years prevent false historical matches.
+- Updating catalogue labels must not replace unrelated source editing controls. Retaining unchanged record cards keeps unsaved corrections and keyboard focus through asynchronous data readiness.
+
+---
+
+## 2026-10-24 — Sourced problems and checked study branches
+
+TODO items: 7.4.
+
+### Implementation notes
+
+- Added `library/problem-data.js` and `problems.js`: twelve curated positions, four mates in one and eight studies/reflections. Eight original curriculum exercises join the existing Réti, Saavedra, Lucena and Philidor records, for 33 reference records including the 21 games. Source lesson/exercise IDs and immutable code references preserve lineage; English/German questions, distinct problem/study badges, a wrapping Problems filter and diagram-first opening expose the collection. Normal move controls show the recorded example. Current-game departure/return behavior is retained; viewing is not a lesson solve.
+- Published Réti/Saavedra diagrams retain fixed Wikipedia revisions, contributor credits, CC BY-SA 4.0 facts and 64 source cells that reconstruct their placements. Lucena/Philidor remain explicitly authored variants under the project licence, with separate conventional-method references and unknown publication dates; the Lucena name does not establish a 1497 publication. The [manifest documentation](../site/data/problems/README.md) and shipped notices separate these sources from original teaching prose.
+- The general compiler keeps imported studies at legal-replay-only status. Snapshot composition attaches checked evidence only to the curated `classic` collection after binding document/root occurrence, full FEN/counters, UCI line, result and source/score rights. Four mate tasks prove actual checkmate. All 48 worked plies preserve declared White-perspective WDL in 50 saved snapshots (28 shared curriculum records plus 22 fixed Réti/Saavedra records). Notes stay unverified; arbitrary alternatives, unique best play and learner performance gain no certificate. Flat problem metadata is detached from the trusted registry, and copied IDs/extra metadata cannot opt imports into proof.
+- `check-problems.mjs` audits source/diagram/curriculum bindings, bounded bilingual metadata and every numerical snapshot digest offline. Its explicit `--refresh` queries only the 22 fixed published-study FENs, serially, strips response prose/SAN, validates the collection and atomically replaces the data. No account/browser position is read or sent. Shared curriculum evidence retains its separate refresh command; ordinary/cursed/uncertain outcomes and DTZ/DTM remain distinct through the existing adapter.
+- Seven logic scenarios cover collection coverage, detached metadata, forged imports, changed counters/branches/results/rights, colour/turn-sensitive outcomes, failed queen promotion in Saavedra, actual mates versus nonmates, uncertain evidence, independent diagram reconstruction, source/digest tampering, fake refresh clients/errors and an offline default. Five browser scenarios cover filtering with a personal library, no remote/provider requests or false progress, diagram-first White/Black mate examples, forged imported proof, live-game cancel/return, German phone wrapping/labels and method links. Existing source/library/localization regressions also pass.
+- Validation: ESLint/JSDoc checks, build, offline source audits and 427 unit tests pass (one live-provider skip). The complete browser suite passes 262 tests (one optional live-model skip); the final colour-label adjustment is checked again with the unit suite and 19 focused browser cases.
+
+### Deviations
+
+- This is a curated starter collection of endgame tasks, reusing checked authored material alongside the two published studies and two conventional variants. It does not claim a complete problem corpus or a proof tree over every defence. The Library exposes worked-line inspection on its normal analysis board; interactive lesson solving/progress remains the separate lesson player. No source-view completion is converted into mastery or a performance grade.
+
+### Insights
+
+- Equal piece placement is insufficient for result evidence: side to move and counters can change the outcome. Matching an imported ID is also insufficient for source trust. The exact document/source/branch binding keeps objective chess facts separate from imported claims and prose.
+- A named conventional position need not be the original published diagram. Recording authored variants and their method references avoids borrowing a historical date or a source's licence for a different setup. Shared curriculum examples also need stable lineage rather than duplicated, independently drifting solutions.
+
+---
+
+## 2026-10-24 — Published classic-game sources and expanded collection
+
+TODO items: 7.3.
+
+### Implementation notes
+
+- Expanded the built-in collection from nine to 21 games, alongside the four existing studies. `library/capablanca.js` adds twelve complete scores from Part II of Capablanca's 1921 *Chess Fundamentals*, with per-game/page attribution, the source's public-domain-in-the-USA statement, theme tags and original Kibitz teaching notes. Games 3 and 6 omit their final played moves in the book and are excluded. Notes' concrete final-position facts are checked independently with chess.js; resignation results remain source reports.
+- `classic-sources.js` and `data/classics/historical-scores.json` identify fixed Wikipedia revisions, contributor attribution, CC BY-SA 4.0 move-data rights, retrieval dates/digests and normalized score facts for the nine earlier versions. External prose, variations and judgement glyphs are excluded. Original teaching notes keep their separate GPL-3.0-or-later assertion. The shipped notices and [source manifest documentation](../site/data/classics/README.md) preserve licence links, changes and scope rather than relicensing the CC BY-SA data as GPL-3.0-or-later.
+- `check-classics.mjs` audits all 21 games/1,355 recorded plies offline. Its bounded descriptive-notation helper reconstructs the 980 book plies by searching legal candidates across each entire score, retaining original-side piece identity through castling and checking relative squares, captures and checks. It requires a unique recorded branch, rejects invalid/ambiguous/oversized data and uses a state budget. Matching a published score establishes transcription consistency, not unique best play or a forced result.
+- Cards/source details/own PGN notes disclose that Réti's game ended with resignation after 10.Bg5+, with the last two plies a teaching continuation. Légal uses the cited traditional teaching move order and unknown date, explaining the disputed date/order/rook odds. New title references recognize dated English/German forms without linking a bare player name. Reading localizes individual theme labels before joining them; a newly exposed multi-theme German gap has a browser regression.
+- Froze the original thirteen-record retrieval fixture at `b1c4782` so production growth/history corrections cannot silently change prior experiments. Provider-free position/text runs reproduce the existing corpus hashes exactly (`60270e…`/`fdc2ad…`), including 21 documents/481 occurrences/45 annotations and 159 text passages. Existing source/collection tests now cover all games and retain explicit study exclusions.
+- Five new logic scenarios cover source binding/transcription, tampering, independent board facts, teaching-history distinctions and ambiguous/invalid notation. Three browser scenarios cover the expanded collection, exact game opening/notes, read-only separate rights, no source/provider download, historical distinctions and German phone/theme labels. The phone source panel was inspected visually.
+- Verification: lint, JSDoc types, build and the offline 21-game audit pass; all 420 unit/gateway tests and all 257 browser tests pass, with one opt-in live test skipped per suite. The clean full browser rerun follows two corrected collection-size expectations in opening tests. Provider calls use mocks/fake clients. PRs 69 and 70 are green in CI.
+
+### Deviations
+
+- The collection records published versions actually checked, with fixed revision/page references. It does not claim to authenticate every first historical publication; disputed teaching versions stay labelled. The two incomplete book scores are not completed from memory or mixed with another source. Study-source verification remains the separate 7.4 milestone. Public-domain status is recorded as supplied for the USA, without a blanket worldwide assertion.
+- The retrieval benchmark remains a fixed development corpus; this addition makes no new retrieval-quality or learner-outcome claim about the larger production library. Its earlier metadata remains in the snapshot for reproducibility.
+
+### Insights
+
+- Legal replay alone cannot establish historical provenance. Published scores can omit moves, normalize dates or include a later demonstration after resignation. Binding source versions and showing these distinctions prevents a valid chess line from becoming a false historical claim.
+- A growing production catalogue must not silently alter measured evaluation corpora. Freezing the original records preserves published hashes and comparisons while letting current source metadata and teaching material improve.
+
+---
+
+## 2026-10-24 — Conservative PGN import deduplication
+
+TODO items: 7.2.
+
+### Implementation notes
+
+- Added pure `library/import.js`: bounded PGN batch splitting and a derived exact source-document identity. Top-level boundaries support adjacent/headerless games while preserving tag-like text inside comments/variations. Legal mainline/full-FEN validation precedes matching. Outside whitespace, mainline move-number spacing, header order and line-ending convention can vary; original comments, variations, glyphs, explicit/parsed headers and separate source/licence assertions participate in identity.
+- Import compares against this user's current library and earlier batch entries, keeping the first document and every existing ID/PGN/revision intact. Entry origin and generated IDs/timestamps do not change content identity. Legacy records can match without migration; invalid/future metadata and unkeyable documents cannot suppress valid imports. Different source versions remain separate rather than merging annotations/rights.
+- Rechecked deduplication after asynchronous validation, immediately before writes. Duplicate-only imports perform no storage write or index rebuild. Overlapping imports are disabled; added/duplicate/unreadable/failed counts remain separate and localized. Failed/unreadable batches and newly typed replacement input stay available. Limits are 500 games/5 million characters plus the existing per-document limits. Temporary unsaved snapshot cache entries are removed after an attempt.
+- Existing local rollback protects failed writes. Account imports remember individually acknowledged records until snapshots arrive, preventing duplicate partial-save retries during that delay; failed writes gain no credit. Seven browser scenarios cover repeat/within-batch/reloaded matching and zero writes, distinct source content, legacy/future preservation, mixed outcomes and quota retry, delayed overlapping input, fake-account partial acknowledgements and German phone layout. Five logic scenarios cover exact identity, preservation counterexamples, full-FEN studies, invalid/legacy data and bounded source-aware splitting. The phone form/status was inspected visually.
+- Verification: ESLint, JSDoc types and build pass. The complete suites passed 415 unit/gateway tests and 254 browser tests, with one opt-in live test skipped per suite. After the final temporary-cache cleanup, all 415 unit tests and all sixteen focused import/library browser regressions passed again. Providers/account storage use mocks or fake clients.
+- CI CodeQL flagged a first-occurrence replacement in the result-variant test fixture. The fixture now uses `replaceAll`; all five import logic scenarios and lint/types pass after the correction.
+
+### Deviations
+
+- Deduplication matches conservative source documents rather than fuzzy game identity. Differently annotated/headered/licensed versions can remain separate even with the same moves, and built-ins are outside the user's import scope. Existing duplicates are not deleted. Account matching uses the current client snapshot plus its acknowledged imports; a future server uniqueness transaction is needed for simultaneous devices.
+
+### Insights
+
+- A mainline-only hash would silently discard distinct annotations, variations and attribution. The original PGN must remain the evidence document; normalization only belongs in a derived comparison key.
+- A successful account write can precede its subscription snapshot. Remembering acknowledgements is necessary for retry-safe deduplication, while counting only records visible in the UI would create new IDs during that gap. Duplicate-only imports must avoid writing so that quota failures cannot turn a harmless repeat into an apparent failed save.
+
+---
+
+## 2026-10-24 — Play lesson positions against Stockfish
+
+TODO items: 6.8.
+
+### Implementation notes
+
+- Added pure `curriculum/playout.js` and an owned cancellable confirmation dialog. The lesson player offers either colour from its displayed exercise/worked-example position, preserving full FEN counters and applicable rights. Finished/invalid diagrams cannot start a game or silently fall back to the opening position. The chosen colour applies to this game without changing the saved start/colour preferences.
+- Both normal starts and the lesson handoff use the same engine/clock lifecycle, current strength/time settings, save and review controls. Opponent-first positions schedule a normal Stockfish reply. Starting practice makes no automatic exercise-completion claim. Native confirmation explains the selected side/settings and saves an active game with moves as unfinished before replacement; failed saves leave the game intact and support retry.
+- Pending requests serialize across detached saves. Abort signals, owned dialog identity, lesson render/session identity and the main game's generation/checkpoint reject cancelled, changed and held actions. The checkpoint also covers metadata/comments. Generic game confirmations require their original connected element and game generation, preventing a cancelled old resignation from ending a new lesson game.
+- Four logic scenarios cover exact source positions, side selection, counters/en passant/castling normalization, terminal versus theoretical drawn positions and invalid input. Ten browser scenarios cover worked-position starts, opponent-first replies, saving/reopening custom-FEN practice, cancel/confirm, storage failure/retry, old confirmations, lesson navigation, delayed saves with main-game or lesson changes, serialized replacement requests and German phone layout. The phone dialog was inspected visually.
+- Verification: ESLint, JSDoc types and build pass; 410 unit/gateway tests and 247 browser tests pass, with one opt-in live test skipped per suite. Provider calls use mocks/fake clients. The preceding progress PR is green in CI.
+
+### Deviations
+
+- The current game keeps running while confirmation or saving is pending. A changed position/state prevents replacement and asks the player to start again; a previously authorized detached snapshot may already have saved. This preserves running-game behavior without pausing/resuming clocks around a separate lesson board. Practice games use ordinary game progress/review rather than being graded as lesson solutions.
+
+### Insights
+
+- A lesson's displayed worked position can differ from both its initial diagram and the attempted solution. The explicit handoff must capture that full FEN and validate that it remains playable. A theoretical tablebase draw is still a useful practice position; a rules-ended game is not.
+- Cancelling a dialog does not cancel a storage write already in flight. Serializing subsequent handoffs and checking both the lesson and main-game context after the write prevents an older request from replacing a newly selected game.
+
+---
+
+## 2026-10-24 — Saved lesson and theme progress
+
+TODO items: 6.7.
+
+### Implementation notes
+
+- Added pure `curriculum/progress.js` and a separate `progress-ui.js`. Version-1 browser-local records keep mate proof, source recall, rubric self-assessment (met/needs practice), revealed examples, unassisted completions, legal choices, hints, outside-reference choices and worked-example use separate. Validated Coach challenge counters appear alongside per-theme lesson counts. Catalogue badges and lesson/theme tables show practice, without a mastery/Elo claim or prerequisite lock.
+- Progress identity includes the stable exercise ID and exact goal/FEN/line/source/prompt/rubric revision. Changed tasks retain old results separately and receive no borrowed credit. Bounded counters, record/revision sizes, timestamps and recent completion IDs are validated on read/write. Malformed or future saved data remains untouched/read-only; reflection responses are never stored. Revision bounds allow JSON escaping of otherwise valid bounded teaching text.
+- Completion callbacks queue results in memory before saving. Atomic single-key writes precede in-memory publication; failed results stay queued across exercise/game changes for retry, with recent-ID deduplication. Reads before writes retain sequential tab changes; storage events refresh lesson results from other tabs. Queue status explains actual failures. Successful retry restores focus to status; catalogue badges update in place, preserving open details, filters and the player's return-focus target.
+- Seven logic scenarios cover result/evidence aggregation, help counts, save/reload, quota failure and idempotent retry, sequential tabs, corrupt/future data preservation/recovery, exact revision separation and escaping, invalid completions and separate validated Coach counters. Seven browser scenarios cover persistence/badges/focus, source recall and Coach counters, reflection privacy/reveal distinction, multiple pending results and retry, future-data recovery, revised tasks and German phone tables. The phone summary was inspected visually.
+- Verification: ESLint, JSDoc types and build pass; 406 unit/gateway tests and 237 browser tests pass, with one opt-in live test skipped per suite. Twenty-five focused curriculum/player/progress scenarios also passed; provider calls use mocks/fake clients.
+
+### Deviations
+
+- Results are local to the browser, with no server synchronization, new provider request or automatic skill estimate. Counts cover completed/revealed exercises, not an unfinished board or written draft. Pending failed saves remain in the current tab and need retry before it closes/reloads. localStorage's single-key write is atomic; simultaneous multi-tab read/modify/write operations are not database transactions. Profile/server storage work remains separately tracked.
+
+### Insights
+
+- A completed interaction can be a checked mate, source recall, rubric self-report or revealed example. Tracking those classes separately makes useful practice visible without calling every completion mastery.
+- Re-rendering the whole catalogue after a save would detach the exercise button used for return focus. Updating badges in place preserves keyboard flow and filter/detail state. Task revisions must include the learning question/rubric as well as the move line, and account for JSON escaping when enforcing bounds.
+
+---
+
+## 2026-10-24 — Isolated lesson player and authored tutor hints
+
+TODO items: 6.6.
+
+### Implementation notes
+
+- Added pure `curriculum/session.js` and a separate `player.js` renderer, composed by the page. Catalogue exercise buttons open a detached Chessground board with the lesson introduction/objectives, exercise selector, legal destinations, SAN/UCI input (including German piece letters), worked-line navigation and reveal/restart/close. Main-game state and analysis are untouched; lesson use starts no model/engine request.
+- Mate tasks accept any legal actual checkmate, including alternatives to the recorded move; legal non-mates in one-move tasks receive a rules-based explanation. Other source puzzles check recorded-line recall and automatically replay one recorded opponent reply. Outside-reference legal choices keep the board unchanged and receive no independent strength verdict. Written reflections require a bounded literal answer, then a locked rubric comparison and explicit self-assessment. Revealing records a viewed example rather than a solve.
+- Tutor hints use authored objectives, then the current origin square and recorded next SAN. Hint stages reset after a successful move while total help use stays attached to the attempt. Worked-example use and reveal remain separate. Completion callbacks distinguish mate proof, source recall, reflection self-assessment and revealed examples, with attempt/outside/help metadata for 6.7; no progress store is claimed yet.
+- Explicit promotion dialogs handle both board moves and bare typed promotion squares, retaining the selected piece. Session identity, render versions, dialog identity and the captured main-game generation reject held events; game replacement closes the player. Worked-view arrows/Home/End stay scoped to its board, controls restore keyboard focus and close returns to the originating catalogue button. Localized accessibility attributes bypass the page’s second translation pass.
+- Six logic scenarios cover all 100 exercises, detached state, alternate actual mates, legal non-mates, source recall/replies, explicit underpromotion, bounded literal reflections, self-assessment/reveal and rejecting lines past automatic game end. Six browser scenarios cover isolated play/hints, source setup and replies, worked-key navigation and held controls, reflection, promotion/replacement, game-generation invalidation, close/focus and German phone layout. The phone preview was inspected visually.
+- Verification: ESLint, JSDoc type checking and build pass; 399 unit/gateway tests and 230 browser tests pass, with one opt-in live test skipped per suite. Provider calls use mocks/fake clients. The inherited puzzle-source PR’s CodeQL and browser CI corrections are green.
+
+### Deviations
+
+- Tutor hints and explanations are authored and available offline. Source-line recall and reflection self-assessment are labelled as such; no model-generated correctness grade, fresh strength verdict for arbitrary alternatives or measured learning gain is claimed. Persistence and per-theme aggregation remain 6.7; playing a lesson against Stockfish remains 6.8.
+
+### Insights
+
+- A rules-proven mate, recall of a source solution and an authored reflection rubric are different evidence classes. Separate completion kinds let later progress summaries preserve those distinctions rather than count every interaction as mastered chess.
+- Session identity alone does not reject a held navigation button after a worked-view cursor change. A render version guards those controls too, and promotion callbacks additionally require their original dialog. Manual localization must cover attributes as well as text nodes to avoid duplicate translation.
+
+---
+
+## 2026-10-24 — Lichess puzzle source and offline import pipeline
+
+TODO items: 6.5.
+
+### Implementation notes
+
+- Added the first 64 unchanged rows of the public Lichess CC0 export as a small starter source, with the exact CSV, retrieval/selection metadata, ETag/Last-Modified and SHA-256 digest. `scripts/import-puzzles.mjs` regenerates bounded JS records offline; `--check` verifies the saved bytes and generated output. No download runs implicitly. Source attribution ships in the third-party notices.
+- The pure importer accepts quoted CSV, BOM/CRLF and current eleven-column or legacy ten-column schemas, with 1 MB/1,000-record bounds. It validates IDs, numeric metadata, theme/opening tokens, safe Lichess URLs, diagrams, rights, UCI moves, end conditions and mate claims. It applies the first opponent move before exposing the learner’s FEN/solution, retaining the source FEN, setup UCI/SAN, counters, original themes, ratings, opening tags and game/puzzle links.
+- Four editorial rating groups contain 20/27/13/4 puzzles and join the Lessons catalogue. The complete catalogue has 34 lessons/groups and 100 exercises. Case-sensitive source IDs are encoded into stable lowercase curriculum IDs. The compiler revalidates records and binds exercise IDs, full FENs, lines and mapped themes to source-derived facts. Source themes remain distinct from motif detection; the new Zugzwang filter label adds no detector. Ratings, CC0 attribution, raw themes and validated external links render safely in English/German.
+- Seven unit scenarios cover exact offline regeneration/digests, setup semantics and counters, every saved legal line, en passant/castling/underpromotion, mate checks, CSV/schema/bounds, malformed source data, URL rejection, metadata normalization, Unicode opening tags, case-sensitive IDs and source-to-exercise binding. Two browser scenarios cover rating/theme filters, links/attribution, no remote/provider requests, board isolation, unsafe metadata rejection and German phone/keyboard use.
+- Verification: ESLint, JSDoc types, build and both offline data audits pass. Unit/gateway suite: 392 passed, one opt-in live test skipped. Full browser suite: 224 passed, one opt-in live test skipped. After the final import hardening, the rebuilt source also passed the complete unit suite and all twelve curriculum browser scenarios. Provider calls use mocks/fake clients.
+- CodeQL review replaced separate path-stat/read operations with descriptor-based bounded reads and fatal UTF-8 decoding, covered by an additional file-boundary test. The browser request spy now parses URLs and compares exact hostnames instead of using a hostname substring regex. After these corrections, lint/types, the offline import audit, all 393 unit/gateway tests (one live skip) and both puzzle browser scenarios pass.
+
+### Deviations
+
+- Bundled a documented starter prefix rather than the entire multi-million-puzzle database. It demonstrates ingestion and source-aware catalogue use, not representative theme coverage, calibrated teaching difficulty or measured learning benefit. Lichess rating bands are editorial navigation, not playing Elo. Interactive solving, hints and alternative-answer grading remain 6.6. Local legality/mate checks do not independently verify other source strength or theme claims.
+
+### Insights
+
+- Lichess’s first UCI move belongs to the opponent. Showing the raw database FEN would present the wrong side and task; applying the setup move is a data-model invariant rather than a UI convention.
+- Source IDs use both cases. Lowercasing them would merge distinct puzzles; encoding each character preserves identity within the curriculum’s existing ID alphabet. Keeping the original CSV also makes generated records auditable when the live export later changes.
+
+---
+
+## 2026-10-24 — Endgame lessons with recorded Syzygy evidence
+
+TODO items: 6.4.
+
+### Implementation notes
+
+- Added five bilingual lessons beside the queen/king foundation: rook/king mates for both colours, king and pawn with a blocked rook-pawn counterexample, direct opposition with either side to move, Lucena’s bridge and Philidor’s defence. The complete catalogue contains thirty lessons and thirty-six exercises. Endgames have six lessons and ten exercises, with objectives, prerequisites and original explanatory rubrics.
+- Recorded numerical Syzygy facts for all 28 worked plies using the public Lichess API. Full FEN, source URL, retrieval timestamp and SHA-256 digest accompany each saved result. `scripts/check-endgames.mjs` audits offline by default; explicit `--refresh` queries only authored diagrams, validates everything and atomically replaces the snapshots. No live test or browser tablebase request is needed.
+- A pure evidence adapter validates at most seven pieces, canonical legal full FEN without castling rights, complete legal move lists, numeric DTZ/DTM and terminal facts through chess.js. The compiler checks the declared result at every recorded position and after every move. Move categories describe the child side to move; results are converted to White’s perspective. Uncertain, unknown and cursed/blessed categories cannot substantiate an ordinary win/loss claim. DTZ is never labelled distance to mate.
+- The Lessons catalogue shows the checked result/date and its exact-position/branch scope. Six unit scenarios cover both colours, turn-dependent opposition, the drawn rook pawn, legal non-stalemating promotion, complete branches, child perspective, unsupported categories, changed counters, absent/malformed evidence and offline digest auditing. Two browser scenarios cover result labels, advanced filters, no external/provider requests, game isolation, German phone layout and keyboard access.
+- Verification: ESLint, JSDoc type checking, build and the offline tablebase audit pass; 385 unit/gateway tests and 222 browser tests pass, with one opt-in live test skipped per suite. Provider requests use mocks or fake clients.
+
+### Deviations
+
+- Evidence is bundled for fixed teaching diagrams rather than fetching arbitrary player positions at runtime. This completes the authored endgame catalogue and its tablebase checks; interactive play and alternative-answer grading remain 6.6. A checked branch preserves the result, but does not claim a unique best move or force the opponent to follow that branch. Conventional diagrams do not resolve the separately tracked historical publication/licensing work in 7.3/7.4.
+
+### Insights
+
+- The same opposition placement is drawn with White to move and winning for White with Black to move. Reading the latter API `loss` as a White loss would reverse the lesson; a child move’s category needs the opposite turn again.
+- EPD is suitable for the project’s engine cache, but full FEN is required for this evidence: fifty-move counters can change tablebase results. Missing evidence for a changed counter fails closed instead of borrowing a nearby snapshot.
+
+---
+
+## 2026-10-24 — Strategy lessons and checked structural examples
+
+TODO items: 6.3.
+
+### Implementation notes
+
+- Added ten original English/German strategy reflections beside the existing king-activity lesson: IQP, Carlsbad, hanging pawns, weak squares, outposts, good/bad bishops, open files, king safety, piece activity and prophylaxis. The catalogue now has twenty-five lessons and twenty-eight exercises. Stable IDs, authored levels, objectives, prerequisites and rubrics use the existing validated hierarchy.
+- Added seven strategy labels and German translations for topic filtering. These are authored lesson themes, not additional position detectors. Optional `positionTag` metadata on the three pawn-structure examples must be known, present in exercise tags and returned by the existing feature detector for that FEN.
+- All demonstrations are legal reflections. Board-fact tests check the available pawn capture after an IQP advance, changing pawn support, an exchangeable supported outpost, bishop/pawn square colours, an open file, changed pawn cover, knight attacks and a possible king flight square. Text distinguishes these observations from a best-move or winning-plan claim.
+- Five new unit scenarios cover the complete strategy scope, bilingual records, the concrete board facts, false/untagged structure rejection and precise level/theme filters. Two browser scenarios cover module browsing, advanced-level filtering, board isolation and German phone labels/text. Existing catalogue count expectations track the larger material.
+- Verification: ESLint, JSDoc type checking and build pass; 379 unit/gateway tests and 220 browser tests pass, with one opt-in live test skipped per suite. Provider calls use mocks or fake clients.
+
+### Deviations
+
+- This completes authored strategy material for the catalogue. Interactive solving/grading remains 6.6; expert review and measured difficulty/learning outcomes are not claimed. Structural labels and legal candidate demonstrations do not replace current-position engine checks.
+
+### Insights
+
+- Pawn safety is narrower than piece safety: a pawn-supported square can still be exchanged by a knight. The example teaches both relationships together.
+- A preventive pawn move can create a flight square without answering an immediate threat or being the best move. Explicit rubrics keep a useful observation separate from an unjustified recommendation.
+
+---
+
+## 2026-10-24 — Tactical concept lessons and defensive counterexample
+
+TODO items: 6.2.
+
+### Implementation notes
+
+- Expanded `src/curriculum/tactics.js` with twelve original English/German lessons alongside the existing back-rank lesson, covering all thirteen listed tactical themes. The full catalogue now contains fifteen lessons and eighteen exercises across three modules. Levels and acyclic prerequisites keep basic relationships before intermediate/advanced combinations.
+- Added optional exercise `pattern` metadata. The compiler requires a known, tagged motif present in the existing move/line detectors for the recorded legal example. This verifies the claimed geometric relationship; it does not certify a best move, forced line or material payoff. Multi-move illustrative branches remain reflection exercises; mate goals still require terminal checkmate.
+- Added a capturable-fork counterexample with the legal defending rook capture recorded. Deflection/overloading lessons compare the same relationship from different perspectives; prose asks readers to check alternative defences. The new queen/bishop mate example ends in rules-verified checkmate.
+- Four new unit scenarios check complete theme coverage, bilingual examples, the concrete defensive capture, false/untagged pattern rejection and level/theme filtering. Two browser scenarios browse the full tactics module, the counterexample and an advanced theme, including German phone layout. Updated the catalogue count expectations.
+- Verification: ESLint, JSDoc type checking and build pass; 374 unit/gateway tests and 218 browser tests pass, with one opt-in live test skipped per suite. Provider requests use mocks or fake clients.
+
+### Deviations
+
+- This completes authored tactical material for catalogue use. Interactive solving and grading remain 6.6. Recorded branches and geometric recognition are explicitly separated from engine-confirmed tactical strength; no empirical difficulty or learner-benefit claim is made.
+
+### Insights
+
+- A legal refuting capture is a useful teaching example: a fork can be correctly recognized while the move loses its knight. A motif label must not serve as a correctness grade.
+- The same legal branch can illustrate deflection and overloading. Explicit objectives and rubrics explain the relationship without treating either label as a new proof of strength.
+
+---
+
+## 2026-10-24 — Curriculum records and Lessons catalogue
+
+TODO items: 6.1.
+
+### Implementation notes
+
+- Added `src/curriculum/` with a pure JSDoc-typed record compiler, original English/German material and a separate catalogue UI. Stable module/lesson/exercise IDs, levels, known themes, objectives, source/licence fields and prerequisite DAGs are bounded and validated. Inputs and filtered results are detached.
+- The initial three modules contain three lessons and five authored exercises: back-rank mates for both colours, a king-activity reflection and queen/king mate nets. chess.js validates positions and legal UCI lines, normalizing castling rights before replay. Mate records must end in checkmate for the learner; reflection lines make no unique-best-move or winning claim.
+- Added a keyboard-accessible Lessons tab and literal module/lesson summaries, goals, prerequisite titles and exercise prompts. Local filters use a level ceiling, module and theme. Browsing starts no model/engine request and never changes the active game. Localized lesson prose is separate from interface translation; explicit formatted labels avoid a second translation pass. Saved player levels are validated before application startup, and the catalogue also validates its initial filter.
+- Five unit scenarios cover the catalogue, filtering/detachment, schema limits, missing/duplicate IDs, translations, levels, prerequisites/cycles, illegal lines, unsupported mate claims and castling normalization. Browser scenarios cover filtering/game isolation, hostile literal text, German phone/keyboard behaviour and corrupt saved levels. Updated the grouped-navigation expectation for the new tab.
+- Verification: ESLint, JSDoc type checking and build pass; 370 unit/gateway tests and 216 Playwright tests pass, with one opt-in live test skipped in each suite. No real AI provider is used.
+- Linux CI exposed a citation-test assumption: Qh5 can appear in a real engine continuation from the fixture. The test now supplies fixed legal engine lines for its current/previous positions, retaining the strict source-is-not-engine-evidence assertion independently of machine-dependent PVs.
+
+### Deviations
+
+- This completes the records and catalogue in 6.1. Expanded tactics/strategy/endgames, puzzle ingestion, the interactive lesson player, grading, progress and play-out remain separately tracked in 6.2–6.8. Prerequisites describe a learning sequence; no progress lock is imposed before 6.7 exists.
+
+### Insights
+
+- Legal replay, proved terminal mate and an authored reflection rubric are different evidence classes. Keeping the exercise goal explicit avoids treating every recorded move as a unique engine-approved answer.
+- Browser consumers of pure modules must update together, and translated teaching text should bypass the interface translator. Catalogue filters belong to their panel rather than the active board or global coach state.
+
+---
+
 ## 2026-10-24 — Organize source modules by responsibility
 
 TODO items: 0.14.

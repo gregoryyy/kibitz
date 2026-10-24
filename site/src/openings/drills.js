@@ -149,19 +149,26 @@ function readRecords(data) {
 export function createDrillStore(storage) {
   const store = createStore(storage);
   let records = new Map(), unreadable = false;
-  try {
-    const raw = storage?.getItem('kibitz.repertoireReviews');
-    if (raw != null) { const read = readRecords(JSON.parse(raw)); if (read) records = read; else unreadable = true; }
-  } catch { unreadable = true; }
+  function read() {
+    try { if (!storage) return new Map(); const raw = storage.getItem('kibitz.repertoireReviews'); return raw == null ? new Map() : readRecords(JSON.parse(raw)); }
+    catch { return null; }
+  }
+  const reload = () => { const next = read(); unreadable = !next; if (next) records = next; }; reload();
   return {
     get records() { return structuredClone(records); },
     get unreadable() { return unreadable; },
+    reload,
     record(key, result, now) {
-      if (unreadable) return 'unreadable';
-      const next = new Map(records), reviewed = scheduleDrillReview(records.get(key) || null, result, now);
+      const latest = read(); if (!latest) { unreadable = true; return 'unreadable'; }
+      unreadable = false;
+      const reviewed = scheduleDrillReview(latest.get(key) || null, result, now);
+      if (!reviewed) return 'invalid';
+      // A delayed save must not move a newer completed recall's due date backwards.
+      if (latest.get(key)?.lastAt > now) { records = latest; return null; }
+      const next = new Map(latest);
       next.set(key, reviewed);
       const data = { version: 1, entries: [...next.entries()] }, checked = readRecords(data);
-      if (!reviewed || !checked) return 'invalid';
+      if (!checked) return 'invalid';
       if (!store.set('repertoireReviews', data)) return 'storage';
       records = checked; return null;
     },
