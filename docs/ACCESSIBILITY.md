@@ -1,0 +1,17 @@
+# Keyboard play, board marks and motion
+
+The main board has native keyboard controls in English and German. Tab enters it once; arrow keys explore squares in the displayed orientation. Home/End reaches either end of the current row, and Control+Home/End reaches the displayed corners. Enter or Space selects a movable piece, then a legal destination. Escape clears the selection; Tab leaves the board. The typed-move input remains available below it.
+
+Every square has a piece/square label, including empty squares. Selection and legal destinations have accessible labels; a status region announces selection, cancellation and unavailable moves. A white outline with a black inset marks keyboard focus independently of square colour. The grid is read-only during an opponent turn or at a position without legal moves. Analysis and free scratch play use the same move path as pointer play; clocks, game rules and the existing live-help restrictions still apply. Navigating or replacing the game clears a captured selection. A transient hover preview hides the interactive grid until the real board returns.
+
+Promotion focuses four explicitly named piece buttons. Tab chooses among them, Enter/Space confirms, and Escape cancels. Completion or cancellation restores the previous board focus. A held promotion choice cannot act on a replacement game, including one with the same position. Lesson, opening-drill and own-mistake practice boards keep their existing independent keyboard controls.
+
+Automatic arrows use six distinct line patterns as well as their existing colours: engine move (solid), played move (long dashes), previous alternative (dashes), hint (short dashes), line/coach mark (dash-dot), threat (dots). User-drawn arrows also have patterns. The expandable **Board mark descriptions** below the board lists literal square coordinates, mark meaning, pattern and any validated short label. Circle/square marks and example pieces have text descriptions too; these describe displayed marks rather than certify a coach's chess claim. Restricted live help withholds prior coach marks and their descriptions. Previews hide descriptions that do not belong to the displayed position.
+
+The operating system's reduced-motion preference disables Chessground's actual piece animator and updates while the page is open. The existing CSS preference also suppresses page animations and transitions. No separate application preference is required.
+
+## Verification and limits
+
+Pure tests cover orientation, boundaries, row/corner navigation, piece descriptions, king safety, castling, en passant, promotion destinations, mark patterns and hostile labels. Browser tests exercise native focus/Tab behavior, either colour, game replacement, promotion cancellation/underpromotion, pointer-to-keyboard selection, scratch isolation, preview cleanup, live-help restrictions, the animator and German phone layout.
+
+These changes follow the W3C guidance for [keyboard operation](https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html), [using cues besides colour](https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html) and [reducing interaction animation](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions.html). Automated Chrome checks and visual inspection do not establish WCAG conformance or replace hands-on testing with screen readers, other browsers and players with different access needs. Keyboard square labels identify actual pieces and legal moves, not engine recommendations.

@@ -215,7 +215,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [ ] 10.2 Authentication, if hosted: sessions plus passkeys or OAuth. *Deferred by 10.1's local deployment decision; no hosted authentication is claimed.*
 - [x] 10.3 Local data export/deletion: standalone raw browser/current-owner server JSON exports, separate explicit confirmations, cache-aware acknowledged erasure and atomic server revision tombstones; [formats and scope](DATA.md)
 - [x] 10.4 Explicit provider/purpose privacy opt-in: initially off network coach/test and passage/query-embedding grants, acknowledged saves/revocation retry, actual-routing gateway preconditions and cancelled late/cross-tab work; [data flows and limits](PRIVACY.md)
-- [ ] 10.5 Accessibility: keyboard play, colour-blind-safe arrows, reduced motion
+- [x] 10.5 Accessibility: native keyboard square play with legal destinations and explicit promotion, independent arrow patterns/text descriptions and live reduced-motion control; [controls and verification limits](ACCESSIBILITY.md)
 - [x] 10.6 Mobile layout and dark mode *(prototype)*
 - [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the coach works offline with Ollama or the in-browser model (2.16)
 - [ ] 10.8 Internationalization

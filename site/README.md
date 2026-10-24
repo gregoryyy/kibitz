@@ -22,6 +22,8 @@ npm run eval:retrieval   # offline labelled position-retrieval benchmark; no pro
 
 Click **Analyse** during a game to pause it and its clock immediately. Explore moves or navigate the game, then click **Play** or **Return to my game** to resume exactly where you left it. Reopening Analyse keeps your study variation while the game is unchanged; after you play another move, it starts from the updated game. Both sessions stay in memory until you start a new game or reload the page.
 
+**Keyboard board:** Tab enters once, arrows explore squares, Enter/Space selects a piece and destination, and Escape clears selection. Promotion offers explicit keyboard choices and restores focus. Arrow patterns and **Board mark descriptions** supplement colours; the operating system's reduced-motion preference disables piece animation. [Controls and verification limits](../docs/ACCESSIBILITY.md).
+
 **Settings → Player profile** saves explanation level, optional reported rating/pool/time control and up to 500 characters of learning goals in this browser. Level changes save immediately; use **Save profile** for the other fields. Goals accompany coach requests as quoted user data. Failed saves retain drafts, and stale tab edits require an explicit reload. Profile changes invalidate pending/cached teaching context while preserving the game and opponent strength. [Format and limits](../docs/PROFILE.md) distinguish preferences from measured ability.
 
 **Review trends** summarizes compatible reports from your own reviewed games in the selected library. Counts and average move accuracy retain measured-move coverage by estimated phase. Bounded engine checks distinguish confirmed opportunities from refuted/unverified candidates; sample continuations open their exact source position. Re-running replaces a report, and deleting/changing its source or library removes its contribution. [Evidence and limits](../docs/REVIEWS.md) describe the historical-record boundary.
@@ -104,6 +106,8 @@ src/chess/            Rules, knowledge, engine integration and game helpers:
   style.js            Playing styles: picks among near-best engine candidates
   pgn.js              NAGs and exact mainline comment locations, including repeated positions
   notation.js         Typed moves and move descriptions for screen readers
+  keyboard-board.js   Native roving-focus board cells, legal destinations and orientation-aware input
+  board-marks.js      Non-colour arrow patterns and safe literal descriptions
   modes.js            Interesting moves, challenges and recorded theme progress
   sessions.js         Game-history checkpoints for suspended analysis
 src/coach/            Prompts, model support, checked answers and conversation tools:
