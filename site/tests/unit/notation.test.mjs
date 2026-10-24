@@ -1,7 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { sanToSpeech, parseMoveInput } from '../../src/chess/notation.js';
+import { sanToSpeech, parseMoveInput, displaySan, notationMode, figurineToSan } from '../../src/chess/notation.js';
+
+test('display notation changes only piece/promotion letters in complete SAN tokens, preserving move facts and punctuation', () => {
+  assert.equal(displaySan('Nbd7+?!', 'german'), 'Sbd7+?!'); assert.equal(displaySan('R1e2', 'german'), 'T1e2');
+  assert.equal(displaySan('Bxf7+', 'german'), 'Lxf7+'); assert.equal(displaySan('Qh4xe1#', 'german'), 'Dh4xe1#');
+  assert.equal(displaySan('Kf2', 'german'), 'Kf2'); assert.equal(displaySan('bxa1=N+', 'german'), 'bxa1=S+');
+  assert.equal(displaySan('Nf3', 'figurine'), '♘f3'); assert.equal(displaySan('e8=Q#', 'figurine'), 'e8=♕#');
+  assert.equal(displaySan('O-O-O+', 'figurine'), 'O-O-O+'); assert.equal(displaySan('b4', 'german'), 'b4');
+  for (const value of ['Develop Nf3', '<img src=x>', 'Nf9', '1. Nf3']) assert.equal(displaySan(value, 'figurine'), value);
+  assert.equal(displaySan('Nf3', { future: true }), 'Nf3'); assert.equal(notationMode('unknown'), 'san');
+});
+
+test('white/black figurines and German typed moves resolve through actual legal moves and retain canonical SAN', () => {
+  assert.equal(figurineToSan('♚ ♛ ♜ ♝ ♞ ♔ ♕ ♖ ♗ ♘'), 'K Q R B N K Q R B N');
+  for (const text of ['Sf3', 'sf3', '♘f3', '♞f3']) assert.equal(parseMoveInput(Chess, new Chess().fen(), text).san, 'Nf3');
+  const fen = '7k/P7/8/8/8/8/8/7K w - - 0 1';
+  assert.equal(parseMoveInput(Chess, fen, 'a8=♘').san, 'a8=N'); assert.equal(parseMoveInput(Chess, fen, 'a8=S').san, 'a8=N');
+  assert.ok(parseMoveInput(Chess, new Chess().fen(), '♘f4').error);
+});
 
 test('moves are spoken in words', () => {
   assert.equal(sanToSpeech('e4'), 'e4');

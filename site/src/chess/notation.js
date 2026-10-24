@@ -1,4 +1,20 @@
 // Moves as text: reading what the player types, and saying a move for screen readers.
+import { germanSanToSan } from '../platform/i18n.js';
+
+export const notationMode = value => ['san', 'german', 'figurine'].includes(value) ? value : 'san';
+const GERMAN = { K: 'K', Q: 'D', R: 'T', B: 'L', N: 'S' };
+const FIGURINES = { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘' };
+const FROM_FIGURINE = { '♔': 'K', '♕': 'Q', '♖': 'R', '♗': 'B', '♘': 'N', '♚': 'K', '♛': 'Q', '♜': 'R', '♝': 'B', '♞': 'N' };
+const SAN_TOKEN = /^(?:O-O(?:-O)?|[KQRBN][a-h]?[1-8]?x?[a-h][1-8]|[a-h]x[a-h][1-8](?:=[QRBN])?|[a-h][1-8](?:=[QRBN])?)[+#]?[!?]*$/;
+
+/** Display a complete SAN token; prose, squares and internal chess records are not rewritten. */
+export function displaySan(san, mode = 'san') {
+  const text = String(san ?? ''), selected = notationMode(mode);
+  if (selected === 'san' || !SAN_TOKEN.test(text)) return text;
+  const pieces = selected === 'german' ? GERMAN : FIGURINES;
+  return text.replace(/^[KQRBN]/, piece => pieces[piece]).replace(/=([QRBN])/, (_, piece) => '=' + pieces[piece]);
+}
+export const figurineToSan = text => String(text ?? '').replace(/[♔♕♖♗♘♚♛♜♝♞]/g, piece => FROM_FIGURINE[piece]);
 
 const WORDS = {
   en: { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight', takes: 'takes', short: 'castles kingside', long: 'castles queenside', promotes: 'promotes to', check: 'check', mate: 'checkmate' },
@@ -30,7 +46,7 @@ export function sanToSpeech(san, lang = 'en') {
 // coordinates ("e2e4", "e7e8q", "e2-e4"). A promotion without a piece becomes a queen.
 export function parseMoveInput(Chess, fen, text) {
   const moves = new Chess(fen).moves({ verbose: true });
-  let t = String(text || '').trim().replace(/[+#!?\s]/g, '').replace(/0/g, 'O');
+  let t = figurineToSan(text).trim().replace(/[+#!?\s]/g, '').replace(/0/g, 'O');
   if (!t) return { error: 'Type a move first.' };
   const uci = /^([a-h][1-8])-?([a-h][1-8])=?([qrbnQRBN])?$/.exec(t);
   if (uci) {
@@ -42,7 +58,7 @@ export function parseMoveInput(Chess, fen, text) {
   const norm = s => key(s).replace(/x/g, '');
   const promo = s => s.replace(/([a-h][18])([qrbn])$/i, (_, sq, p) => sq + p.toUpperCase());
   const tries = [promo(t), promo(t[0].toUpperCase() + t.slice(1))];
-  for (const cand of tries) {
+  for (const cand of [...tries, ...tries.map(germanSanToSan)]) {
     const c = cand.replace(/=/, '');
     let hits = moves.filter(m => key(m.san) === c);
     if (!hits.length) hits = moves.filter(m => norm(m.san) === c.replace(/x/g, ''));

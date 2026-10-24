@@ -3,6 +3,11 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'Move display': 'Zugdarstellung',
+  'English SAN (Nf3)': 'Englische SAN (Nf3)',
+  'German letters (Sf3)': 'Deutsche Figurenbuchstaben (Sf3)',
+  'Figurines (♘f3)': 'Figurinen (♘f3)',
+  'Move display could not be saved. The previous setting remains.': 'Die Zugdarstellung konnte nicht gespeichert werden. Die bisherige Einstellung bleibt erhalten.',
   'Offline app': 'Offline-App',
   'Prepare the engine, browser library, reference games and lessons for use without the server. API responses and model weights are not included.': 'Bereite Engine, Browserbibliothek, Referenzpartien und Lektionen für die Nutzung ohne Server vor. API-Antworten und Modellgewichte sind nicht enthalten.',
   'Ollama needs the local server. For a browser coach without the server, select In browser and load its model first; cached weights and enough device storage are required.': 'Ollama benötigt den lokalen Server. Für einen Browsertrainer ohne Server wähle Im Browser und lade zuerst das Modell; zwischengespeicherte Gewichte und genug Gerätespeicher sind erforderlich.',
