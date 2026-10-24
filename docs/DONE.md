@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Bounded model downloads verified before publication
+
+TODO items: 11.2.2; finding [#97](https://github.com/gregoryyy/kibitz/issues/97).
+
+### Implementation notes
+
+- Extracted the download pipeline into `scripts/download-model.mjs`: a transform enforces the pinned byte count before writing each chunk and hashes the accepted bytes. Exact size/digest checks precede publication. Unique exclusive partial/marker files separate concurrent downloads; handled failures/cancellation close streams and remove that run's temporary files.
+- Added a default 30-minute total header/body deadline, external cancellation and validated CLI `--timeout-ms`. The existing checked-file fast path remains. Failed transfers, hashes and truncations preserve earlier final weights/markers; successful publication replaces verified weights and then the marker. Marker writes during download do not follow an old marker symlink.
+- Eight unit cases cover invalid descriptors/deadlines, no early replacement during a held transfer, transport/HTTP/body/size/hash failures, stalled headers/body, cancellation before/during transfer, concurrent downloads, publication errors and marker symlinks. Three Playwright CLI cases use a subprocess-only preload that substitutes a tiny catalogue entry and every fetch; production has no fixture mode. The overflow regression fails on the actual old CLI: 65,563 bytes were written for a 27-byte pinned model before verification rejected it.
+- Validation: checks/build pass; 575 unit/server cases pass (one opt-in live skip); all three download CLI cases pass, including valid publication/reuse and cleanup of wrong-hash, truncated and stalled responses. No actual model download, provider call or user data is involved. Updated offline instructions and OWASP/threat-model dispositions.
+
+### Deviations
+
+- The deadline covers download headers/body, rather than unrelated local preflight hash checks. File/marker publication consists of two atomic replacements; interruption can leave verified weights requiring another full check. Abrupt crashes can leave unserved unique partials; only handled failures/cancellation promise cleanup.
+- The stored hash marker retains its operator-controlled quick-check contract. It is not a fresh digest of every served byte and does not detect every same-size local edit with an old marker. Remaining logging, file-serving/scanner and release findings are separate.
+
+### Insights
+
+- Rejecting an oversized file after it has filled the disk is too late. Enforcing the byte bound before each write and delaying publication until verification gives the integrity check a resource boundary as well as a final yes/no result.
+
 ## 2026-10-24 — Private databases excluded from every served root
 
 TODO items: 11.2.1; finding [#96](https://github.com/gregoryyy/kibitz/issues/96).

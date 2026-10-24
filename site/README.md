@@ -185,7 +185,8 @@ data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.
 scripts/build.mjs     Copies the module directory tree and vendored libraries, builds opening data, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
-scripts/fetch-model.mjs  Downloads the in-browser model into models/ once and checks its SHA-256 (just offline)
+scripts/fetch-model.mjs  Downloads the in-browser model into models/ once (just offline); --timeout-ms sets the transfer deadline
+scripts/download-model.mjs Pinned byte cap and streaming SHA-256, verified publication and temporary-file cleanup
 scripts/record-ai-fixtures.mjs  Records real provider responses for the contract tests (uses .env keys)
 scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env;
                       --models serves the in-browser model's weights; --offline drops Google Fonts and other hosts;
