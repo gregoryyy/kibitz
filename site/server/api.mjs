@@ -177,12 +177,13 @@ export function createApi({
 // The user, from the kibitz_uid cookie; a new random one is issued when it's missing or malformed.
 // It only tells users apart for counting and budgets (no accounts yet, TODO 10.1): HttpOnly, so page
 // scripts can't read it, and SameSite=Strict, so other sites' requests don't carry it.
+// Match the library's native-TLS behavior; forwarded scheme headers are not trusted.
 const UID_RE = /^[A-Za-z0-9_-]{22}$/;
 function userOf(req, res) {
   const m = /(?:^|;\s*)kibitz_uid=([^;]*)/.exec(req.headers.cookie || '');
   if (m && UID_RE.test(m[1])) return m[1];
   const uid = crypto.randomBytes(16).toString('base64url');
-  res.setHeader('Set-Cookie', `kibitz_uid=${uid}; Path=/api/; HttpOnly; SameSite=Strict; Max-Age=31536000`);
+  res.setHeader('Set-Cookie', `kibitz_uid=${uid}; Path=/api/; HttpOnly; SameSite=Strict; Max-Age=31536000${req.socket.encrypted ? '; Secure' : ''}`);
   return uid;
 }
 

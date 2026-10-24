@@ -236,6 +236,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 11.2.3 Remove raw URL/provider/config/path text from default runtime logs; fixed category/code/status events, startup diagnostics and local monitoring. Issue #98; hostile marker, malformed-target and CLI regressions
   - [x] 11.2.4 Correct both Slav prefix alternatives and literal/all-slot phrase interpolation, with unit/browser regressions. CodeQL contexts 16/17 under #99; remaining file/scanner findings stay open
   - [x] 11.2.5 Serve static/model bytes, metadata and HTML CSP from one validated regular-file descriptor; reject asset aliases, handle read faults/disconnects and close handles. CodeQL contexts 7/8 under #99; filesystem/CLI/browser regressions
+  - [x] 11.2.6 Issue the AI usage cookie with Secure on a native TLS socket, matching the library. Preserve supported local HTTP behavior; real TLS/browser regressions cover scope, reuse and untrusted forwarding headers. Cookie context 4 remains deployment-scoped under #99
 - [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item:
   - [x] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
   - [ ] 11.3.2 LLM02 Sensitive information disclosure: API keys, other users' data

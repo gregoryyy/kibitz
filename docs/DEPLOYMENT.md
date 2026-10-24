@@ -19,6 +19,8 @@ The server reads operator-supplied keys from the root `.env`; keys remain outsid
 
 The optional library's anonymous HttpOnly cookie separates browser collections, without providing a sign-in or cross-device account. Clearing the cookie loses that browser's route to the previous server collection. Browser profiles, progress, repertoires and practice schedules stay local to the browser. The operator is responsible for local files and backups. Explicit export/deletion is tracked in TODO 10.3.
 
+When the exported API handlers are mounted directly on a native TLS server, both issue new cookies with `Secure`, determined from the actual socket. Forwarding headers do not control that flag. The standard `serve.mjs` listener uses HTTP on loopback. Existing valid cookies retain their identity without being reissued; changing transport or cookie policy requires clearing the old browser cookies. These flags preserve local grouping and do not establish authenticated accounts or a trusted reverse-proxy deployment.
+
 The existing `--host` option can change the listener for deliberate development/packaging use. Binding to a LAN/public address does not add accounts, transport security or authorization. A public/shared service is outside this deployment decision. A local machine's users, browser profiles and anonymous cookie scopes are not a hosted tenant-security boundary.
 
 Default HTTP/AI logs use fixed categories and omit raw URLs, cookies, prompts and provider messages. See [local monitoring and retention](OPERATIONS.md) for status checks, error events and private log files.
