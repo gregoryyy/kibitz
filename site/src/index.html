@@ -618,6 +618,20 @@ a.ext { color: var(--accent); font-size: 14px; }
         <p class="hint" id="studySearchStatus" role="status" aria-live="polite"></p>
         <div id="studySearchResults" class="lib-list"></div>
       </section>
+      <details class="box" id="patternSearch">
+        <summary>Search detected patterns</summary>
+        <p class="hint" data-pattern="locked" hidden>Patterns are hidden while you play. Choose Full engine help or finish the game to search.</p>
+        <div data-pattern="controls">
+          <p class="hint">Browse themes and recorded moves. Candidates do not prove a forced tactic or best plan.</p>
+          <div class="library-filters">
+            <label for="patternTag">Detected pattern<select id="patternTag" data-pattern="tag"><option value="">Choose a pattern</option></select></label>
+            <label for="patternCollection">Pattern sources<select id="patternCollection" data-pattern="collection"><option value="">All games and studies</option><option value="library">My games and studies</option><option value="classic">Classics and problems</option></select></label>
+            <label for="patternStatus">Pattern evidence<select id="patternStatus" data-pattern="status"><option value="">Any evidence class</option><option value="heuristic">Position heuristics</option><option value="candidate">Move candidates</option><option value="rules">Rules-checked facts</option></select></label>
+          </div>
+        </div>
+        <p class="hint" data-pattern="message" role="status" translate="no"></p>
+        <div class="lib-list" data-pattern="results" translate="no"></div>
+      </details>
       <div class="row">
         <input type="search" id="libSearch" aria-label="Search games" placeholder="Search player, opening, year, result, theme" maxlength="200" style="flex:1;min-width:160px">
         <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button><button data-v="problems" aria-pressed="false">Problems</button></div>
@@ -785,6 +799,8 @@ import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './lib
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
 import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
 import { gameSearchData, gameSearchMetadata, filterGames } from './library/search.js';
+import { buildPatternIndex } from './library/patterns.js';
+import { createPatternBrowser } from './library/pattern-browser.js';
 import { createServerLibrary } from './library/server-session.js';
 import { CURATED_PROBLEMS } from './library/problem-data.js';
 import { verifiedProblemEvidence } from './library/problems.js';
@@ -1866,6 +1882,7 @@ const EXAMPLES = classicGames();
 const PROBLEMS = new Map(CURATED_PROBLEMS.map(p => [p.id, p]));
 const PROBLEM_TABLEBASE_LOOKUP = tablebaseIndex(Chess, [...TABLEBASE_SNAPSHOTS, ...PROBLEM_TABLEBASES]);
 let INDEX = K.buildPositionIndex([]);
+let PATTERN_INDEX = buildPatternIndex([]);
 let OPENING_INDEX = buildOpeningIndex([]);
 const openingCache = new Map(); // source + id -> {pgn, record}; invalidate on content, not timestamps
 const Repertoires = createRepertoireStore(Chess, browserStorage());
@@ -1875,6 +1892,15 @@ let DRILL = null, drillGround = null, drillDeckKey = '', drillDeck = [];
 const libraryCache = new Map(); // collection + id -> exact input key and immutable snapshot promise
 let LIBRARY_RECORDS = new Map(), libraryIndexGen = 0;
 let TEXT_INDEX = null, HYBRID_INDEX = null, TEXT_NOTES = [], TEXT_GUIDES = [], guideTextPromise = null, guideTextError = false;
+const PatternBrowser = createPatternBrowser($('#patternSearch'), {
+  t,
+  state: () => ({ index: PATTERN_INDEX, generation: `${S.gen}:${libraryIndexGen}`, ready: !!TEXT_INDEX, allowed: showEngine(), visible: !paneHidden('library') }),
+  onOpen: ({ g, p, pattern }, valid) => {
+    const entry = LIBRARY_RECORDS.get(`${g.collection}:${g.id}`);
+    const current = () => valid() && entry === LIBRARY_RECORDS.get(`${g.collection}:${g.id}`) && entry?.snapshot?.document.revision === p.revision && p.patterns.includes(pattern);
+    if (current()) openGame(g, p.ply, current);
+  },
+});
 const DENSE = { session: new DenseSession(requestEmbeddings), context: '', queryContext: '', gen: S.gen, descriptor: null, loading: false, request: 0, busy: '', done: 0, total: 0, hits: null, query: '', message: '' };
 /** Rebuild from the current account's records only; static authored guides may be shared locally. */
 function rebuildTextIndex() { HYBRID_INDEX = buildHybridIndex(Chess, [...TEXT_NOTES, ...TEXT_GUIDES]); TEXT_INDEX = HYBRID_INDEX.text; }
@@ -1902,7 +1928,7 @@ function onLibChange() {
   const ids = new Set(items.map(({ g, collection }) => `${collection}:${g.id}`));
   for (const id of libraryCache.keys()) if (!ids.has(id)) libraryCache.delete(id);
   // Never expose deleted/replaced records while hashing their replacements.
-  INDEX = K.buildPositionIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null; HYBRID_INDEX = null;
+  INDEX = K.buildPositionIndex([]); PATTERN_INDEX = buildPatternIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null; HYBRID_INDEX = null;
   const records = [], keys = new Set();
   for (const [source, collection] of [['library', [...Lib.games.values()]], ['classic', EXAMPLES]]) for (const g of collection) {
     const key = `${source}:${g.id}`; keys.add(key);
@@ -1920,6 +1946,7 @@ function onLibChange() {
     if (gen !== libraryIndexGen) return; // an older load must not resurrect changed/deleted sources
     LIBRARY_RECORDS = new Map(entries.map(e => [`${e.collection}:${e.g.id}`, e]));
     INDEX = K.buildPositionIndex(entries.filter(e => e.snapshot).map(({ g, collection, snapshot }) => ({ ...g, collection, sourceSnapshot: snapshot, positions: indexedLibraryPositions(snapshot, g.cls) })));
+    PATTERN_INDEX = buildPatternIndex(entries.filter(e => e.snapshot).map(({ g, collection, snapshot }) => ({ ...g, collection, positions: snapshot.occurrences })));
     TEXT_NOTES = entries.filter(e => e.snapshot).flatMap(e => annotationPassages(e.snapshot)); rebuildTextIndex();
     // Evidence readiness must not replace an open source form and erase an unsaved correction.
     refreshLibraryEvidence(); renderReading(); renderStudySearch();
@@ -2398,6 +2425,7 @@ function openGame(g, ply = null, valid = () => true) {
 // ---------------------------------------------------------------- Library UI
 /** Library search stays local/explicit; coach retrieval has its own request-scoped source bundle. */
 function renderStudySearch() {
+  PatternBrowser.render();
   const body = $('#studySearchResults'), status = $('#studySearchStatus'), allowed = showEngine();
   syncCoachSources();
   syncDenseContext();
@@ -4477,7 +4505,7 @@ function start(data) {
   setTools(store.get('toolsOpen', true));
   Lib.init();
 }
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS, positionIndex: () => INDEX };
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS, positionIndex: () => INDEX, patternIndex: () => PATTERN_INDEX };
 // The game on the board survives a reload (TODO 1.15). Inside the artifact the host takes the
 // snapshot when it needs it; the local app keeps it in localStorage ('current'), written shortly
 // after every change and when the page goes away, and read back at boot.

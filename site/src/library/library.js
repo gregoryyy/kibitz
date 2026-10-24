@@ -3,13 +3,14 @@ import { epd, pawnSignature } from '../chess/knowledge.js';
 import { mainlineComments, mainlineNags } from '../chess/pgn.js';
 import { checkPosition } from '../chess/play.js';
 import { boardSignatures } from '../chess/signatures.js';
+import { sourcePatterns } from './patterns.js';
 import { quote } from '../coach/prompt.js';
 
 export const LIBRARY_VERSION = 1;
 const ORIGINS = ['imported', 'played', 'board', 'builtin', 'legacy'];
 const text = (s, limit) => typeof s === 'string' && s.length <= limit && !s.includes(String.fromCharCode(0));
 /** @typedef {{version: number, origin: string, source: {title: string, author: string, url: string}, rights: {score: string, annotations: string}}} Provenance */
-/** @typedef {{id: string, sourceId: string, licence: string, documentId: string, revision: string, positionId: string, ply: number, fen: string, epd: string, pawns: string, signatures: ReturnType<typeof boardSignatures>, san: string, uci: string, label: string}} Occurrence */
+/** @typedef {{id: string, sourceId: string, licence: string, documentId: string, revision: string, positionId: string, ply: number, fen: string, epd: string, pawns: string, signatures: ReturnType<typeof boardSignatures>, patterns: import('./patterns.js').PatternTag[], san: string, uci: string, label: string}} Occurrence */
 /** @typedef {{id: string, sourceId: string, licence: string, occurrenceId: string, kind: string, text: string, nags: number[], locator: {format: string, start: number, end: number, unit: string}|null, verification: string}} Annotation */
 
 /** Only explicit HTTP(S) links without credentials may become clickable source URLs. No fetching. */
@@ -90,13 +91,14 @@ export async function compileLibraryGame(Chess, game, collection = 'library') {
     const fen = replay.fen(), key = epd(fen), positionId = `position:${encodeURIComponent(key)}`;
     const signatures = boardSignatures(fen);
     positions.set(positionId, { id: positionId, epd: key, signatures });
-    occurrences.push({ id: `${documentId}@${revision}/ply/${occurrences.length}`, sourceId, licence: source.rights.score, documentId, revision, positionId, ply: occurrences.length, fen, epd: key, pawns: pawnSignature(fen), signatures, san, uci, label });
+    occurrences.push({ id: `${documentId}@${revision}/ply/${occurrences.length}`, sourceId, licence: source.rights.score, documentId, revision, positionId, ply: occurrences.length, fen, epd: key, pawns: pawnSignature(fen), signatures, patterns: [], san, uci, label });
   };
   append();
   for (const san of moves) {
     const label = `${replay.moveNumber()}${replay.turn() === 'w' ? '.' : '…'} ${san}`, m = replay.move(san);
     append(m.san, m.from + m.to + (m.promotion || ''), label);
   }
+  sourcePatterns(Chess, occurrences);
   /** @type {Annotation[]} */
   const annotations = comments.map((a, i) => ({ id: `${occurrences[a.ply].id}/comment/${i}`, sourceId, licence: source.rights.annotations, occurrenceId: occurrences[a.ply].id, kind: 'comment', text: a.text, nags: [], locator: { format: 'pgn', start: a.start, end: a.end, unit: 'utf-16' }, verification: 'unverified' }));
   // Numeric glyphs are source judgements too; keep them distinct from computed engine verdicts.
