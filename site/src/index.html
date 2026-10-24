@@ -450,6 +450,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <textarea id="coachInput" rows="2" placeholder="Ask about this position, your last move, or a plan"></textarea>
         <div class="row" style="flex-direction:column;align-items:stretch;gap:6px"><button class="btn primary" id="coachSend">Ask</button><button class="btn" id="coachStop" hidden>Stop</button></div>
       </div>
+      <p class="hint" id="coachSourcesHint" hidden>Relevant game comments and study notes may be sent with your question.</p>
       <p class="hint usage-line" id="usageLine" role="status" translate="no" hidden></p>
     </div>
     <div class="tabs" role="tablist">
@@ -710,13 +711,14 @@ import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentR
 import { STYLES, styleOf, pickStyled } from './style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
-import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions, librarySourceContext } from './library.js';
+import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './opening-guides.js';
 import { annotationPassages, guidePassages, searchText } from './text-search.js';
 import { DenseSession, DENSE_LIMITS, embeddingIdentity, selectPassages } from './dense-search.js';
 import { buildHybridIndex, searchHybrid, HYBRID_POLICY } from './hybrid-search.js';
 import { PAWN_DISTANCE_POLICY } from './pawn-distance.js';
+import { retrieveContext, citationParts } from './retrieval-context.js';
 import { namedContinuations, namedOpeningContext } from './opening-variations.js';
 import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
 import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
@@ -2134,9 +2136,10 @@ function openGame(g, ply = null, valid = () => true) {
 }
 
 // ---------------------------------------------------------------- Library UI
-/** Local passages are readable data, never advice applied to the current position or model prompts. */
+/** Library search stays local/explicit; coach retrieval has its own request-scoped source bundle. */
 function renderStudySearch() {
   const body = $('#studySearchResults'), status = $('#studySearchStatus'), allowed = showEngine();
+  syncCoachSources();
   syncDenseContext();
   $('#studySearchLocked').hidden = allowed; $('#studySearchControls').hidden = !allowed;
   const method = $('#studyMethod').value;
@@ -2694,6 +2697,7 @@ function renderOpeningQuestion() {
 }
 function renderCoachCtx() {
   renderOpeningQuestion();
+  $('#coachSourcesHint').hidden = engineView(S) !== 'all';
   $('#boardMode').textContent = S.mode === 'play' ? (S.playing ? 'Current game' : 'Finished game') : 'Review & analysis';
   $('#boardGame').textContent = positionLabel();
   $('#boardReturn').hidden = !CHAT.returnGame;
@@ -2701,7 +2705,7 @@ function renderCoachCtx() {
   $('#chatContext option[value="position"]').translate = false;
   $('#chatContext').value = CHAT.general ? 'general' : 'position';
   $('#chatReturn').hidden = !CHAT.returnGame; $('#chatUndo').hidden = !CHAT.undo.length;
-  if (CHAT.general) { $('#coachCtx').textContent = 'General chess: no position is sent to the coach.'; return; }
+  if (CHAT.general) { $('#coachCtx').textContent = 'General chess: the current board is not sent to the coach.'; return; }
   const i = S.cursor; const fen = nodeFen();
   const turn = turnOf(fen) === 'w' ? 'White' : 'Black';
   const evOf = f => { const x = anaOf(f); return terminalCp(f) !== null ? 'game over' : x ? `${fmtScore(x.lines[0]?.score)} d${x.depth || '–'}` : 'analysing…'; };
@@ -2770,14 +2774,112 @@ function contextFor(i, { view = 'all', scratch = null } = {}) {
   if (books.length) { lines.push('Retrieved references (recommend only from these):'); books.forEach(r => lines.push(`  - ${bookLine(r)}: ${r.book.user ? quote(r.book.about, 200) : r.book.about}`)); }
   const classics = retrieveClassics([...feats, ...(a?.best ? K.moveMotifs(Chess, fen, a.best) : [])], { exclude: S.gameId, limit: 2 });
   if (classics.length) { lines.push('Classic games on these themes (from the built-in collection):'); classics.forEach(r => lines.push(`  - ${r.game.title}: ${r.game.white} vs ${r.game.black}, ${r.game.event} ${r.game.date}. ${r.game.about} Themes: ${r.hits.map(h => K.TAG_LABELS[h.tag]).join(', ')}.`)); }
-  const seen = K.similarPositions(INDEX, fen, { excludeGameId: S.gameId, limit: 3 });
-  if (seen.length) { lines.push('Similar positions from the player\'s library:'); seen.forEach(s => lines.push(`  - ${quote(s.g.white, 80)} vs ${quote(s.g.black, 80)} ${quote(s.g.date, 20)}, after ${s.p.label || s.p.san}, ${s.kind}${s.p.comment ? `. Note there: ${quote(s.p.comment)}` : ''}${s.g.sourceSnapshot ? `. ${librarySourceContext(s.g.sourceSnapshot)}` : ''}`)); }
   return lines.join('\n');
 }
 // Built-in references are ours; the player's own (title, author, note) are quoted as data.
 function bookLine(r) {
   const b = r.book;
   return `${b.user ? quote(b.title, 120) : b.title} by ${b.user ? quote(b.author, 80) : b.author}${r.where ? ', ' + r.where : ''}`;
+}
+/** Source/account/help/model changes revoke pending evidence even while Library is closed. */
+function coachSourceOwner() { return JSON.stringify([Lib.where, Lib.uid, libraryIndexGen]); }
+function coachSourcePolicy() { return JSON.stringify([coachSourceOwner(), S.help, GATEWAY?.provider, GATEWAY?.models, !!GATEWAY?.localOnly]); }
+function coachSourceScope() { return JSON.stringify([coachSourcePolicy(), engineView(S)]); }
+function syncCoachSources() {
+  const scope = coachSourceScope();
+  if (CHAT.sourceHistoryScope && CHAT.sourceHistoryScope !== scope) {
+    if (CHAT.historyHasSources || CHAT.sourceHistoryOwner !== coachSourceOwner()) { chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false; }
+    CHAT.sourceHistoryScope = scope; CHAT.sourceHistoryOwner = coachSourceOwner();
+  }
+  if (CHAT.run?.sourceScope && CHAT.run.sourceScope !== scope && (!CHAT.run.changingBoard || CHAT.run.sourcePolicy !== coachSourcePolicy())) cancelChat();
+  if (TUTOR.sourceScope && TUTOR.sourceScope !== scope) TUTOR.ctl?.abort();
+  for (const e of $$('#chat [data-source-scope]')) if (e.dataset.sourceScope !== scope) {
+    if (e.classList.contains('retrieval-sources')) e.remove();
+    else { e.disabled = true; e.title = t('Source unavailable. Ask again to retrieve current sources.'); }
+  }
+}
+/** Prepare local guides once, then bind retrieval to the caller's captured source policy. */
+async function coachSources(query, fen, view, scope, signal) {
+  if (view === 'all') {
+    await Lib.ready; await Lib.indexed;
+    guideTextPromise ||= guidePassages(authoredGuideTexts()).then(passages => { TEXT_GUIDES = passages; if (TEXT_INDEX) rebuildTextIndex(); }).catch(() => { guideTextError = true; });
+    await guideTextPromise;
+  }
+  if (signal.aborted || scope !== coachSourceScope()) throw { code: 'cancelled' };
+  const bundle = await retrieveContext(HYBRID_INDEX, query, { fen, language: LANG, allowed: view === 'all', scope: JSON.stringify([Lib.where, Lib.uid]) });
+  if (signal.aborted || scope !== coachSourceScope()) throw { code: 'cancelled' };
+  return bundle;
+}
+/**
+ * Resolve a captured passage against the current canonical source revision and exact occurrence.
+ * @param {import('./retrieval-context.js').RetrievedSource} source Captured source, never a model-supplied record.
+ * @param {string} scope Source/account/help/provider fence captured with its answer.
+ */
+function currentCitation(source, scope) {
+  if (!showEngine() || scope !== coachSourceScope()) return null;
+  const p = source.passage, current = TEXT_INDEX?.documents.find(d => d.passage.id === p.id)?.passage;
+  if (!current || JSON.stringify(current) !== JSON.stringify(p)) return null;
+  if (p.kind === 'guide') return { passage: current };
+  const entry = LIBRARY_RECORDS.get(`${p.collection}:${p.gameId}`), occurrence = entry?.snapshot?.occurrences.find(o => o.id === p.occurrenceId);
+  return entry?.snapshot?.document.revision === p.revision && occurrence?.fen === p.fen && occurrence?.ply === p.ply ? { passage: current, entry, occurrence } : null;
+}
+/**
+ * Open a historical occurrence, preserving dialogue and the running-game return path.
+ * @param {import('./retrieval-context.js').RetrievedSource} source Validated again before and after confirmation.
+ * @param {string} scope Captured policy fence.
+ * @param {HTMLDetailsElement} details Source excerpts to reveal for a general study note.
+ * @returns {Promise<void>}
+ */
+async function openCitation(source, scope, details) {
+  let found = currentCitation(source, scope); if (!found) return;
+  if (source.passage.kind === 'guide') { details.open = true; details.querySelector('summary').focus(); return; }
+  const gen = S.gen, fen = actionState().fen, count = S.nodes.length;
+  if (S.playing && count > 1 && !(await confirmChatLeave())) return;
+  found = currentCitation(source, scope);
+  if (!found || gen !== S.gen || fen !== actionState().fen || count !== S.nodes.length) return;
+  const game = readGame(Chess, found.entry.g.pgn);
+  if (game.error || game.line.fens[source.passage.ply] !== source.passage.fen) return;
+  cancelChat();
+  const before = captureBoard();
+  if (S.playing && count > 1) { CHAT.returnGame = before; CHAT.returnGame.scratch = null; }
+  CHAT.undo.push(before); CHAT.undo = CHAT.undo.slice(-20);
+  loadLine(game.line.start, game.line.sans, found.entry.g, game.comments, { gameId: found.entry.g.id, cursor: source.passage.ply, nags: game.nags, preserveChat: true });
+  CHAT.general = false; openTab('game'); renderCoachCtx(); analyseFor(S.cursor);
+}
+/**
+ * Replace supplied tokens with numbered local buttons; model text never chooses a target.
+ * @param {HTMLElement} body Already rendered safe prose; append literal source details here.
+ * @param {import('./retrieval-context.js').RetrievalContext} bundle Captured request evidence.
+ * @param {string} scope Captured policy fence, rechecked on activation.
+ */
+function renderAnswerSources(body, bundle, scope) {
+  const details = el('details', { class: 'retrieval-sources', 'data-source-scope': scope }, el('summary', {}, 'Passages supplied to the coach'));
+  const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  let unknown = false;
+  for (const node of nodes) {
+    const parts = citationParts(node.textContent, bundle);
+    if (!parts.some(p => p.source || p.unknown)) continue;
+    node.replaceWith(...parts.map(p => {
+      if (!p.source) { unknown ||= !!p.unknown; return document.createTextNode(p.text); }
+      return el('button', { type: 'button', class: 'source-citation btn small', translate: 'no', 'data-raw': '', 'data-source-scope': scope, title: p.source.passage.title,
+        onclick: () => openCitation(p.source, scope, details) }, `[${bundle.items.indexOf(p.source) + 1}]`);
+    }));
+  }
+  if (unknown) body.append(el('p', { class: 'check-note' }, 'A citation was not supplied for this answer and cannot be opened.'));
+  if (!bundle.items.length) return;
+  details.append(el('p', { class: 'hint' }, 'These passages are source statements. Citation links identify sources; they do not verify the explanation.'));
+  for (const source of bundle.items) {
+    const p = source.passage;
+    const article = el('article', { class: 'study-hit' }, el('h4', { translate: 'no' }, `[${bundle.items.indexOf(source) + 1}] ${p.title}`),
+      el('p', { translate: 'no' }, source.supplied),
+      el('p', {}, el('span', {}, 'Source:'), ' ', el('span', { translate: 'no' }, p.sourceTitle || p.title)),
+      el('p', {}, el('span', {}, 'Annotation licence as supplied'), ': ', p.licence ? el('span', { translate: 'no' }, p.licence) : el('span', {}, 'Not supplied')),
+      el('p', { class: 'hint' }, source.relation === 'exact' ? 'Same position, including turn and rights' : source.relation === 'pawns' ? 'Same pawns with matching turn, check and phase' : 'Related text; support is not verified.'));
+    if (p.kind === 'annotation') article.append(el('p', { class: 'hint', translate: 'no' }, currentCitation(source, scope)?.occurrence?.label || t('Starting position')), el('button', { class: 'btn small', onclick: () => openCitation(source, scope, details) }, 'Open annotated position'));
+    details.append(article);
+  }
+  body.append(details);
 }
 /** Capture a detached session, charging elapsed clock time only up to this instant. */
 function captureBoard() {
@@ -2861,7 +2963,7 @@ function confirmChatLeave(signal, { forReview = false } = {}) {
     slot.hidden = false; signal?.addEventListener('abort', abort, { once: true });
   });
 }
-function activeRun(run) { return !run.signal.aborted && CHAT.run === run && run.gen === S.gen; }
+function activeRun(run) { return !run.signal.aborted && CHAT.run === run && run.gen === S.gen && (!run.sourceScope || (run.changingBoard ? run.sourcePolicy === coachSourcePolicy() : run.sourceScope === coachSourceScope())); }
 function actionState() { return { fen: SCRATCH ? scratchFen() : nodeFen(), plies: last(), playing: S.playing, canMove: canMove() && !SCRATCH, userColor: S.userColor }; }
 async function chatAction(name, input, run, { preview = false, follow = false } = {}) {
   if (!activeRun(run)) throw { code: 'cancelled' };
@@ -2999,11 +3101,11 @@ async function submitChat(question) {
   let command;
   try { command = parseChatCommand(Chess, LANG === 'de' ? germanSanToSan(question) : question, actionState().fen, S.start); }
   catch { command = { error: 'That is not a valid position or command.' }; }
-  if (!command) return askCoach(question);
+  if (!command) return askCoach(question, { literal: true });
   cancelChat();
   const ctl = COACH.ctl = new AbortController(), run = CHAT.run = { gen: S.gen, signal: ctl.signal, fen: actionState().fen, local: true };
   const chat = $('#chat'), label = conversationLabel(), board = captureBoard();
-  chat.append(el('div', { class: 'msg user' }, question));
+  chat.append(el('div', { class: 'msg user', translate: 'no' }, question));
   const bubble = el('div', { class: 'msg coach thinking' }, 'Thinking…'); chat.append(bubble);
   $('#coachSend').disabled = true; $('#coachStop').hidden = false;
   try {
@@ -3017,7 +3119,7 @@ async function submitChat(question) {
   } catch (e) { if (e?.code === 'cancelled') bubble.remove(); else bubble.replaceChildren(coachError(e)); }
   finally { if (COACH.ctl === ctl) { COACH.ctl = null; CHAT.run = null; $('#coachSend').disabled = false; $('#coachStop').hidden = true; } chat.scrollTop = chat.scrollHeight; }
 }
-async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
+async function askCoach(question, { atNode = null, task = 'chat', literal = false } = {}) {
   if (!COACH.sample) return; // the dialogue says why (#coachOff)
   if (atNode !== null && atNode !== S.cursor) goTo(atNode);
   const i = atNode ?? S.cursor, gen = S.gen;
@@ -3035,24 +3137,28 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   const run = CHAT.run = { gen, signal: ctl.signal, fen: actionState().fen, i, view: engineView(S), scratch, board: CHAT.general ? null : captureBoard(), label: conversationLabel() };
   run.context = run.board ? answerContext(i, run.view, scratch, run.board.state) : null;
   const chat = $('#chat');
-  chat.append(el('div', { class: 'msg user' }, question));
+  chat.append(el('div', { class: 'msg user', translate: literal ? 'no' : null }, question));
   const bubble = el('div', { class: 'msg coach thinking' }, el('span', { class: 'who' }, 'Coach'), 'Thinking…');
   chat.append(bubble); chat.scrollTop = chat.scrollHeight;
   chat.setAttribute('aria-busy', 'true'); // screen readers announce the finished answer once, not every streamed chunk
   $('#coachStop').hidden = false; $('#coachSend').disabled = true;
   const view = engineView(S);
-  const render = (text, check = null) => { if (!activeRun(run)) return; bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); pinMessage(bubble, run.label, run.board); const body = el('div'); renderRich(body, text, run.context?.fen || fen, check || (run.context ? checkFor(text, run.context) : null)); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
+  run.sourceScope = coachSourceScope(); run.sourcePolicy = coachSourcePolicy(); run.sourceOwner = coachSourceOwner(); run.retrievalQuery = question;
+  CHAT.sourceHistoryScope = run.sourceScope; CHAT.sourceHistoryOwner = run.sourceOwner;
+  const render = (text, check = null) => { if (!activeRun(run) || run.fen !== actionState().fen) return; bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach')); pinMessage(bubble, run.label, run.board); const body = el('div'); renderRich(body, text, run.context?.fen || fen, check || (run.context ? checkFor(text, run.context) : null)); if (run.retrieval) renderAnswerSources(body, run.retrieval, run.sourceScope); bubble.append(body); chat.scrollTop = chat.scrollHeight; };
   try {
+    run.retrieval = await coachSources(question, CHAT.general ? '' : run.fen, view, run.sourceScope, ctl.signal);
+    if (!activeRun(run) || run.fen !== actionState().fen) { bubble.remove(); return; }
     const toolKey = toolModelKey(GATEWAY, task);
     const history = (CHAT.general ? CHAT.generalTurns : chatTurns).slice(-8);
-    const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${conversationContext(i, view, scratch)}\n\nQuestion: ${question}` }];
+    const turns = [{ role: 'user', content: COACH_RULES }, ...history, { role: 'user', content: `${conversationContext(i, view, scratch)}\n\n${run.retrieval.context}\n\nQuestion: ${question}` }];
     const status = msg => { bubble.classList.add('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, 'Coach'), msg); };
     const opts = { signal: ctl.signal, cache: false, task, onText: ({ text }) => text && render(text) };
     // Engine tools (TODO 4.11) where the engine's view is allowed anyway, never during a game with less help.
     const { text, truncated, usage, evidence = [] } = toolsUsable(task)
       ? await sampleWithTools(turns, { ...opts, onStatus: status, run })
       : await COACH.sample(TOOLS_UNSUPPORTED.has(toolKey) ? withToolInstructions(turns, TOOL_FALLBACK) : turns, opts);
-    if (!activeRun(run)) { bubble.remove(); return; }
+    if (!activeRun(run) || run.fen !== actionState().fen) { bubble.remove(); return; }
     const full = text + (truncated ? '\n\n(Answer cut short. Ask a narrower question.)' : '');
     render(full, run.context ? checkFor(full, run.context, evidence) : null);
     if (evidence.length) bubble.append(evidenceBox(evidence));
@@ -3060,6 +3166,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
     const note = usageNote(usage); if (note) bubble.append(note);
     const targetHistory = run.board ? chatTurns : CHAT.generalTurns;
     targetHistory.push({ role: 'user', content: `[${quote(run.label, 200)}] ${question}` }, { role: 'assistant', content: text });
+    CHAT.sourceHistoryScope = run.sourceScope; CHAT.historyHasSources ||= !!run.retrieval.items.length;
   } catch (e) {
     if (e?.text) render(e.text);
     else if (e?.code === 'cancelled') bubble.remove();
@@ -3071,7 +3178,7 @@ async function askCoach(question, { atNode = null, task = 'chat' } = {}) {
   }
 }
 function conversationContext(i, view, scratch) {
-  return CHAT.general ? `The player chose General chess. No board position or engine data is supplied. Discuss general ideas; do not invent concrete variations. Use load tools only if the player asks to see a game or position. Player: ${LEVELS[S.level]}.`
+  return CHAT.general ? `The player chose General chess. No current board position or engine data is supplied. Historical sources are separate reference material. Discuss general ideas; do not invent concrete variations. Use load tools only if the player asks to see a game or position. Player: ${LEVELS[S.level]}.`
     : `Active panel: ${$('.tabs [aria-selected="true"]')?.dataset.tab || 'game'}.\n${contextFor(i, { view, scratch })}`;
 }
 // ---------------------------------------------------------------- Engine tools (TODO 4.11)
@@ -3093,7 +3200,7 @@ const CALL_ID = /^[A-Za-z0-9_-]{1,64}$/;
 async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
   const msgs = turns.slice(), evidence = [];
   const toolKey = toolModelKey(GATEWAY, task);
-  const activeToolRun = () => activeRun(run) && toolModelKey(GATEWAY, task) === toolKey;
+  const activeToolRun = () => activeRun(run) && toolModelKey(GATEWAY, task) === toolKey && (!run.retrieval || run.changingBoard || run.fen === actionState().fen);
   const usage = { input: 0, output: 0, cost: 0 };
   const add = u => { usage.input += u?.input || 0; usage.output += u?.output || 0; usage.cost = typeof u?.cost === 'number' && usage.cost !== null ? usage.cost + u.cost : null; };
   let calls = 0;
@@ -3126,10 +3233,15 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
         : isChat ? { ok: true } : checkToolCall(Chess, c.name, c.input);
       let result;
       if (chk.ok && isChat) {
-        result = await chatAction(c.name, c.input, run);
+        run.changingBoard = true;
+        try { result = await chatAction(c.name, c.input, run); }
+        finally { run.changingBoard = false; }
+        if (run.sourceOwner !== coachSourceOwner()) throw { code: 'cancelled' };
         if (result.fen && !result.error) {
+          run.sourceScope = coachSourceScope();
           run.i = S.cursor; run.view = engineView(S); run.scratch = scratchFacts(); run.board = captureBoard(); run.label = conversationLabel();
           run.context = answerContext(run.i, run.view, run.scratch, run.board.state);
+          run.retrieval = await coachSources(run.retrievalQuery, run.fen, run.view, run.sourceScope, signal);
         }
       } else if (chk.ok) {
         onStatus?.(TOOL_DOING[c.name]);
@@ -3145,7 +3257,7 @@ async function sampleWithTools(turns, { signal, task, onText, onStatus, run }) {
       msgs.push({ role: 'tool', toolCallId: c.id, content: JSON.stringify(result) });
     }
     if (!activeToolRun()) throw { code: 'cancelled' };
-    if (toolCalls.some(c => CHAT_TOOL_NAMES.includes(c.name) && !c.name.startsWith('search_'))) msgs.push({ role: 'user', content: conversationContext(S.cursor, engineView(S), scratchFacts()) });
+    if (toolCalls.some(c => CHAT_TOOL_NAMES.includes(c.name) && !c.name.startsWith('search_'))) msgs.push({ role: 'user', content: `${conversationContext(S.cursor, engineView(S), scratchFacts())}\n\n${run.retrieval.context}\nOnly the citation tokens in this fresh context may be used.` });
     onStatus?.('Thinking…');
   }
 }
@@ -3264,6 +3376,8 @@ function renderProgress() {
  */
 async function commentOn(i, { scratch = null } = {}) {
   if (!COACH.sample) return;
+  TUTOR.ctl?.abort();
+  const ctl = TUTOR.ctl = new AbortController(), scope = TUTOR.sourceScope = coachSourceScope();
   CHAT.general = false; renderCoachCtx();
   const n = S.nodes[i]; if (!n) return;
   const fen = scratch?.end || n.fen, gen = S.gen, board = captureBoard();
@@ -3283,28 +3397,33 @@ async function commentOn(i, { scratch = null } = {}) {
   const chat = $('#chat');
   const bubble = el('div', { class: 'msg coach thinking' }, el('span', { class: 'who' }, head), 'Thinking…');
   chat.append(bubble); chat.scrollTop = chat.scrollHeight;
+  let retrieval;
+  const current = () => !ctl.signal.aborted && scope === coachSourceScope() && S.gen === gen && S.nodes[i] === n && (!scratch || actionState().fen === scratch.end);
   const render = (text, check = null) => {
-    if (S.gen !== gen || S.nodes[i] !== n) return;
+    if (!current()) return;
     bubble.classList.remove('thinking'); bubble.replaceChildren(el('span', { class: 'who' }, head));
     pinMessage(bubble, t(head), board);
-    const body = el('div'); renderRich(body, text, fen, check || checkFor(text, context)); bubble.append(body); chat.scrollTop = chat.scrollHeight;
+    const body = el('div'); renderRich(body, text, fen, check || checkFor(text, context)); if (retrieval) renderAnswerSources(body, retrieval, scope); bubble.append(body); chat.scrollTop = chat.scrollHeight;
   };
-  const position = JSON.stringify([board.state.start, context.game.ucis, scratch?.start, scratch?.ucis, fen]);
+  try {
+    const themes = K.positionFeatures(new Chess(fen), { ply: i }).map(f => K.TAG_LABELS[f.tag] || f.tag);
+    retrieval = await coachSources([...use, ...themes, 'plans pawn structure'].join(' '), fen, view, scope, ctl.signal);
+    if (!current()) { bubble.remove(); return; }
+  } catch (e) { bubble.remove(); if (TUTOR.ctl === ctl) TUTOR.ctl = null; return; }
+  const position = JSON.stringify([board.state.start, context.game.ucis, scratch?.start, scratch?.ucis, fen, retrieval.key]);
   const key = commentKey({ epd: K.epd(fen), uci: n.uci || '', aspects: use, view, level: S.level, model: GATEWAY?.models?.quick || 'artifact', lang: LANG, position });
   let text = TUTOR.cache.get(key), usage = null;
   const cached = text !== undefined;
   if (!cached) {
-    TUTOR.ctl?.abort();
-    const ctl = TUTOR.ctl = new AbortController();
     try {
-      const turns = [{ role: 'user', content: COACH_RULES }, { role: 'user', content: `${contextFor(i, { view, scratch })}\n\n${commentRequest(use, { view })}` }];
+      const turns = [{ role: 'user', content: COACH_RULES }, { role: 'user', content: `${contextFor(i, { view, scratch })}\n\n${retrieval.context}\n\n${commentRequest(use, { view })}` }];
       ({ text, usage } = await COACH.sample(turns, { signal: ctl.signal, cache: false, task: 'quick', onText: ({ text }) => render(text) }));
     } catch (e) {
       if (e?.code === 'cancelled') bubble.remove();
       else { bubble.classList.remove('thinking'); bubble.dataset.error = e?.code || 'error'; bubble.replaceChildren(el('span', { class: 'who' }, head), coachError(e)); }
       return;
     } finally { if (TUTOR.ctl === ctl) TUTOR.ctl = null; }
-    if (S.gen !== gen || S.nodes[i] !== n) { bubble.remove(); return; }
+    if (!current()) { bubble.remove(); return; }
     TUTOR.cache.set(key, text); store.set('tutorCache', TUTOR.cache.entries());
   }
   const check = checkFor(text, context);
@@ -3312,6 +3431,8 @@ async function commentOn(i, { scratch = null } = {}) {
   if (cached) bubble.querySelector('.who').append(' (saved)');
   const note = usageNote(usage); if (note) bubble.append(note);
   chatTurns.push({ role: 'user', content: `[At ${where}] Comment on: ${use.join(', ')}` }, { role: 'assistant', content: text });
+  CHAT.sourceHistoryScope = scope; CHAT.sourceHistoryOwner = coachSourceOwner(); CHAT.historyHasSources ||= !!retrieval.items.length;
+  if (TUTOR.ctl === ctl) TUTOR.ctl = null;
 }
 // After the player's move is classified: comment if the setting asks for it (once per move).
 function autoComment(i) {
