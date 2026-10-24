@@ -22,6 +22,8 @@ Click **Analyse** during a game to pause it and its clock immediately. Explore m
 
 **Settings → Player profile** saves explanation level, optional reported rating/pool/time control and up to 500 characters of learning goals in this browser. Level changes save immediately; use **Save profile** for the other fields. Goals accompany coach requests as quoted user data. Failed saves retain drafts, and stale tab edits require an explicit reload. Profile changes invalidate pending/cached teaching context while preserving the game and opponent strength. [Format and limits](../docs/PROFILE.md) distinguish preferences from measured ability.
 
+**Review trends** summarizes compatible reports from your own reviewed games in the selected library. Counts and average move accuracy retain measured-move coverage by estimated phase. Bounded engine checks distinguish confirmed opportunities from refuted/unverified candidates; sample continuations open their exact source position. Re-running replaces a report, and deleting/changing its source or library removes its contribution. [Evidence and limits](../docs/REVIEWS.md) describe the historical-record boundary.
+
 In **Openings**, choose a saved White or Black repertoire and press **Review due moves** to practise new or due positions. Play on the drill board or type SAN/coordinates; the saved opponent reply follows automatically. Any saved choice at that position is accepted, including transpositions. A starting-square hint counts as help, and a legal move outside your repertoire counts as a recall miss rather than a chess judgement. Review dates and recall/help statistics stay in this browser. The drill leaves your game intact and follows its live-help setting; switch to Analyse to train without a running game.
 
 **Opening ideas** shows original study notes for twelve opening families and seven pawn patterns, in English or German. A guide explains the idea, typical plans and possible structures; separate pattern notes reflect the pawns currently on the board. Guides follow transpositions and scratch variations, identifying earlier opening matches as background. **Discuss these ideas** gives the coach the same notes alongside permitted Stockfish evidence. Static guides need no provider. During a game they require Full engine help, following the explorer's policy; unsupported/endgame positions show an empty state instead of a guessed explanation.
@@ -100,6 +102,8 @@ src/coach/            Prompts, model support, checked answers and conversation t
 src/player/           Browser-local teaching preferences:
   profile.js          Validated profile, reported rating provenance, revisions and quoted goals
   profile-ui.js       Settings drafts, acknowledgement/retry and stale-tab handling
+  reviews.js          Captured review evidence, source-bound validation and current-library trends
+  review-history.js   Phase/theme totals, coverage and checked-opportunity navigation
 src/library/          Source-aware records, classics, patterns and passage retrieval:
   library.js          Source revisions, game occurrences, annotations and position-index adapter
   search.js           Local metadata search, legal PGN/ECO labels and combined field filters
