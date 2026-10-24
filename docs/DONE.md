@@ -7,6 +7,53 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Lichess puzzle source and offline import pipeline
+
+TODO items: 6.5.
+
+### Implementation notes
+
+- Added the first 64 unchanged rows of the public Lichess CC0 export as a small starter source, with the exact CSV, retrieval/selection metadata, ETag/Last-Modified and SHA-256 digest. `scripts/import-puzzles.mjs` regenerates bounded JS records offline; `--check` verifies the saved bytes and generated output. No download runs implicitly. Source attribution ships in the third-party notices.
+- The pure importer accepts quoted CSV, BOM/CRLF and current eleven-column or legacy ten-column schemas, with 1 MB/1,000-record bounds. It validates IDs, numeric metadata, theme/opening tokens, safe Lichess URLs, diagrams, rights, UCI moves, end conditions and mate claims. It applies the first opponent move before exposing the learner’s FEN/solution, retaining the source FEN, setup UCI/SAN, counters, original themes, ratings, opening tags and game/puzzle links.
+- Four editorial rating groups contain 20/27/13/4 puzzles and join the Lessons catalogue. The complete catalogue has 34 lessons/groups and 100 exercises. Case-sensitive source IDs are encoded into stable lowercase curriculum IDs. The compiler revalidates records and binds exercise IDs, full FENs, lines and mapped themes to source-derived facts. Source themes remain distinct from motif detection; the new Zugzwang filter label adds no detector. Ratings, CC0 attribution, raw themes and validated external links render safely in English/German.
+- Seven unit scenarios cover exact offline regeneration/digests, setup semantics and counters, every saved legal line, en passant/castling/underpromotion, mate checks, CSV/schema/bounds, malformed source data, URL rejection, metadata normalization, Unicode opening tags, case-sensitive IDs and source-to-exercise binding. Two browser scenarios cover rating/theme filters, links/attribution, no remote/provider requests, board isolation, unsafe metadata rejection and German phone/keyboard use.
+- Verification: ESLint, JSDoc types, build and both offline data audits pass. Unit/gateway suite: 392 passed, one opt-in live test skipped. Full browser suite: 224 passed, one opt-in live test skipped. After the final import hardening, the rebuilt source also passed the complete unit suite and all twelve curriculum browser scenarios. Provider calls use mocks/fake clients.
+- CodeQL review replaced separate path-stat/read operations with descriptor-based bounded reads and fatal UTF-8 decoding, covered by an additional file-boundary test. The browser request spy now parses URLs and compares exact hostnames instead of using a hostname substring regex. After these corrections, lint/types, the offline import audit, all 393 unit/gateway tests (one live skip) and both puzzle browser scenarios pass.
+
+### Deviations
+
+- Bundled a documented starter prefix rather than the entire multi-million-puzzle database. It demonstrates ingestion and source-aware catalogue use, not representative theme coverage, calibrated teaching difficulty or measured learning benefit. Lichess rating bands are editorial navigation, not playing Elo. Interactive solving, hints and alternative-answer grading remain 6.6. Local legality/mate checks do not independently verify other source strength or theme claims.
+
+### Insights
+
+- Lichess’s first UCI move belongs to the opponent. Showing the raw database FEN would present the wrong side and task; applying the setup move is a data-model invariant rather than a UI convention.
+- Source IDs use both cases. Lowercasing them would merge distinct puzzles; encoding each character preserves identity within the curriculum’s existing ID alphabet. Keeping the original CSV also makes generated records auditable when the live export later changes.
+
+---
+
+## 2026-10-24 — Endgame lessons with recorded Syzygy evidence
+
+TODO items: 6.4.
+
+### Implementation notes
+
+- Added five bilingual lessons beside the queen/king foundation: rook/king mates for both colours, king and pawn with a blocked rook-pawn counterexample, direct opposition with either side to move, Lucena’s bridge and Philidor’s defence. The complete catalogue contains thirty lessons and thirty-six exercises. Endgames have six lessons and ten exercises, with objectives, prerequisites and original explanatory rubrics.
+- Recorded numerical Syzygy facts for all 28 worked plies using the public Lichess API. Full FEN, source URL, retrieval timestamp and SHA-256 digest accompany each saved result. `scripts/check-endgames.mjs` audits offline by default; explicit `--refresh` queries only authored diagrams, validates everything and atomically replaces the snapshots. No live test or browser tablebase request is needed.
+- A pure evidence adapter validates at most seven pieces, canonical legal full FEN without castling rights, complete legal move lists, numeric DTZ/DTM and terminal facts through chess.js. The compiler checks the declared result at every recorded position and after every move. Move categories describe the child side to move; results are converted to White’s perspective. Uncertain, unknown and cursed/blessed categories cannot substantiate an ordinary win/loss claim. DTZ is never labelled distance to mate.
+- The Lessons catalogue shows the checked result/date and its exact-position/branch scope. Six unit scenarios cover both colours, turn-dependent opposition, the drawn rook pawn, legal non-stalemating promotion, complete branches, child perspective, unsupported categories, changed counters, absent/malformed evidence and offline digest auditing. Two browser scenarios cover result labels, advanced filters, no external/provider requests, game isolation, German phone layout and keyboard access.
+- Verification: ESLint, JSDoc type checking, build and the offline tablebase audit pass; 385 unit/gateway tests and 222 browser tests pass, with one opt-in live test skipped per suite. Provider requests use mocks or fake clients.
+
+### Deviations
+
+- Evidence is bundled for fixed teaching diagrams rather than fetching arbitrary player positions at runtime. This completes the authored endgame catalogue and its tablebase checks; interactive play and alternative-answer grading remain 6.6. A checked branch preserves the result, but does not claim a unique best move or force the opponent to follow that branch. Conventional diagrams do not resolve the separately tracked historical publication/licensing work in 7.3/7.4.
+
+### Insights
+
+- The same opposition placement is drawn with White to move and winning for White with Black to move. Reading the latter API `loss` as a White loss would reverse the lesson; a child move’s category needs the opposite turn again.
+- EPD is suitable for the project’s engine cache, but full FEN is required for this evidence: fifty-move counters can change tablebase results. Missing evidence for a changed counter fails closed instead of borrowing a nearby snapshot.
+
+---
+
 ## 2026-10-24 — Strategy lessons and checked structural examples
 
 TODO items: 6.3.

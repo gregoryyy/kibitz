@@ -1,8 +1,11 @@
-// Original Kibitz teaching material; no imported prose or external puzzle database (TODO 6.1).
+// Kibitz teaching notes, with a separately attributed CC0 Lichess puzzle starter collection.
 import { TACTICS } from './tactics.js';
 import { STRATEGY } from './strategy.js';
+import { ENDGAMES } from './endgames.js';
+import { PUZZLES } from './puzzle-data.js';
+import { puzzleModule } from './puzzles.js';
 const words = (en, de) => ({ en, de });
-const source = { title: words('Kibitz original curriculum', 'Kibitz: eigene Lerninhalte'), author: 'Kibitz contributors', licence: 'GPL-3.0-or-later' };
+const source = { title: words('Kibitz teaching notes', 'Lehrtexte von Kibitz'), author: 'Kibitz contributors', licence: 'GPL-3.0-or-later' };
 /** @type {import('./curriculum.js').Curriculum} */
 export const CURRICULUM = { version: 1, source, modules: [
   { id: 'tactics', title: words('Tactical foundations', 'Taktische Grundlagen'), level: 1, tags: [...new Set(['mate', 'back-rank', ...TACTICS.flatMap(l => l.tags)])], lessons: [
@@ -30,17 +33,19 @@ export const CURRICULUM = { version: 1, source, modules: [
       ] },
     ...STRATEGY,
   ] },
-  { id: 'endgames', title: words('Endgame foundations', 'Endspielgrundlagen'), level: 1, tags: ['endgame', 'mate'], lessons: [
+  { id: 'endgames', title: words('Endgame foundations', 'Endspielgrundlagen'), level: 1, tags: ['endgame', 'mate', 'pawn-endgame', 'rook-endgame', 'rook-pawn-vs-rook', 'opposition'], lessons: [
     { id: 'queen-and-king-mate', title: words('Queen and king work together', 'Dame und König arbeiten zusammen'), level: 1, tags: ['endgame', 'mate'], prerequisites: ['back-rank-mate'],
       introduction: words('The queen controls ranks, files and diagonals. Its king can protect the final checking square. Before moving, check that the enemy king will be in check rather than merely unable to move: a trapped king without check is stalemate.', 'Die Dame kontrolliert Reihen, Linien und Diagonalen. Ihr König kann das letzte Schachfeld decken. Prüfe vor dem Zug, ob der gegnerische König im Schach steht und nicht nur zugunfähig ist: Ein gefangener König ohne Schach ist patt.'),
       objectives: [words('Find a checking square protected by your king.', 'Finde ein Schachfeld, das dein König deckt.'), words('Avoid confusing stalemate with checkmate.', 'Verwechsle Patt nicht mit Matt.')],
       exercises: [
-        { id: 'queen-mate-white', title: words('Finish the mating net with White', 'Vollende das Mattnetz mit Weiß'), level: 1, tags: ['endgame', 'mate'], goal: 'mate',
+        { id: 'queen-mate-white', title: words('Finish the mating net with White', 'Vollende das Mattnetz mit Weiß'), level: 1, tags: ['endgame', 'mate'], goal: 'mate', tablebase: { outcome: 'white-win' },
           prompt: words('White to move: find a checkmate in one move.', 'Weiß am Zug: Finde ein Matt in einem Zug.'), fen: '7k/8/5KQ1/8/8/8/8/8 w - - 0 1', line: ['g6g7'],
           rubric: [words('The king protects the checking queen and every escape square is controlled.', 'Der König deckt die schachgebende Dame, und alle Fluchtfelder sind kontrolliert.')] },
-        { id: 'queen-mate-black', title: words('Finish the mating net with Black', 'Vollende das Mattnetz mit Schwarz'), level: 1, tags: ['endgame', 'mate'], goal: 'mate',
+        { id: 'queen-mate-black', title: words('Finish the mating net with Black', 'Vollende das Mattnetz mit Schwarz'), level: 1, tags: ['endgame', 'mate'], goal: 'mate', tablebase: { outcome: 'black-win' },
           prompt: words('Black to move: find a checkmate in one move.', 'Schwarz am Zug: Finde ein Matt in einem Zug.'), fen: '8/8/8/8/8/5kq1/8/7K b - - 0 1', line: ['g3g2'],
           rubric: [words('Checkmate depends on the position, not on which colour is moving.', 'Matt hängt von der Stellung ab und nicht davon, welche Farbe am Zug ist.')] },
       ] },
+    ...ENDGAMES,
   ] },
+  puzzleModule(PUZZLES),
 ] };

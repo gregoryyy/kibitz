@@ -2,9 +2,12 @@
 import { TAG_LABELS, moveMotifs, lineMotifs, positionFeatures } from '../chess/knowledge.js';
 import { checkStart } from '../chess/play.js';
 import { playLine } from '../coach/annotations.js';
+import { TABLEBASE_SNAPSHOTS } from './tablebase-snapshots.js';
+import { tablebaseIndex, verifyTablebaseLine } from './tablebase.js';
+import { compilePuzzle, puzzleExerciseId } from './puzzles.js';
 
 /** @typedef {{en: string, de: string}} LessonText */
-/** @typedef {{id: string, title: LessonText, level: number, tags: string[], prompt: LessonText, fen: string, goal: 'mate'|'reflection', line: string[], rubric: LessonText[], pattern?: string, positionTag?: string}} Exercise */
+/** @typedef {{id: string, title: LessonText, level: number, tags: string[], prompt: LessonText, fen: string, goal: 'mate'|'reflection', line: string[], rubric: LessonText[], pattern?: string, positionTag?: string, tablebase?: import('./tablebase.js').TablebaseEvidence, puzzle?: import('./puzzles.js').Puzzle}} Exercise */
 /** @typedef {{id: string, title: LessonText, level: number, tags: string[], prerequisites: string[], introduction: LessonText, objectives: LessonText[], exercises: Exercise[]}} Lesson */
 /** @typedef {{id: string, title: LessonText, level: number, tags: string[], lessons: Lesson[]}} LessonModule */
 /** @typedef {{version: number, source: {title: LessonText, author: string, licence: string}, modules: LessonModule[]}} Curriculum */
@@ -29,10 +32,12 @@ export function lessonText(/** @type {LessonText} */ value, language = 'en') { r
  * this does not claim a unique solution. Reflection rubrics are authored guidance, not grading.
  * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected rules implementation.
  * @param {Curriculum} input Authored records, treated as untrusted at this boundary.
+ * @param {{tablebases?: import('./tablebase.js').TablebaseSnapshot[]}} [options] Offline evidence; injectable for tests.
  * @returns {Curriculum}
  */
-export function compileCurriculum(Chess, input) {
+export function compileCurriculum(Chess, input, { tablebases = TABLEBASE_SNAPSHOTS } = {}) {
   const data = structuredClone(input);
+  const lookup = tablebaseIndex(Chess, tablebases);
   require(data?.version === 1, 'version');
   require(localized(data.source?.title, 160) && text(data.source?.author, 160) && text(data.source?.licence, 160), 'source');
   require(Array.isArray(data.modules) && data.modules.length > 0 && data.modules.length <= CURRICULUM_LIMITS.modules, 'modules');
@@ -75,6 +80,13 @@ export function compileCurriculum(Chess, input) {
         if (e.goal === 'mate') {
           const end = new Chess(line.fens.at(-1));
           require(end.isCheckmate() && end.turn() !== new Chess(e.fen).turn(), 'mate is not established for the learner');
+        }
+        if (e.tablebase !== undefined) e.tablebase = verifyTablebaseLine(Chess, { ...e, tablebase: e.tablebase }, lookup);
+        if (e.puzzle !== undefined) {
+          const puzzle = compilePuzzle(Chess, e.puzzle);
+          require(e.id === puzzleExerciseId(puzzle.id) && e.fen === puzzle.fen && JSON.stringify(e.line) === JSON.stringify(puzzle.line), 'puzzle position/line binding');
+          require(puzzle.tags.every(tag => e.tags.includes(tag)), 'puzzle themes');
+          e.puzzle = puzzle;
         }
       }
     }

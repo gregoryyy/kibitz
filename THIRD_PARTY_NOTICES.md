@@ -11,7 +11,10 @@ Kibitz is licensed under the GNU General Public License, version 3 or (at your o
 | cburnett chess pieces, Colin M.L. Burnett, bundled with chessground | | GPL-2.0-or-later | CSS inlined into `index.html` |
 | [chess.js](https://github.com/jhlywa/chess.js), Jeff Hlywa | 1.4.0 | BSD-2-Clause (text below) | `chess.js` |
 | [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) | | CC0-1.0 | `eco.json`, built from `site/data/eco/` |
+| [Lichess puzzle database](https://database.lichess.org/#puzzles), 64-row starter subset retrieved 2026-10-24 | | CC0-1.0 | `curriculum/puzzle-data.js`, built from the recorded CSV/manifest in `site/data/puzzles/` |
 | [wllama](https://github.com/ngxson/wllama), Xuan-Son Nguyen and contributors; includes [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT, The ggml authors) | 3.8.1 | MIT | `wllama.js`, `wllama.wasm` |
+
+The page also ships numerical outcomes for 28 fixed endgame teaching positions, computed by the [Lichess Syzygy tablebase service](https://github.com/lichess-org/lila-tablebase) using Ronald de Man's Syzygy tables. `site/src/curriculum/tablebase-snapshots.js` records the exact query URL, retrieval time and digest of each saved result. These are computed chess facts; no tablebase files or server implementation are bundled. The teaching prose is original Kibitz material under the project licence. Refreshing the records is an explicit development command; the browser makes no tablebase requests.
 
 ## Loaded by the page, not shipped
 
