@@ -2,6 +2,8 @@
 
 Research date: **2026-10-23**. Companion to [ROAD 10](../ROAD.md#10-position-similarity-by-aspect); informs TODO 8.1, 8.4, 8.5 and 8.8. Application audit: **`0176c62`**. This note proposes research and evaluation, not a selected metric, implementation or reproduced benchmark. See the [research index](README.md) for the broader retrieval studies and [design overview](../AI-DESIGN.md) for their place in the feature set.
 
+**Implementation update, 2026-10-24:** the [position retrieval literature comparison](position-retrieval-comparison.md) audits `2933295`, including the subsequently implemented material/placement predicates, pattern index, hybrid search and optional pawn Jaccard distance. It compares their actual scope with the algorithms below and records existing benchmark results. Aspect-conditioned learned metrics and solution-similarity ranking remain proposals.
+
 ## Similar in what respect?
 
 Use a family of comparisons conditioned on the question. Two positions can share a pawn skeleton but demand different tactics; two very different boards can teach the same combination. The desired relationship is “relevant example for this aspect”, not necessarily “fewest pieces moved”.
@@ -33,7 +35,7 @@ The module's material/structure features and motif candidates offer a starting v
 
 [Bizjak and Guid, Information Society 2020, *Towards Automatic Recognition of Similar Chess Motifs*](https://is.ijs.si/wp-content/uploads/2020/08/IS2020_submit.pdf), add pawn structures and dynamic solution features, including checks, captures, sacrifices, mating pieces and move-sequence information. Their tactical study includes paired full and simplified exercises. This supports comparing solution structure as well as static appearance, but also makes puzzle-family leakage a concern when designing a new evaluation. Their commercial exercise source is not a dataset to copy into Kibitz.
 
-[Guid, Bizjak, Guid and Krivec, *Reverse-engineering expert similarity judgments: evidence from chess tactics*](https://link.springer.com/article/10.1186/s41235-026-00755-5), published **21 October 2026**, report that solution-level features explained expert tactical similarity judgements much better than static appearance. The published abstract describes 2,866 labels from one primary annotator and validation with two additional titled players. This is particularly relevant new evidence, but scoped to tactical puzzles and those judgements. Only the accessible abstract/metadata were reviewed here; it does not establish a universal metric for openings or strategic plans.
+[Guid, Bizjak, Guid and Krivec, *Reverse-engineering expert similarity judgments: evidence from chess tactics*](https://link.springer.com/article/10.1186/s41235-026-00755-5), published **21 October 2026**, study expert judgements of tactical similarity. The initial review used abstract/metadata; the [subsequent comparison](position-retrieval-comparison.md#literature-results-on-their-own-tasks) checks the full accepted manuscript, classifiers and query-grouped evaluation. Its conclusions remain scoped to tactical puzzles.
 
 ### Conditional metric learning
 
