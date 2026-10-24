@@ -220,6 +220,8 @@ Play and Study group the task tabs. **Analyse** immediately pauses a detached ga
 
 ### 3.6 Verification and guardrails
 
+The main board's `chess/keyboard-board.js` supplies a native roving-focus grid over Chessground. chess.js derives square labels and legal destinations; keyboard moves call the existing guarded pointer path. Captured game/FEN/orientation permissions invalidate selections, and promotion choices retain game/scratch identity before acting. `board-marks.js` supplies distinct arrow patterns and text descriptions; reduced-motion changes update the actual Chessground animator. [Controls and verification limits](ACCESSIBILITY.md) distinguish automated coverage from accessibility conformance.
+
 The model's output is untrusted.
 
 - **Never HTML.** The page renders answers as text, with a minimal markdown subset built from DOM nodes.
