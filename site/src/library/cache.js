@@ -76,6 +76,16 @@ export function createLibraryCache(options = {}) {
   return {
     read: scope => transact(scope),
     write: snapshot => transact(snapshot?.scope, snapshot),
+    async remove(scope) {
+      if (!libraryScope(scope)) throw error('library_cache_invalid');
+      const db = await connect();
+      if (closed) throw error('library_cache_unavailable');
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('snapshots', 'readwrite');
+        tx.oncomplete = () => resolve(undefined); tx.onabort = () => reject(error('library_cache_write'));
+        tx.objectStore('snapshots').delete(scope);
+      });
+    },
     close() { closed = true; connection?.close(); connection = null; },
   };
 }

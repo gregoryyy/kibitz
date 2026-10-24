@@ -92,8 +92,10 @@ export function createLibraryApi({ store = null, validate = validateLibraryChang
         const token = tokenOf(req);
         return json(res, 200, { available: !!store, scope: store && token ? scopeOf(token) : null });
       }
-      if (pathname !== '/api/library/records') fail('not_found');
+      if (!['/api/library/records', '/api/library/erase'].includes(pathname)) fail('not_found');
       if (!['GET', 'POST'].includes(req.method)) fail('method');
+      const erasing = pathname === '/api/library/erase';
+      if (erasing && req.method !== 'POST') fail('method');
       if (!store) fail('unavailable');
       let token = tokenOf(req);
       if (req.method === 'GET') {
@@ -108,9 +110,13 @@ export function createLibraryApi({ store = null, validate = validateLibraryChang
       if (Date.now() - windowAt >= 60_000) { windowAt = Date.now(); writes = 0; }
       if (++writes > 120) fail('rate_limited');
       const body = await readJson(req), scope = scopeOf(token);
-      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !['scope', 'revision', 'changes'].includes(k))
+      if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !(erasing ? ['scope', 'revision', 'confirm'] : ['scope', 'revision', 'changes']).includes(k))
         || !Number.isSafeInteger(body.revision) || body.revision < 0) fail('bad_request');
       if (body.scope !== scope) fail('session_changed'); // A precondition; only the cookie selects the owner.
+      if (erasing) {
+        if (body.confirm !== true) fail('bad_request');
+        return json(res, 200, store.erase(scope, body.revision));
+      }
       await validate(body.changes);
       if (res.destroyed) return true;
       return json(res, 200, store.change(scope, body.revision, body.changes));

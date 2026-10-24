@@ -57,4 +57,5 @@ const page = fs.readFileSync(path.join(root, 'src/index.html'), 'utf8')
 fs.writeFileSync(path.join(dist, 'index.html'), page);
 fs.writeFileSync(path.join(dist, '_test.html'),
   '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + page + '</body></html>');
+copy(path.join(root, 'src/data.html'), 'data.html');
 console.log('Built dist/ (' + fs.readdirSync(dist).join(', ') + ')');

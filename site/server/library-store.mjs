@@ -33,6 +33,7 @@ export function createLibraryStore(filename = ':memory:', limits = LIBRARY_LIMIT
     const ensure = db.prepare('INSERT OR IGNORE INTO owners(owner) VALUES(?)');
     const put = db.prepare('INSERT INTO records(owner,collection,id,body) VALUES(?,?,?,?) ON CONFLICT(owner,collection,id) DO UPDATE SET body=excluded.body');
     const remove = db.prepare('DELETE FROM records WHERE owner=? AND collection=? AND id=?');
+    const erase = db.prepare('DELETE FROM records WHERE owner=?');
     const advance = db.prepare('UPDATE owners SET revision=revision+1 WHERE owner=?');
     const usage = db.prepare('SELECT count(*) AS count,coalesce(sum(length(CAST(body AS BLOB))),0) AS bytes FROM records WHERE owner=?');
     db.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;');
@@ -62,6 +63,18 @@ export function createLibraryStore(filename = ':memory:', limits = LIBRARY_LIMIT
         ownerKey(key); db.exec('BEGIN');
         try { const result = snapshot(key); db.exec('COMMIT'); return result; }
         catch (error) { db.exec('ROLLBACK'); throw error; }
+      },
+      erase(key, revision) {
+        ownerKey(key);
+        if (!Number.isSafeInteger(revision) || revision < 0) fail('invalid_changes');
+        db.exec('BEGIN IMMEDIATE');
+        try {
+          ensure.run(key);
+          if (Number(getRevision.get(key).revision) !== revision) fail('conflict');
+          erase.run(key); advance.run(key);
+          // Keep the advanced revision, so an older in-flight write cannot resurrect records.
+          const result = snapshot(key); db.exec('COMMIT'); return result;
+        } catch (error) { db.exec('ROLLBACK'); throw error; }
       },
       change(key, revision, changes) {
         ownerKey(key);

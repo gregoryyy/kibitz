@@ -14,6 +14,27 @@ const temporary = run => {
   try { return run(path.join(dir, 'library.sqlite')); } finally { rmSync(dir, { recursive: true, force: true }); }
 };
 
+test('atomic owner erasure preserves other owners and a revision tombstone rejects older writes after restart', () => temporary(filename => {
+  let store = createLibraryStore(filename);
+  store.change(a, 0, [put('game'), put('note', 'private note', 'books')]); store.change(b, 0, [put('other')]);
+  assert.throws(() => store.erase(a, 0), code('conflict')); assert.equal(store.read(a).games.length, 1);
+  assert.deepEqual(store.erase(a, 1), { version: 1, scope: a, revision: 2, games: [], books: [] });
+  assert.deepEqual(store.read(b).games.map(g => g.id), ['other']);
+  assert.throws(() => store.change(a, 1, [put('resurrect')]), code('conflict'));
+  store.close(); store = createLibraryStore(filename);
+  try { assert.equal(store.read(a).revision, 2); assert.deepEqual(store.read(a).games, []); assert.throws(() => store.change(a, 1, [put('late')]), code('conflict')); }
+  finally { store.close(); }
+}));
+
+test('erasing an empty owner advances its revision and malformed erase requests leave records unchanged', () => {
+  const store = createLibraryStore();
+  try {
+    assert.equal(store.erase(a, 0).revision, 1);
+    for (const revision of [-1, 0.5, '1', Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => store.erase(a, revision), code('invalid_changes'));
+    assert.throws(() => store.erase('invalid', 1), code('invalid_owner')); assert.equal(store.read(a).revision, 1);
+  } finally { store.close(); }
+});
+
 test('SQLite records persist across restart without rewriting unknown metadata or original PGN bytes', () => temporary(filename => {
   const original = { id: 'stable', pgn: '[White "Réti"]\r\n\r\n1. e4 {note} *', provenance: { version: 99, future: 'retain' }, extra: ['original'] };
   let store = createLibraryStore(filename);
