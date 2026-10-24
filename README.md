@@ -134,7 +134,7 @@ just e2e               # or, in site/: npm run test:e2e
   - The regression tests reproduce each bug fixed after the code review.
   - Every test also fails on uncaught page errors and Content Security Policy violations.
   - Reports and traces of failed tests go to `site/tests/out/` (git-ignored).
-- **Live tests** (`KIBITZ_LIVE_AI=1 npm run test:live` in `site/`) send a few small requests to the providers in `.env`; they never run otherwise. `node scripts/record-ai-fixtures.mjs <provider>` records fresh responses for the contract tests.
+- **Live tests** (`KIBITZ_LIVE_AI=1 npm run test:live` in `site/`) send a few small requests to the providers in `.env`; they never run otherwise. For contract fixtures, first inspect `node scripts/record-ai-fixtures.mjs <provider> --plan`; recording requires `--yes` and stages successful responses privately for review. See [capture limits and review](docs/AI-FIXTURES.md).
 - **`npm run check`** runs ESLint (including the script inside `index.html`) and `tsc --checkJs` over `src/`, `server/` and `scripts/`.
 - **CI** (`.github/workflows/`) runs all of the above on every PR, plus `npm audit`, a gitleaks secret scan and, once the repo is public, CodeQL.
   - To use Playwright's bundled Chromium instead of Chrome, run `npx playwright install chromium` and set `PW_CHANNEL=chromium`.

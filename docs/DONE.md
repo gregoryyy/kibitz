@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Bound and privately stage provider fixture recording
+
+TODO item: 11.2.8; capture context 9 under [#99](https://github.com/gregoryyy/kibitz/issues/99). Real missing-provider recordings (2.15) remain open.
+
+### Implementation notes
+
+- Split operator CLI planning from capture/publication logic. Explicit unique provider names and every selected configuration are validated before execution; local-only settings cannot silently substitute another provider. `--plan` and missing `--yes` make no requests or output writes, including for Ollama. `--env=` now skips file loading, and direct entry works through macOS temporary-directory aliases.
+- Limit each case to one HTTP attempt, with no redirects, SDK retries, tools, embeddings, JSON fallback or server-side refusal fallback. Added an adapter option for the recorder to disable the latter while retaining existing coaching defaults. Fixed chat/JSON output limits are 400/1500 tokens. A one MiB response cap and total header/body/SDK deadline (configured, capped at five minutes) precede publication.
+- Accept only HTTP 200 event streams with valid UTF-8, explicit protocol termination, nonempty nontruncated completion, no tool calls and valid annotation schema for JSON. Error bodies are canceled. Refuse known configured credentials/common encodings in metadata/raw data/decoded text, including split SSE fragments. Explicit no-op SDK loggers prevent inherited debug settings from exposing transport/config/error text; CLI diagnostics use fixed categories.
+- Default captures to git-ignored `.kibitz-data/ai-fixtures/`, with private directory/file modes and fixed allowlisted filenames. Exclusive same-directory temporary files are atomically renamed over accepted destinations, replacing a symlink entry without opening its target. Handled failures clean partials and retain earlier destinations. Output selection resolves existing aliases and rejects protected repository/served destinations; operator-owned parents remain trusted. Added a capture/review guide and updated README/source-map/OWASP evidence.
+- Validation: build, lint and JSDoc checks pass. The full unit/server scope passes with `node --test --test-concurrency=2` (622 passes, one opt-in live skip). Seven new unit cases cover all four real SDK adapters, exact wire preservation, request/token bounds, stream/HTTP/schema/credential failures, deadlines/cancellation and atomic publication/cleanup. Four real-CLI Playwright cases plus both actual HTTP/TLS browser cases pass. The no-confirmation regression fails on the actual prior `6d37f45` recorder in a disposable copy: it makes two synthetic requests and publishes without `--yes`. All fetches are intercepted; no operator environment file, paid provider or model download is used. Existing real/hand-written fixtures and the published flipbook remain unchanged.
+
+### Deviations
+
+- Capture no longer overwrites tracked fixtures by default. Operators review staged responses for private fields before deliberately copying accepted wire data into the repository. An error stops subsequent cases/providers; earlier successful files remain because publication is per file. Abrupt termination can leave a private partial for operator cleanup.
+- This remediates actual recorder defects and reviews the intended network-to-JSON data flow; it does not manually dismiss or suppress CodeQL context 9. Unknown secrets/encodings, provider semantics and operator-controlled filesystem writers are outside the automatic checks. Main-branch scans, other #99 findings and release approval remain open.
+
+### Insights
+
+- A network-to-file alert can point to intended test-data capture and still reveal real implementation defects. Fixed filenames alone do not protect an existing symlink target or prevent a reflected error response from replacing a useful fixture.
+- SDK `logger: null` falls back to console in both installed SDKs. Explicit sinks are needed to keep operator-inherited debug settings out of a capture command's diagnostics.
+
 ## 2026-10-25 — HTML-aware CSP script selection
 
 TODO item: 11.2.7; contexts 2/3/5 under [#99](https://github.com/gregoryyy/kibitz/issues/99).

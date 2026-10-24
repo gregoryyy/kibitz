@@ -193,7 +193,7 @@ export function createProvider(cfg, /** @type {{ client?: any }} */ { client } =
   }
 }
 
-/** @typedef {{ model?: string, system?: string, maxTokens?: number, schema?: { name: string, schema: object }, tools?: { name: string, description: string, schema: object }[] | null, signal?: AbortSignal }} ChatOptions */
+/** @typedef {{ model?: string, system?: string, maxTokens?: number, schema?: { name: string, schema: object }, tools?: { name: string, description: string, schema: object }[] | null, signal?: AbortSignal, serverFallback?: boolean }} ChatOptions */
 
 // Messages in Anthropic's shape: tool calls are tool_use blocks of the assistant turn, and the
 // results of one turn's calls go back together as tool_result blocks of one user turn.
@@ -223,7 +223,7 @@ const parseArgs = s => { try { const v = JSON.parse(s || '{}'); return v && type
 
 function anthropicProvider(cfg, client) {
   return {
-    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, tools, signal } = {}) {
+    async *chat(messages, /** @type {ChatOptions} */ { model = cfg.model, system, maxTokens = cfg.maxTokens, schema, tools, signal, serverFallback = true } = {}) {
       const output = { ...(cfg.effort ? { effort: cfg.effort } : {}), ...(schema ? { format: { type: 'json_schema', schema: providerSchema(schema.schema) } } : {}) };
       const stream = client.beta.messages.stream({
         model,
@@ -234,7 +234,7 @@ function anthropicProvider(cfg, client) {
         ...(Object.keys(output).length ? { output_config: output } : {}),
         // On a safety decline, re-run on Anthropic's recommended fallback model instead of failing.
         // Haiku models have no server-side fallback, so the option is left off for them.
-        ...(model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }),
+        ...(!serverFallback || model.startsWith('claude-haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }),
       }, { signal });
       for await (const ev of stream) {
         if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') yield ev.delta.text;
