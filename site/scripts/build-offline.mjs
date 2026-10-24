@@ -12,11 +12,20 @@ export function buildOffline(dist, page) {
   }, null, 2));
   const assets = [];
   function visit(dir, relative = '') {
-    for (const file of fs.readdirSync(dir).sort()) {
-      const name = relative + file, full = path.join(dir, file);
-      if (fs.statSync(full).isDirectory()) visit(full, name + '/');
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) {
+      const name = relative + entry.name, full = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) throw Error('Offline assets must not be symbolic links');
+      if (entry.isDirectory()) visit(full, name + '/');
       else if (!['index.html', '_test.html', 'sw.js'].includes(name)) {
-        const content = fs.readFileSync(full); assets.push({ path: name, bytes: content.length, sha256: crypto.createHash('sha256').update(content).digest('hex') });
+        if (!entry.isFile()) throw Error('Offline assets must be regular files');
+        // Check and read the opened file itself. A path stat followed by a path read can
+        // inspect one file and hash another if it is replaced between those operations.
+        const fd = fs.openSync(full, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
+        try {
+          if (!fs.fstatSync(fd).isFile()) throw Error('Offline assets must be regular files');
+          const content = fs.readFileSync(fd);
+          assets.push({ path: name, bytes: content.length, sha256: crypto.createHash('sha256').update(content).digest('hex') });
+        } finally { fs.closeSync(fd); }
       }
     }
   }
