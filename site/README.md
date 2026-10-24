@@ -36,7 +36,9 @@ With board relevance enabled, **Include similar pawn structures** optionally adm
 
 ## Layout
 
-The **Lessons** tab browses an original English/German curriculum by module, level ceiling and theme. Expand a lesson to read its introduction, objectives, prerequisites and exercise prompts. The catalogue has 25 lessons and 28 exercises: thirteen tactical lessons, eleven strategy lessons and an endgame foundation. Strategy covers the IQP, Carlsbad and hanging pawns, weak squares, outposts, bishops, open files, king safety, piece activity and prophylaxis. A fork that can be answered by capturing the knight illustrates why recognizing a pattern does not prove a gain. Browsing works without a provider and keeps the current board intact. Interactive exercise play, grading and progress follow in 6.6/6.7. Recorded positions and lines are rules-checked; mate examples end in checkmate, while reflection examples make no best-move or winning claim.
+The **Lessons** tab browses an original English/German curriculum by module, level ceiling and theme. Expand a lesson to read its introduction, objectives, prerequisites and exercise prompts. The catalogue has 30 lessons and 36 exercises: thirteen tactical lessons, eleven strategy lessons and six endgame lessons. Strategy covers the IQP, Carlsbad and hanging pawns, weak squares, outposts, bishops, open files, king safety, piece activity and prophylaxis. A capturable fork illustrates why recognizing a pattern does not prove a gain. Endgames cover queen/rook mates, king and pawn, opposition, Lucena and Philidor. Their ten exercises show recorded Syzygy outcomes for the exact FEN and worked branch; other legal reflections make no result claim. Browsing works offline without a provider and keeps the current board intact. Interactive exercise play, grading and progress follow in 6.6/6.7; no recorded branch asserts a unique best move.
+
+`node scripts/check-endgames.mjs` audits all 28 checked-in tablebase snapshots and example plies offline. The explicit `--refresh` option queries the [Lichess Syzygy API](https://github.com/lichess-org/lila-tablebase/blob/main/README.md) for these fixed authored positions only, validates every legal move and result, then replaces the snapshots. Source URLs, retrieval times and SHA-256 digests of the saved numerical facts accompany each record. The browser never sends a player's position to a tablebase service. DTZ is kept separate from distance to mate; uncertain and cursed/blessed results cannot substantiate an ordinary win/loss claim.
 
 ```
 src/index.html        CSS, markup and application composition, written as an artifact body
@@ -78,6 +80,9 @@ src/platform/         Browser utilities shared across features:
   i18n-de.js          German interface dictionary
 src/curriculum/       Modules, lessons and exercises:
   curriculum.js       Bounded records, legal positions/lines, prerequisite DAG and filtered queries
+  endgames.js         Bilingual mates, pawn endings, opposition, Lucena and Philidor
+  tablebase.js        Exact-FEN offline evidence validation, White POV and branch checks
+  tablebase-snapshots.js Recorded numerical Syzygy facts; refresh only by explicit script
   catalogue.js        Original bilingual teaching material, objectives, rubrics and attribution
   tactics.js          Thirteen tactical themes, recorded examples and a defensive counterexample
   strategy.js         Structure and planning reflections with explicit objectives and board examples

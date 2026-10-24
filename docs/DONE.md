@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Endgame lessons with recorded Syzygy evidence
+
+TODO items: 6.4.
+
+### Implementation notes
+
+- Added five bilingual lessons beside the queen/king foundation: rook/king mates for both colours, king and pawn with a blocked rook-pawn counterexample, direct opposition with either side to move, Lucena’s bridge and Philidor’s defence. The complete catalogue contains thirty lessons and thirty-six exercises. Endgames have six lessons and ten exercises, with objectives, prerequisites and original explanatory rubrics.
+- Recorded numerical Syzygy facts for all 28 worked plies using the public Lichess API. Full FEN, source URL, retrieval timestamp and SHA-256 digest accompany each saved result. `scripts/check-endgames.mjs` audits offline by default; explicit `--refresh` queries only authored diagrams, validates everything and atomically replaces the snapshots. No live test or browser tablebase request is needed.
+- A pure evidence adapter validates at most seven pieces, canonical legal full FEN without castling rights, complete legal move lists, numeric DTZ/DTM and terminal facts through chess.js. The compiler checks the declared result at every recorded position and after every move. Move categories describe the child side to move; results are converted to White’s perspective. Uncertain, unknown and cursed/blessed categories cannot substantiate an ordinary win/loss claim. DTZ is never labelled distance to mate.
+- The Lessons catalogue shows the checked result/date and its exact-position/branch scope. Six unit scenarios cover both colours, turn-dependent opposition, the drawn rook pawn, legal non-stalemating promotion, complete branches, child perspective, unsupported categories, changed counters, absent/malformed evidence and offline digest auditing. Two browser scenarios cover result labels, advanced filters, no external/provider requests, game isolation, German phone layout and keyboard access.
+- Verification: ESLint, JSDoc type checking, build and the offline tablebase audit pass; 385 unit/gateway tests and 222 browser tests pass, with one opt-in live test skipped per suite. Provider requests use mocks or fake clients.
+
+### Deviations
+
+- Evidence is bundled for fixed teaching diagrams rather than fetching arbitrary player positions at runtime. This completes the authored endgame catalogue and its tablebase checks; interactive play and alternative-answer grading remain 6.6. A checked branch preserves the result, but does not claim a unique best move or force the opponent to follow that branch. Conventional diagrams do not resolve the separately tracked historical publication/licensing work in 7.3/7.4.
+
+### Insights
+
+- The same opposition placement is drawn with White to move and winning for White with Black to move. Reading the latter API `loss` as a White loss would reverse the lesson; a child move’s category needs the opposite turn again.
+- EPD is suitable for the project’s engine cache, but full FEN is required for this evidence: fifty-move counters can change tablebase results. Missing evidence for a changed counter fails closed instead of borrowing a nearby snapshot.
+
+---
+
 ## 2026-10-24 — Strategy lessons and checked structural examples
 
 TODO items: 6.3.

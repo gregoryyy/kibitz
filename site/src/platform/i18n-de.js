@@ -3,6 +3,12 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Recorded endgame tablebase checks (TODO 6.4) -------------------------------------
+  'Opposition': 'Opposition',
+  'White wins': 'Weiß gewinnt',
+  'Black wins': 'Schwarz gewinnt',
+  'Syzygy: {result} · checked {date}': 'Syzygy: {result} · geprüft am {date}',
+  'Checked for this position and recorded line.': 'Geprüft für diese Stellung und die aufgezeichnete Variante.',
   // --- Strategy curriculum themes (TODO 6.3) ---------------------------------------------
   'Weak squares': 'Schwache Felder',
   'Outposts': 'Vorposten',

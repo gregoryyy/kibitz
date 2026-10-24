@@ -14,8 +14,8 @@ test('authored modules contain stable lesson/exercise IDs, bilingual goals, sour
   const data = compileCurriculum(Chess, CURRICULUM);
   assert.deepEqual(data.modules.map(m => m.id), ['tactics', 'strategy', 'endgames']);
   assert.equal(data.source.licence, 'GPL-3.0-or-later');
-  assert.equal(data.modules.flatMap(m => m.lessons).length, 25);
-  assert.equal(data.modules.flatMap(m => m.lessons.flatMap(l => l.exercises)).length, 28);
+  assert.equal(data.modules.flatMap(m => m.lessons).length, 30);
+  assert.equal(data.modules.flatMap(m => m.lessons.flatMap(l => l.exercises)).length, 36);
   assert.equal(lessonText(first(data).title, 'de'), 'Ein gefangener König auf der Grundreihe');
   assert.equal(lessonText(first(data).title, 'fr'), first(data).title.en);
   for (const m of data.modules) for (const l of m.lessons) for (const e of l.exercises) {

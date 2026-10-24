@@ -13,6 +13,8 @@ Kibitz is licensed under the GNU General Public License, version 3 or (at your o
 | [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) | | CC0-1.0 | `eco.json`, built from `site/data/eco/` |
 | [wllama](https://github.com/ngxson/wllama), Xuan-Son Nguyen and contributors; includes [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT, The ggml authors) | 3.8.1 | MIT | `wllama.js`, `wllama.wasm` |
 
+The page also ships numerical outcomes for 28 fixed endgame teaching positions, computed by the [Lichess Syzygy tablebase service](https://github.com/lichess-org/lila-tablebase) using Ronald de Man's Syzygy tables. `site/src/curriculum/tablebase-snapshots.js` records the exact query URL, retrieval time and digest of each saved result. These are computed chess facts; no tablebase files or server implementation are bundled. The teaching prose is original Kibitz material under the project licence. Refreshing the records is an explicit development command; the browser makes no tablebase requests.
+
 ## Loaded by the page, not shipped
 
 - Fonts from Google Fonts: Bricolage Grotesque, Instrument Sans, JetBrains Mono (all SIL Open Font License 1.1). Not in offline mode (`just offline`).

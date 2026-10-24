@@ -40,6 +40,18 @@ export function createCurriculumPanel(root, catalogue, { language = 'en', level 
   /** @type {Map<string, import('./curriculum.js').Lesson>} */
   const lessons = new Map();
   for (const m of catalogue.modules) for (const l of m.lessons) lessons.set(l.id, l);
+  /** @param {import('./curriculum.js').Exercise} exercise */
+  function exerciseCard(exercise) {
+    const row = el('li', { 'data-exercise-id': exercise.id }, prose('strong', exercise.title), prose('p', exercise.prompt));
+    const evidence = exercise.tablebase;
+    if (evidence?.checkedAt) {
+      const result = { 'white-win': 'White wins', 'black-win': 'Black wins', draw: 'Draw' }[evidence.outcome];
+      row.append(el('p', { class: 'hint tablebase-evidence', translate: 'no', 'data-outcome': evidence.outcome },
+        t('Syzygy: {result} · checked {date}', { result: t(result), date: evidence.checkedAt.slice(0, 10) })),
+      el('p', { class: 'hint' }, 'Checked for this position and recorded line.'));
+    }
+    return row;
+  }
   function render() {
     const modules = curriculumModules(catalogue, { level: Number(maximum.value), theme: theme.value, module: module.value });
     const count = modules.reduce((n, m) => n + m.lessons.length, 0);
@@ -51,7 +63,7 @@ export function createCurriculumPanel(root, catalogue, { language = 'en', level 
           el('summary', {}, prose('span', l.title), ' · ', el('span', { translate: 'no' }, t(['', 'Beginner', 'Club', 'Advanced', 'Expert'][l.level]))),
           prose('p', l.introduction), el('h4', {}, 'Learning goals'), el('ul', {}, ...l.objectives.map(o => prose('li', o))));
         if (l.prerequisites.length) details.append(el('p', {}, el('span', {}, 'Before this lesson:'), ' ', el('span', { translate: 'no' }, l.prerequisites.map(id => lessonText(lessons.get(id).title, language)).join(', '))));
-        details.append(el('h4', { translate: 'no' }, t(l.exercises.length === 1 ? '1 exercise' : '{n} exercises', { n: l.exercises.length })), el('ol', {}, ...l.exercises.map(e => el('li', { 'data-exercise-id': e.id }, prose('strong', e.title), prose('p', e.prompt)))));
+        details.append(el('h4', { translate: 'no' }, t(l.exercises.length === 1 ? '1 exercise' : '{n} exercises', { n: l.exercises.length })), el('ol', {}, ...l.exercises.map(exerciseCard)));
         section.append(details);
       }
       return section;
