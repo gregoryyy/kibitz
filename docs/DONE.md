@@ -7,6 +7,30 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Source position themes and recorded move patterns
+
+TODO items: 8.2.
+
+### Implementation notes
+
+- Added pure `library/patterns.js`. Complete rules replay precedes detector indexing for every mainline occurrence, including source roots. Versioned position themes and move motifs retain revision-bound IDs, exact occurrence/start/end IDs, full branch FENs, UCI moves, source move labels and detector reasons/weights. Three-ply combinations retain the actual recorded reply/follow-up; truncated scores cannot supply them.
+- Evidence classes distinguish position heuristics, geometric move/line candidates and rules-proven mate/promotion facts. The unsound recorded fork counterexample stays a candidate after its legal capture. No engine search certifies payoff or best defence. Annotation/NAG verification and general study-solution status remain separate; raw catalogue tags, supplied pattern/position fields, source prose and opening names do not populate computed facts.
+- The source compiler supplies explicit standard-start context to the phase detector, including the untouched initial board. Late-counter/custom-start diagrams cannot establish early standard-start play. Tags stay on occurrences rather than shared EPD rows because contextual phase can differ on later repetitions. Existing hybrid phase eligibility and retrieval rankings remain unchanged.
+- A separate source pattern index offers exact tag/role/evidence/collection/document predicates with a 20-occurrence cap. `library/pattern-browser.js` implements English/German Library controls, literal source titles, visible evidence classes, recorded sequences and exact source navigation. Existing live-game confirmation and return remain in use. Restricted help hides results; held actions recheck current game/library generation, filters, revision and policy. Deletion/storage-context changes clear the pattern index.
+- Nine unit scenarios cover source-claim isolation, initial/custom phases, named pawn structures, unsound forks, mate/all promotions, detector vocabulary, three-ply boundaries, repeated/scoped/revised identities and query bounds. Six browser scenarios cover actual production data/navigation, literal markup, revision/deletion/storage invalidation, live-help/confirmation/return, no provider calls and German phone layout. The existing localization regression also checks the selector's translated labels; the phone screenshot was inspected.
+- Validation: ESLint/JSDoc checks, build, 479 unit tests and eight focused browser/localization cases pass. One live-provider test is skipped; the dependency audit reports zero vulnerabilities. The complete browser suite passes 295 tests (one optional live-model skip). Both recorded position/text baseline JSON results reproduce unchanged, including source hashes and per-query rankings.
+
+### Deviations
+
+- Tags reuse existing detectors and describe their current coverage; a missing tag is not proof of absence. No automatic engine sweep, learned ranking, metadata-theme merge, persistent schema migration or new provider/dependency is introduced. Engine-confirmed tactical payoff remains the separate bounded tool verifier. The new source phase context deliberately leaves the recorded hybrid policy intact.
+
+### Insights
+
+- A legal source move and a recognized geometric combination are insufficient evidence that a tactic works. Keeping candidate status alongside its exact branch makes that distinction inspectable and testable, even when the next recorded move refutes the motif.
+- Position identity alone cannot hold context-sensitive facts such as source phase. Occurrence-bound tags preserve these differences, while source revision and ownership guards keep old controls from opening replaced or unrelated records.
+
+---
+
 ## 2026-10-24 — Material and piece-placement position indexes
 
 TODO items: 8.1.
