@@ -21,24 +21,26 @@ export const sendStaticError = (res, status) => {
 };
 
 /**
- * Reject aliases/non-regular files, then inspect the descriptor that will supply bytes.
+ * Open once, then validate descriptor type and path identity before supplying bytes.
  * `root` must be an existing canonical public directory (resolved once at startup).
  */
 export async function openPublicFile(root, relative, io = fs.promises) {
   const file = path.resolve(root, relative);
   if (file === root || !file.startsWith(root + path.sep) || isHiddenPath(relative)) throw missing();
-  // Alias policy is stricter than containment: no symlinked asset or child directory,
-  // including aliases within the public tree. Parent-tree writers remain trusted.
-  if (await io.realpath(file) !== file) throw missing();
-  const entry = await io.lstat(file);
-  if (!entry.isFile()) throw missing();
   let handle;
   try {
+    // Open first: a path precheck cannot authorize a subsequent open. No-follow and
+    // nonblocking flags prevent leaf aliases/FIFOs from redirecting or blocking it
+    // where supported; no content is read before the descriptor/path checks below.
     handle = await io.open(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0) | (fs.constants.O_NONBLOCK ?? 0));
     const stat = await handle.stat();
-    // Identity comparison also fails closed if no-follow flags are unavailable. Only
-    // the opened descriptor's metadata is used for response headers and all reads.
-    if (!stat.isFile() || stat.dev !== entry.dev || stat.ino !== entry.ino || !Number.isSafeInteger(stat.size) || stat.size < 0) throw missing();
+    if (!stat.isFile() || !Number.isSafeInteger(stat.size) || stat.size < 0) throw missing();
+    // Refuse asset/child-directory aliases even within the tree. Revalidate the path
+    // against the descriptor already held, including on platforms without no-follow.
+    // Parent-tree writers remain trusted; all actual reads use this descriptor.
+    if (await io.realpath(file) !== file) throw missing();
+    const entry = await io.lstat(file);
+    if (!entry.isFile() || stat.dev !== entry.dev || stat.ino !== entry.ino) throw missing();
     return { handle, stat, ext: path.extname(file).toLowerCase() };
   } catch (error) { if (handle) await handle.close(); throw error; }
 }

@@ -32,7 +32,7 @@ and backups outside both static and model roots. Model routes remain restricted 
 catalogue filenames; a catalogue name does not authorize an alias to another file.
 
 The [shared reader](../site/server/public-files.mjs) checks the opened file's type and
-identity, then uses that descriptor for metadata and bytes. No-follow/nonblocking
+identity after opening, before using that descriptor for response metadata and bytes. No-follow/nonblocking
 open flags apply where the platform supplies them; descriptor identity checks also
 reject a changed leaf. Atomic replacement/unlink after validation cannot redirect
 an active response. Streams stop at the captured size and detect truncation; HTML

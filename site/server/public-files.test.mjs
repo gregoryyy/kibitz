@@ -59,10 +59,9 @@ test('rename after descriptor validation cannot change HTML/CSP, static stream o
   for (const [name, model] of [['index.html', false], ['asset.js', false], ['weights.gguf', true]]) {
     const { root } = fixture(t), file = path.join(root, name), body = name.endsWith('.html') ? '<script>console.log("PUBLIC")</script>' : 'PUBLIC';
     fs.writeFileSync(file, body);
-    const g = await server(t, root, { serve: { model }, opened(handle) {
-      const stat = handle.stat.bind(handle);
-      handle.stat = async () => { const result = await stat(); fs.renameSync(file, file + '.old'); fs.writeFileSync(file, 'PRIVATE_REPLACEMENT'); return result; };
-    } });
+    const g = await server(t, root, { serve: { model }, io: { async lstat(name) {
+      const result = await fs.promises.lstat(name); fs.renameSync(file, file + '.old'); fs.writeFileSync(file, 'PRIVATE_REPLACEMENT'); return result;
+    } } });
     const res = await fetch(g.base + '/' + name); assert.equal(res.status, 200); assert.equal(await res.text(), body);
     assert.equal(Number(res.headers.get('content-length')), Buffer.byteLength(body));
     if (name.endsWith('.html')) {
@@ -72,6 +71,16 @@ test('rename after descriptor validation cannot change HTML/CSP, static stream o
     if (model) assert.match(res.headers.get('etag'), /^"[0-9a-f]+-[0-9a-f]+"$/);
     await closed(g.handles); assert.deepEqual(g.logs, []);
   }
+});
+
+test('a path changed between open and identity validation is refused and its descriptor closes', async t => {
+  const { root, file } = fixture(t); fs.writeFileSync(file, 'public');
+  const g = await server(t, root, { opened(handle) {
+    const stat = handle.stat.bind(handle);
+    handle.stat = async () => { const result = await stat(); fs.renameSync(file, file + '.old'); fs.writeFileSync(file, 'REPLACEMENT'); return result; };
+  } });
+  const response = await fetch(g.base + '/asset.js'); assert.equal(response.status, 404); assert.equal(await response.text(), 'Not found\n');
+  await closed(g.handles); assert.deepEqual(g.logs, []);
 });
 
 test('HEAD and empty files close their descriptors with correct content headers and no body', async t => {
