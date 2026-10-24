@@ -1,8 +1,7 @@
 // Lesson exercise state (TODO 6.6). No DOM, storage, engine, model or shared board state.
 import { checkStart } from '../chess/play.js';
-import { parseMoveInput } from '../chess/notation.js';
+import { practiceMove, practiceDestinations } from '../chess/practice.js';
 import { playLine } from '../coach/annotations.js';
-import { germanSanToSan } from '../platform/i18n.js';
 
 /**
  * @typedef {object} LessonSession
@@ -60,18 +59,10 @@ export function startLessonSession(Chess, exercise) {
  */
 export function submitLessonMove(Chess, session, input, language = 'en') {
   if (session.complete || session.type === 'reflection') return { state: session, kind: 'inactive' };
-  if (typeof input !== 'string' || !input.trim() || input.length > 100) return { state: session, kind: 'invalid' };
-  const c = new Chess(session.fen), text = input.trim();
-  // Both board clicks and a bare typed promotion square ask for an explicit piece.
-  const coordinates = /^([a-h][1-8])-?([a-h][1-8])$/.exec(text);
-  const bare = /^([a-h])?x?([a-h][18])[+#]?$/.exec(text);
-  const promotions = c.moves({ verbose: true }).filter(m => m.promotion && (coordinates ? m.from === coordinates[1] && m.to === coordinates[2] : bare && m.to === bare[2] && (!bare[1] || m.from[0] === bare[1])));
-  if (promotions.length && new Set(promotions.map(m => m.from + m.to)).size === 1) {
-    return { state: session, kind: 'promotion', promotion: { from: promotions[0].from, to: promotions[0].to, choices: promotions.map(m => m.promotion) } };
-  }
-  let move = parseMoveInput(Chess, session.fen, text);
-  if (move.error && language === 'de') move = parseMoveInput(Chess, session.fen, germanSanToSan(text));
-  if (move.error) return { state: session, kind: 'invalid' };
+  const intent = practiceMove(Chess, session.fen, input, language);
+  if (intent.kind === 'invalid') return { state: session, kind: 'invalid' };
+  if (intent.kind === 'promotion') return { state: session, kind: 'promotion', promotion: intent.promotion };
+  const move = intent.move, c = new Chess(session.fen);
   const uci = move.from + move.to + (move.promotion || ''), next = structuredClone(session);
   next.attempts++;
   c.move({ from: move.from, to: move.to, promotion: move.promotion });
@@ -98,12 +89,7 @@ export function submitLessonMove(Chess, session, input, language = 'en') {
 
 /** Legal destinations for the isolated exercise board; no premoves or free dragging. */
 export function lessonDestinations(/** @type {import('../coach/tutor.js').ChessConstructor} */ Chess, /** @type {string} */ fen) {
-  const destinations = new Map();
-  for (const move of new Chess(fen).moves({ verbose: true })) {
-    if (!destinations.has(move.from)) destinations.set(move.from, []);
-    if (!destinations.get(move.from).includes(move.to)) destinations.get(move.from).push(move.to);
-  }
-  return destinations;
+  return practiceDestinations(Chess, fen);
 }
 
 /** Store a literal bounded response before exposing the reflection rubric; no automatic grade. */

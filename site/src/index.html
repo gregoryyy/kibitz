@@ -258,7 +258,7 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .lesson-player p, .lesson-player h3 { margin: 0; }
 .lesson-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
 .lesson-board-wrap { width: min(100%, 420px); aspect-ratio: 1; }
-#lessonBoard { width: 100%; height: 100%; }
+#lessonBoard, #ownPuzzleBoard { width: 100%; height: 100%; }
 .lesson-task { display: grid; align-content: start; gap: 12px; min-width: 0; overflow-wrap: anywhere; }
 .lesson-controls { flex-wrap: wrap; }
 #lessonMove { min-width: 0; width: auto; flex: 1; }
@@ -571,6 +571,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <p class="hint" id="reviewStage" role="status" hidden></p>
       <div id="reviewBody"><p class="empty-note">Play or load a game, then run the review. Stockfish checks every position at the depth set on the Game tab, scores each move, and finds the turning points. Claude then writes the summary.</p></div>
       <section class="box" id="reviewHistory" aria-label="Review trends"></section>
+      <section class="box" id="ownPuzzlePlayer" aria-label="Own-game practice"></section>
     </div>
 
     <div class="pane" data-pane="library" hidden>
@@ -809,6 +810,7 @@ import { createProfileStore, profileKey, profileContext, PROFILE_KEY } from './p
 import { createProfilePanel } from './player/profile-ui.js';
 import { buildReviewReport, summarizeReviews, REVIEW_VERSION } from './player/reviews.js';
 import { renderReviewHistory } from './player/review-history.js';
+import { createOwnPuzzlePlayer } from './player/puzzle-player.js';
 import { gameCheckpoint } from './chess/sessions.js';
 import { quote } from './coach/prompt.js';
 import { createBrowserModel, cpuThreads } from './coach/browser-llm.js';
@@ -856,6 +858,7 @@ import { prepareLessonGame } from './curriculum/playout.js';
 import { confirmLessonGame } from './curriculum/playout-confirm.js';
 
 let lessonPlayer = null;
+let ownPuzzlePlayer = null;
 let refreshLessonProgress = () => {};
 let lessonGameTail = Promise.resolve();
 
@@ -1159,6 +1162,7 @@ function canMove() {
 let previewing = false, namedPreview = null; // previews never change game/scratch state
 function syncBoard(refreshOpenings = true) {
   lessonPlayer?.sync();
+  ownPuzzlePlayer?.sync();
   namedPreview = null;
   if (previewing) { previewing = false; $('.board-outer').classList.remove('previewing'); $('#boardPreview').hidden = true; }
   // A scratch board stays until the game moves on or changes under it (a move, navigation, a load).
@@ -2780,6 +2784,7 @@ async function importPGN() {
 let reviewCtl = null;
 let reviewHistoryRecords = null, reviewHistorySummary = null;
 function refreshReviewHistory() {
+  ownPuzzlePlayer?.sync();
   if (reviewHistoryRecords !== LIBRARY_RECORDS) {
     reviewHistoryRecords = LIBRARY_RECORDS; reviewHistorySummary = summarizeReviews(Chess, [...LIBRARY_RECORDS.values()]);
   }
@@ -4248,6 +4253,19 @@ async function addRef() {
 
 // Curriculum browsing and lesson play use separate state/boards and no provider requests.
 const curriculum = compileCurriculum(Chess, CURRICULUM);
+ownPuzzlePlayer = createOwnPuzzlePlayer($('#ownPuzzlePlayer'), { Chess, mountBoard: Chessground, language: LANG, t,
+  engine: async (fen, { depth, lines }) => {
+    const result = await analyst.go(fen, { depth, multipv: lines, maxMs: ANALYSIS_CAP_MS, tag: 'practice' }).catch(() => null);
+    return result ? { depth: result.depth, lines: toWhite(result.lines, turnOf(fen)) } : null;
+  },
+  cancelEngine: () => analyst.cancel('practice'),
+  state: () => ({ records: LIBRARY_RECORDS, scope: JSON.stringify([Lib.where, Lib.uid]), context: Lib.context(),
+    generation: S.gen, allowed: showEngine(), visible: !paneHidden('review') }),
+  onSource: (candidate, valid) => {
+    const current = () => valid() && !paneHidden('review') && LIBRARY_RECORDS.get(`library:${candidate.g.id}`)?.g === candidate.g;
+    if (current()) openGame(candidate.g, candidate.occurrence.ply, current);
+  },
+});
 const LessonProgress = createLessonProgressStore(browserStorage(), curriculum), pendingLessonResults = [];
 let lessonProgressError = null, lessonProgressSummary = null, curriculumPanel = null;
 const lessonProgressPanel = createLessonProgressPanel($('#lessonProgress'), { language: LANG, t, onRetry: () => flushLessonResults() });
@@ -4534,6 +4552,7 @@ $('#btnStudyPlan').addEventListener('click', studyPlan);
 $('#btnAddRef').addEventListener('click', addRef);
 document.addEventListener('keydown', e => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+  if (document.activeElement?.closest('.lesson-player')) return;
   if (SCRATCH && ['ArrowLeft', 'ArrowRight', 'Escape'].includes(e.key)) { e.preventDefault(); if (e.key === 'Escape') closeScratch(); else stepScratch(e.key === 'ArrowLeft' ? -1 : 1); return; }
   if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(S.cursor - 1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); goTo(S.cursor + 1); }
@@ -4564,7 +4583,7 @@ function start(data) {
   setTools(store.get('toolsOpen', true));
   Lib.init();
 }
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS, positionIndex: () => INDEX, patternIndex: () => PATTERN_INDEX };
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS, positionIndex: () => INDEX, patternIndex: () => PATTERN_INDEX, ownPuzzles: () => ownPuzzlePlayer };
 // The game on the board survives a reload (TODO 1.15). Inside the artifact the host takes the
 // snapshot when it needs it; the local app keeps it in localStorage ('current'), written shortly
 // after every change and when the page goes away, and read back at boot.
