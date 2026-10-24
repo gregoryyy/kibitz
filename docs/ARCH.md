@@ -34,6 +34,8 @@ This split is also the user experience:
 
 ## 2. Where things run
 
+The selected deployment is a local single-user app, confirmed in TODO 10.1. Existing loopback defaults, operator env keys and browser/optional private SQLite storage define the target; hosted authentication is deferred. [Deployment scope](DEPLOYMENT.md) distinguishes local hosting from the independent choice of cloud or local model inference.
+
 ```mermaid
 flowchart LR
   subgraph Browser["Browser page (site/src)"]
