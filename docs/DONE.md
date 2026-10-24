@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Validate and serve one open static/model file
+
+TODO item: 11.2.5; file-serving contexts 7/8 under [#99](https://github.com/gregoryyy/kibitz/issues/99), which remains open for other contexts and main-branch scanner verification.
+
+### Implementation notes
+
+- Extracted `server/public-files.mjs` for both static assets and catalogued models. Canonical containment/alias policy, a regular-file entry, no-follow/nonblocking flags where available and descriptor type/identity checks precede serving. Metadata, HTML reads and streaming all use that same descriptor; model routes no longer follow a catalogue-named alias outside their directory.
+- Symlinked assets/child directories are refused, including aliases inside the public tree. Explicit root aliases are resolved at startup. HEAD/empty responses, failed validation, read errors and client disconnects release handles. Streams stop at the captured length and abort on truncation; HTML CSP and content length derive from the actual descriptor-read body.
+- Added fixed `file_error` resource/code events without paths or raw exception prose. An HTML read fault before headers returns a generic 500; stream faults terminate the response while the listener stays healthy. Missing/denied assets remain 404 and intentional disconnects do not become file-fault events.
+- Updated deployment/filesystem ownership, operations/log-field guidance, threat/OWASP dispositions and the source map. No-follow flags are additional protection where supported, with descriptor identity checks retained. Public-directory/parent writers, hard links and in-place mutations remain operator-trusted; serving does not lock files or rehash model weights.
+- Validation: lint/JSDoc/build and all 607 unit/server tests pass with one optional live-provider skip. Eight new filesystem/HTTP unit cases exercise symlink/FIFO swaps, renamed files, HTML/CSP/static/model identity, HEAD/empty bodies, injected open/read/stream failures, abort cleanup and append/truncate limits. Ten focused real-CLI cases pass (five new plus existing log/private-path protections). All five new CLI cases fail against the actual prior `23ede0f` server: the model alias returns 200, HTML replacement returns the complete synthetic private marker, static/model replacements return its prefix and the read fault resets the connection. A separate unchanged-old-worktree probe confirms the full model-alias response equals the synthetic private file. Seven PWA cases pass, including actual offline Stockfish play. The initial combined browser run had one afterEach provider-reset POST fail with ECONNRESET after routing assertions passed; an isolated fresh run of all three browser-model cases passes. This initial transport failure is retained in the validation record rather than counted as a passing run. Synthetic files and injected I/O only; no real weights or provider calls.
+
+### Deviations
+
+- The HTTP server now refuses internal asset aliases as well as escaping ones, matching the built offline bundle's regular-file policy. Operator-selected root aliases still work. The implementation is not a filesystem sandbox against an operator changing parent directories or content in place.
+- File-serving bugs are fixed without dismissing historical CodeQL alerts. Other #99 contexts and LLM/ASVS/scanner/release gates remain open.
+
+### Insights
+
+- A catalogue filename alone does not keep bytes inside a model root. A deterministic old-server probe serves a synthetic private file through such a symlink.
+- Checking a path and later reopening it lets two operations observe different files. Owning one validated descriptor also gives a clear lifetime to close on every response/error path; bounded streams prevent a late append from exceeding the advertised length.
+
 ## 2026-10-24 — Literal phrase interpolation and anchored opening families
 
 TODO item: 11.2.4; source fixes for CodeQL contexts 16/17 under [#99](https://github.com/gregoryyy/kibitz/issues/99), which remains open for other findings and scanner verification.

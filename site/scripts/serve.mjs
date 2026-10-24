@@ -12,139 +12,97 @@
 // decoded as Windows-1252 and every non-ASCII character comes out garbled.
 import http from 'http';
 import fs from 'fs';
-import path from 'path';
 import { parseArgs } from 'util';
-import { BASE_HEADERS, cspFor, isHiddenPath, offlineHtml } from '../server/static.mjs';
+import { BASE_HEADERS, isHiddenPath } from '../server/static.mjs';
 import { modelEnv, servableModel } from '../server/models.mjs';
+import { servePublicFile } from '../server/public-files.mjs';
 import { aiConfigEvent, logProvider, logRequest, serverErrorEvent } from '../server/logging.mjs';
 
 async function main() {
 
-const { values: opt, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    port: { type: 'string', default: '8765' },
-    host: { type: 'string', default: '127.0.0.1' },
-    index: { type: 'string', default: 'index.html' },
-    api: { type: 'boolean', default: false },
-    env: { type: 'string', default: '.env' },
-    models: { type: 'string', default: '' },
-    model: { type: 'string', default: '' },
-    offline: { type: 'boolean', default: false },
-    library: { type: 'string', default: '' },
-    usage: { type: 'string', default: ':memory:' },
-  },
-});
-if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]'); process.exit(2); }
-const root = fs.realpathSync(positionals[0]);
-let modelsDir = '';
-if (opt.models) {
-  try { modelsDir = fs.realpathSync(opt.models); if (!fs.statSync(modelsDir).isDirectory()) throw new Error(); }
-  catch { console.error('The model directory must already exist and be a directory; download the selected model first or omit --models.'); process.exit(2); }
-}
-// Validate every public tree before creating a private database or any missing parents.
-const servedRoots = [root, ...(modelsDir ? [modelsDir] : [])];
-let library = null, libraryStore = null;
-if (opt.library) {
-  const { openPrivateLibrary } = await import('../server/library-files.mjs');
-  const { createLibraryApi } = await import('../server/library-api.mjs');
-  libraryStore = openPrivateLibrary(opt.library, servedRoots);
-  library = createLibraryApi({ store: libraryStore });
-  process.once('exit', () => libraryStore.close());
-}
-
-let api = null, apiStatus = '';
-if (opt.api) {
-  if (opt.env) try { process.loadEnvFile(opt.env); } catch (e) { if (e.code !== 'ENOENT') throw e; }
-  if (modelsDir) {
-    const { env, reason } = modelEnv(modelsDir, opt.model || process.env.BROWSER_MODEL);
-    Object.assign(process.env, env, reason ? { BROWSER_MODEL_REASON: reason } : {});
+  const { values: opt, positionals } = parseArgs({
+    allowPositionals: true,
+    options: {
+      port: { type: 'string', default: '8765' },
+      host: { type: 'string', default: '127.0.0.1' },
+      index: { type: 'string', default: 'index.html' },
+      api: { type: 'boolean', default: false },
+      env: { type: 'string', default: '.env' },
+      models: { type: 'string', default: '' },
+      model: { type: 'string', default: '' },
+      offline: { type: 'boolean', default: false },
+      library: { type: 'string', default: '' },
+      usage: { type: 'string', default: ':memory:' },
+    },
+  });
+  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]'); process.exit(2); }
+  const root = fs.realpathSync(positionals[0]);
+  let modelsDir = '';
+  if (opt.models) {
+    try { modelsDir = fs.realpathSync(opt.models); if (!fs.statSync(modelsDir).isDirectory()) throw new Error(); }
+    catch { console.error('The model directory must already exist and be a directory; download the selected model first or omit --models.'); process.exit(2); }
   }
-  const { loadConfig } = await import('../server/ai.mjs');
-  const { createApi } = await import('../server/api.mjs');
-  const config = loadConfig();
-  const { sqliteUsageStore } = await import('../server/usage-store.mjs');
-  const { privateDatabaseFile } = await import('../server/private-files.mjs');
-  const { usageAccounting } = await import('../server/usage.mjs');
-  const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
-  process.once('exit', () => usageStore.close());
-  api = createApi({ config, ...usageAccounting(config, { store: usageStore }) });
-  console.log(aiConfigEvent(config));
-  apiStatus = config.available ? `AI coach: ${logProvider(config.provider)} (configured)` : 'AI coach off: check Settings or server configuration';
-}
+  // Validate every public tree before creating a private database or any missing parents.
+  const servedRoots = [root, ...(modelsDir ? [modelsDir] : [])];
+  let library = null, libraryStore = null;
+  if (opt.library) {
+    const { openPrivateLibrary } = await import('../server/library-files.mjs');
+    const { createLibraryApi } = await import('../server/library-api.mjs');
+    libraryStore = openPrivateLibrary(opt.library, servedRoots);
+    library = createLibraryApi({ store: libraryStore });
+    process.once('exit', () => libraryStore.close());
+  }
 
-const TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.webmanifest': 'application/manifest+json; charset=utf-8',
-  '.md': 'text/markdown; charset=utf-8',
-  '.txt': 'text/plain; charset=utf-8',
-  '.svg': 'image/svg+xml; charset=utf-8',
-  '.wasm': 'application/wasm',
-  '.png': 'image/png',
-  '.ico': 'image/x-icon',
-};
-
-const send = (res, code, msg) => { res.writeHead(code, { ...BASE_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' }); res.end(msg + '\n'); };
-
-// The in-browser model's weights: catalog files only, from --models, never a listing. The ETag
-// lets wllama's browser cache tell whether its copy is still current.
-function sendModel(req, res, name) {
-  if (!modelsDir || !servableModel(name)) return send(res, 404, 'Not found');
-  const file = path.join(modelsDir, name);
-  fs.stat(file, (err, st) => {
-    if (err || !st.isFile()) return send(res, 404, 'Not found');
-    res.writeHead(200, { ...BASE_HEADERS, 'Content-Type': 'application/octet-stream', 'Content-Length': st.size, 'Cache-Control': 'no-cache', ETag: `"${st.size.toString(16)}-${Math.floor(st.mtimeMs).toString(16)}"` });
-    if (req.method === 'HEAD') return res.end();
-    fs.createReadStream(file).pipe(res);
-  });
-}
-
-http.createServer(async (req, res) => {
-  logRequest(req, res);
-  // API routers also parse the target. Reject malformed URLs before an async rejection
-  // could reach Node's default stack printer with its raw `input` property.
-  try { new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request'); }
-  if (library && await library(req, res)) return;
-  if (api && await api(req, res)) return;
-  if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
-  let rel;
-  try { rel = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return send(res, 400, 'Bad request'); }
-  if (rel.endsWith('/')) rel += opt.index;
-  if (isHiddenPath(rel)) return send(res, 404, 'Not found');
-  if (rel.startsWith('/models/')) return sendModel(req, res, rel.slice('/models/'.length));
-  const file = path.join(root, rel);
-  // Refuse anything that resolves outside root, including through symlinks.
-  let real;
-  try { real = fs.realpathSync(file); } catch { return send(res, 404, 'Not found'); }
-  if (real !== root && !real.startsWith(root + path.sep)) return send(res, 404, 'Not found');
-  fs.stat(real, (err, st) => {
-    if (err || !st.isFile()) return send(res, 404, 'Not found');
-    const ext = path.extname(real).toLowerCase();
-    const headers = { ...BASE_HEADERS, 'Content-Type': TYPES[ext] || 'application/octet-stream', 'Content-Length': st.size, 'Cache-Control': 'no-cache' };
-    if (ext === '.html') {
-      const html = opt.offline ? offlineHtml(fs.readFileSync(real, 'utf8')) : fs.readFileSync(real, 'utf8');
-      const body = Buffer.from(html, 'utf8');
-      res.writeHead(200, { ...headers, 'Content-Length': body.length, 'Content-Security-Policy': cspFor(html, { offline: opt.offline }) });
-      return res.end(req.method === 'HEAD' ? undefined : body);
+  let api = null, apiStatus = '';
+  if (opt.api) {
+    if (opt.env) try { process.loadEnvFile(opt.env); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+    if (modelsDir) {
+      const { env, reason } = modelEnv(modelsDir, opt.model || process.env.BROWSER_MODEL);
+      Object.assign(process.env, env, reason ? { BROWSER_MODEL_REASON: reason } : {});
     }
-    res.writeHead(200, headers);
-    if (req.method === 'HEAD') return res.end();
-    fs.createReadStream(real).pipe(res);
+    const { loadConfig } = await import('../server/ai.mjs');
+    const { createApi } = await import('../server/api.mjs');
+    const config = loadConfig();
+    const { sqliteUsageStore } = await import('../server/usage-store.mjs');
+    const { privateDatabaseFile } = await import('../server/private-files.mjs');
+    const { usageAccounting } = await import('../server/usage.mjs');
+    const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
+    process.once('exit', () => usageStore.close());
+    api = createApi({ config, ...usageAccounting(config, { store: usageStore }) });
+    console.log(aiConfigEvent(config));
+    apiStatus = config.available ? `AI coach: ${logProvider(config.provider)} (configured)` : 'AI coach off: check Settings or server configuration';
+  }
+
+  const send = (res, code, msg) => { res.writeHead(code, { ...BASE_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' }); res.end(msg + '\n'); };
+
+  http.createServer(async (req, res) => {
+    logRequest(req, res);
+    // API routers also parse the target. Reject malformed URLs before an async rejection
+    // could reach Node's default stack printer with its raw `input` property.
+    try { new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request'); }
+    if (library && await library(req, res)) return;
+    if (api && await api(req, res)) return;
+    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');
+    let rel;
+    try { rel = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch { return send(res, 400, 'Bad request'); }
+    if (rel.endsWith('/')) rel += opt.index;
+    if (isHiddenPath(rel)) return send(res, 404, 'Not found');
+    if (rel.startsWith('/models/')) {
+      const name = rel.slice('/models/'.length);
+      if (!modelsDir || !servableModel(name)) return send(res, 404, 'Not found');
+      return servePublicFile(req, res, { root: modelsDir, relative: name, model: true });
+    }
+    return servePublicFile(req, res, { root, relative: rel.slice(1), offline: opt.offline });
+  }).on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
+    console.error(serverErrorEvent(e));
+    process.exit(1);
+  }).listen(Number(opt.port), opt.host, function () {
+    const port = this.address().port;
+    const host = ['127.0.0.1', 'localhost', '::1'].includes(opt.host) ? (opt.host === '::1' ? '[::1]' : opt.host) : null;
+    console.log(host ? `Serving Kibitz at http://${host}:${port}/` : `Serving Kibitz on configured interface, port ${port}`);
+    if (apiStatus) { console.log(apiStatus); console.log(opt.usage === ':memory:' ? 'AI usage: in memory; restart resets counters' : 'AI usage: private persistent counters'); }
+    if (opt.offline) console.log('Offline: the page loads nothing from other hosts');
   });
-}).on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
-  console.error(serverErrorEvent(e));
-  process.exit(1);
-}).listen(Number(opt.port), opt.host, function () {
-  const port = this.address().port;
-  const host = ['127.0.0.1', 'localhost', '::1'].includes(opt.host) ? (opt.host === '::1' ? '[::1]' : opt.host) : null;
-  console.log(host ? `Serving Kibitz at http://${host}:${port}/` : `Serving Kibitz on configured interface, port ${port}`);
-  if (apiStatus) { console.log(apiStatus); console.log(opt.usage === ':memory:' ? 'AI usage: in memory; restart resets counters' : 'AI usage: private persistent counters'); }
-  if (opt.offline) console.log('Offline: the page loads nothing from other hosts');
-});
 
 }
 main().catch(error => { console.error(serverErrorEvent(error)); process.exitCode = 1; });
