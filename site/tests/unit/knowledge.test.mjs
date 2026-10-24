@@ -32,6 +32,15 @@ test('openingFamily maps names to families', () => {
   assert.equal(K.openingFamily('No Such Opening'), null);
 });
 
+test('both Slav alternatives must start the opening name', () => {
+  for (const name of ['Slav Defense', 'Semi-Slav Defense: Meran Variation']) assert.equal(K.openingFamily(name), 'slav');
+  assert.equal(K.openingFamily("Queen's Gambit Declined: Semi-Slav transposition"), 'queens-gambit');
+  for (const name of ['Unknown: Semi-Slav', 'not Semi-Slav', 'Other Semi-Slav position']) {
+    assert.equal(K.openingFamily(name), null);
+    assert.ok(!tags(features(new Chess(), name)).includes('slav'));
+  }
+});
+
 test('position features: opening, phase and pawn structure', () => {
   const najdorf = tags(features(fromPgn(NAJDORF), 'Sicilian Defense: Najdorf Variation'));
   assert.ok(najdorf.includes('opening') && najdorf.includes('sicilian'), najdorf.join());

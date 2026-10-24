@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Literal phrase interpolation and anchored opening families
+
+TODO item: 11.2.4; source fixes for CodeQL contexts 16/17 under [#99](https://github.com/gregoryyy/kibitz/issues/99), which remains open for other findings and scanner verification.
+
+### Implementation notes
+
+- Grouped both Slav/Semi-Slav alternatives beneath the opening-name start anchor. A later `Semi-Slav` mention no longer overrides an earlier recognized Queen's Gambit family or creates a Slav family from unknown metadata. Positive canonical Slav names still match.
+- Changed phrase interpolation to replace every star through a callback, preserving literal dollar sequences and stars inside the supplied value. Explicit-variable calls use the supplied value when no captured raw value exists; inherited object properties are not treated as supplied placeholders.
+- Added unit regressions for names/features, repeated phrase slots, replacement-dollar sequences, markup-like values and explicit variables. Browser cases exercise actual opening-guide selection with synthetic catalogue metadata and the page's translation MutationObserver with a synthetic dictionary extension, verifying visible literal text and absence of inserted markup/execution. They isolate matching behavior without claiming the synthetic names are real chess classifications.
+- Validation: lint/JSDoc/build pass; all 599 unit/server tests pass with one optional live-provider skip. Both new browser regressions pass, alongside the two existing language-switch/browser cases. The tests also fail against the preserved prior build for the intended defects. Local documentation links and diff whitespace checked. All providers remain fake/mock; no paid calls or model downloads.
+
+### Deviations
+
+- These changes fix two source bugs rather than resolving all of #99. Other scanner contexts, file races and post-merge main-branch scan evidence remain open. No alerts are dismissed and the release gate remains incomplete.
+
+### Insights
+
+- A replacement-string API interprets dollar sequences even when the surrounding pattern is a literal star. A callback inserts the value unchanged and does not recursively expand stars inside it.
+- Phrase interpolation returns plain text. Fixing all slots addresses its semantics; it does not make the helper an HTML sanitizer or establish a cross-site scripting exploit in the original code.
+
 ## 2026-10-24 — Private runtime logs and local operator monitoring
 
 TODO items: 12.3 and 11.2.3; finding [#98](https://github.com/gregoryyy/kibitz/issues/98).

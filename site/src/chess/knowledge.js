@@ -115,7 +115,7 @@ const FAMILY_RULES = [
   [/^(Pirc|Modern Defense)/, 'pirc-modern'], [/^Scandinavian/, 'scandinavian'], [/^Alekhine/, 'alekhine'],
   [/^Ruy Lopez/, 'ruy-lopez'], [/^(Italian|Two Knights)/, 'italian'],
   [/^(King's Pawn|Scotch|Petrov|Russian|Vienna|King's Gambit|Philidor|Four Knights|Three Knights|Bishop's Opening|Center Game|Danish|Ponziani|Latvian|Elephant)/, 'open-games'],
-  [/^Slav|Semi-Slav/, 'slav'], [/^Queen's Gambit/, 'queens-gambit'], [/^Tarrasch/, 'queens-gambit'],
+  [/^(Slav|Semi-Slav)/, 'slav'], [/^Queen's Gambit/, 'queens-gambit'], [/^Tarrasch/, 'queens-gambit'],
   [/^King's Indian/, 'kid'], [/^Nimzo-Indian/, 'nimzo'], [/^(Queen's Indian|Bogo-Indian)/, 'qid'],
   [/^Gr(ü|u)nfeld/, 'grunfeld'], [/^(Benoni|Benko)/, 'benoni'], [/^Dutch/, 'dutch'],
   [/^English/, 'english'], [/^(Zukertort|Réti|Reti|King's Indian Attack|Nimzo-Larsen|Bird|Polish|Hungarian)/, 'flank'],
