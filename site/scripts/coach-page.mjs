@@ -5,11 +5,12 @@
 export const count = (page, sel) => page.locator(sel).count();
 
 // An element's text as Markdown lines: paragraphs, list items as "- ", wrong moves struck through
-// (~~Qh5~~), the check note and the usage note left out. Runs in the page. Also counts the moves the answer names:
+// (~~Qh5~~). Excludes interface controls, source passages and tool evidence: these aren't the
+// coach's prose and must not earn key-point credit. Runs in the page. Also counts the moves the answer names:
 // backed by the engine or the game, legal but not in its lines, wrong.
 export function quoteOf(el) {
   const c = /** @type {HTMLElement} */ (el.cloneNode(true));
-  c.querySelectorAll('.who, .check-note, .usage-note').forEach(n => n.remove());
+  c.querySelectorAll('.who, .check-note, .usage-note, .message-context, .board-marks, .retrieval-sources, .evidence').forEach(n => n.remove());
   c.querySelectorAll('.san.invalid').forEach(n => { n.textContent = `~~${n.textContent}~~`; });
   const lines = [];
   const walk = n => {
@@ -22,10 +23,11 @@ export function quoteOf(el) {
   };
   walk(c);
   if (!lines.length && c.textContent.trim()) lines.push(c.textContent.trim());
-  const sans = el.querySelectorAll('.san');
+  const sans = c.querySelectorAll('.san');
   return {
+    capture: 'coach-prose-v2',
     text: lines.filter(Boolean).join('\n\n'),
-    checks: { all: sans.length, invalid: el.querySelectorAll('.san.invalid').length, unchecked: el.querySelectorAll('.san.unchecked').length },
+    checks: { all: sans.length, invalid: c.querySelectorAll('.san.invalid').length, unchecked: c.querySelectorAll('.san.unchecked').length },
   };
 }
 

@@ -26,6 +26,8 @@ Each answer is scored on up to three things, each from 0 to 1:
 
 The overall score is the mean of what was measured.
 
+New captures are labelled `coach-prose-v2`: only the coach's rendered prose and its recognized move tokens are scored. Context buttons, annotation controls, supplied source passages and engine-tool cards are excluded. Earlier captures are `rendered-message-v1` (also the default for records without a capture field). They include those supporting cards, so cue coverage can be inflated by evidence the model did not explain. Their original answers/scores are retained as historical observations, with a warning in the index/report; they are not model-only quality scores and must not be compared directly with v2. The German Claude trial exposed this bug, including Lucena's bridge cue appearing only in a supplied source. Fixing the extractor does not retroactively create a new model answer or justify another paid run.
+
 ## Running it
 
 ```

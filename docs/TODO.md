@@ -224,7 +224,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 10.8.3 Opening names in German (eco.json is English), and the classic games' PGN comments
   - [ ] 10.8.4 The tutor eval set in German: the same positions with German key points, run against each provider
     - [x] 10.8.4.1 German versions of the same ten positions/28 concepts, actual UI chips, language-bound reports and no-call planning; mock/unit/browser validation
-    - [ ] 10.8.4.2 Record live German trials against the configured providers after explicit paid-run approval; [prepared plan](eval/german-plan.md)
+    - [x] 10.8.4.2 Record approved live German trials against the four configured providers; [results and limitations](eval/german-plan.md). Claude answered ten positions; OpenAI authentication, Mistral rate limits and missing Ollama model blocked the other runs. Legacy capture contamination is retained and labelled; future captures exclude source/tool/UI cards
+    - [ ] 10.8.4.3 Complete the provider comparison after credentials/quota/model availability are fixed, using a new approved plan and comparable `coach-prose-v2` captures; no semantic quality grade is inferred from regex cue scores
 
 ## 11. Security testing (before every release)
 

@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Approved German provider trials and a prose-capture correction
+
+TODO items: 10.8.4.2; parent 10.8.4 and follow-up 10.8.4.3 remain open.
+
+### Implementation notes
+
+- Ran the approved German matrix sequentially, with the configured Haiku 5.5, GPT-6 Luna, Mistral Small Latest and Ollama DeepSeek-R1 models, ten positions maximum each and no judge. [The result matrix](eval/german-plan.md) separates completed answers from provider errors: Claude answered all ten; OpenAI returned 401/auth_failed; Mistral returned 429/rate_limited on the first position and all three runner retries; Ollama returned 404/model_not_found. No replacement model or download was used. A local Claude gateway-startup retry preceded any paid request.
+- Recorded Claude's original ten answers, actual engine contexts, fixed German cues and checks in JSON/Markdown. Original text/scores are preserved exactly; recomputation matches the archived scores and generated report/index. The report has source-commit provenance and an explicit legacy capture warning. No cloud invoice or exact provider-request count is inferred from answer counts.
+- The live report exposed source/tool/interface text contaminating cue scores. The extractor now scores only coach prose and counts recognized moves in that prose; new records are labelled `coach-prose-v2`. Legacy/missing capture metadata is labelled `rendered-message-v1`, with a warning in reports and the index. Reports use captured reference cues and link to the correct language's source.
+- Validation: checks/build pass; 566 unit/server cases pass (one opt-in live skip); all five benchmark browser cases pass with mocks, including all twenty English/German positions. The new synthetic capture regression fails on the preceding extractor by including source-only bridge/mate cues and passes on the fix. A mock CLI report verifies the new capture metadata without additional paid calls.
+
+### Deviations
+
+- The provider comparison is incomplete: credentials, rate limits and the missing configured Ollama model prevented three providers from answering. Fresh comparable prose-only captures need a new approved plan after those prerequisites are fixed. The parent TODO remains open.
+- Claude's retained cue score is not a model-only quality score: Lucena's bridge cue, for example, appeared only in a supplied source. The two automatically flagged move tokens include an impossible capture discussed as such and a piece reference; they are not independently verified recommendations to play illegal moves. There was no semantic judge and no paid rerun to conceal the capture problem.
+
+### Insights
+
+- Grounding material is useful context but must not earn credit for the model explaining it. Separating provider failures, observed checker flags, capture versions and semantic assessment makes the experiment reviewable without turning transport success or a lexical match into a coaching-quality claim.
+
 ## 2026-10-24 — Local application threat model
 
 TODO items: 11.1.
