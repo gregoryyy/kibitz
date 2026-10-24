@@ -3,10 +3,14 @@ import http from 'node:http';
 import { BASE_HEADERS, cspFor } from '../../server/static.mjs';
 import { test, expect, open, openSettings, closeSettings, S, move } from './fixtures.mjs';
 
+// Installation verifies every asset and allows 120 seconds in the app. Large WASM
+// bundles can exceed the default assertion wait on a busy CI/development machine.
+const INSTALL_TIMEOUT = 130_000;
+test.setTimeout(300_000);
 const PREFIX = 'kibitz-app-v1:';
 const appCaches = page => page.evaluate(prefix => caches.keys().then(keys => keys.filter(key => key.startsWith(prefix))), PREFIX);
 async function prepare(page) {
-  await openSettings(page); await page.locator('#offlinePrepare').click(); await expect(page.locator('#offlineStatus')).toContainText(/Offline app ready|Offline-App bereit/);
+  await openSettings(page); await page.locator('#offlinePrepare').click(); await expect(page.locator('#offlineStatus')).toContainText(/Offline app ready|Offline-App bereit/, { timeout: INSTALL_TIMEOUT });
   await closeSettings(page); await page.reload(); await expect(page.locator('#engineDot')).toHaveClass(/ok/); await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
 }
 const reset = request => request.post('/api/ai/config', { data: { localOnly: false, provider: 'mock' } });
@@ -55,10 +59,15 @@ test('a prepared update waits for the current game tab to close and then retires
   const source = await readFile(new URL('../../dist/sw.js', import.meta.url), 'utf8'), revision = 'f'.repeat(64);
   site.replace(source.replace(/, "[a-f0-9]{64}"\);/, `, "${revision}");`));
   const updateStarted = context.waitForEvent('serviceworker');
-  await openSettings(page); await page.locator('#offlinePrepare').click(); await expect(page.locator('#offlineStatus')).toContainText('An update is prepared'); const worker = await updateStarted;
+  await openSettings(page); await page.locator('#offlinePrepare').click(); await expect(page.locator('#offlineStatus')).toContainText('An update is prepared', { timeout: INSTALL_TIMEOUT }); const worker = await updateStarted;
   expect(await appCaches(page)).toContain(old); expect(await page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration()).waiting)).toBe(true);
-  const next = await context.newPage(); await page.close(); await expect.poll(() => worker.evaluate(() => !self.registration.waiting && self.registration.active?.state === 'activated')).toBe(true);
-  await next.goto(site.url + '?debug'); await expect(next.locator('#engineDot')).toHaveClass(/ok/);
+  // Match the documented flow: close every tab before opening the replacement.
+  await page.close();
+  await expect.poll(() => worker.evaluate(async () => ({
+    waiting: self.registration.waiting?.state ?? null, active: self.registration.active?.state ?? null,
+    clients: (await self.clients.matchAll({ includeUncontrolled: true })).map(client => client.url),
+  })), { timeout: 60_000 }).toMatchObject({ waiting: null, active: 'activated' });
+  const next = await context.newPage(); await next.goto(site.url + '?debug'); await expect(next.locator('#engineDot')).toHaveClass(/ok/);
   await expect.poll(() => appCaches(next)).toEqual([old.slice(0, old.lastIndexOf(':') + 1) + revision]); await next.close();
   } finally { await site.close(); }
 });
@@ -69,7 +78,7 @@ test('an integrity failure during an update keeps the previous complete offline 
   await open(page, site.url + '?debug'); await prepare(page); const before = await appCaches(page), source = await readFile(new URL('../../dist/sw.js', import.meta.url), 'utf8');
   const changed = source.replace(/"sha256":"[a-f0-9]{64}"/, `"sha256":"${'0'.repeat(64)}"`).replace(/, "[a-f0-9]{64}"\);/, `, "${'1'.repeat(64)}");`);
   site.replace(changed);
-  await openSettings(page); await page.locator('#offlinePrepare').click(); await expect(page.locator('#offlineStatus')).toContainText('could not be confirmed'); expect(await appCaches(page)).toEqual(before);
+  await openSettings(page); await page.locator('#offlinePrepare').click(); await expect(page.locator('#offlineStatus')).toContainText('could not be confirmed', { timeout: INSTALL_TIMEOUT }); expect(await appCaches(page)).toEqual(before);
   await context.setOffline(true); await page.reload(); await expect(page.locator('#engineDot')).toHaveClass(/ok/);
   } finally { await site.close(); }
 });
@@ -106,6 +115,6 @@ test('an incomplete cache requires explicit removal and re-preparation, and fail
 
 test('German phone offline controls are keyboard accessible, translated and fit the viewport', async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 }); await page.addInitScript(() => localStorage.setItem('kibitz.lang', JSON.stringify('de'))); await open(page); await openSettings(page);
-  await expect(page.locator('#offlineApp')).toContainText('Browserbibliothek'); await page.locator('#offlinePrepare').focus(); await page.keyboard.press('Enter'); await expect(page.locator('#offlineStatus')).toContainText('Offline-App bereit');
+  await expect(page.locator('#offlineApp')).toContainText('Browserbibliothek'); await page.locator('#offlinePrepare').focus(); await page.keyboard.press('Enter'); await expect(page.locator('#offlineStatus')).toContainText('Offline-App bereit', { timeout: INSTALL_TIMEOUT });
   await page.locator('#offlineApp').screenshot({ path: info.outputPath('offline-phone.png') }); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true); expect(await page.evaluate(() => [...window.__kibitz.I18N_GAPS])).toEqual([]);
 });
