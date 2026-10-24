@@ -3,6 +3,7 @@ import { lessonText } from './curriculum.js';
 import { startLessonSession, submitLessonMove, lessonDestinations, submitReflection, assessReflection, revealLesson } from './session.js';
 import { translator } from '../platform/i18n.js';
 import { playLine } from '../coach/annotations.js';
+import { prepareLessonGame } from './playout.js';
 
 /**
  * @param {HTMLElement} root Dedicated player container.
@@ -14,8 +15,9 @@ import { playLine } from '../coach/annotations.js';
  * @param {(text: string, vars?: object) => string} [options.t]
  * @param {() => number} [options.generation] Current main-game generation, checked on held actions.
  * @param {(result: {lessonId: string, exerciseId: string, kind: string, attempts: number, outside: number, hints: number, worked: boolean, revealed: boolean, assessment: string|null}) => void} [options.onComplete]
+ * @param {(request: {fen: string, color: string, title: string, lessonId: string, exerciseId: string, signal: AbortSignal, isCurrent: () => boolean}) => Promise<{error?: string, cancelled?: boolean}>} [options.onPlay]
  */
-export function createLessonPlayer(root, catalogue, { Chess, mountBoard, language = 'en', t: translate, generation = () => 0, onComplete } ) {
+export function createLessonPlayer(root, catalogue, { Chess, mountBoard, language = 'en', t: translate, generation = () => 0, onComplete, onPlay } ) {
   const doc = root.ownerDocument, fallback = translator({});
   /** @type {(text: string, vars?: object) => string} */
   const t = translate || ((text, vars) => fallback.t(text, vars));
@@ -37,12 +39,16 @@ export function createLessonPlayer(root, catalogue, { Chess, mountBoard, languag
   let promotion = null;
   /** @type {HTMLElement|null} */
   let returnFocus = null;
+  /** @type {AbortController|null} */
+  let playRequest = null;
+  let playColor = 'w', playMessage = '';
   let capturedGen = 0, renderVersion = 0, reported = false, view = 'exercise', examplePly = 0, draft = '', message = '';
   root.hidden = true; root.setAttribute('translate', 'no'); root.setAttribute('data-raw', ''); root.setAttribute('aria-label', t('Lesson player')); root.classList.add('lesson-player');
   const resize = new ResizeObserver(() => ground?.redrawAll()); resize.observe(root);
   const focus = selector => { const node = /** @type {HTMLElement|null} */ (root.querySelector(selector)); if (node && !node.matches(':disabled')) node.focus(); };
   function closePromotion() { promotion?.close(); promotion?.remove(); promotion = null; }
   function close(restoreFocus = true) {
+    playRequest?.abort(); playRequest = null;
     closePromotion(); ground?.destroy(); ground = null; session = null; lesson = null;
     root.replaceChildren(); root.hidden = true;
     if (restoreFocus && returnFocus?.isConnected) returnFocus.focus(); returnFocus = null;
@@ -63,6 +69,7 @@ export function createLessonPlayer(root, catalogue, { Chess, mountBoard, languag
     if (!exercise) return false;
     const opener = root.contains(doc.activeElement) ? returnFocus : /** @type {HTMLElement|null} */ (doc.activeElement);
     close(false); returnFocus = opener; lesson = found; session = startLessonSession(Chess, exercise); capturedGen = generation();
+    playColor = session.learner; playMessage = '';
     reported = false; view = 'exercise'; examplePly = 0; draft = ''; message = '';
     root.hidden = false; render(); root.scrollIntoView({ block: 'nearest' }); root.querySelector('h3')?.focus();
     return true;
@@ -114,6 +121,7 @@ export function createLessonPlayer(root, catalogue, { Chess, mountBoard, languag
   }
   function render() {
     const run = session; if (!valid(run)) return;
+    playRequest?.abort(); playRequest = null;
     const version = ++renderVersion;
     const restoreFocus = root.contains(doc.activeElement) ? doc.activeElement?.id : '';
     closePromotion(); ground?.destroy(); ground = null;
@@ -136,6 +144,36 @@ export function createLessonPlayer(root, catalogue, { Chess, mountBoard, languag
     const body = el('div', { class: 'lesson-content' }, el('div', { class: 'lesson-board-wrap' }, board), el('div', { class: 'lesson-task' },
       el('strong', {}, words(run.exercise.title)), el('p', { id: 'lessonPrompt' }, words(run.exercise.prompt)), position));
     const task = body.querySelector('.lesson-task');
+    const playControls = el('div', { class: 'lesson-play-controls' });
+    if (onPlay) {
+      const color = el('select', { id: 'lessonPlayColor', 'aria-label': t('Side for this game') }, el('option', { value: 'w' }, t('White')), el('option', { value: 'b' }, t('Black')));
+      color.value = playColor;
+      color.addEventListener('change', () => { if (valid(run) && version === renderVersion) { playColor = color.value; render(); } });
+      const title = `${t('Lesson practice')}: ${words(run.exercise.title)}`.replace(/\s+/g, ' ').trim();
+      const prepared = prepareLessonGame(Chess, { fen, color: playColor, title });
+      const start = button('Play against Stockfish', async () => {
+        if (playRequest) return;
+        const controller = new AbortController(); playRequest = controller;
+        const isCurrent = () => !controller.signal.aborted && valid(run) && version === renderVersion;
+        start.disabled = true;
+        const status = root.querySelector('#lessonPlayStatus'); if (status) status.textContent = t('Preparing the practice game…');
+        try {
+          const result = await onPlay({ fen, color: playColor, title, lessonId: lesson.id, exerciseId: run.exercise.id, signal: controller.signal, isCurrent });
+          if (!isCurrent()) return;
+          playMessage = result.error || '';
+        } catch {
+          if (isCurrent()) playMessage = 'The practice game could not be started. Try again.';
+        } finally {
+          if (playRequest === controller) {
+            playRequest = null;
+            if (isCurrent()) { render(); focus('#lessonPlayStart'); }
+          }
+        }
+      }, { id: 'lessonPlayStart' });
+      start.disabled = !!prepared.error;
+      playControls.append(el('div', { class: 'row' }, el('label', { for: 'lessonPlayColor' }, t('Side for this game')), color, start),
+        el('p', { id: 'lessonPlayStatus', role: 'status', class: 'hint' }, prepared.error ? t(new Chess(fen).isGameOver() ? 'Choose an earlier unfinished position to play.' : prepared.error) : playMessage ? t(playMessage) : ''));
+    }
     if (view === 'exercise' && run.played.length) task.append(el('p', { id: 'lessonPlayed' }, playLine(Chess, run.exercise.fen, run.played).sans.join(' ')));
     if (view === 'example') {
       const back = button('Previous move', () => { examplePly--; render(); }, { id: 'lessonPrevious' }); back.disabled = examplePly === 0;
@@ -191,7 +229,7 @@ export function createLessonPlayer(root, catalogue, { Chess, mountBoard, languag
       if (run.complete && run.type !== 'reflection') task.append(el('ul', { id: 'lessonRubric' }, ...run.exercise.rubric.map(r => el('li', {}, words(r)))));
     }
     root.replaceChildren(heading, controls, el('p', {}, words(lesson.introduction)), el('ul', {}, ...lesson.objectives.map(o => el('li', {}, words(o)))),
-      el('label', {}, t('Exercise'), select), body);
+      el('label', {}, t('Exercise'), select), playControls, body);
     renderBoard(run);
     if (restoreFocus && root.querySelector('#' + restoreFocus) && !root.querySelector('#' + restoreFocus).matches(':disabled')) focus('#' + restoreFocus);
     else if (view === 'example') focus('#lessonBoard');

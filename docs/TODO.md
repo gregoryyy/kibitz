@@ -175,7 +175,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 6.5 Puzzle source: bounded Lichess CC0 CSV ingestion and 64 recorded starter puzzles, with source IDs/themes/ratings/licence, provenance/digest and offline regeneration. Setup moves are applied before learner positions; all solutions replay legally and mate claims are rules-checked. Four editorial rating groups join the catalogue
 - [x] 6.6 Lesson player: isolated interactive board, explanations, keyboard worked-line viewer, staged authored hints, explicit promotions and reveal/restart. Mate tasks accept every actual checkmate; source puzzles check recorded-line recall and replies; written reflections require rubric self-assessment. Completion events distinguish these outcomes and help use
 - [x] 6.7 Progress per lesson and theme: versioned browser-local results with separate mate/recall/self-assessment/reveal and help counters, retained task revisions, validated Coach challenge counters, catalogue badges, retryable failed saves and preserved unreadable data. Counts describe practice rather than measured mastery; no reflection response text is stored
-- [ ] 6.8 Play a lesson position out against Stockfish (the game start from 1.8 takes a FEN or moves)
+- [x] 6.8 Play the displayed lesson position against Stockfish as either colour, preserving its full FEN and using existing strength/clock settings. Active games require a confirmed successful save; cancellation, stale actions and save failures leave the current game intact
 
 ## 7. Reference library: games and problems
 

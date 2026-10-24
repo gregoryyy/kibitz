@@ -3,6 +3,22 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Play a lesson position against Stockfish (TODO 6.8) -------------------------------
+  'Side for this game': 'Farbe für diese Partie',
+  'Lesson practice': 'Lektionspartie',
+  'Play against Stockfish': 'Gegen Stockfish spielen',
+  'Preparing the practice game…': 'Die Übungspartie wird vorbereitet…',
+  'The practice game could not be started. Try again.': 'Die Übungspartie konnte nicht gestartet werden. Versuche es erneut.',
+  'Choose an earlier unfinished position to play.': 'Wähle zum Spielen eine frühere, noch nicht beendete Stellung.',
+  'Choose White or Black for this game.': 'Wähle Weiß oder Schwarz für diese Partie.',
+  'Choose a legal unfinished position to play.': 'Wähle zum Spielen eine legale, noch nicht beendete Stellung.',
+  'The lesson title is not usable for a game.': 'Der Lektionstitel kann nicht für eine Partie verwendet werden.',
+  'Start lesson practice?': 'Lektionspartie starten?',
+  'The current game will be saved as unfinished before the lesson position starts.': 'Die aktuelle Partie wird als unvollendet gespeichert, bevor die Lektionsstellung startet.',
+  'You will play {side}. Current strength and clock settings will be used.': 'Du spielst {side}. Die aktuellen Spielstärke- und Uhreinstellungen werden verwendet.',
+  'Save and start lesson': 'Speichern und Lektion starten',
+  'The current game changed. Start the lesson position again when ready.': 'Die aktuelle Partie hat sich geändert. Starte die Lektionsstellung erneut, wenn du bereit bist.',
+  'The current game could not be saved. The lesson position has not been started.': 'Die aktuelle Partie konnte nicht gespeichert werden. Die Lektionsstellung wurde nicht gestartet.',
   // --- Lesson and theme progress (TODO 6.7) ----------------------------------------------
   'Progress by lesson and theme': 'Fortschritt nach Lektion und Thema',
   'Lesson results': 'Lektionsergebnisse',
