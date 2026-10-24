@@ -8,14 +8,42 @@ TODO 7.1 establishes the records needed for RAG. `site/src/library/library.js` c
 | --- | --- | --- |
 | Source | `source:<collection>:<encoded local game id>` | Origin, optional title/author/URL and separately supplied score/annotation licences. |
 | Game document | `game:<collection>:<encoded local game id>` | Existing local ID, source ID, kind, title, score licence and SHA-256 revision of its stored PGN text. |
-| Position | `position:<encoded EPD>` | Shared position key, including side to move and castling/legal en-passant rights, without counters. Provenance is reached through occurrences; one source's licence is not attached to every game sharing that board. |
-| Occurrence | `<document id>@<revision>/ply/<index>` | Full FEN, relative ply, move label, SAN/UCI, position ID, source ID and score licence. Ply zero is the starting position. |
+| Position | `position:<encoded EPD>` | Shared position key, including side to move and castling/legal en-passant rights, without counters; derived material/placement signatures and piece-square features accompany it. Provenance is reached through occurrences; one source's licence is not attached to every game sharing that board. |
+| Occurrence | `<document id>@<revision>/ply/<index>` | Full FEN, relative ply, move label, SAN/UCI, position ID, derived signatures, source ID and score licence. Ply zero is the starting position. |
 | Annotation | `<occurrence id>/comment/<ordinal>` or `/nags` | Original comment text or numeric annotation glyphs, source ID, annotation licence and an explicit unverified status. |
 | Study/problem | `problem:<collection>:<encoded local game id>@<revision>` | Custom-start study's initial occurrence, source ID, score licence, stated result and recorded UCI line. General imports have legal-replay-only status. Curated records can additionally bind the exact source/FEN/branch to saved tablebase evidence and actual mate-in-one proof, as described below. |
 
-`collection` is `classic` or `library`. This prevents a built-in and a user game with equal local IDs from colliding. User records remain within the existing account or browser storage boundary; these identifiers do not replace ownership checks when server storage is introduced.
+`collection` is `classic` or `library`. This prevents a built-in and a user game with equal local IDs from colliding. User records remain within the selected browser/account/cookie-owned server boundary; these identifiers do not replace ownership checks.
 
 Logical game/source IDs survive source-metadata corrections. Occurrence/annotation IDs bind to a particular source revision, so editing the PGN changes them even if an update timestamp stays the same. Equal positions can retain their common position ID across revisions and games. Import deduplication (7.2) uses the conservative source-document identity below; shared positions or an equal mainline alone do not merge sources.
+
+## Material and piece placement
+
+TODO 8.1 adds `chess/signatures.js`. `boardSignatures(fen)` accepts a FEN/EPD from the rules layer, checks its encoding and produces `counts-squares-v1` facts. The source compiler already validates the starting position and replays every move with chess.js. Each shared position and full-FEN occurrence carries its derived `signatures`; imported signature/position claims never supply these facts. These are derived data, without a persistent record/schema migration.
+
+| Field | Meaning |
+| --- | --- |
+| `counts` | Per-colour counts of pawns, knights, bishops, rooks, queens and kings. Same scalar material value can represent different piece classes. Captures/promotions change counts; castling changes occupied squares while preserving material. |
+| `material` | A versioned canonical key, White then Black, using piece-count order `p,n,b,r,q,k`, including zeros. |
+| `pieces` | Sorted colour/type/square terms such as `wNf3` or `bPd5`; every term names an occupied source square. |
+| `placement` | A versioned key over the complete sorted term set. Equal placement can still differ in turn, castling/en-passant rights or counters; exact identity remains EPD, and occurrences retain full FENs. |
+
+`buildPositionIndex()` now populates `byMaterial`, `byPlacement` and `byPieceSquare` beside the existing exact/pawn buckets. New buckets recompute geometry from the actual FEN/EPD rather than trusting supplied feature fields. Invalid encodings do not enter these buckets. All source occurrences remain distinct, including repeated boards, revisions and equal local IDs in different collections. Keys encode board facts, not ownership, rights to text or move strength; callers use the current owner's source-aware index.
+
+`positionFeatureMatches(index, fen, options)` offers bounded structural predicates:
+
+```js
+// Either side's exact piece classes/counts, keeping each source occurrence.
+positionFeatureMatches(index, fen, { by: 'material', collection: 'library', limit: 6 });
+// Equal occupied piece squares, with original source state still available on p.fen.
+positionFeatureMatches(index, fen, { by: 'placement', documentId, limit: 6 });
+// All selected query pieces must occur on the same squares in the source.
+positionFeatureMatches(index, fen, { by: 'pieces', pieces: ['wNf3', 'bPd5'], limit: 6 });
+```
+
+The default is a material lookup. Collection/document filters are literal; result limits are 1–20. Selected piece terms must be unique, bounded and present in the query position. Results retain `g`/`p` with full source/revision identity, an explicit structural `kind` and matched material/placement/piece facts, in index order. A piece subset can match a source with additional material; full placement equality has its own query mode. No piece mirroring, colour swapping, geometric distance, learned weight or confidence score is introduced.
+
+This completes feature indexing and typed lookups. Existing exact/pawn retrieval and hybrid ranking keep their prior behavior; selecting material/placement similarity profiles remains the separate [aspect-similarity research](research/position-similarity.md). Geometry does not verify a source annotation, transfer a move to another board or prove an endgame outcome. The full FEN, legal source line and existing engine/tablebase checks remain authoritative for those tasks. The debug `positionIndex()` getter exposes the actual current index for inspection; deletion/replacement rebuilds all feature buckets under the existing library-generation guard.
 
 ## Catalogue search
 

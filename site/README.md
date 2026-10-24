@@ -77,6 +77,7 @@ src/index.html        CSS, markup and application composition, written as an art
 src/chess/            Rules, knowledge, engine integration and game helpers:
   engine.js           Stockfish workers, fallbacks, queued/time-capped searches and cancellation
   knowledge.js        Pure features, motifs, scoring, reference catalogue and position retrieval
+  signatures.js       Colour-specific material classes and canonical occupied-square features
   play.js             Game-end rules, clocks, strength levels, draw offers and position validation
   style.js            Playing styles: picks among near-best engine candidates
   pgn.js              NAGs and exact mainline comment locations, including repeated positions
@@ -195,7 +196,7 @@ Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; 
 
 Outside an artifact, `use('sample')` returns `localSample()`, a function with the same signature that streams from the local AI gateway (`/api/ai/sample`). The prompts and `contextFor()` are unchanged. The browser library uses `localStorage`; the optional server library uses SQLite and a scoped IndexedDB cache (TODO 7.6).
 
-Open `_test.html?debug` to get `window.__kibitz` in the console, including `S`, `contextFor`, `ANA` and `libraryRecords()` for compiled source-aware records.
+Open `_test.html?debug` to get `window.__kibitz` in the console, including `S`, `contextFor`, `ANA`, `libraryRecords()` for compiled source-aware records and `positionIndex()` for the actual current index. Positions/occurrences carry versioned colour-specific material counts, placement keys and occupied piece-square terms. `knowledge.js` exposes `positionFeatureMatches()` for exact material/placement/subset predicates with bounded source filters; [index definitions and query examples](../docs/LIBRARY.md#material-and-piece-placement) distinguish these structural facts from exact EPD state and chess verification. Existing retrieval ranking keeps its recorded behavior.
 
 ## Licences
 

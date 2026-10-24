@@ -2,13 +2,14 @@
 import { epd, pawnSignature } from '../chess/knowledge.js';
 import { mainlineComments, mainlineNags } from '../chess/pgn.js';
 import { checkPosition } from '../chess/play.js';
+import { boardSignatures } from '../chess/signatures.js';
 import { quote } from '../coach/prompt.js';
 
 export const LIBRARY_VERSION = 1;
 const ORIGINS = ['imported', 'played', 'board', 'builtin', 'legacy'];
 const text = (s, limit) => typeof s === 'string' && s.length <= limit && !s.includes(String.fromCharCode(0));
 /** @typedef {{version: number, origin: string, source: {title: string, author: string, url: string}, rights: {score: string, annotations: string}}} Provenance */
-/** @typedef {{id: string, sourceId: string, licence: string, documentId: string, revision: string, positionId: string, ply: number, fen: string, epd: string, pawns: string, san: string, uci: string, label: string}} Occurrence */
+/** @typedef {{id: string, sourceId: string, licence: string, documentId: string, revision: string, positionId: string, ply: number, fen: string, epd: string, pawns: string, signatures: ReturnType<typeof boardSignatures>, san: string, uci: string, label: string}} Occurrence */
 /** @typedef {{id: string, sourceId: string, licence: string, occurrenceId: string, kind: string, text: string, nags: number[], locator: {format: string, start: number, end: number, unit: string}|null, verification: string}} Annotation */
 
 /** Only explicit HTTP(S) links without credentials may become clickable source URLs. No fetching. */
@@ -87,8 +88,9 @@ export async function compileLibraryGame(Chess, game, collection = 'library') {
   const occurrences = [];
   const append = (san = '', uci = '', label = 'Start position') => {
     const fen = replay.fen(), key = epd(fen), positionId = `position:${encodeURIComponent(key)}`;
-    positions.set(positionId, { id: positionId, epd: key });
-    occurrences.push({ id: `${documentId}@${revision}/ply/${occurrences.length}`, sourceId, licence: source.rights.score, documentId, revision, positionId, ply: occurrences.length, fen, epd: key, pawns: pawnSignature(fen), san, uci, label });
+    const signatures = boardSignatures(fen);
+    positions.set(positionId, { id: positionId, epd: key, signatures });
+    occurrences.push({ id: `${documentId}@${revision}/ply/${occurrences.length}`, sourceId, licence: source.rights.score, documentId, revision, positionId, ply: occurrences.length, fen, epd: key, pawns: pawnSignature(fen), signatures, san, uci, label });
   };
   append();
   for (const san of moves) {

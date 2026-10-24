@@ -4477,7 +4477,7 @@ function start(data) {
   setTools(store.get('toolsOpen', true));
   Lib.init();
 }
-if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS };
+if (location.search.includes('debug')) window.__kibitz = { S, contextFor, ANA, toPGN, browserSample, COACH_RULES, LANG, I18N_GAPS, scratch: () => SCRATCH, marks: () => MARKS, libraryRecords: () => LIBRARY_RECORDS, positionIndex: () => INDEX };
 // The game on the board survives a reload (TODO 1.15). Inside the artifact the host takes the
 // snapshot when it needs it; the local app keeps it in localStorage ('current'), written shortly
 // after every change and when the page goes away, and read back at boot.
