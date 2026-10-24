@@ -3,6 +3,21 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Curriculum catalogue (TODO 6.1) -----------------------------------------------------
+  'Lessons': 'Lektionen',
+  'Explore modules, lesson goals and exercises by level or theme.': 'Entdecke Module, Lernziele und Übungen nach Niveau oder Thema.',
+  'Up to level': 'Bis Niveau',
+  'All themes': 'Alle Themen',
+  'Theme': 'Thema',
+  'All modules': 'Alle Module',
+  'Module': 'Modul',
+  '{n} lessons': '{n} Lektionen',
+  '1 lesson': '1 Lektion',
+  '{n} exercises': '{n} Übungen',
+  '1 exercise': '1 Übung',
+  'No lessons match these filters.': 'Keine Lektionen passen zu diesen Filtern.',
+  'Learning goals': 'Lernziele',
+  'Before this lesson:': 'Vor dieser Lektion:',
   // --- Retrieved coach passages and citations (TODO 8.6) -------------------------------------
   'Relevant game comments and study notes may be sent with your question.': 'Passende Partiekommentare und Studiennotizen können mit deiner Frage gesendet werden.',
   'Passages supplied to the coach': 'Dem Coach bereitgestellte Textstellen',

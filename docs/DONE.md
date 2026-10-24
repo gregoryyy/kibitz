@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Curriculum records and Lessons catalogue
+
+TODO items: 6.1.
+
+### Implementation notes
+
+- Added `src/curriculum/` with a pure JSDoc-typed record compiler, original English/German material and a separate catalogue UI. Stable module/lesson/exercise IDs, levels, known themes, objectives, source/licence fields and prerequisite DAGs are bounded and validated. Inputs and filtered results are detached.
+- The initial three modules contain three lessons and five authored exercises: back-rank mates for both colours, a king-activity reflection and queen/king mate nets. chess.js validates positions and legal UCI lines, normalizing castling rights before replay. Mate records must end in checkmate for the learner; reflection lines make no unique-best-move or winning claim.
+- Added a keyboard-accessible Lessons tab and literal module/lesson summaries, goals, prerequisite titles and exercise prompts. Local filters use a level ceiling, module and theme. Browsing starts no model/engine request and never changes the active game. Localized lesson prose is separate from interface translation; explicit formatted labels avoid a second translation pass. Saved player levels are validated before application startup, and the catalogue also validates its initial filter.
+- Five unit scenarios cover the catalogue, filtering/detachment, schema limits, missing/duplicate IDs, translations, levels, prerequisites/cycles, illegal lines, unsupported mate claims and castling normalization. Browser scenarios cover filtering/game isolation, hostile literal text, German phone/keyboard behaviour and corrupt saved levels. Updated the grouped-navigation expectation for the new tab.
+- Verification: ESLint, JSDoc type checking and build pass; 370 unit/gateway tests and 216 Playwright tests pass, with one opt-in live test skipped in each suite. No real AI provider is used.
+
+### Deviations
+
+- This completes the records and catalogue in 6.1. Expanded tactics/strategy/endgames, puzzle ingestion, the interactive lesson player, grading, progress and play-out remain separately tracked in 6.2–6.8. Prerequisites describe a learning sequence; no progress lock is imposed before 6.7 exists.
+
+### Insights
+
+- Legal replay, proved terminal mate and an authored reflection rubric are different evidence classes. Keeping the exercise goal explicit avoids treating every recorded move as a unique engine-approved answer.
+- Browser consumers of pure modules must update together, and translated teaching text should bypass the interface translator. Catalogue filters belong to their panel rather than the active board or global coach state.
+
+---
+
 ## 2026-10-24 — Organize source modules by responsibility
 
 TODO items: 0.14.

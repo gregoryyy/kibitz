@@ -52,6 +52,8 @@ For proposed generated exercises, keep candidate generation separate from public
 
 **Current state:** [knowledge.js](../../site/src/chess/knowledge.js) provides pure features and motif candidates; [tools.js](../../site/src/coach/tools.js) adds bounded engine checks. Existing coach challenges record some theme progress. Those pieces support the curriculum, but do not implement the lesson catalogue, full lesson player or Syzygy integration. Syzygy's WDL/DTZ semantics and limitations are described in the [python-chess documentation](https://python-chess.readthedocs.io/en/latest/syzygy.html); that is a reference, not a proposal to add Python to Kibitz.
 
+**Implementation update, 2026-10-24:** TODO 6.1 adds a [validated curriculum structure](../../site/src/curriculum/curriculum.js), an original bilingual catalogue and local Lessons browsing. The compiler checks metadata, prerequisite graphs, positions and recorded lines; mate exercises establish terminal checkmate. Reflection rubrics remain authored guidance. Interactive lesson play, alternative-answer grading, progress and Syzygy remain later work.
+
 ## Milestone 7: reference library
 
 | Use case | Useful AI role | Explicit chess/data mechanism |
