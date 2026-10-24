@@ -28,6 +28,40 @@ TODO items: remaining 2.16.1 Chrome runtime; 2.16 completed with documented runt
 - Remembering a backend is different from authorizing a model download. A fresh disposable context per request also prevents browser-maintained history from bypassing the application's own context controls.
 - Synchronous creation failures need the same settled-load cleanup as rejected promises, and input limits must include separators inserted while merging turns. Both boundaries have regression assertions.
 
+## 2026-10-24 — Compare position retrieval with literature algorithms
+
+TODO items: documentation follow-up to completed 8.1, 8.2, 8.4, 8.5 and 8.8; no new algorithm milestone completed.
+
+### Implementation notes
+
+- Added [the position retrieval comparison](research/position-retrieval-comparison.md), audited against `2933295`: distinguishes Reading buckets, material/piece predicates, recorded-line pattern browsing, Combined fusion, optional pawn Jaccard and text embeddings. Compares their representations, inputs and gaps with relational BM25, solution-aware tactics, an expert-labelled classifier, CQL, ChessCLIP, ChessLM and conditional similarity learning, using primary sources.
+- Separates current within-suite results from literature experiments, including the 2014 paper's abstract/Table 3 MAP discrepancy and the 2026 accepted manuscript's grouped pair-classification task. Documents counterexamples, input/engine-budget parity, candidate recall, occurrence/game grouping, family splits and metrics for a future comparison.
+- Updated research navigation and dated implementation caveats, linked architecture/evaluation/TODO, and repaired the RRF author-PDF URL. No published benchmark labels or results changed.
+- Validation: reran offline position, pawn and text benchmarks; all three JSON reports exactly match their recorded versions, and all thirteen related unit/CLI cases pass. Checked 135 local documentation links/anchors and the diff; application lint/JSDoc checks passed. No provider calls, literature models or external datasets used.
+
+### Deviations
+
+- This is a sourced algorithm comparison and experiment design, not a reproduction of literature algorithms on Kibitz's corpus. Published metrics with different inputs, labels and denominators are not combined into a performance ranking.
+
+### Insights
+
+- Similarity of pawn squares, source occurrences, explanation passages and tactical solutions are different retrieval objectives. The relevant literature comparison depends on which one the query requests.
+## 2026-10-24 — Exclude agent instructions from aggregate PDFs
+
+TODO items: none; requested documentation tooling maintenance.
+
+### Implementation notes
+
+- `just pdfs` excludes `AGENTS.md` alongside `CLAUDE.md`, including nested instruction files and explicit path selections. Individual documents can still be rendered with `just pdf FILE`.
+- Validation: exercised the aggregate recipe with a recording `just pdf` stub; regular Markdown remained selected, while root and nested agent instructions and GitHub templates were excluded. Checked the explicit `AGENTS.md` selection and `justfile` parsing.
+
+### Deviations
+
+- No application changes or new dependencies; no TODO milestone applies.
+
+### Insights
+
+- Aggregate document generation can skip agent instructions without disabling explicit single-document conversion.
 ## 2026-10-24 — Bounded model downloads verified before publication
 
 TODO items: 11.2.2; finding [#97](https://github.com/gregoryyy/kibitz/issues/97).
