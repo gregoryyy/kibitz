@@ -189,7 +189,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 ## 8. RAG on positions and tactical patterns
 
-- [ ] 8.1 Position index: exact EPD and pawn-structure signature *(prototype)*, plus material signature and piece-placement features. Remaining: material and piece-placement signatures.
+- [x] 8.1 Position index: exact EPD and pawn signature plus versioned colour-specific material counts, full piece placement and occupied piece-square terms. Rules-replayed source occurrences retain full FEN/revisions; bounded, source-filtered feature lookups distinguish structural matches without changing default retrieval ranking. [Fields and limits](LIBRARY.md#material-and-piece-placement)
 - [ ] 8.2 Pattern tags per position and move, from the motif and theme detectors *(prototype)*
 - [x] 8.3 Text index for annotations and lesson text; embeddings from a separately configured provider (OpenAI, Mistral or Ollama; Anthropic has no embeddings API)
   - [x] 8.3.1 Local lexical passage index: mainline comments with source/occurrence locators, bilingual authored guide sections, filtered BM25 Library search, exact annotated-position navigation and a 28-query [passage benchmark](TEXT-SEARCH.md)

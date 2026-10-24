@@ -147,10 +147,11 @@ Chess positions have structure that text embeddings would blur, so retrieval her
 
 - **The exact position:** the EPD, a FEN without move counters, so transpositions match.
 - **The pawn structure:** `pawnSignature()`, so a game with the same structure is found even when the pieces stand elsewhere.
+- **Material and occupied squares:** versioned, colour-specific piece counts, full placement keys and individual piece-square terms, derived from rules-replayed boards. Bounded lookups retain source occurrences and distinguish equal material, equal placement and selected-square matches; turn, rights and counters remain in the separate full FEN.
 - **Theme tags** from the detectors (IQP, Carlsbad, opposite castling, passed pawn, bishop pair, ...), which connect positions to books and lessons.
 - **Engine evaluations** are stored by EPD, from White's point of view, and shared by the board, the review and the coach.
 
-Planned: material and piece-placement signatures (8.1). Optional Combined Library search fuses passage embeddings with current exact/pawn and feature-tag signals, including opt-in fuzzy pawn distance (8.5); richer signatures/motif indexing remain separate work.
+The [material and placement indexes](LIBRARY.md#material-and-piece-placement) (8.1) expose structural predicates without changing the current Reading/Combined rankings. Equal geometry does not verify a transferable move, source prose or a study result. Optional Combined Library search fuses passage embeddings with current exact/pawn and feature-tag signals, including opt-in fuzzy pawn distance (8.5); richer per-position/move pattern indexing remains 8.2.
 
 The **opening explorer** (`openings.js`, 5.2) builds a separate EPD-keyed move graph from standard-start PGN mainlines in the reference collection. Transpositions join; each record contributes its first continuation at a position. Corpus filters, result counts and sample occurrences are explicit data queries. Continuation clicks use the scratch board and require the same help permission as engine analysis. This does not use a language model or an external explorer API.
 

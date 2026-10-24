@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Material and piece-placement position indexes
+
+TODO items: 8.1.
+
+### Implementation notes
+
+- Added pure `chess/signatures.js`: versioned counts by colour and piece type, sorted occupied piece-square terms and complete placement keys. Every rules-replayed library occurrence and shared EPD position carries these derived fields; full FEN, source identity, revision, counters and verification status remain separate. Captures, en passant and all promotions update counts; castling updates squares while preserving material.
+- `buildPositionIndex()` adds material/placement/piece-square buckets from actual FEN/EPD, independently of imported feature assertions. `positionFeatureMatches()` provides bounded, collection/document-filtered exact predicates with explicit match reasons, retaining repeated and collection-scoped source occurrences. Selected-square queries require real query occupants. The production debug getter exposes the current index for integration checks.
+- Seven unit scenarios cover equal-value/different-material classes, transpositions, turn/rights/counters, real occupied terms, special moves, malformed inputs, forged assertions, scoped/repeated occurrences, query bounds and revision-bound compiler output. Three browser scenarios verify production indexing, original source status, no provider/game mutation, revision/deletion invalidation and equal placement with distinct full-FEN/exact-position results.
+- Validation: ESLint/JSDoc checks, build, 470 unit tests and the complete 289-test browser suite pass (one live-provider and one optional live-model skip respectively). The dependency audit reports zero vulnerabilities. Offline position and text benchmarks reproduce their complete recorded JSON results, including source/case hashes and per-query rankings, unchanged.
+
+### Deviations
+
+- This milestone supplies the missing position features and typed lookup API. Default Reading/Combined ranking remains unchanged; no similarity weights, learned metric, new UI controls or retrieval-quality improvement are claimed. Geometry checks validate encoding, while source compilation supplies rules validation. No database schema or stored library record is migrated.
+
+### Insights
+
+- Equal scalar piece value loses piece-class information; equal placement loses side to move, rights and counters. Explicit keys and match reasons preserve these different meanings without conflating a structural analogy with an exact game state or objective chess evidence.
+- Derived feature additions need not invalidate a frozen source benchmark. Replaying both recorded baselines demonstrates that this index extension leaves the existing measured retrieval behavior intact.
+
+---
+
 ## 2026-10-24 — Optional SQLite library and scoped browser cache
 
 TODO items: 7.6.
