@@ -7,6 +7,32 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Published classic-game sources and expanded collection
+
+TODO items: 7.3.
+
+### Implementation notes
+
+- Expanded the built-in collection from nine to 21 games, alongside the four existing studies. `library/capablanca.js` adds twelve complete scores from Part II of Capablanca's 1921 *Chess Fundamentals*, with per-game/page attribution, the source's public-domain-in-the-USA statement, theme tags and original Kibitz teaching notes. Games 3 and 6 omit their final played moves in the book and are excluded. Notes' concrete final-position facts are checked independently with chess.js; resignation results remain source reports.
+- `classic-sources.js` and `data/classics/historical-scores.json` identify fixed Wikipedia revisions, contributor attribution, CC BY-SA 4.0 move-data rights, retrieval dates/digests and normalized score facts for the nine earlier versions. External prose, variations and judgement glyphs are excluded. Original teaching notes keep their separate GPL-3.0-or-later assertion. The shipped notices and [source manifest documentation](../site/data/classics/README.md) preserve licence links, changes and scope rather than relicensing the CC BY-SA data as GPL-3.0-or-later.
+- `check-classics.mjs` audits all 21 games/1,355 recorded plies offline. Its bounded descriptive-notation helper reconstructs the 980 book plies by searching legal candidates across each entire score, retaining original-side piece identity through castling and checking relative squares, captures and checks. It requires a unique recorded branch, rejects invalid/ambiguous/oversized data and uses a state budget. Matching a published score establishes transcription consistency, not unique best play or a forced result.
+- Cards/source details/own PGN notes disclose that Réti's game ended with resignation after 10.Bg5+, with the last two plies a teaching continuation. Légal uses the cited traditional teaching move order and unknown date, explaining the disputed date/order/rook odds. New title references recognize dated English/German forms without linking a bare player name. Reading localizes individual theme labels before joining them; a newly exposed multi-theme German gap has a browser regression.
+- Froze the original thirteen-record retrieval fixture at `b1c4782` so production growth/history corrections cannot silently change prior experiments. Provider-free position/text runs reproduce the existing corpus hashes exactly (`60270e…`/`fdc2ad…`), including 21 documents/481 occurrences/45 annotations and 159 text passages. Existing source/collection tests now cover all games and retain explicit study exclusions.
+- Five new logic scenarios cover source binding/transcription, tampering, independent board facts, teaching-history distinctions and ambiguous/invalid notation. Three browser scenarios cover the expanded collection, exact game opening/notes, read-only separate rights, no source/provider download, historical distinctions and German phone/theme labels. The phone source panel was inspected visually.
+- Verification: lint, JSDoc types, build and the offline 21-game audit pass; all 420 unit/gateway tests and all 257 browser tests pass, with one opt-in live test skipped per suite. The clean full browser rerun follows two corrected collection-size expectations in opening tests. Provider calls use mocks/fake clients. PRs 69 and 70 are green in CI.
+
+### Deviations
+
+- The collection records published versions actually checked, with fixed revision/page references. It does not claim to authenticate every first historical publication; disputed teaching versions stay labelled. The two incomplete book scores are not completed from memory or mixed with another source. Study-source verification remains the separate 7.4 milestone. Public-domain status is recorded as supplied for the USA, without a blanket worldwide assertion.
+- The retrieval benchmark remains a fixed development corpus; this addition makes no new retrieval-quality or learner-outcome claim about the larger production library. Its earlier metadata remains in the snapshot for reproducibility.
+
+### Insights
+
+- Legal replay alone cannot establish historical provenance. Published scores can omit moves, normalize dates or include a later demonstration after resignation. Binding source versions and showing these distinctions prevents a valid chess line from becoming a false historical claim.
+- A growing production catalogue must not silently alter measured evaluation corpora. Freezing the original records preserves published hashes and comparisons while letting current source metadata and teaching material improve.
+
+---
+
 ## 2026-10-24 — Conservative PGN import deduplication
 
 TODO items: 7.2.

@@ -61,9 +61,9 @@ test('whole corrupt games, empty games and custom-start studies are excluded', (
   assert.equal(openingGame(Chess, { id: 'missing' }, 'library'), null);
   assert.equal(openingGame(Chess, { pgn: '1. e4' }, 'invalid'), null);
   const records = classicGames().map(g => openingGame(Chess, g, 'classic'));
-  assert.equal(query(records).records, 9);
+  assert.equal(query(records).records, 21);
   assert.equal(records.filter(r => r === null).length, 4);
-  assert.equal(query(records).games, 9);
+  assert.equal(query(records).games, 21);
 });
 
 test('results use PGN headers; unknown or hostile result names stay unknown', () => {

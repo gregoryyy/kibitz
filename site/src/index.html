@@ -2445,6 +2445,7 @@ function sourceDetails(g) {
   const box = el('details', { class: 'source-details' }, el('summary', {}, 'Source and licences'));
   if (!state.value) { box.append(el('p', { class: 'hint' }, 'Source metadata is invalid or from a newer version. Stored data has been kept; this record is omitted from similar-position results.')); return box; }
   const p = state.value;
+  if (g.scoreNote) box.append(el('p', { class: 'hint' }, g.scoreNote));
   box.append(el('p', {}, SOURCE_ORIGINS[p.origin]), el('p', { class: 'hint' }, 'Licences are recorded as supplied; blank fields mean not supplied.'));
   const evidence = el('div', { class: 'source-evidence' }); box.append(evidence);
   renderSourceEvidence(evidence, LIBRARY_RECORDS.get(`${collection}:${g.id}`));
@@ -2491,7 +2492,8 @@ function renderLibrary() {
     } }, 'Delete');
     box.append(el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
       el('div', {}, el('div', { class: 'title' }, g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, `${g.white} – ${g.black}`)),
-        el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills)),
+        el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills),
+        g.scoreNote ? el('p', { class: 'hint' }, g.scoreNote) : null),
       el('div', { class: 'res' }, g.result || '*'),
       el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g) }, g.reviewed ? 'Open review' : 'Open'),
         el('button', { class: 'btn small ghost', onclick: () => copyText(g.pgn, 'PGN copied') }, 'Copy PGN'),
@@ -3949,7 +3951,7 @@ function renderReading() {
   if (!classics.length) cl.append(el('p', { class: 'empty-note' }, 'No classic game in the collection matches these themes.'));
   for (const r of classics) {
     const g = EXAMPLES.find(x => x.id === r.game.id);
-    cl.append(el('div', { class: 'seen' }, el('span', { class: 'k' }, r.hits.map(h => K.TAG_LABELS[h.tag] || h.tag).slice(0, 3).join(' · ')),
+    cl.append(el('div', { class: 'seen' }, el('span', { class: 'k', translate: 'no', 'data-raw': '' }, r.hits.map(h => t(K.TAG_LABELS[h.tag] || h.tag)).slice(0, 3).join(' · ')),
       el('button', { class: 'btn small', onclick: () => openGame(g, r.game.moment) }, 'Open'),
       el('div', {}, `${r.game.title} · ${r.game.white} – ${r.game.black}, ${r.game.event} ${r.game.date}`), el('q', {}, r.game.about)));
   }

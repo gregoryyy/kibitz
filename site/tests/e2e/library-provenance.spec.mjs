@@ -1,5 +1,6 @@
 /** @file Import/source editing preserves source text, old records and exact evidence occurrences. */
 import { test, expect, open, loadPgn, reveal, S } from './fixtures.mjs';
+import { CLASSICS } from '../../src/library/classics.js';
 
 const PGN = '[Event "Notebook"]\n[White "Alice"]\n[Black "Bob"]\n\n{Before play} 1. Nf3 {First arrival} Nf6 2. Ng1 Ng8 3. Nf3 {Second arrival} *';
 const library = page => page.locator('[data-tab="library"]').click();
@@ -124,10 +125,10 @@ test('late digest/index work and held source controls cannot resurrect a deleted
   await source(cards(page)).getByRole('button', { name: 'Save source details' }).evaluate(b => { window.__oldSourceSave = b; });
   await field(cards(page), 'title').fill('Correction pending a digest');
   await source(cards(page)).getByRole('button', { name: 'Save source details' }).click();
-  await expect.poll(() => page.evaluate(() => window.__sourceDigests.length)).toBe(15);
+  await expect.poll(() => page.evaluate(() => window.__sourceDigests.length)).toBe(CLASSICS.length + 2);
   await cards(page).getByRole('button', { name: 'Delete', exact: true }).click(); await cards(page).getByRole('button', { name: 'Delete', exact: true }).click();
   await page.evaluate(() => { window.__oldSourceSave.click(); window.__sourceDigests.forEach(resolve => resolve()); });
-  await expect.poll(() => page.evaluate(() => window.__kibitz.libraryRecords().size)).toBe(13);
+  await expect.poll(() => page.evaluate(() => window.__kibitz.libraryRecords().size)).toBe(CLASSICS.length);
   expect(await stored(page)).toEqual([]); expect(await snapshot(page)).toBeUndefined();
 });
 
@@ -138,7 +139,7 @@ test('finishing a delayed index preserves an open source form and its unsaved co
     SubtleCrypto.prototype.digest = async function(...args) { const result = await digest.apply(this, args); await new Promise(resolve => window.__sourceDigests.push(resolve)); return result; };
   });
   await open(page); await library(page); await edit(cards(page)); await field(cards(page), 'title').fill('An unsaved source correction');
-  await expect.poll(() => page.evaluate(() => window.__sourceDigests.length)).toBe(14);
+  await expect.poll(() => page.evaluate(() => window.__sourceDigests.length)).toBe(CLASSICS.length + 1);
   await page.evaluate(() => window.__sourceDigests.forEach(resolve => resolve()));
   await expect(source(cards(page)).locator('.source-counts')).toHaveText('2 position occurrences · 0 annotations');
   await expect(field(cards(page), 'title')).toHaveValue('An unsaved source correction');

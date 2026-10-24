@@ -64,6 +64,8 @@ The same tab lets you build named repertoires for **White or Black**. Enter a PG
 
 The **Lessons** tab offers bilingual tactics, strategy, endgames and sourced puzzles, with an isolated exercise board, authored hints and local progress. **Play against Stockfish** takes the displayed lesson position into a normal game as either colour, using your current strength and clock settings; an active game is confirmed and saved first.
 
+The **Classics** library includes 21 games with published score sources and separate score/note rights, plus four studies. Twelve complete games from Capablanca's *Chess Fundamentals* expand the collection; historical teaching versions are labelled, and all notes are original Kibitz material. [Source records and offline checks](site/data/classics/README.md) document the collection.
+
 The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
 
 - **Run locally:** the page talks to the AI gateway in `site/server/`, which `site/scripts/serve.mjs --api` mounts. The gateway reads `.env`, calls the chosen provider, and keeps the API keys on the server.
