@@ -115,8 +115,8 @@ const moverCp = (score, side) => { const cp = scoreToCp(score); return side === 
 
 // One bounded verifier per tool, shared by its lines. No search is needed for a terminal board;
 // other results need an exact score, a legal PV and at least depth 6. Cache by EPD, including misses.
-function motifVerifier(Chess, engine) {
-  const cache = new Map(), evidence = [], starts = [], started = Date.now();
+export function createMotifVerifier(Chess, engine) {
+  const cache = new Map(), evidence = [], starts = [], proofs = new Map(), started = Date.now();
   let searches = 0;
   const seed = (fen, a) => { cache.set(epd(fen), a); };
   const read = async fen => {
@@ -139,6 +139,7 @@ function motifVerifier(Chess, engine) {
     const combinations = lineMotifs(Chess, line.start, line.ucis);
     const rows = [];
     for (let k = 0; k < line.sans.length; k++) {
+      proofs.delete(JSON.stringify([line.fens[k], line.ucis[k]]));
       const candidates = [...moveMotifs(Chess, line.fens[k], line.ucis[k]), ...(combinations[k] || [])];
       const row = { move: line.sans[k], motifs: [], status: 'no pattern', reason: '', continuation: '', lossInPawns: null, payoff: '' };
       rows.push(row);
@@ -164,16 +165,19 @@ function motifVerifier(Chess, engine) {
       }
       if (!row.payoff) { row.status = 'unverified'; row.reason = 'No payoff established within the short continuation.'; continue; }
       // Multi-move labels require the supplied reply and follow-up to match the engine's PV.
-      row.motifs = [...new Set(candidates.filter(m => !m.span || line.ucis.slice(k + 1, k + m.span).every((u, j) => u === after.line.ucis[j])).map(m => m.why))];
+      const supported = candidates.filter(m => !m.span || line.ucis.slice(k + 1, k + m.span).every((u, j) => u === after.line.ucis[j]));
+      row.motifs = [...new Set(supported.map(m => m.why))];
       if (!row.motifs.length) { row.status = 'unverified'; row.reason = 'The supplied combination is not the engine continuation.'; continue; }
       row.status = 'confirmed';
       row.continuation = numbered(Chess, line.fens[k], bestReply.ucis, CAPS.motifPlies).text;
+      proofs.set(JSON.stringify([line.fens[k], line.ucis[k]]), { tags: [...new Set(supported.map(m => m.tag))],
+        start: line.fens[k], ucis: bestReply.ucis, lossInPawns: row.lossInPawns, payoff: row.payoff });
       evidence.push(bestReply.sans);
       starts.push(bestReply.start);
     }
     return rows;
   };
-  return { seed, check, evidence, starts };
+  return { seed, check, evidence, starts, proof: (fen, uci) => structuredClone(proofs.get(JSON.stringify([fen, uci])) || null) };
 }
 const motifSummary = checks => [...new Set(checks.flatMap(r => r.motifs))].slice(0, 12);
 
@@ -181,7 +185,7 @@ const motifSummary = checks => [...new Set(checks.flatMap(r => r.motifs))].slice
 // so the answer check (tutor.js checkAnswer) can back the moves the coach quotes from it.
 export async function runTool(Chess, engine, { name, args }) {
   const side = args.fen.split(' ')[1];
-  const verifier = motifVerifier(Chess, engine);
+  const verifier = createMotifVerifier(Chess, engine);
   if (name === 'analyse') {
     const a = await engine(args.fen, { depth: args.depth, lines: args.lines });
     const lines = (a?.lines || []).slice(0, args.lines).map(l => ({ l, n: numbered(Chess, args.fen, l.pv) }));

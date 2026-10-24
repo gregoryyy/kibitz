@@ -3,6 +3,25 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'Analysing game…': 'Partie wird analysiert…',
+  'Checking tactical opportunities…': 'Taktische Chancen werden geprüft…',
+  'Recorded checked continuation': 'Aufgezeichnete geprüfte Fortsetzung',
+  "Review trends": "Entwicklung der Partieanalysen",
+  "Review trends are hidden while you play with restricted help.": "Die Analyseentwicklung ist während des Spiels mit eingeschränkter Hilfe verborgen.",
+  "Your own reviewed games in this library. Phases are estimates; themes describe checked engine opportunities.": "Deine eigenen analysierten Partien in dieser Bibliothek. Partiephasen sind Schätzungen; Themen beschreiben geprüfte Engine-Chancen.",
+  "Reviewed games: {g}. Measured player moves: {m}/{n}.": "Analysierte Partien: {g}. Bewertete eigene Züge: {m}/{n}.",
+  "Some saved reviews lack compatible evidence. Re-run their review to include them.": "Einigen gespeicherten Analysen fehlen passende Belege. Analysiere diese Partien erneut, um sie einzubeziehen.",
+  "Some review formats are unsupported and have been kept unchanged.": "Einige Analyseformate werden nicht unterstützt und bleiben unverändert erhalten.",
+  "Review your own played games to build this history.": "Analysiere deine selbst gespielten Partien, um diese Übersicht aufzubauen.",
+  "Phase": "Partiephase",
+  "Measured moves": "Bewertete Züge",
+  "Mistakes / blunders": "Fehler / Patzer",
+  "Average accuracy": "Mittlere Genauigkeit",
+  "Tactical checks: {n}. Confirmed opportunities: {c}.": "Taktikprüfungen: {n}. Bestätigte Chancen: {c}.",
+  "Unverified cases are not counted as absence. These counts do not establish why you made a mistake.": "Ungeprüfte Fälle gelten nicht als Abwesenheit eines Musters. Diese Zahlen belegen nicht die Ursache eines Fehlers.",
+  "Open reviewed opportunity": "Analysierte Chance öffnen",
+  "Review stopped because the library changed.": "Die Analyse wurde wegen eines Bibliothekswechsels angehalten.",
+
   "Player profile": "Spielerprofil",
   "Your rating estimate (optional)": "Deine geschätzte Spielstärke (optional)",
   "Rating pool": "Wertungssystem",

@@ -7,6 +7,31 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Review-derived phase trends and checked opportunities
+
+TODO items: 9.2.
+
+### Implementation notes
+
+- Added pure `player/reviews.js` for bounded historical review reports and current-library aggregation. Own decisions retain full start/UCI/side binding, depth-qualified White-relative before/after score/PV facts, phase and a separate motif result. Restored depth-zero, bounded, shallow, malformed or illegal-PV data stays unmeasured. Terminal outcomes use complete source history and rules facts; moves after an automatic game end cannot acquire measurement credit.
+- Numerical classification/accuracy reuse the existing functions from the player's perspective. The six largest measured mistakes/blunders share the existing motif verifier's EPD cache, twelve additional searches and fifteen-second search-admission budget. The exported verifier adds detached per-position proof records without changing tool-response JSON. Confirmed, refuted, unverified, no-pattern and unchecked cases remain distinct. Only supported alternatives enter theme totals; legal geometry alone does not establish payoff.
+- `runReview()` captures reports only for known own played games, rechecking stop state, game generation, every captured FEN and library context around asynchronous checks. Reports travel with the ordinary own-game JSON through existing acknowledgement/quotas. Future report versions remain unchanged during re-review. Bounds survive score-coordinate conversion; the existing worker already rejects bound lines.
+- Reader validation replays current legal source/history and checks format, side/mainline/FEN binding, numerical/PV bounds, phase and motif geometry. This validates a historical record rather than authenticating stored scores or rerunning Stockfish on library reads. Current-library aggregation counts each document once; reruns replace contributions, and deletion/source-line/storage/owner changes remove them. No second global history store or persistent schema migration is added.
+- `player/review-history.js` renders English/German phase totals/coverage and checked theme counts, with sample sizes, explicit missing-evidence limits and up to six source samples. Played move labels and recorded checked SAN continuations make samples distinguishable. Exact source navigation rechecks record/library/game/pane/policy; restricted live help hides trends. Source titles/moves remain literal, and the phone table scrolls inside its wrapper. History is not automatically appended to model prompts.
+- Ten new logic scenarios cover own/Black errors, confirmed/refuted/unknown opportunities, rules-proven mate/promotion, shallow/bounded/restored evidence, stale async capture, source/score/tag/branch tampering, deduplication/deletion, terminal facts and JSON-order independence. Six browser scenarios cover actual review persistence/repeated replacement, source claims versus compatible reports, exact navigation, storage/deletion guards, held worker cancellation, future metadata and German phone layout. Existing tool and localization tests also pass.
+- Validation: ESLint/JSDoc checks, build, 496 unit tests (one live-provider skip), 23 focused review/tool logic cases and eight focused browser/localization cases pass. Final source-continuation/stage feedback passes the focused browser cases, and the German phone screenshot was inspected. The complete browser suite passes 308 tests (one optional live-model skip); the dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- Tracking describes recorded engine decisions/opportunities and heuristic phases, without diagnosing a learner's thought process, estimating ability or proving every possible tactic. Checks cover a bounded subset; unverified is not absence. Old reviews need fresh compatible evidence, and unknown future formats remain preserved. Own-mistake exercises/scheduling remain 9.3–9.4. [Evidence and lifecycle](REVIEWS.md) explain the limits.
+
+### Insights
+
+- Reusing source classifications or prose would turn imported claims into measured weaknesses. Capturing fresh qualified analysis and keeping its coverage separate prevents legacy depth-zero values and unsupported motifs from receiving credit.
+- A global additive counter would double-count re-reviews and retain deleted/other-context contributions. Source-bound reports aggregated from the current library preserve replacement, deletion and ownership behavior without a second synchronization path.
+
+---
+
 ## 2026-10-24 — Player profile and reported rating context
 
 TODO items: 9.1.

@@ -568,7 +568,9 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div class="row"><h2 style="margin-right:auto" id="reviewTitle">Game review</h2><button class="btn primary" id="btnReview">Run review</button><button class="btn" id="btnReviewStop" hidden>Stop</button></div>
       <p class="hint" id="reviewGame" translate="no"></p>
       <div class="progress" id="reviewProgress" hidden><div></div></div>
+      <p class="hint" id="reviewStage" role="status" hidden></p>
       <div id="reviewBody"><p class="empty-note">Play or load a game, then run the review. Stockfish checks every position at the depth set on the Game tab, scores each move, and finds the turning points. Claude then writes the summary.</p></div>
+      <section class="box" id="reviewHistory" aria-label="Review trends"></section>
     </div>
 
     <div class="pane" data-pane="library" hidden>
@@ -805,6 +807,8 @@ import { Engine, stockfishAttempts } from './chess/engine.js';
 import { createStore, browserStorage } from './platform/store.js';
 import { createProfileStore, profileKey, profileContext, PROFILE_KEY } from './player/profile.js';
 import { createProfilePanel } from './player/profile-ui.js';
+import { buildReviewReport, summarizeReviews, REVIEW_VERSION } from './player/reviews.js';
+import { renderReviewHistory } from './player/review-history.js';
 import { gameCheckpoint } from './chess/sessions.js';
 import { quote } from './coach/prompt.js';
 import { createBrowserModel, cpuThreads } from './coach/browser-llm.js';
@@ -1329,7 +1333,7 @@ async function analyse(fen, depth, tag = 'live', onInfo) {
   return anaOf(fen);
 }
 function toWhite(lines, stm) {
-  return lines.filter(Boolean).map(l => ({ pv: l.pv, depth: l.depth, score: stm === 'w' ? { ...l.score } : (l.score.mate !== undefined ? { mate: -l.score.mate } : { cp: -l.score.cp }) }));
+  return lines.filter(Boolean).map(l => ({ pv: l.pv, depth: l.depth, ...(l.bound ? { bound: l.bound } : {}), score: stm === 'w' ? { ...l.score } : (l.score.mate !== undefined ? { mate: -l.score.mate } : { cp: -l.score.cp }) }));
 }
 function classifyNode(i) {
   if (i < 1) return;
@@ -1947,6 +1951,7 @@ function onLibChange() {
   for (const id of libraryCache.keys()) if (!ids.has(id)) libraryCache.delete(id);
   // Never expose deleted/replaced records while hashing their replacements.
   INDEX = K.buildPositionIndex([]); PATTERN_INDEX = buildPatternIndex([]); LIBRARY_RECORDS = new Map(); TEXT_NOTES = []; TEXT_INDEX = null; HYBRID_INDEX = null;
+  refreshReviewHistory();
   const records = [], keys = new Set();
   for (const [source, collection] of [['library', [...Lib.games.values()]], ['classic', EXAMPLES]]) for (const g of collection) {
     const key = `${source}:${g.id}`; keys.add(key);
@@ -1963,6 +1968,7 @@ function onLibChange() {
   })).then(entries => {
     if (gen !== libraryIndexGen) return; // an older load must not resurrect changed/deleted sources
     LIBRARY_RECORDS = new Map(entries.map(e => [`${e.collection}:${e.g.id}`, e]));
+    refreshReviewHistory();
     INDEX = K.buildPositionIndex(entries.filter(e => e.snapshot).map(({ g, collection, snapshot }) => ({ ...g, collection, sourceSnapshot: snapshot, positions: indexedLibraryPositions(snapshot, g.cls) })));
     PATTERN_INDEX = buildPatternIndex(entries.filter(e => e.snapshot).map(({ g, collection, snapshot }) => ({ ...g, collection, positions: snapshot.occurrences })));
     TEXT_NOTES = entries.filter(e => e.snapshot).flatMap(e => annotationPassages(e.snapshot)); rebuildTextIndex();
@@ -2405,6 +2411,7 @@ function currentRecord(extra = {}) {
     eco: op?.eco || '', opening: op?.name || '', plies: last(), pgn: toPGN({ annotate: false }),
     cls: S.nodes.map(n => n.cls || null), evals: S.nodes.map((_, i) => whiteCp(i)), best: S.nodes.map(n => anaOf(n.fen)?.best || null),
     accuracy: counts.acc, counts: counts.c, summary: S.summary || '', hints: S.hints, reviewed: !!S.reviewDone, updatedAt: Date.now(),
+    ...(S.meta?.analysisReview !== undefined ? { analysisReview: S.meta.analysisReview } : {}),
   };
 }
 async function saveCurrentGame({ quiet = false, result } = {}) {
@@ -2771,6 +2778,18 @@ async function importPGN() {
 
 // ---------------------------------------------------------------- Review
 let reviewCtl = null;
+let reviewHistoryRecords = null, reviewHistorySummary = null;
+function refreshReviewHistory() {
+  if (reviewHistoryRecords !== LIBRARY_RECORDS) {
+    reviewHistoryRecords = LIBRARY_RECORDS; reviewHistorySummary = summarizeReviews(Chess, [...LIBRARY_RECORDS.values()]);
+  }
+  const gen = S.gen, records = LIBRARY_RECORDS, context = Lib.context();
+  const valid = () => showEngine() && !paneHidden('review') && gen === S.gen && records === LIBRARY_RECORDS && context === Lib.context();
+  renderReviewHistory($('#reviewHistory'), reviewHistorySummary, { allowed: showEngine(), t, onOpen: sample => {
+    const current = () => valid() && LIBRARY_RECORDS.get(`library:${sample.g.id}`)?.g === sample.g;
+    if (current()) openGame(sample.g, sample.occurrence.ply, current);
+  } });
+}
 function tally() {
   const c = { w: { best: 0, good: 0, book: 0, inaccuracy: 0, mistake: 0, blunder: 0 }, b: { best: 0, good: 0, book: 0, inaccuracy: 0, mistake: 0, blunder: 0 } };
   const accs = { w: [], b: [] };
@@ -2779,6 +2798,7 @@ function tally() {
   return { c, acc: { w: mean(accs.w), b: mean(accs.b) } };
 }
 function renderReviewHeader() {
+  refreshReviewHistory();
   $('#btnReview').textContent = S.reviewDone ? 'Re-run review' : 'Run review';
   $('#btnReview').disabled = S.nodes.length < 2 || !!reviewCtl || (S.playing && !S.over);
   $('#reviewTitle').translate = !S.meta?.white;
@@ -2789,11 +2809,12 @@ async function runReview() {
   if (S.nodes.length < 2 || reviewCtl) return;
   const ctl = reviewCtl = { stop: false };
   $('#btnReviewStop').hidden = false; renderReviewHeader();
+  $('#reviewStage').hidden = false; $('#reviewStage').textContent = 'Analysing game…';
   const bar = $('#reviewProgress'); bar.hidden = false;
   analyst.cancel('live'); liveToken++;
   // Snapshot the game: the user can load another game or branch off in analysis while this runs,
   // and results must never be applied to (or saved for) a different game.
-  const gen = S.gen, fens = S.nodes.map(n => n.fen), depth = S.depth, N = fens.length;
+  const gen = S.gen, fens = S.nodes.map(n => n.fen), depth = S.depth, N = fens.length, libraryContext = Lib.context();
   const unchanged = i => S.gen === gen && S.nodes[i]?.fen === fens[i];
   let changed = false;
   try {
@@ -2805,10 +2826,21 @@ async function runReview() {
       bar.firstElementChild.style.width = ((i + 1) / N * 100).toFixed(1) + '%';
       if (i % 6 === 0) renderMoves();
     }
+    const side = S.meta?.userColor || (S.mode === 'play' ? S.userColor : null);
+    const own = (S.meta?.kind || (S.mode === 'play' || S.meta?.played ? 'played' : 'study')) === 'played';
+    const supported = S.meta?.analysisReview === undefined || S.meta.analysisReview?.version === REVIEW_VERSION;
+    const current = () => !ctl.stop && S.gen === gen && libraryContext === Lib.context() && fens.every((fen, i) => S.nodes[i]?.fen === fen) && S.nodes.length === N;
+    if (!changed && current() && own && ['w', 'b'].includes(side) && supported) {
+      $('#reviewStage').textContent = 'Checking tactical opportunities…';
+      const report = await buildReviewReport(Chess, { start: S.start, ucis: S.nodes.slice(1).map(n => n.uci), side,
+        analysis: anaOf, current, engine: (fen, options) => analyse(fen, options.depth, 'review') });
+      if (report && current()) S.meta = { ...S.meta, analysisReview: report };
+    }
+    if (libraryContext !== Lib.context() || S.gen !== gen || S.nodes.length !== N || !fens.every((fen, i) => S.nodes[i]?.fen === fen)) changed = true;
   } finally {
-    reviewCtl = null; bar.hidden = true; $('#btnReviewStop').hidden = true;
+    reviewCtl = null; bar.hidden = true; $('#btnReviewStop').hidden = true; $('#reviewStage').hidden = true;
   }
-  if (changed) { analyst.cancel('review'); toast('Review stopped because the game changed.'); renderReviewHeader(); return; }
+  if (changed) { analyst.cancel('review'); toast(libraryContext !== Lib.context() ? 'Review stopped because the library changed.' : 'Review stopped because the game changed.'); renderReviewHeader(); return; }
   if (!ctl.stop) { S.reviewDone = true; if (S.gameId || S.mode === 'play') saveCurrentGame({ quiet: true }); }
   renderAll(); renderReview(); refreshAnalysis();
 }
