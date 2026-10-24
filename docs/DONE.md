@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Compare position retrieval with literature algorithms
+
+TODO items: documentation follow-up to completed 8.1, 8.2, 8.4, 8.5 and 8.8; no new algorithm milestone completed.
+
+### Implementation notes
+
+- Added [the position retrieval comparison](research/position-retrieval-comparison.md), audited against `2933295`: distinguishes Reading buckets, material/piece predicates, recorded-line pattern browsing, Combined fusion, optional pawn Jaccard and text embeddings. Compares their representations, inputs and gaps with relational BM25, solution-aware tactics, an expert-labelled classifier, CQL, ChessCLIP, ChessLM and conditional similarity learning, using primary sources.
+- Separates current within-suite results from literature experiments, including the 2014 paper's abstract/Table 3 MAP discrepancy and the 2026 accepted manuscript's grouped pair-classification task. Documents counterexamples, input/engine-budget parity, candidate recall, occurrence/game grouping, family splits and metrics for a future comparison.
+- Updated research navigation and dated implementation caveats, linked architecture/evaluation/TODO, and repaired the RRF author-PDF URL. No published benchmark labels or results changed.
+- Validation: reran offline position, pawn and text benchmarks; all three JSON reports exactly match their recorded versions, and all thirteen related unit/CLI cases pass. Checked 135 local documentation links/anchors and the diff; application lint/JSDoc checks passed. No provider calls, literature models or external datasets used.
+
+### Deviations
+
+- This is a sourced algorithm comparison and experiment design, not a reproduction of literature algorithms on Kibitz's corpus. Published metrics with different inputs, labels and denominators are not combined into a performance ranking.
+
+### Insights
+
+- Similarity of pawn squares, source occurrences, explanation passages and tactical solutions are different retrieval objectives. The relevant literature comparison depends on which one the query requests.
+
 ## 2026-10-24 — Select the local single-user deployment
 
 TODO items: 10.1; 2.9's existing env-key path resolved by this decision. Hosted 10.2 deferred.

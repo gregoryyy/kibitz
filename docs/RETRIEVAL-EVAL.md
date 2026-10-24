@@ -8,6 +8,8 @@ Explicit `--mode dense` and `--mode hybrid` comparisons followed in 8.3.2/8.4. T
 
 TODO 8.5 adds an offline `--mode pawns` [spatial benchmark](PAWN-DISTANCE.md#reproducible-spatial-benchmark) with ten original diagrams/eight separate queries. It compares the production exact/fuzzy position component, including an intentional sparse false negative; its corpus, labels and relevance task are separate from this original position suite.
 
+The [literature algorithm comparison](research/position-retrieval-comparison.md) maps current position/pawn, predicate, pattern and hybrid retrieval to relational BM25, solution-aware tactical retrieval and learned alternatives. It distinguishes these recorded development results from published experiments and defines inputs, grouping and metrics for a future shared-corpus comparison; those literature algorithms have not been benchmarked here.
+
 ## Running
 
 From the repository root, with the site's npm dependencies installed:
