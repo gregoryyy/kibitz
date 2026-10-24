@@ -267,6 +267,14 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .lesson-promotion { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; }
 .lesson-promotion::backdrop { background: rgb(0 0 0 / .35); }
 .lesson-promotion button { margin: 8px 4px 0 0; }
+.lesson-progress { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.lesson-progress p, .lesson-progress h3 { margin: 0; }
+.lesson-progress summary { cursor: pointer; }
+.lesson-progress-table { table-layout: fixed; width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.lesson-progress-table caption { text-align: left; font-weight: 600; margin-bottom: 6px; }
+.lesson-progress-table th, .lesson-progress-table td { text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); padding: 6px; overflow-wrap: anywhere; }
+.lesson-progress-table th:first-child { width: 32%; }
+.lesson-progress-table th:nth-child(2) { width: 17%; }
 @media (max-width: 600px) { .lesson-content { grid-template-columns: minmax(0, 1fr); } }
 .tabs .count { font: 11px var(--font-mono); color: var(--muted); margin-left: 4px; }
 .pane { padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
@@ -543,6 +551,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <div class="pane" data-pane="lessons" hidden>
       <h2>Lessons</h2>
       <p class="hint">Explore modules, lesson goals and exercises by level or theme.</p>
+      <section id="lessonProgress" aria-label="Lesson progress"></section>
       <section id="lessonPlayer" hidden aria-label="Lesson player"></section>
       <div id="curriculumPanel"></div>
     </div>
@@ -766,8 +775,11 @@ import { compileCurriculum } from './curriculum/curriculum.js';
 import { CURRICULUM } from './curriculum/catalogue.js';
 import { createCurriculumPanel } from './curriculum/ui.js';
 import { createLessonPlayer } from './curriculum/player.js';
+import { createLessonProgressStore, summarizeLessonProgress, LESSON_PROGRESS_KEY } from './curriculum/progress.js';
+import { createLessonProgressPanel } from './curriculum/progress-ui.js';
 
 let lessonPlayer = null;
+let refreshLessonProgress = () => {};
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -3393,6 +3405,7 @@ function answerChallenge(input) {
   }
 }
 function renderProgress() {
+  refreshLessonProgress();
   const p = TUTOR.progress, themes = Object.entries(p);
   const box = $('#challengeProgress');
   $('#challengeField').hidden = !themes.length;
@@ -3893,8 +3906,31 @@ async function addRef() {
 
 // Curriculum browsing and lesson play use separate state/boards and no provider requests.
 const curriculum = compileCurriculum(Chess, CURRICULUM);
-lessonPlayer = createLessonPlayer($('#lessonPlayer'), curriculum, { Chess, mountBoard: Chessground, language: LANG, t, generation: () => S.gen });
-createCurriculumPanel($('#curriculumPanel'), curriculum, { language: LANG, level: S.level, t, onOpen: (lesson, exercise) => lessonPlayer.open(lesson, exercise) });
+const LessonProgress = createLessonProgressStore(browserStorage(), curriculum), pendingLessonResults = [];
+let lessonProgressError = null, lessonProgressSummary = null, curriculumPanel = null;
+const lessonProgressPanel = createLessonProgressPanel($('#lessonProgress'), { language: LANG, t, onRetry: () => flushLessonResults() });
+refreshLessonProgress = () => {
+  lessonProgressSummary = LessonProgress.unreadable ? null : summarizeLessonProgress(curriculum, LessonProgress.entries, TUTOR.progress);
+  lessonProgressPanel.render(lessonProgressSummary, { pending: pendingLessonResults.length, error: lessonProgressError, unreadable: LessonProgress.unreadable });
+  curriculumPanel?.refreshProgress();
+};
+function flushLessonResults() {
+  lessonProgressError = null;
+  while (pendingLessonResults.length) {
+    lessonProgressError = LessonProgress.record(pendingLessonResults[0]);
+    if (lessonProgressError) break;
+    pendingLessonResults.shift();
+  }
+  refreshLessonProgress();
+}
+lessonPlayer = createLessonPlayer($('#lessonPlayer'), curriculum, { Chess, mountBoard: Chessground, language: LANG, t, generation: () => S.gen,
+  onComplete: result => { pendingLessonResults.push({ id: crypto.randomUUID(), at: Date.now(), ...result }); flushLessonResults(); } });
+refreshLessonProgress();
+curriculumPanel = createCurriculumPanel($('#curriculumPanel'), curriculum, { language: LANG, level: S.level, t,
+  onOpen: (lesson, exercise) => lessonPlayer.open(lesson, exercise), getProgress: () => lessonProgressSummary });
+window.addEventListener('storage', event => {
+  if (event.key === LESSON_PROGRESS_KEY || event.key === null) { LessonProgress.reload(); refreshLessonProgress(); }
+});
 
 // ---------------------------------------------------------------- Tabs & wiring
 // The panels under the dialogue (game, coach settings, review, library, reading) fold away, so the
