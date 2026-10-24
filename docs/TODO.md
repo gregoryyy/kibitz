@@ -217,7 +217,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 10.4 Explicit provider/purpose privacy opt-in: initially off network coach/test and passage/query-embedding grants, acknowledged saves/revocation retry, actual-routing gateway preconditions and cancelled late/cross-tab work; [data flows and limits](PRIVACY.md)
 - [x] 10.5 Accessibility: native keyboard square play with legal destinations and explicit promotion, independent arrow patterns/text descriptions and live reduced-motion control; [controls and verification limits](ACCESSIBILITY.md)
 - [x] 10.6 Mobile layout and dark mode *(prototype)*
-- [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the coach works offline with Ollama or the in-browser model (2.16)
+- [x] 10.7 Explicit offline/PWA preparation: verified public engine/reference/lesson bundle, browser library, waiting updates, scoped removal and browser-coach fallback. Ollama retains its local gateway requirement; [preparation and storage limits](OFFLINE.md)
 - [ ] 10.8 Internationalization
   - [x] 10.8.1 A language switch in the header, English and German: the page in German, the coach's answers in German, German move letters read (Sf3), screen-reader moves in German
   - [ ] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
