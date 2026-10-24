@@ -24,7 +24,7 @@ The existing `--host` option can change the listener for deliberate development/
 ## Consequences for the plan
 
 - TODO 10.2 hosted authentication is deferred. Passkeys/OAuth, account sessions, tenant isolation, account-based budgets and encrypted per-user provider keys are prerequisites for any later hosted service.
-- TODO 2.11 still needs restart-persistent usage and explicit cookie-scoped rate limits. Cookies supply local usage grouping, not authenticated quotas. Aggregate server limits remain authoritative.
+- [Usage limits](USAGE.md) persist server/cookie counters and minute allowances across restarts in the standard serve recipes. Cookies supply local grouping, not authenticated quotas; completed-usage admission thresholds are not hard billing caps.
 - Data export/deletion covers the standalone browser and explicitly selected local-server library. External artifact hosts retain control of their account data.
 - Security verification targets the chosen local deployment (ASVS L1 in TODO 11.4), with applicable provider/prompt/import checks. This decision does not mark those checks complete.
 - Packaging, privacy/consent, accessibility, offline use, localization and operations remain actionable. Containers must retain local-only defaults unless an operator intentionally changes them.

@@ -10,6 +10,7 @@ export function createPrivacyPanel(root, { store, onChange, t }) {
     el('p', 'Requests go through the local gateway to the configured provider endpoint. OpenAI/Mistral-compatible endpoints and the Ollama server can be operator-configured. Ask the operator about the destination and its data handling before allowing sharing.'),
     el('p', 'The engine, lessons, keyword search and library do not need a model provider. The in-browser model keeps coach content on this device and has a separate loading consent. Mock mode makes no external model request.'),
     el('p', 'The page can load fonts from Google Fonts unless the server uses offline mode. These font requests carry normal connection metadata, without coach prompts. Local-model mode does not change the operator-configured Ollama endpoint.'),
+    el('p', "When usage persistence is enabled, the local server keeps daily request, token and cost totals and recent request times under a hashed browser ID. These export and erase controls leave those counters in place; the local operator manages them."),
     el('p', 'Permissions are saved in this browser. Revoking permission cancels this tab’s pending requests and blocks future requests; it cannot recall data already sent. Provider retention depends on the service/account configuration. Browser/server exports and deletion are available separately in Settings.'));
   for (const provider of CONSENT_PROVIDERS) {
     const group = el('fieldset'); group.style.minWidth = '0'; group.style.marginBlock = '12px'; group.dataset.privacyProvider = provider;

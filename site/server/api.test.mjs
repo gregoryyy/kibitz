@@ -285,3 +285,56 @@ test('sample with tools: the tool calls come in the done line; unknown tools are
   assert.equal(bad.status, 400);
   assert.match(JSON.parse(bad.body).error.message, /"tools" must name tools/);
 });
+
+test('cookie-scoped rates reject one browser while another can use the shared server allowance', async () => {
+  const config = loadConfig({ AI_PROVIDER: 'mock', AI_RATE_LIMIT_PER_MINUTE: '10', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1' });
+  const api = createApi({ config, provider, log: quiet });
+  const s = http.createServer((req, res) => api(req, res)); await new Promise(r => s.listen(0, '127.0.0.1', r));
+  const base = `http://127.0.0.1:${s.address().port}/api/ai`;
+  const send = cookie => fetch(base + '/sample', { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: '{"prompt":"hi"}' });
+  try {
+    const status = await fetch(base + '/status'), alice = status.headers.get('set-cookie').split(';')[0];
+    const first = await send(alice); assert.equal(first.status, 200); await first.text();
+    const over = await send(alice); assert.equal(over.status, 429); assert.equal((await over.json()).error.code, 'rate_limited');
+    const bob = await send(''); assert.equal(bob.status, 200); await bob.text();
+    assert.equal((await (await fetch(base + '/status', { headers: { cookie: alice } })).json()).user.requests, 1);
+  } finally { s.close(); }
+});
+
+test('a held paid request is counted as paid even after switching to a local provider', async () => {
+  let finish, started;
+  const held = new Promise(resolve => finish = resolve), ready = new Promise(resolve => started = resolve);
+  const fake = { async *chat() { started(); await held; yield 'OK'; return { usage: { input: 20, output: 1 } }; } };
+  const config = { ...loadConfig({ AI_PROVIDER: 'mock' }), provider: 'anthropic' };
+  const api = createApi({ config, provider: fake, makeProvider: () => fake, log: quiet });
+  const s = http.createServer((req, res) => api(req, res)); await new Promise(r => s.listen(0, '127.0.0.1', r));
+  const base = `http://127.0.0.1:${s.address().port}/api/ai`;
+  try {
+    const status = await fetch(base + '/status'), cookie = status.headers.get('set-cookie').split(';')[0];
+    const pending = fetch(base + '/sample', { method: 'POST', headers: { 'content-type': 'application/json', cookie, 'x-kibitz-consent': 'v1:anthropic:coach' }, body: '{"prompt":"hi"}' });
+    await ready;
+    const switched = await fetch(base + '/config', { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: '{"provider":"mock"}' }); assert.equal(switched.status, 200);
+    finish(); const done = lines(await (await pending).text()).at(-1);
+    assert.equal(done.user.paid.tokens, 21);
+  } finally { finish(); s.close(); }
+});
+
+test('provider changes while a request body arrives cannot reuse consent for the previous route', async () => {
+  const config = loadConfig({ AI_PROVIDER: 'mock', ANTHROPIC_API_KEY: 'fake-test-key' });
+  let calls = 0; const fake = { async *chat() { calls++; yield 'unexpected'; return { usage: {} }; } };
+  const api = createApi({ config, provider: fake, makeProvider: () => fake, log: quiet });
+  const s = http.createServer((req, res) => api(req, res)); await new Promise(r => s.listen(0, '127.0.0.1', r));
+  const port = s.address().port, body = '{"prompt":"hi"}'; let partial;
+  try {
+    const pending = new Promise((resolve, reject) => {
+      partial = http.request({ host: '127.0.0.1', port, path: '/api/ai/sample', method: 'POST', headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) } }, res => {
+        let data = ''; res.on('data', chunk => data += chunk); res.on('end', () => resolve({ status: res.statusCode, body: data }));
+      });
+      partial.on('error', reject); partial.write(body.slice(0, 5));
+    });
+    await new Promise(resolve => s.once('request', resolve));
+    const switched = await fetch(`http://127.0.0.1:${port}/api/ai/config`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"provider":"anthropic"}' });
+    assert.equal(switched.status, 200); partial.end(body.slice(5));
+    const result = await pending; assert.equal(result.status, 403); assert.equal(JSON.parse(result.body).error.code, 'consent_required'); assert.equal(calls, 0);
+  } finally { partial?.destroy(); s.close(); }
+});

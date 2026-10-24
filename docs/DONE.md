@@ -28,6 +28,27 @@ TODO items: 10.8.3.
 
 - A translated annotated PGN is a different source document even when every chess move is unchanged. Its hashes and citation offsets must be generated from the actual language-specific text.
 
+## 2026-10-24 — Persistent local AI usage and per-browser request limits
+
+TODO items: 2.11, scoped by the selected local single-user deployment (10.1).
+
+### Implementation notes
+
+- Added current-day SQLite counters with hashed cookie scopes, bounded minute-admission timestamps, version checks, private file creation and fail-closed storage/capacity errors. Admission persists both rate allowances before provider work; completion records server and user usage in one transaction. Standard serve recipes select gitignored `.kibitz-data/usage.sqlite`; direct CLI/evaluation/test calls remain explicitly ephemeral unless `--usage FILE` is supplied.
+- Coach turns, connection tests and embeddings share aggregate and per-cookie rates. Paid classification is captured with the original route across asynchronous work. Consent is rechecked against the actual route after a request body finishes arriving, preventing a provider switch from reusing the preceding route's permission.
+- Existing token/cost displays and daily paid/local accounting retain their response shape. Corrupt/future schemas, unsafe paths, write failures and the 10,000-scope capacity limit preserve existing budgets rather than replacing the ledger. No prompt, answer, game, model ID, raw cookie or key enters the database.
+- [Usage settings and lifecycle](USAGE.md) document current-day retention, SQLite remnants/backups, operator reset, direct-CLI memory mode and threshold overshoot/incomplete-provider-usage limits. Data/privacy notices explain in English/German that their library/browser export and erasure controls leave operational counters in place.
+- Validation: checks/build and all 558 unit/server cases on the isolated notation/offline base (one optional live skip); four new store scenarios, actual CLI restart/privacy checks and three HTTP regressions. All three HTTP regressions fail on preceding API 9833767. All 30 focused browser cases pass, covering coach/embedding flows and all six data/nine privacy cases; the new real-CLI browser test verifies restart-persistent refusal, another cookie's independent allowance and both notice translations. Production audit reports zero vulnerabilities. The first new browser assertion expected gateway wording rather than the existing friendly error message; correcting that expectation completed the scenario without a product error-message change.
+
+### Deviations
+
+- Hosted accounts and authenticated quotas remain deferred with 10.2, as selected by the owner. Cookie replacement can restart an individual scope; aggregate server counters remain independent. The browser model does not pass through this gateway ledger.
+- Budgets are admission thresholds on completed reported usage, not reservations or hard billing caps. Final/in-flight calls, provider retries/fallbacks and crashes before usage recording can exceed or under-report them; provider-side spending caps remain necessary for hard financial limits. Operational counter retention/reset is separate from chess-data erasure and explicitly disclosed.
+
+### Insights
+
+- Durable cookie counters require a shared transactional store, but do not create authentication. Route/consent/payment classification must also be captured at the same point after asynchronous request-body reads.
+
 ## 2026-10-24 — Optional German move letters and figurines
 
 TODO items: 10.8.2.

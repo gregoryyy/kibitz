@@ -63,7 +63,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
 - [x] 2.9 Key management for the selected local single-user deployment: operator keys come from server env and never reach the browser, logs or prompts. An encrypted per-account store is deferred with hosted accounts; [deployment decision](DEPLOYMENT.md)
 - [x] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
-- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Done: timeouts, a daily token budget for the server, per-user budgets in tokens and dollars for paid models, and the tokens and cost of each answer and of the player's day in the dialogue. Users are told apart by a cookie, so the per-user budgets are soft until there are accounts. Remaining: a per-user rate limit, budgets tied to accounts (10.2), and usage kept across server restarts.
+- [x] 2.11 Limits for the selected local single-user app: shared and per-cookie minute rates, daily server tokens, per-cookie paid token/cost thresholds, timeouts and usage display. Standard serve recipes persist counters across restarts in private SQLite. Cookies supply soft local grouping; hosted account budgets remain deferred with 10.2. [Behavior, retention and admission-threshold limits](USAGE.md).
 - [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
 - [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
 - [x] 2.14 Settings UI: provider, model, connection test, local-only mode
