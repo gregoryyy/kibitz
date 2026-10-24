@@ -4,26 +4,12 @@ import { classify, winPct, moveAccuracy, scoreToCp, positionFeatures, moveMotifs
 import { playLine } from '../coach/annotations.js';
 import { createMotifVerifier } from '../coach/tools.js';
 import { checkPosition } from '../chess/play.js';
+import { analysisPoint as enginePoint, terminalPoint as rulesPoint } from '../chess/evidence.js';
 
 export const REVIEW_VERSION = 1;
 export const REVIEW_LIMITS = Object.freeze({ plies: 4000, depth: 99, motifs: 6 });
 const UCI = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const exactKeys = (o, list) => o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length === list.length && list.every(k => Object.hasOwn(o, k));
-const score = value => exactKeys(value, ['cp']) && Number.isSafeInteger(value.cp) && Math.abs(value.cp) <= 100_000
-  || exactKeys(value, ['mate']) && Number.isSafeInteger(value.mate) && value.mate !== 0 && Math.abs(value.mate) <= 1000;
-function rulesPoint(c) {
-  if (!c.isGameOver()) return null;
-  return { basis: 'rules', depth: 0, score: { cp: c.isCheckmate() ? c.turn() === 'w' ? -10_000 : 10_000 : 0 }, pv: [] };
-}
-function enginePoint(Chess, c, analysis) {
-  const terminal = rulesPoint(c); if (terminal) return terminal;
-  const first = analysis?.lines?.[0];
-  if (!Number.isSafeInteger(analysis?.depth) || analysis.depth < 6 || analysis.depth > REVIEW_LIMITS.depth || first?.bound || !score(first?.score)
-    || !Array.isArray(first.pv) || !first.pv.length || first.pv.slice(0, 6).some(u => typeof u !== 'string' || !UCI.test(u))) return null;
-  const line = playLine(Chess, c.fen(), first.pv.slice(0, 6));
-  if (!line || JSON.stringify(line.ucis) !== JSON.stringify(first.pv.slice(0, 6))) return null;
-  return { basis: 'engine', depth: analysis.depth, score: { ...first.score }, pv: first.pv.slice(0, 6) };
-}
 function checkedPoint(Chess, c, point) {
   if (!exactKeys(point, ['basis', 'depth', 'score', 'pv'])) return false;
   const terminal = rulesPoint(c);
