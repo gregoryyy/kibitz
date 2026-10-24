@@ -11,6 +11,14 @@ Preparation saves a complete public app bundle: Stockfish workers and WASM, ches
 
 The offline app copy includes wllama's runtime, not its weights. A successful in-memory model load does not prove durable caching: private browsing, quota pressure or storage eviction can leave the weights unavailable after reload. Test a reload without the server on your own device before depending on offline coaching. Missing weights or memory remain visible load errors. Cloud coaching and remote embeddings need their configured services; lexical/board search and authored lessons do not.
 
+## Model weight downloads
+
+`just offline` downloads the selected catalogue model before building/serving. The Node download command limits the response to the pinned byte count while streaming and checks its exact size and SHA-256 before replacing the final model file. Unique exclusive temporary files keep concurrent downloads separate; handled failures/cancellation remove that run's temporary files and leave earlier weights/markers intact before publication. The byte cap applies per download.
+
+The default total transfer deadline is 30 minutes, covering response headers and body. To allow an hour, run `node site/scripts/fetch-model.mjs --timeout-ms 3600000` from the repository root. The option accepts a positive integer up to 2147483647 milliseconds. Invalid sizes, hashes, failed HTTP responses, stalled transfers and interrupted streams produce a failure rather than publishing unchecked weights. Already checked files retain the existing no-download fast path.
+
+File and marker publication use separate atomic replacements; an interrupted marker update can leave verified weights needing another full check. A process crash can leave `.part-*` files, which are not served as models; remove abandoned partials only when no download is running. The `.sha256` marker is a quick availability check in an operator-controlled directory, not a fresh hash of every served byte. Keep model files/markers trusted; a same-size local edit with an old marker is outside that shortcut's detection. The download/verification command and browser weight cache have separate lifecycles from the public offline app bundle.
+
 ## Integrity, updates and removal
 
 The build generates a manifest of every public bundle asset with exact byte count and SHA-256. A module service worker fetches without cookies, rejects redirects/failed responses and verifies each asset before installation can succeed. An incomplete new cache is removed. Once a version controls the page, navigation and bundled assets come from that version; an absent cached file returns a visible failure rather than mixing in a different build. API requests, model weights, non-bundle paths, mutations and other origins bypass this cache.
