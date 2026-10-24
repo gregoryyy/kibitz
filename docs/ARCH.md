@@ -157,6 +157,8 @@ The [offline retrieval benchmark](RETRIEVAL-EVAL.md) (8.8) replays a fixed, sour
 
 ### 3.3 Structured retrieval
 
+The [position retrieval literature comparison](research/position-retrieval-comparison.md) maps these implemented paths to relational/solution-aware IR, CQL and chess embeddings, with separate task-specific measurements and remaining gaps.
+
 Chess positions have structure that text embeddings would blur, so retrieval here uses keys from chess itself rather than vector similarity:
 
 - **The exact position:** the EPD, a FEN without move counters, so transpositions match.
