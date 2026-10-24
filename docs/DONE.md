@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Saved lesson and theme progress
+
+TODO items: 6.7.
+
+### Implementation notes
+
+- Added pure `curriculum/progress.js` and a separate `progress-ui.js`. Version-1 browser-local records keep mate proof, source recall, rubric self-assessment (met/needs practice), revealed examples, unassisted completions, legal choices, hints, outside-reference choices and worked-example use separate. Validated Coach challenge counters appear alongside per-theme lesson counts. Catalogue badges and lesson/theme tables show practice, without a mastery/Elo claim or prerequisite lock.
+- Progress identity includes the stable exercise ID and exact goal/FEN/line/source/prompt/rubric revision. Changed tasks retain old results separately and receive no borrowed credit. Bounded counters, record/revision sizes, timestamps and recent completion IDs are validated on read/write. Malformed or future saved data remains untouched/read-only; reflection responses are never stored. Revision bounds allow JSON escaping of otherwise valid bounded teaching text.
+- Completion callbacks queue results in memory before saving. Atomic single-key writes precede in-memory publication; failed results stay queued across exercise/game changes for retry, with recent-ID deduplication. Reads before writes retain sequential tab changes; storage events refresh lesson results from other tabs. Queue status explains actual failures. Successful retry restores focus to status; catalogue badges update in place, preserving open details, filters and the player's return-focus target.
+- Seven logic scenarios cover result/evidence aggregation, help counts, save/reload, quota failure and idempotent retry, sequential tabs, corrupt/future data preservation/recovery, exact revision separation and escaping, invalid completions and separate validated Coach counters. Seven browser scenarios cover persistence/badges/focus, source recall and Coach counters, reflection privacy/reveal distinction, multiple pending results and retry, future-data recovery, revised tasks and German phone tables. The phone summary was inspected visually.
+- Verification: ESLint, JSDoc types and build pass; 406 unit/gateway tests and 237 browser tests pass, with one opt-in live test skipped per suite. Twenty-five focused curriculum/player/progress scenarios also passed; provider calls use mocks/fake clients.
+
+### Deviations
+
+- Results are local to the browser, with no server synchronization, new provider request or automatic skill estimate. Counts cover completed/revealed exercises, not an unfinished board or written draft. Pending failed saves remain in the current tab and need retry before it closes/reloads. localStorage's single-key write is atomic; simultaneous multi-tab read/modify/write operations are not database transactions. Profile/server storage work remains separately tracked.
+
+### Insights
+
+- A completed interaction can be a checked mate, source recall, rubric self-report or revealed example. Tracking those classes separately makes useful practice visible without calling every completion mastery.
+- Re-rendering the whole catalogue after a save would detach the exercise button used for return focus. Updating badges in place preserves keyboard flow and filter/detail state. Task revisions must include the learning question/rubric as well as the move line, and account for JSON escaping when enforcing bounds.
+
+---
+
 ## 2026-10-24 — Isolated lesson player and authored tutor hints
 
 TODO items: 6.6.
