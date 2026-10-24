@@ -16,7 +16,7 @@ export function auditClassicsSources(book, historical, games = classicGames()) {
   requireFact(validEvidence(book.book) && book.book.url === 'https://www.gutenberg.org/cache/epub/33870/pg33870-images.html'
     && book.book.catalogue === 'https://www.gutenberg.org/ebooks/33870' && book.book.score === 'Public domain (USA; 1921 score)', 'Invalid book provenance.');
   requireFact(historical.licence === 'CC-BY-SA-4.0' && historical.licenceUrl === 'https://creativecommons.org/licenses/by-sa/4.0/', 'Invalid historical source licence.');
-  const current = new Map(games.filter(g => !g.id.startsWith('st-')).map(g => [g.id, g])), seen = new Set();
+  const current = new Map(games.filter(g => !g.problem).map(g => [g.id, g])), seen = new Set();
   let sourcePlies = 0;
   for (const record of [...book.games, ...historical.games]) {
     requireFact(record && typeof record.id === 'string' && current.has(record.id) && !seen.has(record.id), 'Source identity mismatch.');
@@ -48,14 +48,14 @@ export function auditClassicsSources(book, historical, games = classicGames()) {
     sourcePlies += line.length;
   }
   requireFact(seen.size === current.size && current.size === 21, 'A packaged game has no source evidence.');
-  return { games: current.size, bookGames: book.games.length, sourcePlies, studies: games.filter(g => g.id.startsWith('st-')).length };
+  return { games: current.size, bookGames: book.games.length, sourcePlies, studies: games.filter(g => g.problem).length };
 }
 
 export async function checkClassics() {
   const book = JSON.parse(await readBounded(fileURLToPath(new URL('../data/classics/capablanca-scores.json', import.meta.url)), 1_000_000));
   const historical = JSON.parse(await readBounded(fileURLToPath(new URL('../data/classics/historical-scores.json', import.meta.url)), 1_000_000));
   const result = auditClassicsSources(book, historical);
-  console.log(`${result.games} published game scores (${result.sourcePlies} plies, ${result.bookGames} complete Capablanca games) verified offline; ${result.studies} study sources remain separate.`);
+  console.log(`${result.games} published game scores (${result.sourcePlies} plies, ${result.bookGames} complete Capablanca games) verified offline; ${result.studies} problem/study records are audited separately.`);
   return result;
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) await checkClassics();

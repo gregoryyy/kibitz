@@ -7,6 +7,30 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Sourced problems and checked study branches
+
+TODO items: 7.4.
+
+### Implementation notes
+
+- Added `library/problem-data.js` and `problems.js`: twelve curated positions, four mates in one and eight studies/reflections. Eight original curriculum exercises join the existing Réti, Saavedra, Lucena and Philidor records, for 33 reference records including the 21 games. Source lesson/exercise IDs and immutable code references preserve lineage; English/German questions, distinct problem/study badges, a wrapping Problems filter and diagram-first opening expose the collection. Normal move controls show the recorded example. Current-game departure/return behavior is retained; viewing is not a lesson solve.
+- Published Réti/Saavedra diagrams retain fixed Wikipedia revisions, contributor credits, CC BY-SA 4.0 facts and 64 source cells that reconstruct their placements. Lucena/Philidor remain explicitly authored variants under the project licence, with separate conventional-method references and unknown publication dates; the Lucena name does not establish a 1497 publication. The [manifest documentation](../site/data/problems/README.md) and shipped notices separate these sources from original teaching prose.
+- The general compiler keeps imported studies at legal-replay-only status. Snapshot composition attaches checked evidence only to the curated `classic` collection after binding document/root occurrence, full FEN/counters, UCI line, result and source/score rights. Four mate tasks prove actual checkmate. All 48 worked plies preserve declared White-perspective WDL in 50 saved snapshots (28 shared curriculum records plus 22 fixed Réti/Saavedra records). Notes stay unverified; arbitrary alternatives, unique best play and learner performance gain no certificate. Flat problem metadata is detached from the trusted registry, and copied IDs/extra metadata cannot opt imports into proof.
+- `check-problems.mjs` audits source/diagram/curriculum bindings, bounded bilingual metadata and every numerical snapshot digest offline. Its explicit `--refresh` queries only the 22 fixed published-study FENs, serially, strips response prose/SAN, validates the collection and atomically replaces the data. No account/browser position is read or sent. Shared curriculum evidence retains its separate refresh command; ordinary/cursed/uncertain outcomes and DTZ/DTM remain distinct through the existing adapter.
+- Seven logic scenarios cover collection coverage, detached metadata, forged imports, changed counters/branches/results/rights, colour/turn-sensitive outcomes, failed queen promotion in Saavedra, actual mates versus nonmates, uncertain evidence, independent diagram reconstruction, source/digest tampering, fake refresh clients/errors and an offline default. Five browser scenarios cover filtering with a personal library, no remote/provider requests or false progress, diagram-first White/Black mate examples, forged imported proof, live-game cancel/return, German phone wrapping/labels and method links. Existing source/library/localization regressions also pass.
+- Validation: ESLint/JSDoc checks, build, offline source audits and 427 unit tests pass (one live-provider skip). The complete browser suite passes 262 tests (one optional live-model skip); the final colour-label adjustment is checked again with the unit suite and 19 focused browser cases.
+
+### Deviations
+
+- This is a curated starter collection of endgame tasks, reusing checked authored material alongside the two published studies and two conventional variants. It does not claim a complete problem corpus or a proof tree over every defence. The Library exposes worked-line inspection on its normal analysis board; interactive lesson solving/progress remains the separate lesson player. No source-view completion is converted into mastery or a performance grade.
+
+### Insights
+
+- Equal piece placement is insufficient for result evidence: side to move and counters can change the outcome. Matching an imported ID is also insufficient for source trust. The exact document/source/branch binding keeps objective chess facts separate from imported claims and prose.
+- A named conventional position need not be the original published diagram. Recording authored variants and their method references avoids borrowing a historical date or a source's licence for a different setup. Shared curriculum examples also need stable lineage rather than duplicated, independently drifting solutions.
+
+---
+
 ## 2026-10-24 — Published classic-game sources and expanded collection
 
 TODO items: 7.3.

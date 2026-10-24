@@ -11,7 +11,7 @@ const historical = JSON.parse(await readFile(new URL('../../data/classics/histor
 
 test('all 21 game scores bind to published source facts; the twelve complete book tables reconstruct uniquely', () => {
   const result = auditClassicsSources(book, historical);
-  assert.equal(result.games, 21); assert.equal(result.studies, 4); assert.equal(result.bookGames, 12);
+  assert.equal(result.games, 21); assert.equal(result.studies, 12); assert.equal(result.bookGames, 12);
   assert.equal(book.games.reduce((n, g) => n + g.line.length, 0), 980);
   assert.ok(book.games.every(g => ![3, 6].includes(g.gameNumber)));
   assert.equal(BENCHMARK_CLASSICS.length, 13); // fixed measured corpus, independent of production growth
