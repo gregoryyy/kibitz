@@ -22,7 +22,7 @@ test('different comments, glyphs, variations, headers, results and rights remain
     record(a.pgn.replace('My note', 'Another note')), record(a.pgn.replace('My note', 'My  note')),
     record(a.pgn.replace('$1', '$2')), record(a.pgn.replace('e5 2.', 'e5 (2. Bc4) 2.')),
     record(a.pgn.replace('Notebook', 'Another event')), record(a.pgn.replace('[White "A"]', '[White "C"]')),
-    record(a.pgn.replace('*', '1-0')),
+    record(a.pgn.replaceAll('*', '1-0')),
     record(a.pgn, { provenance: makeProvenance('imported', { title: 'Another source' }) }),
     record(a.pgn, { provenance: makeProvenance('imported', { score: 'CC0-1.0' }) }),
     record(a.pgn, { provenance: makeProvenance('imported', { annotations: 'Personal notes' }) }),
