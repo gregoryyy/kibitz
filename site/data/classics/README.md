@@ -1,6 +1,6 @@
 # Published classic-game scores
 
-The shipped catalogue has **21 games and four studies**. This source audit covers the 21 games; study-source work is tracked separately in TODO 7.4. Scores identify the published versions used here, rather than asserting that every familiar historical account or first publication has been authenticated. Kibitz supplies all teaching prose; no third-party prose annotations, variations or judgement glyphs are copied.
+The shipped catalogue has **21 games and twelve problems/studies**. This source audit covers the 21 games; [problem/study sources and evidence](../problems/README.md) have their own audit. Scores identify the published versions used here, rather than asserting that every familiar historical account or first publication has been authenticated. Kibitz supplies all teaching prose; no third-party prose annotations, variations or judgement glyphs are copied.
 
 Run from `site/`:
 

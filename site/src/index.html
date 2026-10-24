@@ -264,6 +264,7 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 #lessonMove { min-width: 0; width: auto; flex: 1; }
 #lessonLine { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; }
 #lessonLine [aria-pressed="true"] { border-color: var(--accent); }
+#libFilter { flex-wrap: wrap; max-width: 100%; }
 .lesson-promotion, .lesson-play-confirm { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; max-width: calc(100vw - 32px); }
 .lesson-promotion::backdrop, .lesson-play-confirm::backdrop { background: rgb(0 0 0 / .35); }
 .lesson-promotion button, .lesson-play-confirm button { margin: 8px 4px 0 0; }
@@ -606,7 +607,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       </section>
       <div class="row">
         <input type="text" id="libSearch" placeholder="Search player, opening, result" style="flex:1;min-width:160px">
-        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button></div>
+        <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button><button data-v="problems" aria-pressed="false">Problems</button></div>
       </div>
       <div id="libList" class="lib-list"></div>
       <details class="box"><summary>Import PGN (games or annotated studies)</summary>
@@ -757,6 +758,11 @@ import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChall
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './library/classics.js';
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
 import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
+import { CURATED_PROBLEMS } from './library/problem-data.js';
+import { verifiedProblemEvidence } from './library/problems.js';
+import { PROBLEM_TABLEBASES } from './library/problem-tablebases.js';
+import { TABLEBASE_SNAPSHOTS } from './curriculum/tablebase-snapshots.js';
+import { tablebaseIndex } from './curriculum/tablebase.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings/openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './openings/opening-guides.js';
 import { annotationPassages, guidePassages, searchText } from './library/text-search.js';
@@ -776,7 +782,7 @@ import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/
 import { sanToSpeech, parseMoveInput } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import DE from './platform/i18n-de.js';
-import { compileCurriculum } from './curriculum/curriculum.js';
+import { compileCurriculum, lessonText } from './curriculum/curriculum.js';
 import { CURRICULUM } from './curriculum/catalogue.js';
 import { createCurriculumPanel } from './curriculum/ui.js';
 import { createLessonPlayer } from './curriculum/player.js';
@@ -1732,6 +1738,8 @@ const Lib = {
 // Built-in examples (public-domain games, annotations by Kibitz) so the library and retrieval have something to show.
 // The built-in classics (classics.js, TODO 7.3): in the library, the position index and the reading list.
 const EXAMPLES = classicGames();
+const PROBLEMS = new Map(CURATED_PROBLEMS.map(p => [p.id, p]));
+const PROBLEM_TABLEBASE_LOOKUP = tablebaseIndex(Chess, [...TABLEBASE_SNAPSHOTS, ...PROBLEM_TABLEBASES]);
 let INDEX = K.buildPositionIndex([]);
 let OPENING_INDEX = buildOpeningIndex([]);
 const openingCache = new Map(); // source + id -> {pgn, record}; invalidate on content, not timestamps
@@ -1749,7 +1757,11 @@ function rebuildTextIndex() { HYBRID_INDEX = buildHybridIndex(Chess, [...TEXT_NO
 function librarySnapshot(g, collection) {
   const key = `${collection}:${g.id}`, input = JSON.stringify([g.pgn, g.provenance, g.kind]);
   let cached = libraryCache.get(key);
-  if (!cached || cached.input !== input) libraryCache.set(key, cached = { input, promise: compileLibraryGame(Chess, g, collection) });
+  if (!cached || cached.input !== input) libraryCache.set(key, cached = { input, promise: compileLibraryGame(Chess, g, collection).then(snapshot => {
+    const definition = collection === 'classic' ? PROBLEMS.get(g.id) : null;
+    const evidence = verifiedProblemEvidence(Chess, snapshot, definition, PROBLEM_TABLEBASE_LOOKUP);
+    return evidence ? { ...snapshot, problem: { ...snapshot.problem, verification: 'tablebase-branch', ...evidence } } : snapshot;
+  }) });
   return cached.promise;
 }
 function allGames() { return [...Lib.games.values(), ...EXAMPLES]; }
@@ -2432,7 +2444,12 @@ function renderSourceEvidence(box, record) {
   if (!record?.snapshot) return;
   const data = record.snapshot;
   box.append(el('p', { class: 'hint source-counts' }, `${data.occurrences.length} position occurrences · ${data.annotations.length} annotations`));
-  if (data.problem) box.append(el('p', { class: 'hint' }, 'Study position with a recorded line. Move legality is checked; the solution and stated result are unverified.'));
+  if (data.problem?.verification === 'tablebase-branch') {
+    const evidence = data.problem.tablebase, outcome = t(evidence.outcome === 'draw' ? 'Draw' : evidence.outcome === 'white-win' ? 'White wins' : 'Black wins');
+    box.append(el('p', { class: 'hint', translate: 'no', 'data-raw': '' }, t('Recorded branch: {outcome}. Checked in saved Syzygy facts; other continuations are not certified.', { outcome })),
+      el('a', { class: 'ext', href: evidence.url, target: '_blank', rel: 'noopener noreferrer' }, 'Tablebase source'));
+    if (data.problem.goal === 'mate-in-one') box.append(el('p', { class: 'hint' }, 'The recorded move is an actual mate in one. Other mates may exist.'));
+  } else if (data.problem) box.append(el('p', { class: 'hint' }, 'Study position with a recorded line. Move legality is checked; the solution and stated result are unverified.'));
 }
 function refreshLibraryEvidence() {
   for (const card of $$('#libList .game')) {
@@ -2450,6 +2467,7 @@ function sourceDetails(g) {
   const evidence = el('div', { class: 'source-evidence' }); box.append(evidence);
   renderSourceEvidence(evidence, LIBRARY_RECORDS.get(`${collection}:${g.id}`));
   if (p.source.url) box.append(el('a', { class: 'ext', href: p.source.url, target: '_blank', rel: 'noopener noreferrer' }, 'Open source'));
+  if (collection === 'classic' && g.problem?.reference?.url && g.problem.reference.url !== p.source.url) box.append(el('p', {}, el('a', { class: 'ext', href: g.problem.reference.url, target: '_blank', rel: 'noopener noreferrer' }, 'Method reference')));
   if (collection === 'classic') {
     for (const [label, value] of [['Source title', p.source.title], ['Source author or curator', p.source.author], ['Score licence as supplied', p.rights.score], ['Annotation licence as supplied', p.rights.annotations]]) box.append(el('p', {}, el('span', {}, label), ': ', value ? el('span', { translate: 'no' }, value) : el('span', {}, 'Not supplied')));
   } else {
@@ -2472,7 +2490,7 @@ function renderLibrary() {
   const mine = [...Lib.games.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   $('#libCount').textContent = mine.length ? String(mine.length) : '';
   // The classics (classics.js) under their own filter; in "All" only while the library is empty or a search is on.
-  const pool = filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !q ? [] : EXAMPLES)];
+  const pool = filt === 'problems' ? EXAMPLES.filter(g => g.problem) : filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !q ? [] : EXAMPLES)];
   const list = pool.filter(g => {
     if (filt === 'played' && g.kind !== 'played') return false;
     if (filt === 'study' && g.kind === 'played') return false;
@@ -2483,6 +2501,8 @@ function renderLibrary() {
   if (paneHidden('library')) return; // count and location above stay current; the list renders when the tab opens
   if (!mine.length) box.append(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
   for (const g of list) {
+    const problem = EXAMPLES.includes(g) ? g.problem : null;
+    const names = problem ? `${t('White')} – ${t('Black')}` : `${g.white} – ${g.black}`;
     const youIdx = g.userColor;
     const acc = youIdx && g.accuracy?.[youIdx] != null ? `${Math.round(g.accuracy[youIdx])}% accuracy` : '';
     const c = youIdx ? g.counts?.[youIdx] : null;
@@ -2491,11 +2511,12 @@ function renderLibrary() {
       del.replaceWith(el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id) }, 'Delete'), el('button', { class: 'btn small', onclick: renderLibrary }, 'Keep')));
     } }, 'Delete');
     box.append(el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
-      el('div', {}, el('div', { class: 'title' }, g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, `${g.white} – ${g.black}`)),
+      el('div', {}, el('div', { class: 'title' }, problem ? el('span', { class: 'badge ex' }, problem.goal === 'mate-in-one' ? 'Problem' : 'Study') : g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, names)),
         el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills),
-        g.scoreNote ? el('p', { class: 'hint' }, g.scoreNote) : null),
+        g.scoreNote ? el('p', { class: 'hint' }, g.scoreNote) : null,
+        problem ? el('p', { class: 'problem-prompt', translate: 'no', 'data-raw': '' }, lessonText(problem.prompt, LANG)) : null),
       el('div', { class: 'res' }, g.result || '*'),
-      el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g) }, g.reviewed ? 'Open review' : 'Open'),
+      el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g, problem ? 0 : null) }, g.reviewed ? 'Open review' : 'Open'),
         el('button', { class: 'btn small ghost', onclick: () => copyText(g.pgn, 'PGN copied') }, 'Copy PGN'),
         el('button', { class: 'btn small ghost', onclick: () => downloadPGN(g) }, 'Save .pgn'),
         g.kind === 'example' ? null : del), sourceDetails(g)));

@@ -112,7 +112,7 @@ test('studies preserve the initial FEN and its notes, including a position-only 
   await cards(page).getByRole('button', { name: 'Open', exact: true }).click(); expect((await S(page)).nodes).toBe(1);
   await page.locator('#libFilter [data-v="classics"]').evaluate(b => b.click()); await library(page);
   const builtin = page.locator('.game[data-game-id="st-reti"][data-collection="classic"]'); await edit(builtin);
-  await expect(source(builtin)).toContainText('GPL-3.0-or-later'); await expect(source(builtin)).toContainText('Not supplied'); await expect(source(builtin).locator('input')).toHaveCount(0);
+  await expect(source(builtin)).toContainText('GPL-3.0-or-later'); await expect(source(builtin)).toContainText('CC-BY-SA-4.0'); await expect(source(builtin)).toContainText('Recorded branch: Draw'); await expect(source(builtin).locator('input')).toHaveCount(0);
 });
 
 test('late digest/index work and held source controls cannot resurrect a deleted record', async ({ page }) => {

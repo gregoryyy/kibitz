@@ -62,7 +62,7 @@ test('whole corrupt games, empty games and custom-start studies are excluded', (
   assert.equal(openingGame(Chess, { pgn: '1. e4' }, 'invalid'), null);
   const records = classicGames().map(g => openingGame(Chess, g, 'classic'));
   assert.equal(query(records).records, 21);
-  assert.equal(records.filter(r => r === null).length, 4);
+  assert.equal(records.filter(r => r === null).length, 12);
   assert.equal(query(records).games, 21);
 });
 
