@@ -170,7 +170,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 - [x] 6.1 Curriculum structure: validated modules → lessons → exercises with stable IDs, levels, themes, bilingual authored text, acyclic prerequisites and source/licence metadata. Lessons catalogue filters by level/module/theme; positions and recorded lines are checked with chess.js, including terminal mate checks for mate exercises. Interactive lesson play and grading remain 6.6
 - [x] 6.2 Tactics: 13 bilingual concept lessons covering forks, pins, skewers, discovered attacks, double checks, deflection, decoy, overloading, interference, removing a defender, zwischenzugs, back rank and mating patterns. Legal examples and declared motif geometry are checked; a capturable-fork counterexample distinguishes recognition from payoff. Interactive grading remains 6.6
-- [ ] 6.3 Strategy: pawn structures (IQP, Carlsbad, hanging pawns, …), weak squares, outposts, good and bad bishops, open files, king safety, piece activity, prophylaxis
+- [x] 6.3 Strategy: eleven bilingual reflection lessons covering IQP, Carlsbad and hanging-pawn structures, weak squares, outposts, bishop quality, open files, king safety, piece/king activity and prophylaxis. Legal examples, explicit objectives/rubrics, checked structure tags and board-fact tests support the authored material; candidate plans are not engine verdicts
 - [ ] 6.4 Endgames: basic mates, king and pawn, opposition, Lucena, Philidor; checked against tablebases (Syzygy) *(added)*
 - [ ] 6.5 Puzzle source: Lichess puzzle database (CC0), already tagged by theme
 - [ ] 6.6 Lesson player: explanation, worked positions, exercises with tutor hints

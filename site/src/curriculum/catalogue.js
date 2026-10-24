@@ -1,5 +1,6 @@
 // Original Kibitz teaching material; no imported prose or external puzzle database (TODO 6.1).
 import { TACTICS } from './tactics.js';
+import { STRATEGY } from './strategy.js';
 const words = (en, de) => ({ en, de });
 const source = { title: words('Kibitz original curriculum', 'Kibitz: eigene Lerninhalte'), author: 'Kibitz contributors', licence: 'GPL-3.0-or-later' };
 /** @type {import('./curriculum.js').Curriculum} */
@@ -18,7 +19,7 @@ export const CURRICULUM = { version: 1, source, modules: [
       ] },
     ...TACTICS,
   ] },
-  { id: 'strategy', title: words('Planning foundations', 'Grundlagen der Planung'), level: 2, tags: ['planning', 'king-activity'], lessons: [
+  { id: 'strategy', title: words('Planning foundations', 'Grundlagen der Planung'), level: 2, tags: [...new Set(['planning', 'king-activity', ...STRATEGY.flatMap(l => l.tags)])], lessons: [
     { id: 'active-king', title: words('Give the king a useful role', 'Gib dem König eine aktive Rolle'), level: 2, tags: ['planning', 'king-activity', 'pawn-endgame'], prerequisites: [],
       introduction: words('With few attacking pieces left, the king can help pawns and contest central squares. First check whether a route is safe. A useful-looking route does not prove a win: pawn races and the opponent’s replies still matter.', 'Wenn nur wenige Angriffsfiguren übrig sind, kann der König Bauern unterstützen und zentrale Felder besetzen. Prüfe zuerst, ob der Weg sicher ist. Ein nützlich aussehender Weg beweist keinen Gewinn: Bauernrennen und gegnerische Antworten bleiben entscheidend.'),
       objectives: [words('Describe what the king could help without declaring the position won.', 'Beschreibe, wobei der König helfen könnte, ohne die Stellung als gewonnen zu bezeichnen.'), words('Ask what the opponent can do while the king travels.', 'Frage, was der Gegner während des Königsmarsches tun kann.')],
@@ -27,6 +28,7 @@ export const CURRICULUM = { version: 1, source, modules: [
           prompt: words('Explain what a move towards the centre might help and what you would check before choosing it.', 'Erkläre, wobei ein Zug zum Zentrum helfen könnte und was du vor der Entscheidung prüfen würdest.'), fen: '7k/7p/8/8/8/5K2/P7/8 w - - 0 1', line: ['f3e4'],
           rubric: [words('Discuss central access, support for the pawn and the opponent’s pawn race; no unique best move or winning result is asserted.', 'Besprich den Zugang zum Zentrum, die Unterstützung des Bauern und das gegnerische Bauernrennen; ein eindeutig bester Zug oder ein Gewinn wird nicht behauptet.')] },
       ] },
+    ...STRATEGY,
   ] },
   { id: 'endgames', title: words('Endgame foundations', 'Endspielgrundlagen'), level: 1, tags: ['endgame', 'mate'], lessons: [
     { id: 'queen-and-king-mate', title: words('Queen and king work together', 'Dame und König arbeiten zusammen'), level: 1, tags: ['endgame', 'mate'], prerequisites: ['back-rank-mate'],

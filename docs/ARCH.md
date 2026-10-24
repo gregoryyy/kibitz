@@ -68,6 +68,8 @@ flowchart LR
 
 The **curriculum catalogue** (6.1, `src/curriculum/`) is independent of the coach and active board. A pure compiler validates bounded module/lesson/exercise records, unique stable IDs, English/German teaching text, level and theme tags, attribution, and acyclic prerequisites. chess.js checks each starting position and recorded UCI line; mate exercises additionally establish terminal checkmate for the learner's colour. Reflection lines are legal examples with authored rubrics, without a best-move or result claim. The tactical catalogue (6.2) covers thirteen themes and includes a capturable-fork counterexample. Optional declared patterns must appear in the existing move/line motif detectors for that exact example; this checks geometric consistency, not tactical soundness or uniqueness. The Lessons panel filters and renders this data literally without provider requests or game changes. Lesson play, alternative-answer grading and progress remain 6.6/6.7.
 
+The **strategy material** (6.3) adds ten reflections beside the king-activity foundation. IQP, Carlsbad and hanging-pawn examples declare optional `positionTag` metadata, which the compiler checks with the existing position-feature detector. Other lessons ask about weak squares, supported outposts, bishop routes, open files, pawn cover, useful piece roles and preventive ideas. Board-fact tests check their concrete support, attack, colour and flight-square relationships. These lesson tags and candidate demonstrations do not add new engine evaluations or certify a best plan.
+
 Kibitz is also a working example of common patterns for building with language models. Each one below says where it lives in the code.
 
 ### 3.1 Context control
