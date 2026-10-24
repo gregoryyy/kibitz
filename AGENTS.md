@@ -5,7 +5,7 @@ Kibitz is a neurosymbolic chess coach in the browser. Stockfish (WASM) plays and
 ## Layout
 
 Everything for the app is in `site/`, a single npm project. The architecture is explained in `docs/ARCH.md`; design notes are in `site/README.md`.
-- `site/src/`: the page (`index.html`, written as a Claude artifact body) and `knowledge.js`. These build into `site/dist/`; never edit `dist/`.
+- `site/src/`: the page (`index.html`, written as a Claude artifact body) and ES modules grouped under `chess/`, `coach/`, `library/`, `openings/` and `platform/`. The build preserves these directories in `site/dist/`; never edit `dist/`.
 - `site/server/`: the AI gateway. `site/scripts/serve.mjs --api` mounts it and loads `.env` from the repo root.
 - `site/tests/`, `site/server/*.test.mjs`: tests.
 - `utils/`: repository utilities, including PDF styles and Mermaid support in `utils/pdf/`.
@@ -33,7 +33,7 @@ Node (current LTS) and WebAssembly. Browser code is plain ES modules with chessg
 - Before every release, run the OWASP Top 10, OWASP Top 10 for LLM Applications and ASVS checks (TODO 11) and record the results in the release PR.
 - API keys stay on the server, never in the browser, the repo, logs or prompts.
 - Model output, imported PGN and library text are untrusted. Never render them as HTML, and check every move and square with chess.js before showing it.
-- Imported or user-written text (PGN headers and comments, the player's references and notes) goes into prompts only through `quote()` from `site/src/prompt.js`.
+- Imported or user-written text (PGN headers and comments, the player's references and notes) goes into prompts only through `quote()` from `site/src/coach/prompt.js`.
 - Async work (engine, coach, review) must check that the game is still the one it started for (`S.gen`, or the position's FEN) before applying results.
 
 ## Chess logic

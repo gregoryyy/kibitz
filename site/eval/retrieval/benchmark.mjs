@@ -1,9 +1,9 @@
 // Offline benchmark of production retrieval. No model/engine calls, app writes or .env access.
 import { createHash } from 'node:crypto';
 import { Chess } from 'chess.js';
-import { compileLibraryGame, indexedLibraryPositions } from '../../src/library.js';
-import { buildPositionIndex, similarPositions, epd } from '../../src/knowledge.js';
-import { checkPosition } from '../../src/play.js';
+import { compileLibraryGame, indexedLibraryPositions } from '../../src/library/library.js';
+import { buildPositionIndex, similarPositions, epd } from '../../src/chess/knowledge.js';
+import { checkPosition } from '../../src/chess/play.js';
 import { retrievalCorpus } from './corpus.mjs';
 import { RETRIEVAL_CASES, SUITE_VERSION } from './cases.mjs';
 import { scoreRanking, summariseRankings } from './score.mjs';

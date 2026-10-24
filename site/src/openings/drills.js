@@ -1,7 +1,7 @@
 // Repertoire recall and spaced review (TODO 5.4). No DOM, clock, engine or provider calls.
-import { epd } from './knowledge.js';
+import { epd } from '../chess/knowledge.js';
 import { repertoireLine } from './repertoire.js';
-import { createStore } from './store.js';
+import { createStore } from '../platform/store.js';
 
 const DAY = 86_400_000, RETRY = 600_000, MAX_DATE = 8_640_000_000_000_000;
 const count = n => Number.isSafeInteger(n) && n >= 0;
@@ -32,7 +32,7 @@ const time = n => count(n) && n <= MAX_DATE;
  * Deduplicate the chosen side's positions across shared prefixes, repetitions and transpositions.
  * Retain a legal opponent reply from a stored route for each choice. A changed set of choices
  * gets a new review key; renaming a line or editing notes does not erase learned positions.
- * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected chess.js constructor.
  * @param {{id: string, color: string, lines: {name: string, moves: string[]}[]}} repertoire Validated repertoire.
  * @returns {DrillCard[]} Detached cards; does not change saved lines.
  */
@@ -75,7 +75,7 @@ export function drillQueue(cards, records, now, limit = 20) {
  * Check recall, not chess strength: a legal move outside saved choices is `outside`, not bad chess.
  * On success replay the chosen move and one saved opponent reply from this card's FEN.
  * Invalid/illegal input never changes the board; callers decide whether to count an attempt.
- * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected chess.js constructor.
  * @param {DrillCard} card Captured question.
  * @param {string} input SAN or UCI; promotions must include the chosen piece in UCI.
  * @returns {{kind: 'invalid'|'outside'|'correct', san?: string, fen?: string, sans?: string[], ucis?: string[]}}

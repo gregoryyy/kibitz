@@ -1,11 +1,11 @@
 // Request-scoped source evidence (TODO 8.6). Local retrieval; never calls an AI or an engine.
-import { searchHybrid } from './hybrid-search.js';
+import { searchHybrid } from '../library/hybrid-search.js';
 import { quote } from './prompt.js';
-import { textExcerpt } from './text-search.js';
+import { textExcerpt } from '../library/text-search.js';
 
 export const RETRIEVAL_LIMITS = Object.freeze({ items: 3, text: 900 });
 const TOKEN = /\[S[0-9a-f]{12}\.[1-3]\]/g;
-/** @typedef {{token: string, passage: import('./text-search.js').Passage, relation: string, supplied: string}} RetrievedSource */
+/** @typedef {{token: string, passage: import('../library/text-search.js').Passage, relation: string, supplied: string}} RetrievedSource */
 /** @typedef {{key: string, context: string, items: RetrievedSource[]}} RetrievalContext */
 
 /**
@@ -13,7 +13,7 @@ const TOKEN = /\[S[0-9a-f]{12}\.[1-3]\]/g;
  * namespace. Only local keyword/exact-pawn/tag channels run; no implicit embedding upload or
  * fuzzy analogy. Retrieved prose is data, never move evidence or verified advice. The caller
  * rechecks account/source/game policy after this asynchronous digest completes.
- * @param {ReturnType<typeof import('./hybrid-search.js').buildHybridIndex>|null} index Current account's canonical index.
+ * @param {ReturnType<typeof import('../library/hybrid-search.js').buildHybridIndex>|null} index Current account's canonical index.
  * @param {string} query User question or the tutor's aspect/theme query.
  * @param {{fen?: string, language?: string, allowed?: boolean, scope?: string}} [options]
  * @returns {Promise<RetrievalContext>}

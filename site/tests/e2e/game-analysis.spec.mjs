@@ -91,7 +91,7 @@ test('a cancelled opponent reply cannot play or clear a newer search after the r
   await open(page);
   // Delay only opponent searches. Keep genuine Stockfish for the analysis worker.
   await page.evaluate(async () => {
-    const { Engine } = await import('/engine.js');
+    const { Engine } = await import('/chess/engine.js');
     const go = Engine.prototype.go;
     window.__replies = [];
     Engine.prototype.go = function (fen, opts = {}) {

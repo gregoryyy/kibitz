@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DenseSession, buildDenseIndex, searchDense, selectPassages, normaliseVector, passageEmbeddingText, EMBEDDING_INPUT_VERSION } from '../../src/dense-search.js';
+import { DenseSession, buildDenseIndex, searchDense, selectPassages, normaliseVector, passageEmbeddingText, EMBEDDING_INPUT_VERSION } from '../../src/library/dense-search.js';
 
 const identity = { provider: 'mock', model: 'vectors', revision: 'r1', fingerprint: 'endpoint-model-r1', scope: 'account-a', inputVersion: EMBEDDING_INPUT_VERSION };
 const metadata = { ...identity, providerModel: 'vectors-r1', dimensions: 2 };

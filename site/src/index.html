@@ -701,36 +701,36 @@ a.ext { color: var(--accent); font-size: 14px; }
 <script type="module">
 import { Chess } from './chess.js';
 import { Chessground } from './chessground.js';
-import * as K from './knowledge.js';
-import { Engine, stockfishAttempts } from './engine.js';
-import { createStore, browserStorage } from './store.js';
-import { gameCheckpoint } from './sessions.js';
-import { quote } from './prompt.js';
-import { createBrowserModel, cpuThreads } from './browser-llm.js';
-import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './tutor.js';
-import { STYLES, styleOf, pickStyled } from './style.js';
-import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './modes.js';
-import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './classics.js';
-import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library.js';
-import { openingGame, buildOpeningIndex, openingContinuations } from './openings.js';
-import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './opening-guides.js';
-import { annotationPassages, guidePassages, searchText } from './text-search.js';
-import { DenseSession, DENSE_LIMITS, embeddingIdentity, selectPassages } from './dense-search.js';
-import { buildHybridIndex, searchHybrid, HYBRID_POLICY } from './hybrid-search.js';
-import { PAWN_DISTANCE_POLICY } from './pawn-distance.js';
-import { retrieveContext, citationParts } from './retrieval-context.js';
-import { namedContinuations, namedOpeningContext } from './opening-variations.js';
-import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './repertoire.js';
-import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './drills.js';
-import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './annotations.js';
-import { TOOL_NAMES, ENGINE_TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './tools.js';
-import { toolModelKey, toolsUnsupported, toolInstructions, withToolInstructions, TOOL_FALLBACK } from './coach-tools.js';
-import { CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames } from './chat.js';
-import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './play.js';
-import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './pgn.js';
-import { sanToSpeech, parseMoveInput } from './notation.js';
-import { LANGS, pickLang, translator, isText, germanSanToSan } from './i18n.js';
-import DE from './i18n-de.js';
+import * as K from './chess/knowledge.js';
+import { Engine, stockfishAttempts } from './chess/engine.js';
+import { createStore, browserStorage } from './platform/store.js';
+import { gameCheckpoint } from './chess/sessions.js';
+import { quote } from './coach/prompt.js';
+import { createBrowserModel, cpuThreads } from './coach/browser-llm.js';
+import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './coach/tutor.js';
+import { STYLES, styleOf, pickStyled } from './chess/style.js';
+import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './chess/modes.js';
+import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './library/classics.js';
+import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
+import { openingGame, buildOpeningIndex, openingContinuations } from './openings/openings.js';
+import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './openings/opening-guides.js';
+import { annotationPassages, guidePassages, searchText } from './library/text-search.js';
+import { DenseSession, DENSE_LIMITS, embeddingIdentity, selectPassages } from './library/dense-search.js';
+import { buildHybridIndex, searchHybrid, HYBRID_POLICY } from './library/hybrid-search.js';
+import { PAWN_DISTANCE_POLICY } from './library/pawn-distance.js';
+import { retrieveContext, citationParts } from './coach/retrieval-context.js';
+import { namedContinuations, namedOpeningContext } from './openings/opening-variations.js';
+import { repertoireLine, boardRepertoireLine, repertoireIndex, repertoireChoices, repertoirePgn, createRepertoireStore } from './openings/repertoire.js';
+import { buildDrillCards, drillQueue, checkDrillMove, createDrillStore } from './openings/drills.js';
+import { parseBoardBlock, checkMarks, linesInAnswer, playLine } from './coach/annotations.js';
+import { TOOL_NAMES, ENGINE_TOOL_NAMES, CAPS as TOOL_CAPS, checkToolCall, runTool } from './coach/tools.js';
+import { toolModelKey, toolsUnsupported, toolInstructions, withToolInstructions, TOOL_FALLBACK } from './coach/coach-tools.js';
+import { CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames } from './coach/chat.js';
+import { gameEnd, opponentSearch, pickWeak, MIN_UCI_ELO, TIME_CONTROLS, timeControlOf, pgnTimeControl, newClock, pressClock, stopClock, timeLeft, fmtClock, timeoutEnd, acceptsDraw, DRAW_RULES, checkStart, fixCastling } from './chess/play.js';
+import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/pgn.js';
+import { sanToSpeech, parseMoveInput } from './chess/notation.js';
+import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
+import DE from './platform/i18n-de.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -2812,7 +2812,7 @@ async function coachSources(query, fen, view, scope, signal) {
 }
 /**
  * Resolve a captured passage against the current canonical source revision and exact occurrence.
- * @param {import('./retrieval-context.js').RetrievedSource} source Captured source, never a model-supplied record.
+ * @param {import('./coach/retrieval-context.js').RetrievedSource} source Captured source, never a model-supplied record.
  * @param {string} scope Source/account/help/provider fence captured with its answer.
  */
 function currentCitation(source, scope) {
@@ -2825,7 +2825,7 @@ function currentCitation(source, scope) {
 }
 /**
  * Open a historical occurrence, preserving dialogue and the running-game return path.
- * @param {import('./retrieval-context.js').RetrievedSource} source Validated again before and after confirmation.
+ * @param {import('./coach/retrieval-context.js').RetrievedSource} source Validated again before and after confirmation.
  * @param {string} scope Captured policy fence.
  * @param {HTMLDetailsElement} details Source excerpts to reveal for a general study note.
  * @returns {Promise<void>}
@@ -2849,7 +2849,7 @@ async function openCitation(source, scope, details) {
 /**
  * Replace supplied tokens with numbered local buttons; model text never chooses a target.
  * @param {HTMLElement} body Already rendered safe prose; append literal source details here.
- * @param {import('./retrieval-context.js').RetrievalContext} bundle Captured request evidence.
+ * @param {import('./coach/retrieval-context.js').RetrievalContext} bundle Captured request evidence.
  * @param {string} scope Captured policy fence, rechecked on activation.
  */
 function renderAnswerSources(body, bundle, scope) {
@@ -3182,7 +3182,7 @@ function conversationContext(i, view, scratch) {
     : `Active panel: ${$('.tabs [aria-selected="true"]')?.dataset.tab || 'game'}.\n${contextFor(i, { view, scratch })}`;
 }
 // ---------------------------------------------------------------- Engine tools (TODO 4.11)
-// The model may ask Stockfish and the motif detectors (src/tools.js). The loop runs here, on the
+// The model may ask Stockfish and the motif detectors (src/coach/tools.js). The loop runs here, on the
 // page's own engine (4.11.4): the gateway returns the model's tool calls, the page checks each call's
 // arguments, runs it and sends the results in the next request, for at most TOOL_CAPS.rounds rounds
 // and TOOL_CAPS.calls calls; the last round offers no tools, so the model has to answer.
@@ -3454,20 +3454,20 @@ function coachError(e) {
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
 /**
- * @typedef {import('./annotations.js').AnswerPositions & {
- *   game: import('./annotations.js').ChessLine,
- *   evidence: import('./annotations.js').ChessLine[], starts: string[],
- *   args: import('./tutor.js').AnswerEvidence
+ * @typedef {import('./coach/annotations.js').AnswerPositions & {
+ *   game: import('./coach/annotations.js').ChessLine,
+ *   evidence: import('./coach/annotations.js').ChessLine[], starts: string[],
+ *   args: import('./coach/tutor.js').AnswerEvidence
  * }} AnswerContext
  */
-/** @typedef {AnswerContext & import('./tutor.js').AnswerCheck} CheckedAnswer */
+/** @typedef {AnswerContext & import('./coach/tutor.js').AnswerCheck} CheckedAnswer */
 /**
  * Copy the positions AND engine lines supplied with a request. This is a detached data
  * snapshot, not Object.freeze(): later cursor moves, analyses and replies must not
  * reinterpret it. Respect engine visibility; a full review includes all played moves
  * and key-moment PVs, while ordinary chat includes history only through node `i`.
  * @param {number} i Zero-based mainline node index; must exist in `state.nodes`.
- * @param {import('./tutor.js').EngineView} view Engine visibility for this request.
+ * @param {import('./coach/tutor.js').EngineView} view Engine visibility for this request.
  * @param {ScratchFacts|null} [scratch=null] Visible scratch prefix, copied by scratchFacts().
  * @param {Pick<typeof S, 'nodes'|'reviewDone'>} [state=S] Live game or captured state.
  * @param {object} [options]
@@ -3704,7 +3704,7 @@ function endPreview(refreshOpenings = true) { if (previewing) syncBoard(refreshO
  * Hover/focus previews the position BEFORE the move; click/Enter/Space opens a scratch
  * board AFTER it. These are adjacent FEN indices, not mainline node indices.
  * @param {HTMLElement} span Move token to make interactive.
- * @param {import('./annotations.js').ChessLine} line Legally replayed line.
+ * @param {import('./coach/annotations.js').ChessLine} line Legally replayed line.
  * @param {number} ply Zero-based move index; must be within `line.ucis`.
  * @returns {void}
  */

@@ -1,7 +1,7 @@
 // Opening explorer (TODO 5.2). PGN mainlines become a position/move graph, not an opening-name
 // tree: transpositions join, counters do not split positions, and rights remain part of the key.
 // Pure functions; Chess is supplied so the same code runs in the browser and node:test.
-import { epd } from './knowledge.js';
+import { epd } from '../chess/knowledge.js';
 
 const RESULTS = { '1-0': 'white', '1/2-1/2': 'draw', '0-1': 'black', '*': 'unknown' };
 const empty = () => ({ games: 0, ended: 0, moves: new Map() });

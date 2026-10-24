@@ -1,8 +1,8 @@
 // Source-aware library records (TODO 7.1). No storage, DOM, providers or engine work.
-import { epd, pawnSignature } from './knowledge.js';
-import { mainlineComments, mainlineNags } from './pgn.js';
-import { checkPosition } from './play.js';
-import { quote } from './prompt.js';
+import { epd, pawnSignature } from '../chess/knowledge.js';
+import { mainlineComments, mainlineNags } from '../chess/pgn.js';
+import { checkPosition } from '../chess/play.js';
+import { quote } from '../coach/prompt.js';
 
 export const LIBRARY_VERSION = 1;
 const ORIGINS = ['imported', 'played', 'board', 'builtin', 'legacy'];
@@ -65,7 +65,7 @@ async function revisionOf(pgn) {
  * counters; each occurrence retains full FEN, source revision and ply. Comments retain original
  * source ranges and never acquire engine verification. FEN studies expose a recorded legal line,
  * not a proof that the result or solution is correct. No new corpus/deduplication is implied.
- * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected chess.js constructor.
  * @param {{id: string, pgn: string, kind?: string, provenance?: any}} game Flat persisted game.
  * @param {'library'|'classic'} collection Account-local user records or the built-in collection.
  */

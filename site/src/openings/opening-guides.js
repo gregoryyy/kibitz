@@ -1,8 +1,8 @@
 // Original Kibitz study notes (TODO 5.5), under the repository licence. These are general
 // ideas, not engine lines or book excerpts. Match the opening route and the current pawns
 // separately; a historical opening name does not establish today's pawn structure.
-import { epd, openingFamily, positionFeatures } from './knowledge.js';
-import { quote } from './prompt.js';
+import { epd, openingFamily, positionFeatures } from '../chess/knowledge.js';
+import { quote } from '../coach/prompt.js';
 
 /** @typedef {[string, string, string, string]} GuideWords Title, idea, plans, possible pawn structures. */
 /** @type {{id: string, kind: 'opening'|'structure', en: GuideWords, de: GuideWords}[]} */
@@ -207,7 +207,7 @@ export function openingGuidePath(gameFens, scratch = null) {
  * Opening lookup keeps EPD rights/turn and ignores counters; the latest match along the
  * opening prefix is background only. A direct match always takes precedence. Structures
  * come from the current legal board, never an opening name. Endgames receive no guides.
- * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected chess.js constructor.
  * @param {Record<string, string[]>} eco EPD to [ECO code, opening name].
  * @param {string[]} path Checked positions through the displayed game/scratch cursor.
  * @param {string} [lang='en'] Guide language, with English fallback.

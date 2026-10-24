@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { gameCheckpoint } from '../../src/sessions.js';
+import { gameCheckpoint } from '../../src/chess/sessions.js';
 
 /** Use legal lines so the transposition case really has an identical final FEN. */
 function game(sans = []) {

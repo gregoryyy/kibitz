@@ -1,6 +1,6 @@
 // Hybrid passage retrieval (TODO 8.4). Source text stays data; no provider, DOM or engine work.
-import { epd, pawnSignature, positionFeatures, TAG_LABELS } from './knowledge.js';
-import { checkPosition } from './play.js';
+import { epd, pawnSignature, positionFeatures, TAG_LABELS } from '../chess/knowledge.js';
+import { checkPosition } from '../chess/play.js';
 import { buildTextIndex, searchText, textTerms, textExcerpt, TEXT_LIMITS } from './text-search.js';
 import { selectPassages } from './dense-search.js';
 import { pawnSquares, comparePawns, PAWN_DISTANCE_POLICY } from './pawn-distance.js';
@@ -12,7 +12,7 @@ export const HYBRID_POLICY = Object.freeze({ version: 'rrf-board-terms-v2', cons
 const GENERAL = new Set(['opening', 'middlegame', 'endgame', 'king-activity']);
 
 /** Checked board features are retrieval hints, never a tactical verification of source prose. */
-export function boardProfile(/** @type {import('./tutor.js').ChessConstructor} */ Chess, /** @type {string} */ fen) {
+export function boardProfile(/** @type {import('../coach/tutor.js').ChessConstructor} */ Chess, /** @type {string} */ fen) {
   if (checkPosition(Chess, fen).error) throw new Error('Invalid retrieval position');
   const c = new Chess(fen), features = positionFeatures(c, { ply: (c.moveNumber() - 1) * 2 + +(c.turn() === 'b') });
   const pawns = pawnSignature(c.fen());
@@ -23,7 +23,7 @@ export function boardProfile(/** @type {import('./tutor.js').ChessConstructor} *
 /**
  * Cache detached source profiles with the lexical index. Imported prose/header tags cannot
  * create chess facts. Authored guides carry their catalogue concept; annotations use legal FENs.
- * @param {import('./tutor.js').ChessConstructor} Chess Injected rules implementation.
+ * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected rules implementation.
  * @param {Passage[]} passages Current account's compiled passages.
  */
 export function buildHybridIndex(Chess, passages) {

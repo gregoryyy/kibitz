@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { TOOLS, ENGINE_TOOL_NAMES, CAPS, checkToolCall, runTool } from '../../src/tools.js';
+import { TOOLS, ENGINE_TOOL_NAMES, CAPS, checkToolCall, runTool } from '../../src/coach/tools.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 // After 1. e4 e5 2. Qh5 Nc6 3. Bc4, Black to move: White threatens Qxf7#.

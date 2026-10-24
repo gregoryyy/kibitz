@@ -13,7 +13,7 @@ Results distinguish complete term coverage from merely related text. **Why this 
 
 ## Candidate channels and reranking
 
-[`hybrid-search.js`](../site/src/hybrid-search.js) is pure JavaScript with an injected chess.js constructor. A detached source index combines the existing BM25 index with cached legal-board profiles. Source/language/collection filters apply before every candidate channel and its statistics. Each channel contributes at most twenty candidates:
+[`hybrid-search.js`](../site/src/library/hybrid-search.js) is pure JavaScript with an injected chess.js constructor. A detached source index combines the existing BM25 index with cached legal-board profiles. Source/language/collection filters apply before every candidate channel and its statistics. Each channel contributes at most twenty candidates:
 
 | Channel | Signal and boundary |
 | --- | --- |

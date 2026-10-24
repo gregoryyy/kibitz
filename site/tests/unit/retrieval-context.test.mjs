@@ -2,11 +2,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { buildHybridIndex } from '../../src/hybrid-search.js';
-import { retrieveContext, citationParts, RETRIEVAL_LIMITS } from '../../src/retrieval-context.js';
-import { compileLibraryGame } from '../../src/library.js';
-import { annotationPassages, guidePassages } from '../../src/text-search.js';
-import { checkAnswer } from '../../src/tutor.js';
+import { buildHybridIndex } from '../../src/library/hybrid-search.js';
+import { retrieveContext, citationParts, RETRIEVAL_LIMITS } from '../../src/coach/retrieval-context.js';
+import { compileLibraryGame } from '../../src/library/library.js';
+import { annotationPassages, guidePassages } from '../../src/library/text-search.js';
+import { checkAnswer } from '../../src/coach/tutor.js';
 
 const PGN = '[Event "Source"]\n\n{Central plans} 1. Nf3 {First arrival} Nf6 2. Ng1 Ng8 3. Nf3 {Second arrival: keep the king sheltered} *';
 /** Compile real PGN offsets and repeated occurrences rather than fabricating navigation targets. */

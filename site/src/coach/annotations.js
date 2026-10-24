@@ -12,7 +12,7 @@
 // Sources: lines and claims derived from an answer's checked text (fromAnswer), and an optional
 // ```board block at the end of an answer, one instruction per line (parseBoardBlock).
 
-import { flipSide } from './modes.js';
+import { flipSide } from '../chess/modes.js';
 import { LINE_GAP } from './tutor.js';
 
 /**

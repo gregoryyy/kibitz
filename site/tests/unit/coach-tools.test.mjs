@@ -1,7 +1,7 @@
 /** @file Tool support is a model capability, not a consequence of a temporary provider failure. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toolModelKey, toolsUnsupported, toolInstructions, withToolInstructions, TOOL_FALLBACK } from '../../src/coach-tools.js';
+import { toolModelKey, toolsUnsupported, toolInstructions, withToolInstructions, TOOL_FALLBACK } from '../../src/coach/coach-tools.js';
 
 test('capability keys follow the actual provider/model per task, without including private status fields', () => {
   const gateway = { provider: 'mock', model: 'chat-model', models: { quick: 'quick-model', chat: 'chat-model', review: 'chat-model' } };

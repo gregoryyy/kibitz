@@ -1,10 +1,10 @@
 // Chat commands and board tools (TODO 4.8–4.10). Pure validation and retrieval; the page owns
 // confirmation, clocks and changes to its board. None of these functions writes saved games.
-import { parseMoveInput } from './notation.js';
+import { parseMoveInput } from '../chess/notation.js';
 import { playLine } from './annotations.js';
-import { checkPosition, checkStart, fixCastling } from './play.js';
+import { checkPosition, checkStart, fixCastling } from '../chess/play.js';
 import { quote } from './prompt.js';
-import { mainlineNags } from './pgn.js';
+import { mainlineNags } from '../chess/pgn.js';
 
 const str = description => ({ type: 'string', description });
 const schema = (properties, required = []) => ({ type: 'object', additionalProperties: false, properties, required });

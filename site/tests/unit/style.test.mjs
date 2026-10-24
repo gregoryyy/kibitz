@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { aggressionScore, pickStyled, styleOf, STYLES } from '../../src/style.js';
+import { aggressionScore, pickStyled, styleOf, STYLES } from '../../src/chess/style.js';
 
 // Italian Game after 1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6, White to move.
 const ITALIAN = 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4';

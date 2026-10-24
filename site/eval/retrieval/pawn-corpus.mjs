@@ -1,4 +1,4 @@
-import { makeProvenance } from '../../src/library.js';
+import { makeProvenance } from '../../src/library/library.js';
 
 export const PAWN_SUITE_VERSION = 1;
 export const START_PAWNS = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';

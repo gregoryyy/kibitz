@@ -6,8 +6,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { checkAnnotation, checkMarks, parseBoardBlock, playLine, linesInAnswer, MAX_MARKS } from '../../src/annotations.js';
-import { checkAnswer } from '../../src/tutor.js';
+import { checkAnnotation, checkMarks, parseBoardBlock, playLine, linesInAnswer, MAX_MARKS } from '../../src/coach/annotations.js';
+import { checkAnswer } from '../../src/coach/tutor.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 // 1. e4 e5 2. Qh5 Nc6 3. Bc4, Black to move: White threatens Qxf7#.

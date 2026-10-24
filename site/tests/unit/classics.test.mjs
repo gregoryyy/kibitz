@@ -2,8 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { CLASSICS, classicGames, retrieveClassics, findGameRefs, keyPosition } from '../../src/classics.js';
-import { TAG_LABELS } from '../../src/knowledge.js';
+import { CLASSICS, classicGames, retrieveClassics, findGameRefs, keyPosition } from '../../src/library/classics.js';
+import { TAG_LABELS } from '../../src/chess/knowledge.js';
 
 test('every classic loads with chess.js, every move legal, the result consistent with the final position', () => {
   for (const g of classicGames()) {

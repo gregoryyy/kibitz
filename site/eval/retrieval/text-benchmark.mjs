@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto';
-import { authoredGuideTexts } from '../../src/opening-guides.js';
-import { annotationPassages, guidePassages, buildTextIndex, searchText, textExcerpt } from '../../src/text-search.js';
+import { authoredGuideTexts } from '../../src/openings/opening-guides.js';
+import { annotationPassages, guidePassages, buildTextIndex, searchText, textExcerpt } from '../../src/library/text-search.js';
 import { buildBenchmark } from './benchmark.mjs';
 import { scoreRanking, summariseRankings } from './score.mjs';
 import { TEXT_CASES, TEXT_SUITE_VERSION } from './text-cases.mjs';
-import { selectPassages } from '../../src/dense-search.js';
+import { selectPassages } from '../../src/library/dense-search.js';
 import { Chess } from 'chess.js';
-import { checkPosition } from '../../src/play.js';
+import { checkPosition } from '../../src/chess/play.js';
 import { retrievalCorpus } from './corpus.mjs';
 
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');

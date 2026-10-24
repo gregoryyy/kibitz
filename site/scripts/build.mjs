@@ -1,7 +1,8 @@
 // Assembles dist/ from src/ and the npm packages.
 //   dist/index.html   page body as published to a Claude artifact (no <html>/<head>; the host wraps it)
 //   dist/_test.html   same page wrapped in a full document, for local testing
-//   dist/*.js|wasm    vendored libraries + the knowledge module, served next to the page
+//   dist/*.js|wasm    vendored libraries, served next to the page
+//   dist/{chess,coach,library,openings,platform}/   application ES modules, matching src/
 //   dist/eco.json     opening names by position; dist/openings.json every named line with its moves
 //   dist/opening-variations.json   legal next moves and their nearby named destinations by EPD
 //   dist/LICENSE.txt, dist/THIRD_PARTY_NOTICES.md
@@ -14,6 +15,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const nm = p => path.join(root, 'node_modules', p);
 const dist = path.join(root, 'dist');
 fs.mkdirSync(dist, { recursive: true });
+// Rebuild owned assets so old flat module URLs cannot mask a missing import. Keep the
+// generated opening tables: their input timestamps below decide when to rebuild them.
+const openingFiles = ['eco.json', 'openings.json', 'opening-variations.json'];
+for (const f of fs.readdirSync(dist)) if (!openingFiles.includes(f)) fs.rmSync(path.join(dist, f), { recursive: true, force: true });
 
 const copy = (from, to) => fs.copyFileSync(from, path.join(dist, to));
 copy(nm('stockfish/bin/stockfish-19-lite-single.js'), 'sf.js');
@@ -27,14 +32,17 @@ copy(nm('@lichess-org/chessground/dist/chessground.min.js'), 'chessground.js');
 // wllama runs the in-browser model (TODO 2.16): one ES module and one wasm (WebGPU, or WebAssembly on the CPU)
 copy(nm('@wllama/wllama/esm/index.js'), 'wllama.js');
 copy(nm('@wllama/wllama/esm/wasm/wllama.wasm'), 'wllama.wasm');
-// The page's own modules (knowledge.js, engine.js, store.js, prompt.js, ...)
-for (const f of fs.readdirSync(path.join(root, 'src'))) if (f.endsWith('.js')) copy(path.join(root, 'src', f), f);
+// Preserve the source module tree; relative imports have the same meaning in src/ and dist/.
+fs.cpSync(path.join(root, 'src'), dist, {
+  recursive: true,
+  filter: from => fs.statSync(from).isDirectory() || from.endsWith('.js'),
+});
 // Licence texts ship with the page (GPL-3.0; chess.js's BSD notice is in the notices file)
 copy(path.join(root, '../LICENSE'), 'LICENSE.txt');
 copy(path.join(root, '../THIRD_PARTY_NOTICES.md'), 'THIRD_PARTY_NOTICES.md');
 
-const openingOutputs = ['eco.json', 'openings.json', 'opening-variations.json'].map(f => path.join(dist, f));
-const openingInputs = ['scripts/build-eco.mjs', 'src/opening-variations.js', 'src/knowledge.js', 'package-lock.json',
+const openingOutputs = openingFiles.map(f => path.join(dist, f));
+const openingInputs = ['scripts/build-eco.mjs', 'src/openings/opening-variations.js', 'src/chess/knowledge.js', 'package-lock.json',
   ...[...'abcde'].map(f => `data/eco/${f}.tsv`)].map(f => path.join(root, f));
 const openingDataStale = openingOutputs.some(f => !fs.existsSync(f))
   || Math.max(...openingInputs.map(f => fs.statSync(f).mtimeMs)) > Math.min(...openingOutputs.map(f => fs.statSync(f).mtimeMs));

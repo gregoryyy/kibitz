@@ -3,8 +3,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { exampleFor, providerSchema } from './schema.mjs';
-import { TOOLS, CAPS as TOOL_CAPS } from '../src/tools.js';
-import { normaliseVector } from '../src/dense-search.js';
+import { TOOLS, CAPS as TOOL_CAPS } from '../src/coach/tools.js';
+import { normaliseVector } from '../src/library/dense-search.js';
 
 export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock'];
 // Small, fast models by default: coaching replies are short and grounded in engine output.
@@ -151,7 +151,7 @@ export function validateMessages(body) {
   if (open.size) bad('Every tool call needs its result before the next request');
   return out;
 }
-// The tools a request offers the model, by name from the catalogue (src/tools.js): [{name,
+// The tools a request offers the model, by name from the catalogue (src/coach/tools.js): [{name,
 // description, schema}], or null for none. The definitions are ours, never the client's.
 export function validateTools(names) {
   if (names === undefined || names === null) return null;

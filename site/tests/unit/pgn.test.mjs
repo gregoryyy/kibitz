@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { mainlineNags, nagText, NAG_GLYPHS } from '../../src/pgn.js';
+import { mainlineNags, nagText, NAG_GLYPHS } from '../../src/chess/pgn.js';
 
 test('suffixes and $-NAGs are read per mainline ply', () => {
   const n = mainlineNags('1. e4! e5 2. Nf3 $1 Nc6?! 3. Bb5 $14 a6 $6 $32 1-0');

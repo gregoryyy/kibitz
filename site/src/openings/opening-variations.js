@@ -1,7 +1,7 @@
 // Named continuations (TODO 5.6). Build once from the CC0 Lichess opening lines;
 // query by position in the browser, independently of reference-game frequencies.
-import { epd } from './knowledge.js';
-import { quote } from './prompt.js';
+import { epd } from '../chess/knowledge.js';
+import { quote } from '../coach/prompt.js';
 
 /** @typedef {{eco: string, name: string}} OpeningName */
 /** @typedef {OpeningName & {plies: number}} OpeningDestination Plies remaining AFTER the candidate move. */
@@ -18,7 +18,7 @@ const validName = n => n && typeof n.eco === 'string' && /^[A-E]\d{2}$/.test(n.e
  * retains its three nearest recorded named destinations; plies=0 means the move reaches that
  * name immediately. A transposed arrival also inherits names of its destination node.
  * No counts here represent game frequency. This runs during the build, not in the UI.
- * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected chess.js constructor.
  * @param {string[][]} rows Named rows from openings.json/the same build input.
  * @returns {OpeningCatalogue} JSON-serialisable catalogue.
  */
@@ -73,7 +73,7 @@ export function buildNamedOpenings(Chess, rows) {
  * Counters do not split EPDs; turn, castling and legal en-passant rights do. Reject an
  * illegal move or mismatched destination even if a fetched catalogue was tampered with.
  * Names are detached bounded text, not HTML, recommendations or engine evidence.
- * @param {import('./tutor.js').ChessConstructor} Chess Injected chess.js constructor.
+ * @param {import('../coach/tutor.js').ChessConstructor} Chess Injected chess.js constructor.
  * @param {OpeningCatalogue|null} catalogue Compiled local data.
  * @param {string} fen Current game/scratch FEN.
  */

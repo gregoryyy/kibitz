@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { boardProfile, buildHybridIndex, reciprocalRanks, searchHybrid } from '../../src/hybrid-search.js';
+import { boardProfile, buildHybridIndex, reciprocalRanks, searchHybrid } from '../../src/library/hybrid-search.js';
 
 const IQP = 'r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 0 20';
 /** Detached source fixtures: the oracle supplies boards and literal text, not production scores. */

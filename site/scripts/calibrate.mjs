@@ -10,8 +10,8 @@ import { createRequire } from 'module';
 import os from 'os';
 import { parseArgs } from 'util';
 import { Chess } from 'chess.js';
-import { opponentSearch, pickWeak, gameEnd, MIN_UCI_ELO } from '../src/play.js';
-import { parseInfo } from '../src/knowledge.js';
+import { opponentSearch, pickWeak, gameEnd, MIN_UCI_ELO } from '../src/chess/play.js';
+import { parseInfo } from '../src/chess/knowledge.js';
 
 const { values: opt } = parseArgs({ options: {
   levels: { type: 'string', default: '600,800,1000,1200' },
