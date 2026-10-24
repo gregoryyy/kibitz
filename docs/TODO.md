@@ -31,11 +31,12 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 0.11 Fix `.gitignore`: `tests/out/` only matches at the repo root; use `**/tests/out/`
 - [x] 0.12 Keep repository utilities under root `utils/`; move the PDF tooling to `utils/pdf/` and update its references. *(added)*
 - [x] 0.13 Document the LLM and symbolic design across features in a brief [design overview](AI-DESIGN.md), distinguishing built behaviour, planned features and ROAD explorations. *(added)*
+- [x] 0.14 Organize existing source modules into `chess/`, `coach/`, `library/`, `openings/` and `platform/`; preserve directories in the build and update imports, tests, tools and documentation. *(added)*
 
 ## 1. Play against the engine
 
 - [x] 1.1 Board UI: legal moves, promotion, flip, coordinates *(prototype)*
-- [x] 1.2 Stockfish 19 WASM worker with blob-URL and asm.js fallbacks *(prototype)*; `site/src/engine.js`, unit-tested
+- [x] 1.2 Stockfish 19 WASM worker with blob-URL and asm.js fallbacks *(prototype)*; `site/src/chess/engine.js`, unit-tested
 - [x] 1.3 Multi-threaded Stockfish when cross-origin isolated (server sends COOP/COEP headers), with a single-threaded fallback
 - [ ] 1.4 Strength levels: `UCI_Elo` from 1320 up, a weakened mode below that *(prototype)*; calibrate them against real ratings. The weakened mode is calibrated against Stockfish's UCI_Elo scale (`scripts/calibrate.mjs`). Remaining: checking the scale against human ratings, which needs players' results (see 9.2).
 - [x] 1.5 Separate analyst engine (full strength, MultiPV) *(prototype)*

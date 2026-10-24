@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { CHAT_TOOLS, CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames, setupPosition } from '../../src/chat.js';
-import { checkPosition } from '../../src/play.js';
+import { CHAT_TOOLS, CHAT_TOOL_NAMES, checkChatCall, parseChatCommand, readGame, searchGames, setupPosition } from '../../src/coach/chat.js';
+import { checkPosition } from '../../src/chess/play.js';
 
 const START = new Chess().fen();
 const state = { fen: START, plies: 12, playing: false, canMove: true, userColor: 'w' };

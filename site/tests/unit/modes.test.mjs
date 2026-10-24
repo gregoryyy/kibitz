@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { describeMove, interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult } from '../../src/modes.js';
+import { describeMove, interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult } from '../../src/chess/modes.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 // The Opera Game after 9... b5, White to move (scores from White's point of view, as the page keeps them).

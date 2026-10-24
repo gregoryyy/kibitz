@@ -6,11 +6,11 @@
 // engine(fen, {depth, lines}) -> Promise<{depth, lines: [{score: {cp} | {mate}, pv: [uci]}]}>, scores
 // from White's point of view, as the page keeps them.
 
-import { moveMotifs, lineMotifs, material, epd, scoreToCp } from './knowledge.js';
+import { moveMotifs, lineMotifs, material, epd, scoreToCp } from '../chess/knowledge.js';
 import { playLine } from './annotations.js';
-import { flipSide } from './modes.js';
+import { flipSide } from '../chess/modes.js';
 import { CHAT_TOOLS } from './chat.js';
-import { checkPosition } from './play.js';
+import { checkPosition } from '../chess/play.js';
 
 export const CAPS = { depth: 18, lines: 5, compare: 5, mate: 7, lineMoves: 12, rounds: 4, calls: 6, motifSearches: 12, motifPlies: 6, motifMs: 15_000 };
 const DEFAULT_DEPTH = 14;

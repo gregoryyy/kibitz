@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { quote, UNTRUSTED_RULE, OPEN, CLOSE } from '../../src/prompt.js';
+import { quote, UNTRUSTED_RULE, OPEN, CLOSE } from '../../src/coach/prompt.js';
 
 test('wraps text in guillemets on one line', () => {
   assert.equal(quote('Paul Morphy'), '«Paul Morphy»');

@@ -1,7 +1,7 @@
 // Stateless embedding gateway. Text and vectors are never cached, persisted or logged here.
 import crypto from 'node:crypto';
 import { createEmbedder, GatewayError, LOCAL_PROVIDERS, loadEmbeddingConfig } from './ai.mjs';
-import { DENSE_LIMITS, EMBEDDING_INPUT_VERSION } from '../src/dense-search.js';
+import { DENSE_LIMITS, EMBEDDING_INPUT_VERSION } from '../src/library/dense-search.js';
 
 /**
  * Account-scoped response identities and shared AI budgets, independent of the chat provider.

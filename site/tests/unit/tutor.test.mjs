@@ -8,7 +8,7 @@ import { Chess } from 'chess.js';
 import {
   ASPECTS, DEFAULT_ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, shouldComment,
   safetyNotes, pvSans, checkAnswer, commentKey, lruCache, COACH_RULES,
-} from '../../src/tutor.js';
+} from '../../src/coach/tutor.js';
 
 // Italian Game after 1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6, White to move.
 const ITALIAN = 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4';
@@ -17,12 +17,12 @@ const GAME = ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Nf6'];
 /**
  * Check prose against a fixed Italian Game position, its played history and two engine PVs.
  * @param {string} text Coach prose under test.
- * @returns {import('../../src/tutor.js').AnswerCheck}
+ * @returns {import('../../src/coach/tutor.js').AnswerCheck}
  */
 const check = text => checkAnswer(Chess, text, { fen: ITALIAN, lines: LINES, game: GAME });
 /**
  * Project verdicts in token order so assertions cannot overlook a misclassified square or suffix.
- * @param {import('../../src/tutor.js').AnswerCheck} r Checked answer.
+ * @param {import('../../src/coach/tutor.js').AnswerCheck} r Checked answer.
  * @returns {string[]}
  */
 const statuses = r => r.moves.map(m => `${m.san}:${m.status}`);

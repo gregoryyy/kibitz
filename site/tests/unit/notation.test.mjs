@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { sanToSpeech, parseMoveInput } from '../../src/notation.js';
+import { sanToSpeech, parseMoveInput } from '../../src/chess/notation.js';
 
 test('moves are spoken in words', () => {
   assert.equal(sanToSpeech('e4'), 'e4');

@@ -63,7 +63,7 @@ export function annotationPassages(snapshot) {
 /**
  * Each authored lesson field is a passage, versioned by SHA-256 of that language's full guide.
  * Locators address the original field text; a guide is general background without a board FEN.
- * @param {ReturnType<typeof import('./opening-guides.js').authoredGuideTexts>} guides Detached lesson sources.
+ * @param {ReturnType<typeof import('../openings/opening-guides.js').authoredGuideTexts>} guides Detached lesson sources.
  * @returns {Promise<Passage[]>}
  */
 export async function guidePassages(guides) {

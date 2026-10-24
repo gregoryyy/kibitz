@@ -15,15 +15,15 @@ Use a family of comparisons conditioned on the question. Two positions can share
 | Piece activity | Mobility, controlled squares, attack/defence edges and functional roles. | Equal relationship counts involving entirely different targets. |
 | Endgame technique | Material class, pawn placement, king activity, side to move and relevant draw state. | A visually close position across a winning/drawing boundary. |
 
-These are candidate research profiles, not existing settings. The [current tutor aspects](../../site/src/tutor.js) (`last`, `next`, `mind`, `habits`, `games`) organise commentary. A profile such as “pawn structure” cuts across them; do not assume one checkbox uniquely specifies a metric.
+These are candidate research profiles, not existing settings. The [current tutor aspects](../../site/src/coach/tutor.js) (`last`, `next`, `mind`, `habits`, `games`) organise commentary. A profile such as “pawn structure” cuts across them; do not assume one checkbox uniquely specifies a metric.
 
 For `last`, the retrieval query may need the before-position, move and after-position: an identical board can arise through a different last move. `next` can emphasise checked opportunities and plans; `mind` can emphasise weaknesses and control. `habits` also concerns the learner's thinking process, which a board-only distance cannot express. `games` needs a stated reason for similarity rather than a single implicit profile.
 
 ## What exists in Kibitz
 
-[knowledge.js](../../site/src/knowledge.js) supplies `epd()`, `pawnSignature()`, `positionFeatures()`, `buildPositionIndex()` and `similarPositions()`. Retrieval first returns exact EPD matches, then exact pawn-signature matches from indexed positions at ply 12 or later, with at most one structural result per source game. It is a bucket lookup, without a graded distance or an aspect parameter. Exact matches and the pawn fallback are already labelled differently.
+[knowledge.js](../../site/src/chess/knowledge.js) supplies `epd()`, `pawnSignature()`, `positionFeatures()`, `buildPositionIndex()` and `similarPositions()`. Retrieval first returns exact EPD matches, then exact pawn-signature matches from indexed positions at ply 12 or later, with at most one structural result per source game. It is a bucket lookup, without a graded distance or an aspect parameter. Exact matches and the pawn fallback are already labelled differently.
 
-The module's material/structure features and motif candidates offer a starting vocabulary. [tools.js](../../site/src/tools.js) adds bounded engine checks for tactics. Some features are heuristic or incomplete; neither their absence nor an exhausted search budget establishes that a concept is absent. Feature verification and availability must travel with a future similarity record.
+The module's material/structure features and motif candidates offer a starting vocabulary. [tools.js](../../site/src/coach/tools.js) adds bounded engine checks for tactics. Some features are heuristic or incomplete; neither their absence nor an exhausted search budget establishes that a concept is absent. Feature verification and availability must travel with a future similarity record.
 
 ## Prior research and what transfers
 

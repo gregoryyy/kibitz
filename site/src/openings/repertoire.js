@@ -1,7 +1,7 @@
 // TODO 5.3: chosen opening lines, independent of the games library and of engine scores.
 // Persist UCI moves; replay with chess.js whenever loading or editing. No DOM or provider calls.
-import { epd } from './knowledge.js';
-import { createStore } from './store.js';
+import { epd } from '../chess/knowledge.js';
+import { createStore } from '../platform/store.js';
 
 export const MAX_REPERTOIRE_PLIES = 200;
 const UCI = /^[a-h][1-8][a-h][1-8][qrbn]?$/;

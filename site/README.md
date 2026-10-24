@@ -37,40 +37,48 @@ With board relevance enabled, **Include similar pawn structures** optionally adm
 ## Layout
 
 ```
-src/index.html        The page: CSS, markup and the app module in one file.
-                      Written as an artifact body (no <html>/<head>); the build wraps it for local use.
-                      /*CG_BASE*/ and /*CG_PIECES*/ are replaced with chessground's CSS at build time.
-src/knowledge.js      Pure functions, no DOM:
-                        positionFeatures()   opening family, pawn structures, endgame type, passed pawns…
-                        moveMotifs()         fork, pin, discovered attack, mate, sacrifice, Greek gift…
-                        LITERATURE           book catalog (metadata + theme tags, no book text)
-                        retrieveLiterature() ranks books by theme overlap and player level
-                        buildPositionIndex() / similarPositions()   "seen before" search over the library
-                        winPct / classify / moveAccuracy             Lichess-style move scoring
-                        parseInfo()          UCI info-line parser
-src/engine.js         Engine: Stockfish worker with fallbacks (multi-threaded when cross-origin isolated), job queue,
-                      cancel by tag, time-capped depth searches; rejects all jobs if it dies
-src/store.js          localStorage wrapper whose set() reports failure (e.g. quota exceeded)
-src/library.js        Source assertions, revision-bound game/occurrence/annotation/study records and position-index adapter
-src/openings.js       Reference-game position graph: continuations, record counts/results and sample occurrences
-src/opening-guides.js Original bilingual study notes, visible-route/EPD matching, current pawn patterns and quoted coach context
-src/opening-variations.js Build-time named-destination graph, checked position queries and quoted catalogue context
-src/repertoire.js     Legal chosen opening lines, game/scratch path capture, position-based choices and browser storage
-src/drills.js         Repertoire recall cards, legal replies, review queue, deterministic intervals and atomic progress storage
-src/prompt.js         quote(): imported/user text goes into prompts as one-line «quoted» data
-src/tutor.js          Coach comments: aspects and their prompts, what the coach sees mid-game, the check of its moves, the cache
-src/coach-tools.js    Gateway tool capability policy per provider/model, honest fallback notices and runtime engine instructions
-src/browser-llm.js    The in-browser model (wllama): loads on consent, streams answers, one request at a time, unloads when idle
-src/style.js          Stockfish's playing style (Solid … Reckless): picks among near-best candidate moves
-src/play.js           Game-end rules, timeouts, clocks, the opponent's search, the weakened mode below 1320
-                      Elo (calibrated), draw offers, start-position checks
-src/pgn.js            NAGs and original mainline comment locations, including repeated positions and initial notes
-src/notation.js       Typed moves (SAN or coordinates) and moves in words for screen readers
+src/index.html        CSS, markup and application composition, written as an artifact body
+                      (no <html>/<head>); the build wraps it for local use and inlines chessground CSS.
+src/chess/            Rules, knowledge, engine integration and game helpers:
+  engine.js           Stockfish workers, fallbacks, queued/time-capped searches and cancellation
+  knowledge.js        Pure features, motifs, scoring, reference catalogue and position retrieval
+  play.js             Game-end rules, clocks, strength levels, draw offers and position validation
+  style.js            Playing styles: picks among near-best engine candidates
+  pgn.js              NAGs and exact mainline comment locations, including repeated positions
+  notation.js         Typed moves and move descriptions for screen readers
+  modes.js            Interesting moves, challenges and recorded theme progress
+  sessions.js         Game-history checkpoints for suspended analysis
+src/coach/            Prompts, model support, checked answers and conversation tools:
+  prompt.js           quote(): imported/user text enters prompts as bounded quoted data
+  tutor.js            Commentary aspects, help policy, move checking and comment cache
+  tools.js            Engine/motif tool catalogue, argument checks and checked execution
+  coach-tools.js      Provider/model tool capability policy and fallback instructions
+  chat.js             Local commands, library queries and validated board actions
+  annotations.js      Checked board marks and linked move sequences
+  retrieval-context.js Bounded retrieved passages and request-bound citation identities
+  browser-llm.js      In-browser wllama model: consent, streaming, resources and unloading
+src/library/          Source-aware records, classics and passage retrieval:
+  library.js          Source revisions, game occurrences, annotations and position-index adapter
+  classics.js         Built-in annotated games/studies and thematic retrieval
+  text-search.js      Original annotation/guide passages, BM25 and literal excerpts
+  dense-search.js     Explicit scoped embedding sessions and cosine ranking
+  hybrid-search.js    Rank fusion and deterministic text/board/tag reranking
+  pawn-distance.js    Colour-specific pawn-square distance for optional structural analogies
+src/openings/         Opening study and recall:
+  openings.js         Reference-game position graph, counts/results and sample occurrences
+  opening-guides.js   Bilingual study notes and quoted position/route context
+  opening-variations.js Named-destination graph, checked queries and catalogue context
+  repertoire.js       Legal opening lines, position choices and browser persistence
+  drills.js           Recall cards, legal replies, review queues and atomic progress storage
+src/platform/         Browser utilities shared across features:
+  store.js            localStorage wrapper that reports write failures
+  i18n.js             Language selection, translation and German move-letter normalization
+  i18n-de.js          German interface dictionary
 data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position,
                       dist/openings.json (every named line with its moves, for "start from an opening"),
                       and dist/opening-variations.json (named destinations of legal next moves by position).
                       Data/compiler changes rebuild these outputs automatically; build:eco forces regeneration.
-scripts/build.mjs     Copies vendored libraries, builds eco.json, inlines CSS → dist/
+scripts/build.mjs     Copies the module directory tree and vendored libraries, builds opening data, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
 scripts/fetch-model.mjs  Downloads the in-browser model into models/ once and checks its SHA-256 (just offline)

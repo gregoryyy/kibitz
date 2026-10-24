@@ -1,9 +1,9 @@
 import { Chess } from 'chess.js';
 import { denseBenchmarkSession } from './dense-benchmark.mjs';
 import { runTextBenchmark, renderTextReport } from './text-benchmark.mjs';
-import { buildHybridIndex, searchHybrid, HYBRID_POLICY } from '../../src/hybrid-search.js';
+import { buildHybridIndex, searchHybrid, HYBRID_POLICY } from '../../src/library/hybrid-search.js';
 import { HYBRID_CASES, HYBRID_SUITE_VERSION } from './hybrid-cases.mjs';
-import { buildTextIndex, searchText, textTerms } from '../../src/text-search.js';
+import { buildTextIndex, searchText, textTerms } from '../../src/library/text-search.js';
 
 /** Fair lexical ablation: explicit literal constraints apply to either ranking method. */
 export function runContextLexical() {

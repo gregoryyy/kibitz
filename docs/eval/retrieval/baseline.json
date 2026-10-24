@@ -3,7 +3,7 @@
   "suite": "kibitz-position-retrieval",
   "suiteVersion": 1,
   "retriever": "exact-epd+pawns-v1",
-  "corpusHash": "3dea6cb239ae871630680a159b92fdfdd8e47e504fdbc228af92338730618642",
+  "corpusHash": "60270e385e1cfce8ad4d8bfad84d097115ce949b01ddad21ad61c5dc08dadd07",
   "casesHash": "bb0e9647bc0dce940b63af8ff89b19bf947abe6bbbe3bfecdf2fdc7762ed3235",
   "cutoffs": [
     1,

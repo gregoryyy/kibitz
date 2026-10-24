@@ -2,8 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { repertoireLine } from '../../src/repertoire.js';
-import { buildDrillCards, drillQueue, checkDrillMove, scheduleDrillReview, createDrillStore } from '../../src/drills.js';
+import { repertoireLine } from '../../src/openings/repertoire.js';
+import { buildDrillCards, drillQueue, checkDrillMove, scheduleDrillReview, createDrillStore } from '../../src/openings/drills.js';
 
 const DAY = 86_400_000, NOW = 1_800_000_000_000;
 const saved = (pgn, name = pgn) => ({ name, moves: repertoireLine(Chess, pgn).ucis });

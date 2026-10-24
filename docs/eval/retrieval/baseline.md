@@ -4,7 +4,7 @@ TODO 8.8. Suite 1; retriever `exact-epd+pawns-v1`.
 
 Corpus: 21 documents, 481 indexed occurrences, 45 annotations. Queries: 24.
 
-Corpus SHA-256: `3dea6cb239ae871630680a159b92fdfdd8e47e504fdbc228af92338730618642`.
+Corpus SHA-256: `60270e385e1cfce8ad4d8bfad84d097115ce949b01ddad21ad61c5dc08dadd07`.
 Case SHA-256: `bb0e9647bc0dce940b63af8ff89b19bf947abe6bbbe3bfecdf2fdc7762ed3235`.
 
 Reproduce from the repository root: `just retrieval-eval`. No provider, engine, network, credentials or saved user data is used.

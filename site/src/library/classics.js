@@ -97,7 +97,7 @@ export function classicGames() {
     id: c.id, kind: 'example', title: c.title, white: c.white, black: c.black, date: c.date, result: c.result, tags: c.tags, about: c.about, moment: c.moment,
     // This identifies the packaged collection, not a verified original publication of each score.
     // The project's authored notes have its declared licence; original score rights remain unknown.
-    provenance: makeProvenance('builtin', { title: 'Kibitz classics collection', author: 'Kibitz contributors', url: 'https://github.com/gregoryyy/kibitz/blob/main/site/src/classics.js', annotations: 'GPL-3.0-or-later' }),
+    provenance: makeProvenance('builtin', { title: 'Kibitz classics collection', author: 'Kibitz contributors', url: 'https://github.com/gregoryyy/kibitz/blob/main/site/src/library/classics.js', annotations: 'GPL-3.0-or-later' }),
     pgn: [
       `[Event "${c.event}"]`, `[Date "${c.date}"]`, `[White "${c.white}"]`, `[Black "${c.black}"]`, `[Result "${c.result}"]`,
       ...(c.fen ? ['[SetUp "1"]', `[FEN "${c.fen}"]`] : []), '', c.moves,

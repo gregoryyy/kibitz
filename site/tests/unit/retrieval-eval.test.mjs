@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { Chess } from 'chess.js';
-import { epd, pawnSignature } from '../../src/knowledge.js';
+import { epd, pawnSignature } from '../../src/chess/knowledge.js';
 import { retrievalCorpus } from '../../eval/retrieval/corpus.mjs';
 import { RETRIEVAL_CASES } from '../../eval/retrieval/cases.mjs';
 import { buildBenchmark, positionBaseline, runRetrievalBenchmark } from '../../eval/retrieval/benchmark.mjs';

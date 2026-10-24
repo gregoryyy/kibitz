@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createBrowserModel, cpuThreads, memoryCheck, mergeTurns } from '../../src/browser-llm.js';
+import { createBrowserModel, cpuThreads, memoryCheck, mergeTurns } from '../../src/coach/browser-llm.js';
 
 const MODEL = { url: 'models/m.gguf', name: 'Tiny', bytes: 1_000_000_000 };
 

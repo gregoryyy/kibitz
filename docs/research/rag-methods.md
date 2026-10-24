@@ -18,13 +18,13 @@ A passage can be relevant but wrong; a correct engine line can be a poor teachin
 
 ### Where the Primer and current code stand
 
-The [Primer](../primer/Primer_v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. [knowledge.js](../../site/src/knowledge.js) currently implements:
+The [Primer](../primer/Primer_v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. [knowledge.js](../../site/src/chess/knowledge.js) currently implements:
 
 - `retrieveLiterature`: weighted book metadata/theme/level matches, without book full text;
 - `buildPositionIndex` / `similarPositions`: exact EPD and exact pawn-signature buckets, with limits on structural matches;
 - pure features and motif candidates, rather than an embedding model.
 
-[classics.js](../../site/src/classics.js) adds tagged games/studies; [chat.js](../../site/src/chat.js) supports bounded metadata searches. [ai.mjs](../../site/server/ai.mjs) has embedding configuration/client helpers, but there is no embedding ingestion/search route or connected text/vector index in the app. A reading recommendation based on a book's tags must not be presented as a retrieved quotation or passage from the book.
+[classics.js](../../site/src/library/classics.js) adds tagged games/studies; [chat.js](../../site/src/coach/chat.js) supports bounded metadata searches. [ai.mjs](../../site/server/ai.mjs) has embedding configuration/client helpers, but there is no embedding ingestion/search route or connected text/vector index in the app. A reading recommendation based on a book's tags must not be presented as a retrieved quotation or passage from the book.
 
 ## 1. Establish a proper plain-text baseline
 
@@ -142,7 +142,7 @@ For every graph-generated summary, retain supporting passages and allow navigati
 
 [Self-RAG (Asai et al., 2023/2024)](https://arxiv.org/abs/2310.11511) trains retrieval/reflection tokens; it is not equivalent to asking an ordinary model to critique itself. A useful, simpler Kibitz experiment is a bounded policy: retrieve when the question needs a source, inspect evidence coverage, and allow one targeted expansion before abstaining. Keep costs and round limits explicit.
 
-All imported passages, PGN metadata, graph descriptions and generated summaries remain untrusted. Route them through [quote()](../../site/src/prompt.js), render text rather than HTML, and do not let retrieved instructions change tools, access scope or policy. Validate model-supplied record IDs and moves. Apply generation/FEN guards before asynchronous results reach the board. Retrieval must respect a game's help setting before it returns advice, not merely hide the final panel.
+All imported passages, PGN metadata, graph descriptions and generated summaries remain untrusted. Route them through [quote()](../../site/src/coach/prompt.js), render text rather than HTML, and do not let retrieved instructions change tools, access scope or policy. Validate model-supplied record IDs and moves. Apply generation/FEN guards before asynchronous results reach the board. Retrieval must respect a game's help setting before it returns advice, not merely hide the final panel.
 
 Embedding and reranking requests can send source text to a provider. Preserve local-only settings, account scope and source permissions; record model/version/dimensions so an embedding change triggers a controlled reindex. Support deleting source records and all derived chunks/edges/caches together. Do not send private corpora to a new provider just because it has an embeddings endpoint.
 

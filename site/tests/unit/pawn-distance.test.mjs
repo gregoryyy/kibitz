@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { pawnSignature } from '../../src/knowledge.js';
-import { pawnSquares, comparePawns, PAWN_DISTANCE_POLICY } from '../../src/pawn-distance.js';
-import { buildHybridIndex, searchHybrid } from '../../src/hybrid-search.js';
+import { pawnSignature } from '../../src/chess/knowledge.js';
+import { pawnSquares, comparePawns, PAWN_DISTANCE_POLICY } from '../../src/library/pawn-distance.js';
+import { buildHybridIndex, searchHybrid } from '../../src/library/hybrid-search.js';
 
 /** Move pawn placements in a checked source diagram, without claiming a legal connecting line. */
 function diagram(changes = [], fen) {

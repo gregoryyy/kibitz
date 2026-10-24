@@ -4,8 +4,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { runDenseBenchmark } from '../../eval/retrieval/dense-benchmark.mjs';
 import { runTextBenchmark, renderTextReport } from '../../eval/retrieval/text-benchmark.mjs';
-import { buildTextIndex, searchText } from '../../src/text-search.js';
-import { selectPassages } from '../../src/dense-search.js';
+import { buildTextIndex, searchText } from '../../src/library/text-search.js';
+import { selectPassages } from '../../src/library/dense-search.js';
 import { loadEmbeddingConfig } from '../../server/ai.mjs';
 
 test('dense comparison uses the identical authored corpus and production batching, filters and source locators', async () => {

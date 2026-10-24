@@ -1,6 +1,6 @@
 // Authored test scores and notes, plus Kibitz's packaged classics. No external corpus.
-import { classicGames } from '../../src/classics.js';
-import { makeProvenance } from '../../src/library.js';
+import { classicGames } from '../../src/library/classics.js';
+import { makeProvenance } from '../../src/library/library.js';
 
 const IQP = 'r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 0 20';
 const LOOP = '20. Nh4 Nh5 21. Nf3 Nf6 22. Nh4 Nh5 23. Nf3 Nf6 24. Nh4 Nh5 25. Nf3';

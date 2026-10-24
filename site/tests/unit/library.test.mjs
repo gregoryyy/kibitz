@@ -3,9 +3,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { Chess } from 'chess.js';
-import { makeProvenance, readProvenance, libraryGameId, compileLibraryGame, indexedLibraryPositions, librarySourceContext } from '../../src/library.js';
-import { mainlineComments } from '../../src/pgn.js';
-import { classicGames } from '../../src/classics.js';
+import { makeProvenance, readProvenance, libraryGameId, compileLibraryGame, indexedLibraryPositions, librarySourceContext } from '../../src/library/library.js';
+import { mainlineComments } from '../../src/chess/pgn.js';
+import { classicGames } from '../../src/library/classics.js';
 
 const game = (pgn, extra = {}) => ({ id: 'sample', kind: 'study', pgn, ...extra });
 const compile = (pgn, extra, collection) => compileLibraryGame(Chess, game(pgn, extra), collection);
@@ -89,7 +89,7 @@ test('every built-in has a source-aware game/study model and project-authored no
   for (const g of classicGames()) {
     const s = await compileLibraryGame(Chess, g, 'classic');
     assert.equal(s.source.origin, 'builtin'); assert.equal(s.source.rights.annotations, 'GPL-3.0-or-later');
-    assert.equal(s.source.rights.score, ''); assert.ok(s.source.url.endsWith('/site/src/classics.js'));
+    assert.equal(s.source.rights.score, ''); assert.ok(s.source.url.endsWith('/site/src/library/classics.js'));
     for (const o of s.occurrences) { assert.equal(o.sourceId, s.source.id); assert.equal(o.documentId, s.document.id); assert.ok(s.positions.some(p => p.id === o.positionId)); }
     for (const a of s.annotations) { assert.equal(a.licence, 'GPL-3.0-or-later'); assert.ok(s.occurrences.some(o => o.id === a.occurrenceId)); }
     if (s.problem) problems++;

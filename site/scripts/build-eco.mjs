@@ -1,6 +1,6 @@
 import { Chess } from 'chess.js';
 import fs from 'fs';
-import { buildNamedOpenings } from '../src/opening-variations.js';
+import { buildNamedOpenings } from '../src/openings/opening-variations.js';
 const out = {};
 const named = []; // every named line with its moves, for starting a game from an opening
 let n=0;

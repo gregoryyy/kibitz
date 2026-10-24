@@ -3,9 +3,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { Chess } from 'chess.js';
-import { compileLibraryGame, makeProvenance } from '../../src/library.js';
-import { authoredGuideTexts } from '../../src/opening-guides.js';
-import { textTerms, textChunks, annotationPassages, guidePassages, buildTextIndex, searchText, textExcerpt } from '../../src/text-search.js';
+import { compileLibraryGame, makeProvenance } from '../../src/library/library.js';
+import { authoredGuideTexts } from '../../src/openings/opening-guides.js';
+import { textTerms, textChunks, annotationPassages, guidePassages, buildTextIndex, searchText, textExcerpt } from '../../src/library/text-search.js';
 
 const PGN = '{Before play 🧠} 1. Nf3 {First arrival} Nf6 (1... d5 {Variation only}) 2. Ng1 Ng8 3. Nf3 {Second arrival Qxf7+} *';
 const compile = (pgn = PGN) => compileLibraryGame(Chess, { id: 'notes', pgn, provenance: makeProvenance('imported', { title: 'Notebook', annotations: 'Personal notes' }) });

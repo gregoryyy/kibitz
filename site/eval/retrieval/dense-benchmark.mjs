@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { createEmbedder, loadEmbeddingConfig, LOCAL_PROVIDERS } from '../../server/ai.mjs';
-import { DenseSession, EMBEDDING_INPUT_VERSION } from '../../src/dense-search.js';
+import { DenseSession, EMBEDDING_INPUT_VERSION } from '../../src/library/dense-search.js';
 import { runTextBenchmark } from './text-benchmark.mjs';
 
 /**

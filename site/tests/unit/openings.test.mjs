@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import { classicGames } from '../../src/classics.js';
-import { openingGame, buildOpeningIndex, openingContinuations } from '../../src/openings.js';
+import { classicGames } from '../../src/library/classics.js';
+import { openingGame, buildOpeningIndex, openingContinuations } from '../../src/openings/openings.js';
 
 const start = new Chess().fen();
 const game = (id, moves, result = '*', source = 'library') => openingGame(Chess, {

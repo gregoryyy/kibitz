@@ -14,7 +14,7 @@ Recommended flow:
 4. Ask the model to explain those facts at the learner's level, with references.
 5. Validate structured output and citations before offering board actions; discard stale asynchronous results.
 
-The existing [coach tools](../../site/src/tools.js), [prompt quoting](../../site/src/prompt.js) and board validation provide parts of that boundary. Prose about a long-term plan still needs evidence and careful wording even when all displayed moves are legal.
+The existing [coach tools](../../site/src/coach/tools.js), [prompt quoting](../../site/src/coach/prompt.js) and board validation provide parts of that boundary. Prose about a long-term plan still needs evidence and careful wording even when all displayed moves are legal.
 
 ## Milestone 5: opening library
 
@@ -32,7 +32,7 @@ Opening popularity, score in a historical sample and engine quality are differen
 
 **State at the audit baseline:** 5.1 is implemented. [The ECO builder](../../site/scripts/build-eco.mjs) produces position names and named SAN lines from the bundled opening data. That data is not a frequency/win-rate explorer. The move graph, repertoire workflow and lesson passages above were proposed work.
 
-**Implementation update, 2026-10-23:** [TODO 5.2](../TODO.md#5-opening-library) now has a local reference-game explorer in [`openings.js`](../../site/src/openings.js): transpositions, corpus filters, record counts/results, sample occurrences and scratch variations, subject to live-help settings. TODO 5.3 adds named White/Black repertoires in [`repertoire.js`](../../site/src/repertoire.js), preserving legal ordered lines while querying chosen moves by position. Both work without an LLM. Drills, explanations and the named-continuation panel remain planned.
+**Implementation update, 2026-10-23:** [TODO 5.2](../TODO.md#5-opening-library) now has a local reference-game explorer in [`openings.js`](../../site/src/openings/openings.js): transpositions, corpus filters, record counts/results, sample occurrences and scratch variations, subject to live-help settings. TODO 5.3 adds named White/Black repertoires in [`repertoire.js`](../../site/src/openings/repertoire.js), preserving legal ordered lines while querying chosen moves by position. Both work without an LLM. Drills, explanations and the named-continuation panel remain planned.
 
 ## Milestone 6: curriculum
 
@@ -50,7 +50,7 @@ An exercise has at least two different answers: an accepted **move/line**, and a
 
 For proposed generated exercises, keep candidate generation separate from publication. Validate legality, theme, difficulty and alternative moves; retain the source position and engine/version/budget used. Short search cannot certify a strategically unique solution. User-facing wording should reflect uncertainty or defer to an authored exercise.
 
-**Current state:** [knowledge.js](../../site/src/knowledge.js) provides pure features and motif candidates; [tools.js](../../site/src/tools.js) adds bounded engine checks. Existing coach challenges record some theme progress. Those pieces support the curriculum, but do not implement the lesson catalogue, full lesson player or Syzygy integration. Syzygy's WDL/DTZ semantics and limitations are described in the [python-chess documentation](https://python-chess.readthedocs.io/en/latest/syzygy.html); that is a reference, not a proposal to add Python to Kibitz.
+**Current state:** [knowledge.js](../../site/src/chess/knowledge.js) provides pure features and motif candidates; [tools.js](../../site/src/coach/tools.js) adds bounded engine checks. Existing coach challenges record some theme progress. Those pieces support the curriculum, but do not implement the lesson catalogue, full lesson player or Syzygy integration. Syzygy's WDL/DTZ semantics and limitations are described in the [python-chess documentation](https://python-chess.readthedocs.io/en/latest/syzygy.html); that is a reference, not a proposal to add Python to Kibitz.
 
 ## Milestone 7: reference library
 
@@ -63,13 +63,13 @@ For proposed generated exercises, keep candidate generation separate from public
 
 The model should not parse PGN instead of chess.js, invent missing source licences, determine identity through embedding similarity, or generate arbitrary SQL for execution. Natural-language intent can map to a small typed query schema; the application owns SQL, parameter binding and access control.
 
-**Current state:** [classics.js](../../site/src/classics.js) contains nine games and four studies with original notes. [chat.js](../../site/src/chat.js) searches a bounded set of library metadata. The own-game prototype exists. The complete provenance model, deduplication, SQLite/IndexedDB design and passage search remain on the plan.
+**Current state:** [classics.js](../../site/src/library/classics.js) contains nine games and four studies with original notes. [chat.js](../../site/src/coach/chat.js) searches a bounded set of library metadata. The own-game prototype exists. The complete provenance model, deduplication, SQLite/IndexedDB design and passage search remain on the plan.
 
 ## Stockfish: two whole engines, no standalone internal evaluator
 
 **Yes, Stockfish is used outside the live opponent. No, Kibitz currently does not extract a Stockfish sub-library for that work.**
 
-[index.html](../../site/src/index.html) constructs `opponent` and `analyst` as separate instances of the same [Engine wrapper](../../site/src/engine.js):
+[index.html](../../site/src/index.html) constructs `opponent` and `analyst` as separate instances of the same [Engine wrapper](../../site/src/chess/engine.js):
 
 | Instance | Current jobs |
 | --- | --- |

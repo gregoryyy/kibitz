@@ -58,6 +58,7 @@ flowchart LR
 ```
 
 - **The page** is a single HTML file plus plain ES modules, with no framework and no bundler. Stockfish runs in Web Workers. When the page is cross-origin isolated (COOP and COEP headers), the analyst uses the multi-threaded build.
+- **Source modules** are grouped by responsibility under `site/src/`: `chess/` for rules, knowledge, engine and game helpers; `coach/` for prompts, tools, annotations and model support; `library/` for source records, classics and passage search; `openings/` for opening guides, repertoires and drills; and `platform/` for storage and localization. `index.html` composes them. The build preserves these paths in `dist/`, where vendored libraries and Stockfish workers live at the root. The same pure modules are imported directly by Node tests, the gateway and offline evaluation tools.
 - **The local server** serves the page with a strict Content Security Policy. It mounts the AI gateway under `/api/ai/`, which holds the API keys (from `.env`), talks to the providers, enforces limits, and streams answers back as NDJSON. Keys never reach the page.
 - **Two other deployments** use the same page:
   - **As a Claude artifact,** where the page uses the host's `window.claude` model instead of the gateway.

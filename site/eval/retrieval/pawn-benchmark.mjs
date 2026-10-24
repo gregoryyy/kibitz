@@ -1,6 +1,6 @@
 import { Chess } from 'chess.js';
-import { buildHybridIndex, searchHybrid } from '../../src/hybrid-search.js';
-import { PAWN_DISTANCE_POLICY } from '../../src/pawn-distance.js';
+import { buildHybridIndex, searchHybrid } from '../../src/library/hybrid-search.js';
+import { PAWN_DISTANCE_POLICY } from '../../src/library/pawn-distance.js';
 import { runTextBenchmark, renderTextReport } from './text-benchmark.mjs';
 import { pawnCorpus, PAWN_CASES, PAWN_SUITE_VERSION } from './pawn-corpus.mjs';
 

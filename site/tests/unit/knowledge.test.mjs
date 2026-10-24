@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
-import * as K from '../../src/knowledge.js';
+import * as K from '../../src/chess/knowledge.js';
 
 const fromPgn = pgn => { const c = new Chess(); c.loadPgn(pgn); return c; };
 const tags = list => list.map(x => x.tag);

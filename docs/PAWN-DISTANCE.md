@@ -6,7 +6,7 @@ TODO **8.5** adds an optional graded pawn relation to [Combined passage search](
 
 ## Definition and scope
 
-[`pawn-distance.js`](../site/src/pawn-distance.js) decodes a checked board's existing `pawnSignature()` into a set such as `{w:d4, b:e6}`. Colour and square are literal: no colour swap, board reflection or rotation is applied. The geometry decoder validates eight ranks and bounded square counts; full board legality belongs to the existing chess.js source/query checks.
+[`pawn-distance.js`](../site/src/library/pawn-distance.js) decodes a checked board's existing `pawnSignature()` into a set such as `{w:d4, b:e6}`. Colour and square are literal: no colour swap, board reflection or rotation is applied. The geometry decoder validates eight ranks and bounded square counts; full board legality belongs to the existing chess.js source/query checks.
 
 For sets A and B, version **`pawn-square-jaccard-v1`** uses:
 

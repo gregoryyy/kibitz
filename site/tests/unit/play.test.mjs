@@ -4,7 +4,7 @@ import { Chess } from 'chess.js';
 import {
   gameEnd, cannotMate, timeoutEnd, newClock, pressClock, stopClock, timeLeft, fmtClock, moveBudget, timeControlOf, pgnTimeControl,
   weakParams, opponentSearch, pickWeak, acceptsDraw, MIN_UCI_ELO, checkStart, fixCastling,
-} from '../../src/play.js';
+} from '../../src/chess/play.js';
 
 const play = (fen, ...moves) => { const c = new Chess(fen); for (const m of moves) c.move(m); return c; };
 const legal = (fen, m) => { try { new Chess(fen).move(m); return true; } catch { return false; } };

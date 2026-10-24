@@ -7,6 +7,30 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Organize source modules by responsibility
+
+TODO items: 0.14.
+
+### Implementation notes
+
+- Moved all 30 existing JavaScript modules into `site/src/chess/`, `coach/`, `library/`, `openings/` and `platform/`. Updated page imports, module imports and JSDoc type imports, gateway consumers, opening/calibration scripts, retrieval evaluators and tests. Source references and built-in provenance point to the new locations.
+- The build recursively copies the module tree, removes obsolete application assets and retains generated opening tables until their inputs change. Vendored libraries, Stockfish workers/WASM and generated opening data remain at the distribution root. Updated the opening compiler's imports and rebuild inputs.
+- Added distributable checks that every source module is copied at its relative path, flat duplicates are absent, and page/module imports resolve inside `dist/`. Existing browser workflows exercise the reorganized module graph, including the engine import used by the delayed-reply regression.
+- Updated AGENTS, architecture and layout documentation to describe the directories and their responsibilities.
+- Moving the packaged classics source URL changes the position benchmark's corpus hash. Regenerated its recorded JSON/Markdown through the provider-free evaluator and confirmed the hash is the only report change; rankings, cases and metrics are identical.
+- Verification: lint, JSDoc type checking and the build pass; 365 unit/gateway tests and 212 Playwright tests pass. One opt-in live test is skipped in each suite; provider requests use mocks or fake clients.
+
+### Deviations
+
+- The requested scope is the organization of existing JavaScript modules. The page still composes them through its inline application module, preserving the artifact and local-page formats.
+
+### Insights
+
+- A source move reaches more than browser imports: the gateway and offline benchmarks consume the same pure modules, and JSDoc imports need the same path updates.
+- Removing old build assets makes missing path migrations visible instead of allowing stale flat files to satisfy imports.
+
+---
+
 ## 2026-10-24 — Retrieved coach passages and exact source citations
 
 TODO items: 8.6.
@@ -588,7 +612,7 @@ TODO items: 4.8, 4.9, 4.10 (milestone 4, part 2b).
 
 ### Implementation notes
 
-- **Commands and validation** (`site/src/chat.js`, pure): legal moves through the existing typed-move parser; FEN and PGN loading; move-number navigation; piece edits and side to move; library search by player, opening or theme, with own-game color and result filters. Imported metadata is quoted before it goes into tool results or history. Position checks now reject an attacked non-moving king as well as malformed FENs; game-start checks additionally reject terminal positions.
+- **Commands and validation** (`site/src/coach/chat.js`, pure): legal moves through the existing typed-move parser; FEN and PGN loading; move-number navigation; piece edits and side to move; library search by player, opening or theme, with own-game color and result filters. Imported metadata is quoted before it goes into tool results or history. Position checks now reject an attacked non-moving king as well as malformed FENs; game-start checks additionally reject terminal positions.
 - **Local commands:** `e4`, `play Nf3`, `show me e4 and what follows`, `take back two moves`, `go to move 15`, `put a white knight on f5`, `remove the queens`, `White to move`, `undo`, and `return to my game`. These work without a model. Analysis moves and setups stay on a scratch board; live moves respect the player's turn, clock and help level.
 - **Tools:** library and opening searches, game/FEN/PGN/opening loads, `move`, `goto`, `setup`, `undo`, using the same provider adapters as the engine tools. Each action is validated again against the current board. The existing four-round/six-call cap applies to both tool groups; engine tools withheld by the help setting are also refused if the model calls one anyway.
 - **Loading a running game requires confirmation.** Cancellation leaves it in place. An accepted load suspends it in memory, with a Return button; its clock resumes when returning. Loads, scratch edits and navigation never write the saved library. A board change can be undone as one action.
@@ -635,7 +659,7 @@ TODO items: 4.11.1, 4.11.3, 4.11.4, 4.11.5, 4.11.6; 4.11.2 in part (milestone 4,
 
 ### Implementation notes
 
-- **The catalogue** (`site/src/tools.js`, pure):
+- **The catalogue** (`site/src/coach/tools.js`, pure):
   - Six tools: `analyse`, `try_move`, `threats`, `compare`, `find_mate`, `find_motifs`.
   - `checkToolCall` checks every argument as untrusted. Unknown tools and extra fields are refused, FENs and moves go through chess.js, and depth, line count, mate length and line length are capped. Nothing over a cap is quietly clamped.
   - `runTool` runs a call against an engine passed in as a function: the page's Stockfish, or a fake in the tests. It returns the result for the model and the SAN lines it showed.
@@ -682,7 +706,7 @@ TODO items: 4.2, 4.3, 4.4, 4.5, 4.6, 4.7 (milestone 4, part 1).
 
 ### Implementation notes
 
-- **The schema** (`site/src/annotations.js`, pure):
+- **The schema** (`site/src/coach/annotations.js`, pure):
   - Annotations are arrows (a move for the side to move, or a threat: a move for the other side), squares, ghost pieces (`wN` on d5: where a piece belongs), labels (one or two characters) and lines (moves played one after the other from a position).
   - `checkAnnotation` checks each against the position before anything is drawn. Squares and pieces must exist, arrows must be legal moves for the right side, and a ghost needs a piece of that kind on the board and a square not taken by its own side.
 - **Two sources:**
@@ -831,7 +855,7 @@ TODO items: 10.8.1 (10.8 started).
 
 ### Implementation notes
 
-- **The approach:** English stays the source, and a language is a dictionary from English text to its translation (`site/src/i18n.js`, `i18n-de.js`).
+- **The approach:** English stays the source, and a language is a dictionary from English text to its translation (`site/src/platform/i18n.js`, `i18n-de.js`).
   - The page translates what it shows as it appears: the markup once at load, then every text node and every title, placeholder and aria-label added later, through a MutationObserver.
   - Code that builds text needed almost no change, and neither did the pure modules (`knowledge.js`, `tutor.js`, `modes.js`) whose sentences the page shows.
 - **Templates:** a key is exact text or a template with `{placeholders}` ("{n} moves ready. …"). The parts are translated again, so sentences built from smaller pieces come out whole. Two extensions cover German grammar:
@@ -1271,7 +1295,7 @@ TODO items: 2.16.0, 2.16.1, 2.16.3–2.16.6 done; 2.16.2 partly (model choice wi
   - `/api/ai/status` tells the page where the weights are (`browser: {url, name, bytes}`).
   - `serve.mjs --models DIR` serves only the catalog's `.gguf` files, with an ETag, never a listing.
   - `--offline` drops the Google Fonts links from the page, and the CSP then allows no other host at all.
-- **Runtime (`src/browser-llm.js`):** wllama 3.8.1 (MIT, llama.cpp) runs the GGUF model on WebGPU, or in multi-threaded WebAssembly on the CPU, inside its own worker. The build copies `wllama.js` and `wllama.wasm` into `dist/`, and the page imports them only when the model is first needed. `createBrowserModel()`:
+- **Runtime (`src/coach/browser-llm.js`):** wllama 3.8.1 (MIT, llama.cpp) runs the GGUF model on WebGPU, or in multi-threaded WebAssembly on the CPU, inside its own worker. The build copies `wllama.js` and `wllama.wasm` into `dist/`, and the page imports them only when the model is first needed. `createBrowserModel()`:
   - loads on first use, with progress;
   - streams answers, cancels through the abort signal, and turns a JSON schema into `response_format`;
   - runs one request at a time;
@@ -1318,7 +1342,7 @@ TODO items: 3.2.1–3.2.4, 3.3, 3.4, 3.6, 3.7 done; 3.2.5 partly.
 
 ### Implementation notes
 
-- **`site/src/tutor.js`** (new, pure, unit-tested) holds the tutor logic. The page only wires it up.
+- **`site/src/coach/tutor.js`** (new, pure, unit-tested) holds the tutor logic. The page only wires it up.
 - **Aspects and templates (3.2, 3.3):**
   - The five aspects are Last move, What's next, Keep in mind, Good habits and Similar games. Each has its own instruction.
   - `commentRequest()` asks for them in a fixed order, under a word limit.
@@ -1460,7 +1484,7 @@ TODO items: 1.3, 1.4 (partly), 1.6, 1.7, 1.8, 1.9, 1.11, 1.12; 6.8 added.
 
 ### Implementation notes
 
-- **`site/src/play.js`** holds the playing rules as pure functions, unit-tested in Node:
+- **`site/src/chess/play.js`** holds the playing rules as pure functions, unit-tested in Node:
   - `gameEnd`: checkmate, stalemate, threefold repetition, insufficient material, fifty-move rule.
   - `timeoutEnd`: a timeout loses, unless the other side has no mating material.
   - Clocks.
@@ -1481,7 +1505,7 @@ TODO items: 1.3, 1.4 (partly), 1.6, 1.7, 1.8, 1.9, 1.11, 1.12; 6.8 added.
   - a FEN, checked before the game starts and explained when it fails: invalid, side not to move in check, game already over.
 
   The opening's moves are set up as the first moves of the game; take-backs and draw offers count from there. Stockfish moves first if it is to move.
-- **NAGs (1.9):** chess.js parses NAGs but doesn't expose them, so `site/src/pgn.js` reads them from the movetext.
+- **NAGs (1.9):** chess.js parses NAGs but doesn't expose them, so `site/src/chess/pgn.js` reads them from the movetext.
   - It reads both suffixes (`!?`) and `$n`, and skips variations, comments, escape lines and headers.
   - The move list shows the glyphs when there is no engine verdict for the move.
   - Export writes `$n`, including the engine's verdicts (`$6`, `$2`, `$4`) when annotating; it used to append `?!` to the SAN.
@@ -1575,7 +1599,7 @@ TODO items: 1.13 (added).
 
 - The Game tab has a **Stockfish style** choice next to the existing Elo slider (600–2800): Solid, Balanced (default), Active, Aggressive, Reckless. Both are saved with the other settings.
 - The style shows next to Stockfish's name ("≈1400 · aggressive"). It goes into the coach's context and into saved games, and survives a restore.
-- `site/src/style.js`:
+- `site/src/chess/style.js`:
   - `aggressionScore()` rates a move for the side playing it. Checks, captures, sacrifices, tactics (from `moveMotifs`), pieces heading for the enemy king and pawn storms score up; retreats score down.
   - `pickStyled()` chooses among Stockfish's candidate lines. Only moves within the style's window of the move Stockfish would play are allowed: Solid 0.2, Active 0.25, Aggressive 0.5, Reckless 1.2 pawns. The style's weight decides among them; Solid prefers the lowest score.
 - With a style other than Balanced, the opponent search asks for 4 lines (MultiPV 4) instead of 1.
@@ -1602,8 +1626,8 @@ The 2026-10-20 review of `site/src` found 25 issues. Each fixed bug now has a Pl
 
 **Bugs fixed:**
 - **Review crashed when the game changed mid-run.** It snapshots the position FENs, stops with a message when the game changes, and resets its UI in `finally`. It never classifies or saves the wrong game.
-- **A failed or crashed engine froze the game.** The Engine moved to `src/engine.js`. A failed start or crash rejects every waiting job, and later jobs fail at once. The engine reply, hint, analysis and coach all recover, and the status shows the failure.
-- **Full browser storage still said "Saved".** `src/store.js` reports failure; library writes are undone and reported.
+- **A failed or crashed engine froze the game.** The Engine moved to `src/chess/engine.js`. A failed start or crash rejects every waiting job, and later jobs fail at once. The engine reply, hint, analysis and coach all recover, and the status shows the failure.
+- **Full browser storage still said "Saved".** `src/platform/store.js` reports failure; library writes are undone and reported.
 - **The engine could play for the user.** This happened after a quick take-back, and a stale reply could also clear a newer reply's `thinking` flag. Replies now check the turn and carry a token.
 - **The coach could use a game the user had left.** It checks the game generation and FEN after its analysis; the prompt is built inside `try`. It also has its own analysis tag, so moving around the board doesn't cancel it.
 - **The hint could draw on the wrong position.** It now checks the position before drawing, and has its own analysis tag.
@@ -1617,7 +1641,7 @@ The 2026-10-20 review of `site/src` found 25 issues. Each fixed bug now has a Pl
   - Named constants for the opening and book ply limits.
 
 **Security fixes:**
-- **Prompt injection (LLM01).** PGN headers and comments, and the player's own references, go into prompts only through `quote()` (`src/prompt.js`). It produces one line in «guillemets», with control characters and inner guillemets removed and the length capped. The coach's rules say quoted text is data.
+- **Prompt injection (LLM01).** PGN headers and comments, and the player's own references, go into prompts only through `quote()` (`src/coach/prompt.js`). It produces one line in «guillemets», with control characters and inner guillemets removed and the length capped. The coach's rules say quoted text is data.
 - **Static server hardening.**
   - A hash-based Content Security Policy for HTML: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`.
   - `Referrer-Policy`, `X-Frame-Options`, `Cross-Origin-Opener-Policy` and `Permissions-Policy` on every response.

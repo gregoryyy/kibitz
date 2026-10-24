@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Engine, stockfishAttempts } from '../../src/engine.js';
+import { Engine, stockfishAttempts } from '../../src/chess/engine.js';
 
 // Speaks just enough UCI: answers the handshake, and answers `go` with one info line and a bestmove.
 class FakeWorker {

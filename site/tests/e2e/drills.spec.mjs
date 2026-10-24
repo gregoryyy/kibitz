@@ -1,6 +1,6 @@
 /** @file Browser recall sessions: separate board, saved reviews, failure recovery and help policy. */
 import { Chess } from 'chess.js';
-import { buildDrillCards, scheduleDrillReview } from '../../src/drills.js';
+import { buildDrillCards, scheduleDrillReview } from '../../src/openings/drills.js';
 import { test, expect, open, loadPgn, S } from './fixtures.mjs';
 
 const DAY = 86_400_000;

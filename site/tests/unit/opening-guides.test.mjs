@@ -3,8 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Chess } from 'chess.js';
-import { epd } from '../../src/knowledge.js';
-import { openingGuidePath, openingGuides, openingGuideContext } from '../../src/opening-guides.js';
+import { epd } from '../../src/chess/knowledge.js';
+import { openingGuidePath, openingGuides, openingGuideContext } from '../../src/openings/opening-guides.js';
 
 const ECO = JSON.parse(readFileSync(new URL('../../dist/eco.json', import.meta.url), 'utf8'));
 const path = pgn => {

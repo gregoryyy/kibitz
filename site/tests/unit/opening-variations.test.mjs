@@ -3,8 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Chess } from 'chess.js';
-import { epd } from '../../src/knowledge.js';
-import { buildNamedOpenings, namedContinuations, namedOpeningContext } from '../../src/opening-variations.js';
+import { epd } from '../../src/chess/knowledge.js';
+import { buildNamedOpenings, namedContinuations, namedOpeningContext } from '../../src/openings/opening-variations.js';
 
 const START = new Chess().fen();
 const at = pgn => { const c = new Chess(); c.loadPgn(pgn); return c.fen(); };
