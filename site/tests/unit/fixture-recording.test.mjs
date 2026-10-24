@@ -89,9 +89,13 @@ test('atomic publication replaces a symlink entry without touching its target; f
     await fs.writeFile(target, 'preserve'); await fs.symlink(target, file);
     const saved = await recordFixture(cfg('openai'), 'chat', { fetcher: response(wire('openai')) });
     await publishFixture(dir, saved);
-    assert.equal(await fs.readFile(target, 'utf8'), 'preserve'); assert.equal((await fs.lstat(file)).isSymbolicLink(), false);
-    assert.deepEqual(JSON.parse(await fs.readFile(file, 'utf8')), saved);
-    if (process.platform !== 'win32') assert.equal((await fs.stat(file)).mode & 0o777, 0o600);
+    assert.equal(await fs.readFile(target, 'utf8'), 'preserve');
+    const handle = await fs.open(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0));
+    try {
+      const metadata = await handle.stat(); assert.equal(metadata.isFile(), true);
+      assert.deepEqual(JSON.parse(await handle.readFile('utf8')), saved);
+      if (process.platform !== 'win32') assert.equal(metadata.mode & 0o777, 0o600);
+    } finally { await handle.close(); }
     assert.deepEqual((await fs.readdir(dir)).sort(), ['openai-chat.json', 'operator-file']);
   } finally { await fs.rm(dir, { recursive: true, force: true }); }
 });

@@ -49,6 +49,8 @@ Context **9** in [#99](https://github.com/gregoryyy/kibitz/issues/99) is an inte
 
 The [capture guide](AI-FIXTURES.md) records limits and manual privacy review: unknown fields/encoded secrets, operator-controlled directory writers and the semantic quality of output are not certified by these checks. Existing paid captures are unchanged; TODO 2.15 remains open. This review neither suppresses the query nor dismisses the historical medium alert. Feature/main scan verification and other #99/release gates remain separate.
 
+The initial PR scan on `645a286` reports high **24** in the new test's path-based lstat/read/stat assertions, plus medium **23** for the documented cookie context and **20/21** for intentional flipbook report capture. Test 24 now opens first with no-follow where supported, then checks bytes and permissions on that descriptor. It does not exclude a test or disable a query. Cookie 23 has the same deployment-scoped disposition as 4: native encrypted sockets set Secure, while supported loopback HTTP intentionally does not. Medium alerts remain open; the post-correction scan must establish the high finding's status.
+
 ## Evidence and release decision
 
 - Existing checks/build and **566 unit/server passes, one opt-in live skip**, plus five focused bilingual benchmark/capture browser passes, were verified on source snapshot `2203105`. They are useful existing regression evidence; they are not a new exhaustive OWASP browser audit. The latest capture regression also demonstrates why automatic cue scores are not semantic verification.
