@@ -23,6 +23,8 @@ export const TAG_LABELS = {
   'hanging-piece': 'Loose / hanging piece', promotion: 'Promotion', sacrifice: 'Sacrifice',
   'greek-gift': 'Bishop sacrifice on h7/h2', 'king-attack': 'Attack on the king', mate: 'Checkmate pattern',
   calculation: 'Calculation & blunder-checking', planning: 'Planning & imbalances', 'king-activity': 'King activity',
+  'weak-square': 'Weak squares', outpost: 'Outposts', 'bishop-quality': 'Good and bad bishops',
+  'open-file': 'Open files', 'king-safety': 'King safety', 'piece-activity': 'Piece activity', prophylaxis: 'Prophylaxis',
 };
 
 // --- Literature catalog -------------------------------------------------

@@ -36,7 +36,7 @@ With board relevance enabled, **Include similar pawn structures** optionally adm
 
 ## Layout
 
-The **Lessons** tab browses an original English/German curriculum by module, level ceiling and theme. Expand a lesson to read its introduction, objectives, prerequisites and exercise prompts. The catalogue has 15 lessons and 18 exercises, including all 13 tactical themes in TODO 6.2 and planning/endgame foundations. A fork that can be answered by capturing the knight illustrates why recognizing a pattern does not prove a gain. Browsing works without a provider and keeps the current board intact. The catalogue establishes the structure in TODO 6.1; interactive exercise play, grading and progress follow in 6.6/6.7. Recorded positions and lines are rules-checked; mate examples end in checkmate, while reflection examples make no best-move or winning claim.
+The **Lessons** tab browses an original English/German curriculum by module, level ceiling and theme. Expand a lesson to read its introduction, objectives, prerequisites and exercise prompts. The catalogue has 25 lessons and 28 exercises: thirteen tactical lessons, eleven strategy lessons and an endgame foundation. Strategy covers the IQP, Carlsbad and hanging pawns, weak squares, outposts, bishops, open files, king safety, piece activity and prophylaxis. A fork that can be answered by capturing the knight illustrates why recognizing a pattern does not prove a gain. Browsing works without a provider and keeps the current board intact. Interactive exercise play, grading and progress follow in 6.6/6.7. Recorded positions and lines are rules-checked; mate examples end in checkmate, while reflection examples make no best-move or winning claim.
 
 ```
 src/index.html        CSS, markup and application composition, written as an artifact body
@@ -80,6 +80,7 @@ src/curriculum/       Modules, lessons and exercises:
   curriculum.js       Bounded records, legal positions/lines, prerequisite DAG and filtered queries
   catalogue.js        Original bilingual teaching material, objectives, rubrics and attribution
   tactics.js          Thirteen tactical themes, recorded examples and a defensive counterexample
+  strategy.js         Structure and planning reflections with explicit objectives and board examples
   ui.js               Literal catalogue rendering and local filters, independent of game/model work
 data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.json keyed by position,
                       dist/openings.json (every named line with its moves, for "start from an opening"),

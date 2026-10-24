@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Strategy lessons and checked structural examples
+
+TODO items: 6.3.
+
+### Implementation notes
+
+- Added ten original English/German strategy reflections beside the existing king-activity lesson: IQP, Carlsbad, hanging pawns, weak squares, outposts, good/bad bishops, open files, king safety, piece activity and prophylaxis. The catalogue now has twenty-five lessons and twenty-eight exercises. Stable IDs, authored levels, objectives, prerequisites and rubrics use the existing validated hierarchy.
+- Added seven strategy labels and German translations for topic filtering. These are authored lesson themes, not additional position detectors. Optional `positionTag` metadata on the three pawn-structure examples must be known, present in exercise tags and returned by the existing feature detector for that FEN.
+- All demonstrations are legal reflections. Board-fact tests check the available pawn capture after an IQP advance, changing pawn support, an exchangeable supported outpost, bishop/pawn square colours, an open file, changed pawn cover, knight attacks and a possible king flight square. Text distinguishes these observations from a best-move or winning-plan claim.
+- Five new unit scenarios cover the complete strategy scope, bilingual records, the concrete board facts, false/untagged structure rejection and precise level/theme filters. Two browser scenarios cover module browsing, advanced-level filtering, board isolation and German phone labels/text. Existing catalogue count expectations track the larger material.
+- Verification: ESLint, JSDoc type checking and build pass; 379 unit/gateway tests and 220 browser tests pass, with one opt-in live test skipped per suite. Provider calls use mocks or fake clients.
+
+### Deviations
+
+- This completes authored strategy material for the catalogue. Interactive solving/grading remains 6.6; expert review and measured difficulty/learning outcomes are not claimed. Structural labels and legal candidate demonstrations do not replace current-position engine checks.
+
+### Insights
+
+- Pawn safety is narrower than piece safety: a pawn-supported square can still be exchanged by a knight. The example teaches both relationships together.
+- A preventive pawn move can create a flight square without answering an immediate threat or being the best move. Explicit rubrics keep a useful observation separate from an unjustified recommendation.
+
+---
+
 ## 2026-10-24 — Tactical concept lessons and defensive counterexample
 
 TODO items: 6.2.
