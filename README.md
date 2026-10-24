@@ -68,6 +68,8 @@ The **Classics** library includes 21 games with published score sources and sepa
 
 In **Library**, search words or combine player, opening/ECO, recorded year range, result and theme filters. Names and theme labels support English/German and accent-insensitive matching. Search works locally; the coach's library tool uses the same filters.
 
+An optional [server library](site/README.md#server-library) stores games and references in a private SQLite file, with a scoped IndexedDB browser cache. Choose it explicitly in Library; the existing browser library stays separate and is never uploaded automatically.
+
 The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
 
 - **Run locally:** the page talks to the AI gateway in `site/server/`, which `site/scripts/serve.mjs --api` mounts. The gateway reads `.env`, calls the chosen provider, and keeps the API keys on the server.

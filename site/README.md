@@ -42,6 +42,21 @@ The **Problems** filter browses four mates in one and eight studies/reflections,
 
 With board relevance enabled, **Include similar pawn structures** optionally admits at least 75% colour-specific pawn-square overlap. Match details show shared and unmatched squares; exact positions keep their own label. [Pawn distance and its limits](../docs/PAWN-DISTANCE.md) include an offline benchmark (`just retrieval-eval --mode pawns`) and the known miss when the only pawn advances one square. The option defaults off and sends no new request until Search.
 
+## Server library
+
+Browser-only storage remains the default, and a hosted artifact keeps its account library. To offer a persistent local-server library, run from `site/`:
+
+```sh
+npm run build
+node scripts/serve.mjs dist --index _test.html --api --env ../.env --library ../.kibitz-data/library.sqlite
+```
+
+Then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Database files must be private regular files outside the served directory, including through symlinks. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.
+
+Server libraries use an anonymous HttpOnly browser cookie. Clearing that cookie starts another library, leaving the earlier records in SQLite. Accounts and cross-device sign-in remain TODO 10.1–10.2. IndexedDB caches acknowledged records by the verified server scope. A failed cache write still reports a successful server save. Known-owner cached snapshots are read-only; a fresh load must verify the cookie owner before showing cached server data. Offline writes are not queued. Conflicts or an uncertain acknowledgement require **Refresh server library** before retrying; repeat imports then deduplicate against the refreshed records.
+
+Source/PGN bytes, record IDs and extra metadata remain intact. Late responses and held controls cannot cross storage contexts; unchanged records retain source-form drafts through ordinary acknowledgements. Current-game and lesson state stays separate. [Schema, API, limits and lifecycle](../docs/LIBRARY.md#server-library-and-browser-cache) describe the implementation and scope.
+
 ## Layout
 
 The **Lessons** tab browses English/German teaching material by module, level ceiling and theme. Expand a lesson to read its introduction, objectives, prerequisites and exercise prompts. The authored core has 30 lessons and 36 exercises: thirteen tactical lessons, eleven strategy lessons and six endgame lessons. Strategy covers pawn structures, weak squares, outposts, bishops, open files, king safety, activity and prophylaxis. A capturable fork illustrates why recognizing a pattern does not prove a gain. Endgames cover queen/rook mates, king and pawn, opposition, Lucena and Philidor. Their ten exercises show recorded Syzygy outcomes for the exact FEN and worked branch; other legal reflections make no result claim. No recorded branch asserts a unique best move.
@@ -80,6 +95,9 @@ src/coach/            Prompts, model support, checked answers and conversation t
 src/library/          Source-aware records, classics and passage retrieval:
   library.js          Source revisions, game occurrences, annotations and position-index adapter
   search.js           Local metadata search, legal PGN/ECO labels and combined field filters
+  storage.js          Shared snapshot format, IDs and byte/count bounds
+  cache.js            Scoped IndexedDB snapshots; transaction acknowledgements and future-format preservation
+  server-session.js   Cookie-owner verification, serialized optimistic writes and cache/failure state
   import.js           Bounded PGN batch splitting and conservative source-document deduplication
   classics.js         Built-in annotated games/studies and thematic retrieval
   capablanca.js       Twelve complete published book scores and original teaching notes
@@ -128,7 +146,8 @@ scripts/calibrate.mjs Self-play round robin that measures the weakened levels ag
 scripts/fetch-model.mjs  Downloads the in-browser model into models/ once and checks its SHA-256 (just offline)
 scripts/record-ai-fixtures.mjs  Records real provider responses for the contract tests (uses .env keys)
 scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env;
-                      --models serves the in-browser model's weights; --offline drops Google Fonts and other hosts
+                      --models serves the in-browser model's weights; --offline drops Google Fonts and other hosts;
+                      --library FILE mounts optional private SQLite storage independently of the AI gateway
 server/ai.mjs         AI gateway core: config from env (every provider, models per task, local-only), provider
                       adapters with chat() (Anthropic SDK; openai SDK for OpenAI, Mistral, Ollama), embed(),
                       validation, error mapping, rate limit, mock provider; "browser" (the in-browser model) as a local provider
@@ -137,6 +156,9 @@ server/usage.mjs      Tokens per day, the daily token budget, cost estimate from
 server/models.mjs     Catalog of in-browser models (pinned by size and SHA-256), the download check, which files may be served
 server/api.mjs        GET /api/ai/status; POST /api/ai/sample (NDJSON stream), /structured, /config, /test;
                       Host/Origin/size guards
+server/library-store.mjs SQLite owner/collection records, schema version, atomic revisions and quotas
+server/library-api.mjs Anonymous cookie scope, same-origin HTTP routes and validated record writes
+server/library-files.mjs Private database creation outside the static root
 server/fixtures/      Provider responses for the contract tests (recorded, or hand-written where marked)
 server/static.mjs     Security headers (incl. COOP/COEP for cross-origin isolation) and the hash-based CSP for served pages
 tests/unit/           node:test for the page modules; server/*.test.mjs for the gateway, incl. contract tests
@@ -171,7 +193,7 @@ The page runs as a Claude artifact and uses `window.claude.use(name)`:
 
 Published with `capabilities: {sample: {}, db: {}, user: {}, downloads: true}`; vendored files are published alongside the page (`sf.wasm` as `application/wasm`), and so are `eco.json`, `openings.json` and `opening-variations.json`.
 
-Outside an artifact, `use('sample')` returns `localSample()`, a function with the same signature that streams from the local AI gateway (`/api/ai/sample`). The prompts and `contextFor()` are unchanged. The library still falls back to `localStorage`; a server-side store is planned (TODO 7.6).
+Outside an artifact, `use('sample')` returns `localSample()`, a function with the same signature that streams from the local AI gateway (`/api/ai/sample`). The prompts and `contextFor()` are unchanged. The browser library uses `localStorage`; the optional server library uses SQLite and a scoped IndexedDB cache (TODO 7.6).
 
 Open `_test.html?debug` to get `window.__kibitz` in the console, including `S`, `contextFor`, `ANA` and `libraryRecords()` for compiled source-aware records.
 

@@ -24,7 +24,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: `node scripts/serve.mjs ${DIST} --api --env= --index _test.html --port ${PORT}${LIVE_MODEL ? ' --models models' : ''}`,
+    command: `node scripts/serve.mjs ${DIST} --api --env= --library :memory: --index _test.html --port ${PORT}${LIVE_MODEL ? ' --models models' : ''}`,
     // Mock provider only: keys from the shell are blanked, so no test can reach a real provider.
     env: {
       AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', EMBEDDING_REVISION: 'e2e-v1', AI_RATE_LIMIT_PER_MINUTE: '1000', AI_PRICES: 'mock=1000/2000' /* so the page shows costs */, ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', AI_LOCAL_ONLY: '',

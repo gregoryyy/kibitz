@@ -7,6 +7,31 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Optional SQLite library and scoped browser cache
+
+TODO items: 7.6.
+
+### Implementation notes
+
+- Added `server/library-store.mjs`, `library-api.mjs` and `library-files.mjs`. `serve.mjs --library FILE` offers a private SQLite library with or without the AI gateway, mounted before its wider API handler. Private file/directory creation and canonical static-root/symlink checks keep databases outside served assets; existing public-readable/symlink/future-schema files are preserved and rejected. `.kibitz-data/` is ignored. The bundled Node SQLite API adds no npm dependency.
+- Version-one owner/collection/local-ID records retain original PGN/JSON/provenance fields, with owner revisions, bound SQL, consistent reads, atomic mutations, WAL/full synchronous commits and explicit record/byte quotas. A dedicated random HttpOnly SameSite cookie selects the hashed owner; body scope/revision are preconditions. Same-origin/Host/Fetch-Site, JSON/fatal UTF-8, legality/provenance/reference validation and write-rate checks bound the HTTP surface. Error responses/logs do not expose source bodies or capabilities.
+- Added pure `library/storage.js`/`server-session.js` and `cache.js`. Explicit server selection keeps the existing browser and hosted-account stores separate, without migration or automatic uploads. Serialized mutation plans recheck imports/record identities against acknowledged state. Conflicts and uncertain receipts require refresh; a lost-ack import can then deduplicate without a second write. Storage generation/owner checks reject old responses and queued work; held account/delete callbacks cannot cross contexts. Actual collection ownership controls deletion, independently of an example-kind label.
+- IndexedDB caches versioned snapshots by a freshly verified scope, with bounded IDs/UTF-8 sizes and connection lifetime handling. Writes capture their input before awaiting and resolve on transaction completion; native aborts retain previous entries. Future databases/layouts/envelopes stay intact. Server acknowledgement determines save success even when the optional cache fails. Cached views are read-only, with no offline write queue; a fresh offline load cannot expose the previous cookie owner's cache.
+- English/German controls name the destination, separate server/browser choices and report cache/refresh/session failures. Unchanged document objects retain source drafts across acknowledgements. Reference saves keep newly typed form input while a prior write is pending, and user reference notes remain literal text. Main game/lesson/repertoire state keeps its existing storage path; switching the library leaves play intact.
+- Seventeen server tests cover restart persistence, owner/collection isolation, SQL-looking literal IDs, stale-revision rejection across connections, quota rollback, unknown schemas, private paths, HTTP cookie/origin/UTF-8/record validation and actual CLI modes. Three shared-format and nine client-session scenarios cover bounds, owner verification, serialized plans, cache-independent success, uncertain acknowledgements and stale work. Six real IndexedDB cases exercise request-success-then-abort, future formats, scopes and version changes. Eleven UI cases cover explicit selection/reload/no upload, changed cookies/offline startup, cache failure after commit, conflicts, lost acknowledgements/deduplication, held callbacks, references, save-location/deletion semantics and German phone layout. Existing import/source/search/localization regressions also pass.
+- Validation: ESLint/JSDoc checks, build, 463 unit tests and the complete 286-test browser suite pass (one live-provider and one optional live-model skip respectively). All 17 focused storage/cache UI cases and 25 existing library/import/localization cases pass; the German phone screenshot was inspected. The dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- SQLite stores original game/reference documents; source/position/passage indexes remain derived in-memory data. IndexedDB is the optional server library's cache, while the default browser collection remains in localStorage. No legacy migration, automatic library merge, offline write queue or authenticated account service is introduced. Anonymous cookie ownership supports the local-server workflow; deployment/accounts remain 10.1–10.2, full offline loading remains 10.7.
+
+### Insights
+
+- A durable server commit and a browser-cache transaction have different outcomes. Treating the latter as the save result would falsely report failure after a successful commit, inviting unnecessary duplicates. Explicit refresh and conservative import matching resolve uncertain receipts without blind overwrites.
+- An origin-local cache does not establish the current cookie owner. Verification must precede cached fallback after a fresh load, and changes of storage context must invalidate queued work and held controls as well as visible indexes.
+
+---
+
 ## 2026-10-24 — Combined library metadata search
 
 TODO items: 7.5.

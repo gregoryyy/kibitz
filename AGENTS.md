@@ -6,7 +6,7 @@ Kibitz is a neurosymbolic chess coach in the browser. Stockfish (WASM) plays and
 
 Everything for the app is in `site/`, a single npm project. The architecture is explained in `docs/ARCH.md`; design notes are in `site/README.md`.
 - `site/src/`: the page (`index.html`, written as a Claude artifact body) and ES modules grouped under `chess/`, `coach/`, `curriculum/`, `library/`, `openings/` and `platform/`. The build preserves these directories in `site/dist/`; never edit `dist/`.
-- `site/server/`: the AI gateway. `site/scripts/serve.mjs --api` mounts it and loads `.env` from the repo root.
+- `site/server/`: the AI gateway and optional private SQLite library. `site/scripts/serve.mjs --api` mounts the gateway and loads `.env`; independent `--library FILE` enables server storage outside the static tree. Private `.kibitz-data/` files stay out of Git.
 - `site/tests/`, `site/server/*.test.mjs`: tests.
 - `utils/`: repository utilities, including PDF styles and Mermaid support in `utils/pdf/`.
 
