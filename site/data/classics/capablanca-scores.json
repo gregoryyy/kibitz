@@ -1,0 +1,5048 @@
+{
+  "version": 1,
+  "book": {
+    "title": "Chess Fundamentals (1921), Part II",
+    "author": "José Raúl Capablanca",
+    "url": "https://www.gutenberg.org/cache/epub/33870/pg33870-images.html",
+    "catalogue": "https://www.gutenberg.org/ebooks/33870",
+    "edition": "https://commons.wikimedia.org/wiki/File:Chess_fundamentals_(IA_chessfundamental00capa).pdf",
+    "score": "Public domain (USA; 1921 score)",
+    "retrievedAt": "2026-10-24T06:26:53.259983+00:00",
+    "htmlSha256": "c20a546fcfb51abb1e4c7c34c406cd4a24e490a081e4cc2a0a91ed686fe11012"
+  },
+  "selection": "The twelve complete scores in Part II. Games 3 and 6 omit later played moves and are excluded.",
+  "games": [
+    {
+      "id": "cf-1",
+      "gameNumber": 1,
+      "page": 159,
+      "heading": "GAME 1. QUEEN'S GAMBIT DECLINED",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "P - Q B 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "P - K 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 5"
+        },
+        {
+          "side": "w",
+          "text": "B × B"
+        },
+        {
+          "side": "b",
+          "text": "Q × B"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "w",
+          "text": "P × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Q - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Q R 4"
+        },
+        {
+          "side": "b",
+          "text": "P - B 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - R 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P - R 5"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 2"
+        },
+        {
+          "side": "w",
+          "text": "K R - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "B - B 5"
+        },
+        {
+          "side": "b",
+          "text": "K R - B 1"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q × B"
+        },
+        {
+          "side": "w",
+          "text": "P - R 6"
+        },
+        {
+          "side": "b",
+          "text": "B - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Q × P"
+        },
+        {
+          "side": "b",
+          "text": "Q R - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "R × R"
+        },
+        {
+          "side": "b",
+          "text": "R × R"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 5"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 4"
+        },
+        {
+          "side": "w",
+          "text": "P - K B 4"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "Q × R"
+        }
+      ],
+      "line": [
+        "d2d4",
+        "d7d5",
+        "c2c4",
+        "e7e6",
+        "b1c3",
+        "g8f6",
+        "c1g5",
+        "f8e7",
+        "e2e3",
+        "f6e4",
+        "g5e7",
+        "d8e7",
+        "f1d3",
+        "e4c3",
+        "b2c3",
+        "b8d7",
+        "g1f3",
+        "e8g8",
+        "c4d5",
+        "e6d5",
+        "d1b3",
+        "d7f6",
+        "a2a4",
+        "c7c5",
+        "b3a3",
+        "b7b6",
+        "a4a5",
+        "c8b7",
+        "e1g1",
+        "e7c7",
+        "f1b1",
+        "f6d7",
+        "d3f5",
+        "f8c8",
+        "f5d7",
+        "c7d7",
+        "a5a6",
+        "b7c6",
+        "d4c5",
+        "b6c5",
+        "a3c5",
+        "a8b8",
+        "b1b8",
+        "c8b8",
+        "f3e5",
+        "d7f5",
+        "f2f4",
+        "b8b6",
+        "c5b6"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-2",
+      "gameNumber": 2,
+      "page": 163,
+      "heading": "GAME 2. QUEEN'S GAMBIT DECLINED",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q B 4"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 3"
+        },
+        {
+          "side": "w",
+          "text": "P × Q P"
+        },
+        {
+          "side": "b",
+          "text": "K P × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt -Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "R - B 1"
+        },
+        {
+          "side": "w",
+          "text": "P X P"
+        },
+        {
+          "side": "b",
+          "text": "B × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt × B"
+        },
+        {
+          "side": "b",
+          "text": "P × Kt"
+        },
+        {
+          "side": "w",
+          "text": "B - R 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt × P"
+        },
+        {
+          "side": "b",
+          "text": "Q - R 3"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "b",
+          "text": "Q R - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 1"
+        },
+        {
+          "side": "b",
+          "text": "P × Kt"
+        },
+        {
+          "side": "w",
+          "text": "Q × B"
+        },
+        {
+          "side": "b",
+          "text": "Q - Q 7"
+        },
+        {
+          "side": "w",
+          "text": "Q - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 5"
+        },
+        {
+          "side": "w",
+          "text": "Q - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "Q × Q"
+        },
+        {
+          "side": "w",
+          "text": "P × Q"
+        },
+        {
+          "side": "b",
+          "text": "K R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "K R - K 1"
+        },
+        {
+          "side": "b",
+          "text": "R × R"
+        },
+        {
+          "side": "w",
+          "text": "R × R"
+        },
+        {
+          "side": "b",
+          "text": "R - Q Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "R - K 5"
+        },
+        {
+          "side": "b",
+          "text": "R × P"
+        },
+        {
+          "side": "w",
+          "text": "R × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - K 6 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "R - B 5 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - K 1"
+        },
+        {
+          "side": "w",
+          "text": "B - B 7 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "B - B 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "w",
+          "text": "R - B 7 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "R × K Kt P"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 8"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 4"
+        },
+        {
+          "side": "w",
+          "text": "R × P"
+        },
+        {
+          "side": "b",
+          "text": "P - R 5"
+        },
+        {
+          "side": "w",
+          "text": "P - R 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "R - R 6 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - B 4"
+        },
+        {
+          "side": "w",
+          "text": "R - R 5 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 6"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "P - R 6"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "R × Kt P"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "P - R 7"
+        },
+        {
+          "side": "w",
+          "text": "R - R 6 ch"
+        }
+      ],
+      "line": [
+        "d2d4",
+        "d7d5",
+        "g1f3",
+        "c7c5",
+        "c2c4",
+        "e7e6",
+        "c4d5",
+        "e6d5",
+        "b1c3",
+        "b8c6",
+        "g2g3",
+        "c8e6",
+        "f1g2",
+        "f8e7",
+        "e1g1",
+        "a8c8",
+        "d4c5",
+        "e7c5",
+        "f3g5",
+        "g8f6",
+        "g5e6",
+        "f7e6",
+        "g2h3",
+        "d8e7",
+        "c1g5",
+        "e8g8",
+        "g5f6",
+        "e7f6",
+        "c3d5",
+        "f6h6",
+        "g1g2",
+        "c8d8",
+        "d1c1",
+        "e6d5",
+        "c1c5",
+        "h6d2",
+        "c5b5",
+        "c6d4",
+        "b5d3",
+        "d2d3",
+        "e2d3",
+        "f8e8",
+        "h3g4",
+        "d8d6",
+        "f1e1",
+        "e8e1",
+        "a1e1",
+        "d6b6",
+        "e1e5",
+        "b6b2",
+        "e5d5",
+        "d4c6",
+        "g4e6",
+        "g8f8",
+        "d5f5",
+        "f8e8",
+        "e6f7",
+        "e8d7",
+        "f7c4",
+        "a7a6",
+        "f5f7",
+        "d7d6",
+        "f7g7",
+        "b7b5",
+        "c4g8",
+        "a6a5",
+        "g7h7",
+        "a5a4",
+        "h2h4",
+        "b5b4",
+        "h7h6",
+        "d6c5",
+        "h6h5",
+        "c5b6",
+        "g8d5",
+        "b4b3",
+        "a2b3",
+        "a4a3",
+        "d5c6",
+        "b2b3",
+        "c6d5",
+        "a3a2",
+        "h5h6"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-4",
+      "gameNumber": 4,
+      "page": 174,
+      "heading": "GAME 4. FRENCH DEFENCE",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "Q × P"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "B × Kt ch"
+        },
+        {
+          "side": "w",
+          "text": "P × B"
+        },
+        {
+          "side": "b",
+          "text": "P × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "Q - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "B - K 2"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - K B 4"
+        },
+        {
+          "side": "w",
+          "text": "O - O - O"
+        },
+        {
+          "side": "b",
+          "text": "O - O - O"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 3"
+        },
+        {
+          "side": "b",
+          "text": "K R - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - Q R 4"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "K R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "Q - K B 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - R 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - K Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "B - B 3"
+        },
+        {
+          "side": "b",
+          "text": "K R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "B × B"
+        },
+        {
+          "side": "b",
+          "text": "K × B"
+        },
+        {
+          "side": "w",
+          "text": "P - Q B 5"
+        },
+        {
+          "side": "b",
+          "text": "P - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - R 5 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - R 1"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "R - B 1"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "P - K 5"
+        },
+        {
+          "side": "w",
+          "text": "P × Kt"
+        },
+        {
+          "side": "b",
+          "text": "P × R"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 6"
+        },
+        {
+          "side": "b",
+          "text": "R - K 7"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 7"
+        },
+        {
+          "side": "b",
+          "text": "R - B 7 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 1 ch"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "w",
+          "text": "R × P"
+        },
+        {
+          "side": "b",
+          "text": "R - K 7"
+        },
+        {
+          "side": "w",
+          "text": "Q - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - R 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 5"
+        },
+        {
+          "side": "w",
+          "text": "Q - R 6"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "K - B 1"
+        },
+        {
+          "side": "b",
+          "text": "R × Q P"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "R - K 8 ch"
+        }
+      ],
+      "line": [
+        "d2d4",
+        "e7e6",
+        "e2e4",
+        "d7d5",
+        "b1c3",
+        "g8f6",
+        "c1g5",
+        "f8b4",
+        "e4d5",
+        "d8d5",
+        "g5f6",
+        "b4c3",
+        "b2c3",
+        "g7f6",
+        "g1f3",
+        "b7b6",
+        "d1d2",
+        "c8b7",
+        "f1e2",
+        "b8d7",
+        "c3c4",
+        "d5f5",
+        "e1c1",
+        "e8c8",
+        "d2e3",
+        "h8g8",
+        "g2g3",
+        "f5a5",
+        "d1d3",
+        "c8b8",
+        "h1d1",
+        "a5f5",
+        "f3h4",
+        "f5g5",
+        "f2f4",
+        "g5g7",
+        "e2f3",
+        "g8e8",
+        "f3b7",
+        "b8b7",
+        "c4c5",
+        "c7c6",
+        "h4f3",
+        "g7f8",
+        "f3d2",
+        "b6c5",
+        "d2c4",
+        "d7b6",
+        "c4a5",
+        "b7a8",
+        "d4c5",
+        "b6d5",
+        "e3d4",
+        "d8c8",
+        "c2c4",
+        "e6e5",
+        "d4g1",
+        "e5e4",
+        "c4d5",
+        "e4d3",
+        "d5d6",
+        "e8e2",
+        "d6d7",
+        "e2c2",
+        "c1b1",
+        "c8b8",
+        "a5b3",
+        "f8e7",
+        "d1d3",
+        "c2e2",
+        "g1d4",
+        "b8d8",
+        "d4a4",
+        "e7e4",
+        "a4a6",
+        "a8b8",
+        "b1c1",
+        "d8d7",
+        "b3d4",
+        "e2e1"
+      ],
+      "result": "0-1"
+    },
+    {
+      "id": "cf-5",
+      "gameNumber": 5,
+      "page": 181,
+      "heading": "GAME 5. RUY LOPEZ",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q P × B"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Q × P"
+        },
+        {
+          "side": "b",
+          "text": "Q × Q"
+        },
+        {
+          "side": "w",
+          "text": "Kt × Q"
+        },
+        {
+          "side": "b",
+          "text": "B - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 2"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "P - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 5"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "B - B 4"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "B × B"
+        },
+        {
+          "side": "b",
+          "text": "P × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "Q R - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 6"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "Q R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 1"
+        },
+        {
+          "side": "w",
+          "text": "R - B 2"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "K R - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "R (Q 2) - K 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "K - B 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "b",
+          "text": "B - R 1"
+        },
+        {
+          "side": "w",
+          "text": "K - B 2"
+        },
+        {
+          "side": "b",
+          "text": "R - R 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "P - R 3"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 4"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 4"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "R (R 2) - K 2"
+        },
+        {
+          "side": "w",
+          "text": "K - B 3"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "K - B 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "R - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 4 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "R P × P"
+        },
+        {
+          "side": "w",
+          "text": "R - R 3"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "K - K 1"
+        },
+        {
+          "side": "w",
+          "text": "Q R - K R 1"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "P - K 5"
+        },
+        {
+          "side": "b",
+          "text": "Q P × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt (K 6) - B 5"
+        },
+        {
+          "side": "b",
+          "text": "B - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt × R"
+        },
+        {
+          "side": "b",
+          "text": "B × Kt"
+        },
+        {
+          "side": "w",
+          "text": "R - R 7"
+        },
+        {
+          "side": "b",
+          "text": "R - B 1"
+        },
+        {
+          "side": "w",
+          "text": "R - R 1"
+        },
+        {
+          "side": "b",
+          "text": "K - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "R - R 8 ch"
+        },
+        {
+          "side": "b",
+          "text": "B - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 5"
+        }
+      ],
+      "line": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "f1b5",
+        "a7a6",
+        "b5c6",
+        "d7c6",
+        "d2d4",
+        "e5d4",
+        "d1d4",
+        "d8d4",
+        "f3d4",
+        "f8d6",
+        "b1c3",
+        "g8e7",
+        "e1g1",
+        "e8g8",
+        "f2f4",
+        "f8e8",
+        "d4b3",
+        "f7f6",
+        "f4f5",
+        "b7b6",
+        "c1f4",
+        "c8b7",
+        "f4d6",
+        "c7d6",
+        "b3d4",
+        "a8d8",
+        "d4e6",
+        "d8d7",
+        "a1d1",
+        "e7c8",
+        "f1f2",
+        "b6b5",
+        "f2d2",
+        "d7e7",
+        "b2b4",
+        "g8f7",
+        "a2a3",
+        "b7a8",
+        "g1f2",
+        "e7a7",
+        "g2g4",
+        "h7h6",
+        "d2d3",
+        "a6a5",
+        "h2h4",
+        "a5b4",
+        "a3b4",
+        "a7e7",
+        "f2f3",
+        "e8g8",
+        "f3f4",
+        "g7g6",
+        "d3g3",
+        "g6g5",
+        "f4f3",
+        "c8b6",
+        "h4g5",
+        "h6g5",
+        "g3h3",
+        "e7d7",
+        "f3g3",
+        "f7e8",
+        "d1h1",
+        "a8b7",
+        "e4e5",
+        "d6e5",
+        "c3e4",
+        "b6d5",
+        "e6c5",
+        "b7c8",
+        "c5d7",
+        "c8d7",
+        "h3h7",
+        "g8f8",
+        "h1a1",
+        "e8d8",
+        "a1a8",
+        "d7c8",
+        "e4c5"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-7",
+      "gameNumber": 7,
+      "page": 197,
+      "heading": "GAME 7. RUY LOPEZ",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "w",
+          "text": "B - R 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Q Kt - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 1"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "B - B 2"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "B - Q B 4"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B - K 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 3"
+        },
+        {
+          "side": "b",
+          "text": "R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "B × Kt"
+        },
+        {
+          "side": "w",
+          "text": "P × B"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "P - Q R 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "B × P"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q × B"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 4"
+        },
+        {
+          "side": "b",
+          "text": "B - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "Q × P ch"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt - R 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - R 3"
+        },
+        {
+          "side": "w",
+          "text": "Q × Q"
+        },
+        {
+          "side": "b",
+          "text": "P × Q"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 5"
+        },
+        {
+          "side": "b",
+          "text": "P - K R 4"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "B × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - K 2"
+        },
+        {
+          "side": "b",
+          "text": "Kt × P"
+        },
+        {
+          "side": "w",
+          "text": "K R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 5"
+        },
+        {
+          "side": "w",
+          "text": "B - B 4"
+        },
+        {
+          "side": "b",
+          "text": "K R - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "P - R 4"
+        },
+        {
+          "side": "b",
+          "text": "P - R 4"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 3"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "P × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 3"
+        },
+        {
+          "side": "b",
+          "text": "K R - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 4"
+        },
+        {
+          "side": "b",
+          "text": "K - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Q R - B 1"
+        },
+        {
+          "side": "b",
+          "text": "R - R 2"
+        },
+        {
+          "side": "w",
+          "text": "R - K 1"
+        },
+        {
+          "side": "b",
+          "text": "K - B 3"
+        },
+        {
+          "side": "w",
+          "text": "R - K 4"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "R - R 3"
+        },
+        {
+          "side": "w",
+          "text": "R - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - B 4"
+        },
+        {
+          "side": "w",
+          "text": "R - B 3 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "B - Q 5"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "b",
+          "text": "R - R 1"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "R - R 3"
+        },
+        {
+          "side": "w",
+          "text": "P - R 5"
+        },
+        {
+          "side": "b",
+          "text": "R × Kt"
+        },
+        {
+          "side": "w",
+          "text": "P × R"
+        },
+        {
+          "side": "b",
+          "text": "R - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 6"
+        }
+      ],
+      "line": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "f1b5",
+        "a7a6",
+        "b5a4",
+        "g8f6",
+        "d2d3",
+        "d7d6",
+        "c2c3",
+        "f8e7",
+        "b1d2",
+        "e8g8",
+        "d2f1",
+        "b7b5",
+        "a4c2",
+        "d6d5",
+        "d1e2",
+        "d5e4",
+        "d3e4",
+        "e7c5",
+        "c1g5",
+        "c8e6",
+        "f1e3",
+        "f8e8",
+        "e1g1",
+        "d8e7",
+        "e3d5",
+        "e6d5",
+        "e4d5",
+        "c6b8",
+        "a2a4",
+        "b5b4",
+        "c3b4",
+        "c5b4",
+        "g5f6",
+        "e7f6",
+        "e2e4",
+        "b4d6",
+        "e4h7",
+        "g8f8",
+        "f3h4",
+        "f6h6",
+        "h7h6",
+        "g7h6",
+        "h4f5",
+        "h6h5",
+        "c2d1",
+        "b8d7",
+        "d1h5",
+        "d7f6",
+        "h5e2",
+        "f6d5",
+        "f1d1",
+        "d5f4",
+        "e2c4",
+        "e8d8",
+        "h2h4",
+        "a6a5",
+        "g2g3",
+        "f4e6",
+        "c4e6",
+        "f7e6",
+        "f5e3",
+        "d8b8",
+        "e3c4",
+        "f8e7",
+        "a1c1",
+        "a8a7",
+        "d1e1",
+        "e7f6",
+        "e1e4",
+        "b8b4",
+        "g3g4",
+        "a7a6",
+        "c1c3",
+        "d6c5",
+        "c3f3",
+        "f6g7",
+        "b2b3",
+        "c5d4",
+        "g1g2",
+        "a6a8",
+        "g4g5",
+        "a8a6",
+        "h4h5",
+        "b4c4",
+        "b3c4",
+        "a6c6",
+        "g5g6"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-8",
+      "gameNumber": 8,
+      "page": 201,
+      "heading": "GAME 8. CENTRE GAME",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Q × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "O - O - O"
+        },
+        {
+          "side": "b",
+          "text": "R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "b",
+          "text": "R × Kt"
+        },
+        {
+          "side": "w",
+          "text": "B - K B 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - R 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 5"
+        },
+        {
+          "side": "w",
+          "text": "B - K 3"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "R × B"
+        },
+        {
+          "side": "w",
+          "text": "Q × B"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 7 ch"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "R × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 4"
+        },
+        {
+          "side": "b",
+          "text": "R × Kt"
+        },
+        {
+          "side": "w",
+          "text": "Q × R"
+        },
+        {
+          "side": "b",
+          "text": "Q - Kt 4 ch"
+        },
+        {
+          "side": "w",
+          "text": "P - K B 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "P - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - B 4"
+        },
+        {
+          "side": "w",
+          "text": "K R - K 1"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 3"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "Q - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "P - B 5"
+        },
+        {
+          "side": "b",
+          "text": "P - Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Q R - K 2"
+        },
+        {
+          "side": "b",
+          "text": "B - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Q - R 5"
+        },
+        {
+          "side": "b",
+          "text": "P - K R 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "K - R 2"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "P - B 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - R 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - R 5"
+        },
+        {
+          "side": "w",
+          "text": "R (K2) - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 5 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - R 1"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - Kt 2"
+        },
+        {
+          "side": "b",
+          "text": "Q - R 5"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "Q × P"
+        },
+        {
+          "side": "w",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - R 5"
+        },
+        {
+          "side": "w",
+          "text": "R × P"
+        },
+        {
+          "side": "b",
+          "text": "R - Q Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "R (Q 1) - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "P - B 5"
+        },
+        {
+          "side": "w",
+          "text": "Q - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 6"
+        },
+        {
+          "side": "w",
+          "text": "Q - Q 6"
+        },
+        {
+          "side": "b",
+          "text": "P - B 6"
+        },
+        {
+          "side": "w",
+          "text": "R - Q B 2"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 5"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "R - Q B 6"
+        }
+      ],
+      "line": [
+        "e2e4",
+        "e7e5",
+        "d2d4",
+        "e5d4",
+        "d1d4",
+        "b8c6",
+        "d4e3",
+        "g8f6",
+        "b1c3",
+        "f8b4",
+        "c1d2",
+        "e8g8",
+        "e1c1",
+        "f8e8",
+        "e3g3",
+        "f6e4",
+        "c3e4",
+        "e8e4",
+        "d2f4",
+        "d8f6",
+        "g1h3",
+        "d7d6",
+        "f1d3",
+        "c6d4",
+        "f4e3",
+        "c8g4",
+        "h3g5",
+        "e4e3",
+        "g3g4",
+        "d4e2",
+        "d3e2",
+        "e3e2",
+        "g5e4",
+        "e2e4",
+        "g4e4",
+        "f6g5",
+        "f2f4",
+        "g5b5",
+        "c2c3",
+        "b4c5",
+        "h1e1",
+        "b5c6",
+        "d1d5",
+        "c6d7",
+        "f4f5",
+        "c7c6",
+        "d5d2",
+        "d6d5",
+        "e4f3",
+        "c5e7",
+        "d2e2",
+        "e7f6",
+        "f3h5",
+        "h7h6",
+        "g2g4",
+        "g8h7",
+        "c1b1",
+        "a8d8",
+        "e1d1",
+        "c6c5",
+        "h5h3",
+        "d7a4",
+        "e2d2",
+        "a4e4",
+        "b1a1",
+        "b7b5",
+        "h3g2",
+        "e4a4",
+        "a1b1",
+        "b5b4",
+        "c3b4",
+        "a4b4",
+        "a2a3",
+        "b4a4",
+        "d2d5",
+        "d8b8",
+        "d1d2",
+        "c5c4",
+        "g2g3",
+        "b8b3",
+        "g3d6",
+        "c4c3",
+        "d2c2",
+        "c3b2",
+        "d5d3",
+        "a4e4",
+        "d3d1",
+        "b3c3"
+      ],
+      "result": "0-1"
+    },
+    {
+      "id": "cf-9",
+      "gameNumber": 9,
+      "page": 209,
+      "heading": "GAME 9. QUEEN'S GAMBIT DECLINED",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "Q Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "P - K 3"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "R - B 1"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "w",
+          "text": "B - R 4"
+        },
+        {
+          "side": "b",
+          "text": "R - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "b",
+          "text": "P - B 4"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt × P"
+        },
+        {
+          "side": "w",
+          "text": "K R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "Kt × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "R × R"
+        },
+        {
+          "side": "b",
+          "text": "Q × R"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 5"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "Q × Q"
+        },
+        {
+          "side": "w",
+          "text": "Kt (B 3) × Q"
+        },
+        {
+          "side": "b",
+          "text": "R - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 5"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Kt × B"
+        },
+        {
+          "side": "b",
+          "text": "K × Kt"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 3"
+        },
+        {
+          "side": "b",
+          "text": "P - R 3"
+        },
+        {
+          "side": "w",
+          "text": "B × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 4"
+        },
+        {
+          "side": "w",
+          "text": "B - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "b",
+          "text": "K × Kt"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "R - K R 1"
+        },
+        {
+          "side": "w",
+          "text": "R - Q B 2"
+        },
+        {
+          "side": "b",
+          "text": "R - Q B 1"
+        },
+        {
+          "side": "w",
+          "text": "R × R"
+        },
+        {
+          "side": "b",
+          "text": "B × R"
+        },
+        {
+          "side": "w",
+          "text": "K - B 2"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 5"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "K - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "K - K 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K 3"
+        },
+        {
+          "side": "w",
+          "text": "K - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "K - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "b",
+          "text": "B - B 5 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - K 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K 3"
+        },
+        {
+          "side": "w",
+          "text": "B - R 6"
+        },
+        {
+          "side": "b",
+          "text": "K - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 7"
+        }
+      ],
+      "line": [
+        "d2d4",
+        "d7d5",
+        "g1f3",
+        "g8f6",
+        "c2c4",
+        "e7e6",
+        "c1g5",
+        "f8e7",
+        "b1c3",
+        "b8d7",
+        "e2e3",
+        "e8g8",
+        "a1c1",
+        "b7b6",
+        "c4d5",
+        "e6d5",
+        "f1b5",
+        "c8b7",
+        "e1g1",
+        "a7a6",
+        "b5a4",
+        "a8c8",
+        "d1e2",
+        "c7c5",
+        "d4c5",
+        "d7c5",
+        "f1d1",
+        "c5a4",
+        "c3a4",
+        "b6b5",
+        "c1c8",
+        "d8c8",
+        "a4c3",
+        "c8c4",
+        "f3d4",
+        "c4e2",
+        "c3e2",
+        "f8c8",
+        "d4f5",
+        "g8f8",
+        "f5e7",
+        "f8e7",
+        "e2d4",
+        "g7g6",
+        "f2f3",
+        "h7h6",
+        "g5h6",
+        "f6d7",
+        "h2h4",
+        "d7c5",
+        "h6f4",
+        "c5e6",
+        "d4e6",
+        "e7e6",
+        "d1d2",
+        "c8h8",
+        "d2c2",
+        "h8c8",
+        "c2c8",
+        "b7c8",
+        "g1f2",
+        "d5d4",
+        "e3d4",
+        "e6d5",
+        "f2e3",
+        "c8e6",
+        "e3d3",
+        "d5c6",
+        "a2a3",
+        "e6c4",
+        "d3e3",
+        "c4e6",
+        "f4h6",
+        "c6d5",
+        "h6g7"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-10",
+      "gameNumber": 10,
+      "page": 215,
+      "heading": "GAME 10. PETROFF DEFENCE",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt × P"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt × P"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B - K 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "P - K R 3"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q × B"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Q - Kt 5 ch"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 3"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "Q × P"
+        },
+        {
+          "side": "b",
+          "text": "Q R - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q B 4"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "B - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "B - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 4"
+        },
+        {
+          "side": "w",
+          "text": "Q × P"
+        },
+        {
+          "side": "b",
+          "text": "Q × Q"
+        },
+        {
+          "side": "w",
+          "text": "Kt × Q"
+        },
+        {
+          "side": "b",
+          "text": "B × Kt"
+        },
+        {
+          "side": "w",
+          "text": "B × B"
+        },
+        {
+          "side": "b",
+          "text": "B - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Q R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "B × Kt"
+        },
+        {
+          "side": "w",
+          "text": "R × B"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "B - B 4"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "R - K 1"
+        },
+        {
+          "side": "b",
+          "text": "K - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 3"
+        },
+        {
+          "side": "w",
+          "text": "P × P ch"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "R - B 1 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - K 2"
+        },
+        {
+          "side": "w",
+          "text": "R - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "R - K Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "R - B 5"
+        },
+        {
+          "side": "b",
+          "text": "R - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 4"
+        },
+        {
+          "side": "b",
+          "text": "K R - Q B 1"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "R - B 4"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "P × B"
+        },
+        {
+          "side": "w",
+          "text": "R × R"
+        },
+        {
+          "side": "b",
+          "text": "R × R"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 6"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "R - Q B 4"
+        },
+        {
+          "side": "b",
+          "text": "R - Q R 4"
+        },
+        {
+          "side": "w",
+          "text": "P - R 4"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "R - B 6"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "R - B 7 ch"
+        },
+        {
+          "side": "b",
+          "text": "K × P"
+        },
+        {
+          "side": "w",
+          "text": "R × P"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 8 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - R 2"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "P - R 5"
+        },
+        {
+          "side": "b",
+          "text": "R - Q B 8"
+        },
+        {
+          "side": "w",
+          "text": "R - B 7"
+        },
+        {
+          "side": "b",
+          "text": "R - Q R 8"
+        },
+        {
+          "side": "w",
+          "text": "P - Q Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "R - R 5"
+        },
+        {
+          "side": "w",
+          "text": "P - B 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 5"
+        },
+        {
+          "side": "w",
+          "text": "R - B 6"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "R × P"
+        },
+        {
+          "side": "b",
+          "text": "R × Kt P"
+        },
+        {
+          "side": "w",
+          "text": "R - Q R 3"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "P - R 6"
+        },
+        {
+          "side": "b",
+          "text": "R - Q R 2"
+        },
+        {
+          "side": "w",
+          "text": "R - R 5"
+        },
+        {
+          "side": "b",
+          "text": "K - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "K - K 2"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "K - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "K - B 4"
+        },
+        {
+          "side": "b",
+          "text": "K - B 2"
+        },
+        {
+          "side": "w",
+          "text": "K - K 5"
+        },
+        {
+          "side": "b",
+          "text": "K - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "K - K 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 6"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "K × P"
+        },
+        {
+          "side": "b",
+          "text": "K - K 1"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 7"
+        },
+        {
+          "side": "b",
+          "text": "R × P"
+        },
+        {
+          "side": "w",
+          "text": "P - R 7"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 3 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - B 5"
+        }
+      ],
+      "line": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "g8f6",
+        "f3e5",
+        "d7d6",
+        "e5f3",
+        "f6e4",
+        "d1e2",
+        "d8e7",
+        "d2d3",
+        "e4f6",
+        "c1g5",
+        "c8e6",
+        "b1c3",
+        "h7h6",
+        "g5f6",
+        "e7f6",
+        "d3d4",
+        "f8e7",
+        "e2b5",
+        "b8d7",
+        "f1d3",
+        "g7g5",
+        "h2h3",
+        "e8g8",
+        "b5b7",
+        "a8b8",
+        "b7e4",
+        "f6g7",
+        "b2b3",
+        "c7c5",
+        "e1g1",
+        "c5d4",
+        "c3d5",
+        "e7d8",
+        "d3c4",
+        "d7c5",
+        "e4d4",
+        "g7d4",
+        "f3d4",
+        "e6d5",
+        "c4d5",
+        "d8f6",
+        "a1d1",
+        "f6d4",
+        "d1d4",
+        "g8g7",
+        "d5c4",
+        "b8b6",
+        "f1e1",
+        "g7f6",
+        "f2f4",
+        "c5e6",
+        "f4g5",
+        "h6g5",
+        "e1f1",
+        "f6e7",
+        "d4g4",
+        "f8g8",
+        "f1f5",
+        "b6c6",
+        "h3h4",
+        "g8c8",
+        "h4g5",
+        "c6c5",
+        "c4e6",
+        "f7e6",
+        "f5c5",
+        "c8c5",
+        "g5g6",
+        "e7f8",
+        "g4c4",
+        "c5a5",
+        "a2a4",
+        "f8g7",
+        "c4c6",
+        "a5d5",
+        "c6c7",
+        "g7g6",
+        "c7a7",
+        "d5d1",
+        "g1h2",
+        "d6d5",
+        "a4a5",
+        "d1c1",
+        "a7c7",
+        "c1a1",
+        "b3b4",
+        "a1a4",
+        "c2c3",
+        "d5d4",
+        "c7c6",
+        "d4c3",
+        "c6c3",
+        "a4b4",
+        "c3a3",
+        "b4b7",
+        "a5a6",
+        "b7a7",
+        "a3a5",
+        "g6f6",
+        "g2g4",
+        "f6e7",
+        "h2g3",
+        "e7d6",
+        "g3f4",
+        "d6c7",
+        "f4e5",
+        "c7d7",
+        "g4g5",
+        "d7e7",
+        "g5g6",
+        "e7f8",
+        "e5e6",
+        "f8e8",
+        "g6g7",
+        "a7g7",
+        "a6a7",
+        "g7g6",
+        "e6f5"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-11",
+      "gameNumber": 11,
+      "page": 221,
+      "heading": "GAME 11. RUY LOPEZ",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q P × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - Q B 4"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K Kt 5"
+        },
+        {
+          "side": "w",
+          "text": "B - K 3"
+        },
+        {
+          "side": "b",
+          "text": "B × B"
+        },
+        {
+          "side": "w",
+          "text": "P × B"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "O - O - O"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 1"
+        },
+        {
+          "side": "b",
+          "text": "Kt - R 3"
+        },
+        {
+          "side": "w",
+          "text": "R - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "P - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q R 4"
+        },
+        {
+          "side": "b",
+          "text": "B × Kt"
+        },
+        {
+          "side": "w",
+          "text": "R × B"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B P × P"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 4"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "R - B 2"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 3"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 3"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "R - B 2"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 5"
+        },
+        {
+          "side": "w",
+          "text": "P - B 5"
+        },
+        {
+          "side": "b",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "w",
+          "text": "P × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q × Q P"
+        },
+        {
+          "side": "w",
+          "text": "P - B 6 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "P × R"
+        },
+        {
+          "side": "b",
+          "text": "Q × P (Q 2)"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 6"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 6"
+        }
+      ],
+      "line": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "f1b5",
+        "a7a6",
+        "b5c6",
+        "d7c6",
+        "b1c3",
+        "f8c5",
+        "d2d3",
+        "c8g4",
+        "c1e3",
+        "c5e3",
+        "f2e3",
+        "d8e7",
+        "e1g1",
+        "e8c8",
+        "d1e1",
+        "g8h6",
+        "a1b1",
+        "f7f6",
+        "b2b4",
+        "h6f7",
+        "a2a4",
+        "g4f3",
+        "f1f3",
+        "b7b6",
+        "b4b5",
+        "c6b5",
+        "a4b5",
+        "a6a5",
+        "c3d5",
+        "e7c5",
+        "c2c4",
+        "f7g5",
+        "f3f2",
+        "g5e6",
+        "e1c3",
+        "d8d7",
+        "b1d1",
+        "c8b7",
+        "d3d4",
+        "c5d6",
+        "f2c2",
+        "e5d4",
+        "e3d4",
+        "e6f4",
+        "c4c5",
+        "f4d5",
+        "e4d5",
+        "d6d5",
+        "c5c6",
+        "b7b8",
+        "c6d7",
+        "d5d7",
+        "d4d5",
+        "h8e8",
+        "d5d6",
+        "c7d6",
+        "c3c6"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-12",
+      "gameNumber": 12,
+      "page": 225,
+      "heading": "GAME 12. FRENCH DEFENCE",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt × P"
+        },
+        {
+          "side": "b",
+          "text": "Q Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "Kt × Kt ch"
+        },
+        {
+          "side": "b",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "B - K Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "P - K R 3"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "B × B"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "B - B 4"
+        },
+        {
+          "side": "w",
+          "text": "Q - K B 4"
+        },
+        {
+          "side": "b",
+          "text": "B × B"
+        },
+        {
+          "side": "w",
+          "text": "O - O - O"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "R × B"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Q R - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "K R - Q 1"
+        },
+        {
+          "side": "b",
+          "text": "R × R"
+        },
+        {
+          "side": "w",
+          "text": "R × R"
+        },
+        {
+          "side": "b",
+          "text": "R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "P - B 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "R - K 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q B 4"
+        },
+        {
+          "side": "w",
+          "text": "K - B 2"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P - R 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 3"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "K - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 6"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 1"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 4"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "Q - K 4"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "K - K 2"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "K - B 1"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "K - B 1"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 5"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 2"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 5"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "w",
+          "text": "R - Q7"
+        },
+        {
+          "side": "b",
+          "text": "B × P ch"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt × B"
+        },
+        {
+          "side": "b",
+          "text": "Q - Kt 2 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - B 4"
+        }
+      ],
+      "line": [
+        "e2e4",
+        "e7e6",
+        "d2d4",
+        "d7d5",
+        "b1c3",
+        "g8f6",
+        "f1d3",
+        "d5e4",
+        "c3e4",
+        "b8d7",
+        "e4f6",
+        "d7f6",
+        "g1f3",
+        "f8e7",
+        "d1e2",
+        "e8g8",
+        "c1g5",
+        "h7h6",
+        "g5f6",
+        "e7f6",
+        "e2e4",
+        "g7g6",
+        "h2h4",
+        "e6e5",
+        "d4e5",
+        "c8f5",
+        "e4f4",
+        "f5d3",
+        "e1c1",
+        "f6g7",
+        "d1d3",
+        "d8e7",
+        "f4c4",
+        "a8d8",
+        "h1d1",
+        "d8d3",
+        "d1d3",
+        "f8e8",
+        "c2c3",
+        "c7c6",
+        "d3e3",
+        "c6c5",
+        "c1c2",
+        "b7b6",
+        "a2a4",
+        "e7d7",
+        "e3d3",
+        "d7c8",
+        "c4e4",
+        "c8e6",
+        "d3d5",
+        "g8f8",
+        "c3c4",
+        "f8g8",
+        "b2b3",
+        "g8f8",
+        "c2d3",
+        "f8g8",
+        "d5d6",
+        "e6c8",
+        "d6d5",
+        "c8e6",
+        "g2g4",
+        "g8f8",
+        "e4f4",
+        "f8g8",
+        "f4e4",
+        "g8f8",
+        "d3e2",
+        "f8g8",
+        "e2f1",
+        "g8f8",
+        "f1g2",
+        "f8g8",
+        "g2g3",
+        "g8f8",
+        "h4h5",
+        "g6h5",
+        "g4h5",
+        "e6e7",
+        "e4f5",
+        "f8g8",
+        "d5d7",
+        "g7e5",
+        "g3g4",
+        "e7f6",
+        "f3e5",
+        "f6g7",
+        "g4f4"
+      ],
+      "result": "1-0"
+    },
+    {
+      "id": "cf-13",
+      "gameNumber": 13,
+      "page": 231,
+      "heading": "GAME 13. RUY LOPEZ",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q B 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt × P"
+        },
+        {
+          "side": "b",
+          "text": "P - K Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Q - Q 2"
+        },
+        {
+          "side": "b",
+          "text": "P - K R 3"
+        },
+        {
+          "side": "w",
+          "text": "B - K R 4"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "O - O - O"
+        },
+        {
+          "side": "b",
+          "text": "R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "K R - K 1"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K R 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "P - R 3"
+        },
+        {
+          "side": "w",
+          "text": "B - Q 3"
+        },
+        {
+          "side": "b",
+          "text": "B - K 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 3"
+        },
+        {
+          "side": "b",
+          "text": "P - B 4"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 4"
+        },
+        {
+          "side": "b",
+          "text": "P - B 5"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "R - R 1"
+        },
+        {
+          "side": "b",
+          "text": "B - B 2"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "b",
+          "text": "R × Kt"
+        },
+        {
+          "side": "w",
+          "text": "B - R 2"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt × P"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "R × B"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "P - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 3"
+        },
+        {
+          "side": "b",
+          "text": "Q - R 4"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "Q × Q"
+        },
+        {
+          "side": "w",
+          "text": "R × Q"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "K - R 1"
+        },
+        {
+          "side": "b",
+          "text": "Q R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "P - R 3"
+        },
+        {
+          "side": "b",
+          "text": "R - K 8 ch"
+        },
+        {
+          "side": "w",
+          "text": "R × R"
+        },
+        {
+          "side": "b",
+          "text": "R × R ch"
+        },
+        {
+          "side": "w",
+          "text": "K - R 2"
+        },
+        {
+          "side": "b",
+          "text": "B - B 2"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "B × P"
+        },
+        {
+          "side": "b",
+          "text": "P × P ch"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "P - B 6"
+        },
+        {
+          "side": "w",
+          "text": "P × P"
+        },
+        {
+          "side": "b",
+          "text": "R - K 5 ch"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "R × P ch"
+        },
+        {
+          "side": "w",
+          "text": "K - R 5"
+        },
+        {
+          "side": "b",
+          "text": "R × B"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 8 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - R 2"
+        },
+        {
+          "side": "w",
+          "text": "R - Q 7"
+        },
+        {
+          "side": "b",
+          "text": "B - K 3"
+        }
+      ],
+      "line": [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "f1b5",
+        "d7d6",
+        "b1c3",
+        "c8d7",
+        "d2d4",
+        "e5d4",
+        "f3d4",
+        "g7g6",
+        "d4f3",
+        "f8g7",
+        "c1g5",
+        "g8f6",
+        "d1d2",
+        "h7h6",
+        "g5h4",
+        "e8g8",
+        "e1c1",
+        "f8e8",
+        "h1e1",
+        "g6g5",
+        "h4g3",
+        "f6h5",
+        "c3d5",
+        "a7a6",
+        "b5d3",
+        "d7e6",
+        "c2c3",
+        "f7f5",
+        "h2h4",
+        "f5f4",
+        "h4g5",
+        "h6g5",
+        "e1h1",
+        "e6f7",
+        "c1b1",
+        "c6e5",
+        "f3e5",
+        "e8e5",
+        "g3h2",
+        "h5f6",
+        "g2g3",
+        "f6e4",
+        "d3e4",
+        "e5e4",
+        "g3f4",
+        "c7c6",
+        "d5e3",
+        "d8a5",
+        "c3c4",
+        "a5d2",
+        "d1d2",
+        "g5f4",
+        "e3g4",
+        "f7g6",
+        "b1a1",
+        "a8e8",
+        "a2a3",
+        "e4e1",
+        "h1e1",
+        "e8e1",
+        "a1a2",
+        "g6f7",
+        "a2b3",
+        "d6d5",
+        "h2f4",
+        "d5c4",
+        "b3b4",
+        "c4c3",
+        "b2c3",
+        "e1e4",
+        "c3c4",
+        "e4c4",
+        "b4a5",
+        "c4f4",
+        "d2d8",
+        "g8h7",
+        "d8d7",
+        "f7e6"
+      ],
+      "result": "0-1"
+    },
+    {
+      "id": "cf-14",
+      "gameNumber": 14,
+      "page": 238,
+      "heading": "GAME 14. QUEEN'S GAMBIT DECLINED",
+      "sourceMoves": [
+        {
+          "side": "w",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "b",
+          "text": "Kt - K B 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4"
+        },
+        {
+          "side": "b",
+          "text": "P - K 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 3"
+        },
+        {
+          "side": "b",
+          "text": "Q Kt - Q 2"
+        },
+        {
+          "side": "w",
+          "text": "B - Kt 5"
+        },
+        {
+          "side": "b",
+          "text": "B - K 2"
+        },
+        {
+          "side": "w",
+          "text": "P - K 3"
+        },
+        {
+          "side": "b",
+          "text": "O - O"
+        },
+        {
+          "side": "w",
+          "text": "R - B 1"
+        },
+        {
+          "side": "b",
+          "text": "P - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Q - B 2"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "B × P"
+        },
+        {
+          "side": "b",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "w",
+          "text": "B × B"
+        },
+        {
+          "side": "b",
+          "text": "Q × B"
+        },
+        {
+          "side": "w",
+          "text": "O - O"
+        },
+        {
+          "side": "b",
+          "text": "Kt × Kt"
+        },
+        {
+          "side": "w",
+          "text": "Q × Kt"
+        },
+        {
+          "side": "b",
+          "text": "P - Q Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K 4"
+        },
+        {
+          "side": "b",
+          "text": "B - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "K R - K 1"
+        },
+        {
+          "side": "b",
+          "text": "K R - Q 1"
+        },
+        {
+          "side": "w",
+          "text": "P - Q 5"
+        },
+        {
+          "side": "b",
+          "text": "Kt - B 4"
+        },
+        {
+          "side": "w",
+          "text": "P × K P"
+        },
+        {
+          "side": "b",
+          "text": "Kt × P (K 3)"
+        },
+        {
+          "side": "w",
+          "text": "B × Kt"
+        },
+        {
+          "side": "b",
+          "text": "Q × B"
+        },
+        {
+          "side": "w",
+          "text": "Kt - Q 4"
+        },
+        {
+          "side": "b",
+          "text": "Q - K 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt × P"
+        },
+        {
+          "side": "b",
+          "text": "Q × Q"
+        },
+        {
+          "side": "w",
+          "text": "R × Q"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 7"
+        },
+        {
+          "side": "w",
+          "text": "R - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "R - K 1"
+        },
+        {
+          "side": "w",
+          "text": "P - K 5"
+        },
+        {
+          "side": "b",
+          "text": "P - K Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "P - K R 4"
+        },
+        {
+          "side": "b",
+          "text": "P × P"
+        },
+        {
+          "side": "w",
+          "text": "R - K 1"
+        },
+        {
+          "side": "b",
+          "text": "R - K 3"
+        },
+        {
+          "side": "w",
+          "text": "R (K1) - Q B 1"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 2"
+        },
+        {
+          "side": "w",
+          "text": "P - Q Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "P - R 3"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 3"
+        },
+        {
+          "side": "w",
+          "text": "K - B 1"
+        },
+        {
+          "side": "b",
+          "text": "R - R 7"
+        },
+        {
+          "side": "w",
+          "text": "K - Kt 1"
+        },
+        {
+          "side": "b",
+          "text": "P - R 6"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 3"
+        },
+        {
+          "side": "b",
+          "text": "P - Q R 3"
+        },
+        {
+          "side": "w",
+          "text": "P - K 6"
+        },
+        {
+          "side": "b",
+          "text": "R × K P"
+        },
+        {
+          "side": "w",
+          "text": "P - Kt 4"
+        },
+        {
+          "side": "b",
+          "text": "R - R 3"
+        },
+        {
+          "side": "w",
+          "text": "P - B 3"
+        },
+        {
+          "side": "b",
+          "text": "R - Q 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - K 7"
+        },
+        {
+          "side": "b",
+          "text": "R (Q3) - Q 7"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 5 ch"
+        },
+        {
+          "side": "b",
+          "text": "K - B 3"
+        },
+        {
+          "side": "w",
+          "text": "Kt - R 4"
+        },
+        {
+          "side": "b",
+          "text": "K - Kt 4"
+        },
+        {
+          "side": "w",
+          "text": "Kt - B 5"
+        },
+        {
+          "side": "b",
+          "text": "R - Kt 7 ch"
+        },
+        {
+          "side": "w",
+          "text": "K - B 1"
+        },
+        {
+          "side": "b",
+          "text": "P - R 7"
+        },
+        {
+          "side": "w",
+          "text": "P - B 4 ch"
+        },
+        {
+          "side": "b",
+          "text": "K × B P"
+        }
+      ],
+      "line": [
+        "d2d4",
+        "d7d5",
+        "g1f3",
+        "g8f6",
+        "c2c4",
+        "e7e6",
+        "b1c3",
+        "b8d7",
+        "c1g5",
+        "f8e7",
+        "e2e3",
+        "e8g8",
+        "a1c1",
+        "c7c6",
+        "d1c2",
+        "d5c4",
+        "f1c4",
+        "f6d5",
+        "g5e7",
+        "d8e7",
+        "e1g1",
+        "d5c3",
+        "c2c3",
+        "b7b6",
+        "e3e4",
+        "c8b7",
+        "f1e1",
+        "f8d8",
+        "d4d5",
+        "d7c5",
+        "d5e6",
+        "c5e6",
+        "c4e6",
+        "e7e6",
+        "f3d4",
+        "e6e5",
+        "d4c6",
+        "e5c3",
+        "c1c3",
+        "d8d2",
+        "e1b1",
+        "a8e8",
+        "e4e5",
+        "g7g5",
+        "h2h4",
+        "g5h4",
+        "b1e1",
+        "e8e6",
+        "e1c1",
+        "g8g7",
+        "b2b4",
+        "b6b5",
+        "a2a3",
+        "e6g6",
+        "g1f1",
+        "d2a2",
+        "f1g1",
+        "h4h3",
+        "g2g3",
+        "a7a6",
+        "e5e6",
+        "g6e6",
+        "g3g4",
+        "e6h6",
+        "f2f3",
+        "h6d6",
+        "c6e7",
+        "d6d2",
+        "e7f5",
+        "g7f6",
+        "f5h4",
+        "f6g5",
+        "h4f5",
+        "d2g2",
+        "g1f1",
+        "h3h2",
+        "f3f4",
+        "g5f4"
+      ],
+      "result": "0-1"
+    }
+  ]
+}

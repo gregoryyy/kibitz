@@ -79,7 +79,7 @@ test('library imports refresh the explorer, and hostile metadata remains text', 
   await expect(page.locator('.explorer-examples button')).toContainText('<img src=x onerror=alert(1)>');
   await expect(page.locator('#explorerBody img')).toHaveCount(0);
   await page.locator('#explorerSource').selectOption('classic');
-  await expect(page.locator('#explorerSummary')).toHaveText('9 reference game records · 9 reached this position');
+  await expect(page.locator('#explorerSummary')).toHaveText('21 reference game records · 21 reached this position');
   await page.locator('[data-tab="library"]').click();
   await page.locator('#libList').getByRole('button', { name: 'Delete', exact: true }).click();
   await page.locator('#libList').getByRole('button', { name: 'Delete', exact: true }).click();

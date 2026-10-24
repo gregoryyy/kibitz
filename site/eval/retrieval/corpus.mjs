@@ -1,5 +1,5 @@
 // Authored test scores and notes, plus Kibitz's packaged classics. No external corpus.
-import { classicGames } from '../../src/library/classics.js';
+import { BENCHMARK_CLASSICS } from './classics-fixture.mjs';
 import { makeProvenance } from '../../src/library/library.js';
 
 const IQP = 'r2q1rk1/ppp2ppp/2n2n2/8/3P4/2N2N2/PP3PPP/R2Q1RK1 w - - 0 20';
@@ -21,7 +21,7 @@ function fixture(id, moves, fen = '') {
  */
 export function retrievalCorpus() {
   return [
-    ...classicGames().map(game => ({ collection: /** @type {const} */ ('classic'), game })),
+    ...BENCHMARK_CLASSICS.map(game => ({ collection: /** @type {const} */ ('classic'), game })),
     fixture('qgd-a', '1. d4 d5 2. Nf3 Nf6 3. c4 e6 4. Nc3 Be7 {The same QGD position reached by the other move order.} *'),
     fixture('qgd-b', '1. Nf3 Nf6 2. d4 d5 3. c4 e6 4. Nc3 Be7 {A transposition, not a new board position.} *'),
     fixture('repeat', '1. Nf3 {First arrival: develop the knight.} Nf6 2. Ng1 Ng8 3. Nf3 {Second arrival: this note belongs to move three.} *'),

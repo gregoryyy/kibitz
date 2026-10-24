@@ -1,5 +1,6 @@
 // Explanation modes (TODO 3.9): commentary on every move, interesting moves, challenges.
 import { test, expect, open, loadPgn, reveal, OPERA, openSettings, closeSettings } from './fixtures.mjs';
+import { CLASSICS } from '../../src/library/classics.js';
 
 // White to move mates in one with Ra8#.
 const MATE_IN_1 = '6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1';
@@ -86,7 +87,7 @@ test('classic games: on the position\'s themes in the reading list and the coach
   await page.locator('#btnSaveCurrent').click();
   await expect(page.locator('#libList .game')).toHaveCount(1);
   await page.locator('#libFilter button[data-v="classics"]').click();
-  await expect(page.locator('#libList .game')).toHaveCount(13);
+  await expect(page.locator('#libList .game')).toHaveCount(CLASSICS.length);
 });
 
 test('game references in an answer: hovering shows the classic\'s key position, clicking opens the game there', async ({ page }) => {

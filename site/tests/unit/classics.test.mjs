@@ -55,6 +55,8 @@ test('game references: titles and pairings name the classic; openings and people
   assert.deepEqual(ids('Wie in der Opernpartie (Morphy gegen den Herzog), Rétis Damenopfer und das Seekadettenmatt'), ['ex-opera', 'ex-opera', 'cl-reti-tartakower', 'cl-legal']);
   assert.deepEqual(ids('die Unsterbliche Partie, nicht Rubinsteins Unsterbliche; die Lucena-Stellung und die Philidor-Stellung'), ['ex-immortal', 'cl-rotlewi-rubinstein', 'st-lucena', 'st-philidor']);
   assert.deepEqual(ids('die Philidor-Verteidigung'), []);
+  assert.deepEqual(ids('Capablanca-Marshall, St. Petersburg 1914; Marshall–Capablanca, New York 1918'), ['cf-10', 'cf-14']);
+  assert.deepEqual(ids('Capablanca and Marshall'), []);
   const [r] = findGameRefs('See the Opera Game.');
   assert.equal('See the Opera Game.'.slice(r.index, r.index + r.length), 'the Opera Game');
   for (const c of CLASSICS) assert.ok(findGameRefs(`about ${c.title}`).some(x => x.id === c.id) || ['cl-reti-tartakower', 'cl-lasker-thomas', 'cl-steinitz-bardeleben'].includes(c.id), `${c.id} is found by its title or a pairing`);

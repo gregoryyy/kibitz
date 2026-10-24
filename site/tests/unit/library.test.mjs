@@ -84,12 +84,13 @@ test('rights and origin never come from PGN headers, and unsupported metadata or
   await assert.rejects(compile('1. e4 *', { provenance: { version: 42 } }));
 });
 
-test('every built-in has a source-aware game/study model and project-authored notes without invented original score rights', async () => {
+test('every built-in has separate score/annotation rights; games cite publications while study sourcing remains separate', async () => {
   let problems = 0;
   for (const g of classicGames()) {
     const s = await compileLibraryGame(Chess, g, 'classic');
     assert.equal(s.source.origin, 'builtin'); assert.equal(s.source.rights.annotations, 'GPL-3.0-or-later');
-    assert.equal(s.source.rights.score, ''); assert.ok(s.source.url.endsWith('/site/src/library/classics.js'));
+    if (g.id.startsWith('st-')) { assert.equal(s.source.rights.score, ''); assert.ok(s.source.url.endsWith('/site/src/library/classics.js')); }
+    else { assert.equal(s.source.rights.score, g.id.startsWith('cf-') ? 'Public domain (USA; 1921 score)' : 'CC-BY-SA-4.0'); assert.equal(new URL(s.source.url).protocol, 'https:'); }
     for (const o of s.occurrences) { assert.equal(o.sourceId, s.source.id); assert.equal(o.documentId, s.document.id); assert.ok(s.positions.some(p => p.id === o.positionId)); }
     for (const a of s.annotations) { assert.equal(a.licence, 'GPL-3.0-or-later'); assert.ok(s.occurrences.some(o => o.id === a.occurrenceId)); }
     if (s.problem) problems++;
