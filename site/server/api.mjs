@@ -16,13 +16,20 @@
 //                           explicit bounded batches; no server text/vector storage
 import crypto from 'crypto';
 import net from 'net';
-import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, providerReason, publicStatus, rateLimiter, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
+import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, providerReason, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
-import { parsePrices, usageLedger, userLedger } from './usage.mjs';
+import { parsePrices, usageAccounting, usageLedger, userLedger } from './usage.mjs';
 import { createEmbeddingApi } from './embeddings.mjs';
+import { CONSENT_HEADER, providerConsentHeader } from '../src/platform/privacy.js';
 
 const MAX_BODY = 1_000_000;
 const SECURITY_HEADERS = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
+
+// Explicit local-operator attestation, not an authentication token. Bind it to actual routing.
+function requireConsent(req, provider, purpose) {
+  const expected = providerConsentHeader(provider, purpose);
+  if (expected && req.headers[CONSENT_HEADER] !== expected) throw new GatewayError('consent_required', 'Allow this provider in Settings → Privacy before sending data.', 403);
+}
 
 // The settings UI can switch provider and local-only mode while the server runs (until restart);
 // `makeProvider` builds the new provider's client.
@@ -30,17 +37,17 @@ export function createApi({
   config, provider = config.available ? createProvider(config) : null, makeProvider = createProvider, log = console,
   ledger = usageLedger({ tokensPerDay: config.tokensPerDay, prices: parsePrices(config.prices) }),
   users = userLedger({ tokensPerDay: config.userTokensPerDay, costPerDay: config.userCostPerDay, prices: parsePrices(config.prices) }),
+  allow = usageAccounting(config).allow,
+  countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); },
   embeddingConfig = undefined, embedder = undefined,
 }) {
-  const allow = rateLimiter(config.ratePerMinute);
-  const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users });
+  const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
   const status = uid => ({ ...publicStatus(config), usage: ledger.today(), user: users.today(uid), paid: paid() });
   // Counts a finished request for the server and the user; returns its usage with the cost.
-  const count = (uid, model, usage) => {
-    ledger.add(model, usage);
-    return { input: usage?.input || 0, output: usage?.output || 0, cost: users.add(uid, model, usage, { paid: paid() }) };
-  };
+  const count = (uid, model, usage, isPaid) => ({
+    input: usage?.input || 0, output: usage?.output || 0, cost: countUsage(uid, model, usage, { paid: isPaid }),
+  });
   return async function handle(req, res) {
     const { pathname } = new URL(req.url, 'http://x');
     if (!pathname.startsWith('/api/')) return false;
@@ -48,7 +55,7 @@ export function createApi({
       checkHost(req);
       const uid = userOf(req, res);
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
-      if (pathname === '/api/ai/embeddings' && req.method === 'POST') { checkPost(req); return json(res, 200, await embeddings.embed(uid, await readJson(req), res)); }
+      if (pathname === '/api/ai/embeddings' && req.method === 'POST') { checkPost(req); requireConsent(req, embeddings.status(uid).provider, 'embeddings'); return json(res, 200, await embeddings.embed(uid, await readJson(req), res)); }
       if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid));
       if (pathname === '/api/ai/config' && req.method === 'POST') return await setConfig(req, res, uid);
       if (pathname === '/api/ai/test' && req.method === 'POST') return await testConnection(req, res, uid);
@@ -84,36 +91,38 @@ export function createApi({
   }
 
   // The server's daily budget, and the user's for paid models.
-  function checkBudgets(uid) {
+  function checkBudgets(uid, isPaid = paid()) {
     ledger.check();
-    if (paid()) users.check(uid);
+    if (isPaid) users.check(uid);
   }
 
   async function testConnection(req, res, uid) {
     checkPost(req);
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
+    requireConsent(req, config.provider, 'coach');
     checkBudgets(uid);
-    if (!allow()) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
-    const model = modelFor(config, 'quick'), t0 = Date.now();
-    const r = await complete(provider, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256 });
-    return json(res, 200, { ok: true, provider: config.provider, model, ms: Date.now() - t0, usage: count(uid, model, r.usage), user: users.today(uid) });
+    if (!allow(uid)) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
+    const model = modelFor(config, 'quick'), t0 = Date.now(), isPaid = paid(), selected = provider, providerName = config.provider;
+    const r = await complete(selected, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256 });
+    return json(res, 200, { ok: true, provider: providerName, model, ms: Date.now() - t0, usage: count(uid, model, r.usage, isPaid), user: users.today(uid) });
   }
 
   // Checks shared by the model requests: same origin, JSON body, a provider, valid messages, the
   // daily budgets and the rate limit.
   async function accept(req, uid) {
     checkPost(req);
-    if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
     const body = await readJson(req);
-    const messages = validateMessages(body);
-    const model = modelFor(config, body?.task);
-    checkBudgets(uid);
-    if (!allow()) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
-    return { body, messages, model };
+    // Reading a request body yields: route and consent must be captured together afterwards.
+    if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
+    requireConsent(req, config.provider, 'coach');
+    const messages = validateMessages(body), model = modelFor(config, body?.task), isPaid = paid();
+    checkBudgets(uid, isPaid);
+    if (!allow(uid)) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
+    return { body, messages, model, selected: provider, isPaid, providerName: config.provider };
   }
 
   async function sample(req, res, uid) {
-    const { body, messages, model } = await accept(req, uid);
+    const { body, messages, model, selected, isPaid, providerName } = await accept(req, uid);
     const tools = validateTools(body?.tools); // TODO 4.11.3: the model may call these; the page runs them
 
     res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', ...SECURITY_HEADERS });
@@ -121,33 +130,33 @@ export function createApi({
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
     const write = obj => res.write(JSON.stringify(obj) + '\n');
     try {
-      const it = provider.chat(messages, { model, tools, signal: ac.signal });
+      const it = selected.chat(messages, { model, tools, signal: ac.signal });
       let r;
       while (!(r = await it.next()).done) write({ text: r.value });
       const toolCalls = r.value?.toolCalls?.length ? r.value.toolCalls : undefined;
-      write({ done: true, truncated: !!r.value?.truncated, ...(toolCalls ? { toolCalls } : {}), usage: count(uid, model, r.value?.usage), user: users.today(uid) });
+      write({ done: true, truncated: !!r.value?.truncated, ...(toolCalls ? { toolCalls } : {}), usage: count(uid, model, r.value?.usage, isPaid), user: users.today(uid) });
     } catch (e) {
       const g = toGatewayError(e, ac.signal);
       // Log the code and the provider's message, never the prompt.
-      if (g.code !== 'cancelled') { log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`); write({ error: { code: g.code, message: g.message } }); }
+      if (g.code !== 'cancelled') { log.error(`AI ${providerName}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`); write({ error: { code: g.code, message: g.message } }); }
     }
     res.end();
     return true;
   }
 
   async function structured(req, res, uid) {
-    const { body, messages, model } = await accept(req, uid);
+    const { body, messages, model, selected, isPaid, providerName } = await accept(req, uid);
     const format = Object.hasOwn(FORMATS, body?.format) ? FORMATS[body.format] : null;
     if (!format) throw new GatewayError('bad_request', `"format" must be one of ${Object.keys(FORMATS).join(', ')}`, 400);
     const ac = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
     try {
-      const out = await completeJson(provider, messages, format, { model, signal: ac.signal });
-      return json(res, 200, { ...out, usage: count(uid, model, out.usage), user: users.today(uid) });
+      const out = await completeJson(selected, messages, format, { model, signal: ac.signal });
+      return json(res, 200, { ...out, usage: count(uid, model, out.usage, isPaid), user: users.today(uid) });
     }
     catch (e) {
       const g = toGatewayError(e, ac.signal);
-      if (g.code !== 'cancelled') log.error(`AI ${config.provider}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`);
+      if (g.code !== 'cancelled') log.error(`AI ${providerName}/${model}: ${g.code} (${e?.status ?? '-'}) ${providerReason(e)}`);
       throw g;
     }
   }

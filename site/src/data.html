@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kibitz — Data</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.55; }
+body { max-width: 760px; margin: 32px auto; padding: 0 20px 40px; overflow-wrap: anywhere; }
+section { border: 1px solid #8888; border-radius: 8px; padding: 16px; margin-block: 20px; }
+h1, h2 { line-height: 1.2; } button, a { font: inherit; } button { padding: 8px 12px; cursor: pointer; max-width: 100%; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; } [hidden] { display: none !important; }
+dialog { max-width: min(540px, calc(100vw - 48px)); border-radius: 8px; border: 1px solid #888; }
+dialog::backdrop { background: #0008; } :focus-visible { outline: 3px solid #777bc7; outline-offset: 3px; }
+</style></head><body>
+<a href="./" data-i18n>Return to Kibitz</a>
+<h1 data-i18n>Your data</h1>
+<p data-i18n>Exports download a JSON file to this device. Deletion is permanent. Close other Kibitz tabs before erasing data so they cannot save old copies again.</p>
+<p data-i18n>This page does not run the game or its autosave. Exports contain saved data; unsaved drafts are not included.</p>
+<section aria-labelledby="browserHeading"><h2 id="browserHeading" data-i18n>Data in this browser</h2>
+<p data-i18n>Games, references, the saved game in progress, preferences, profile, lesson progress, practice schedules and cached coach answers. Browser erasure also removes cached server libraries on this device.</p>
+<p data-i18n>Server records, provider histories, downloaded model files and unrelated website data are handled separately.</p>
+<div class="actions"><button id="browserExport" data-i18n>Download browser data</button><button id="browserErase" data-i18n>Erase browser data…</button></div>
+<p id="browserStatus" role="status" translate="no"></p></section>
+<section aria-labelledby="serverHeading"><h2 id="serverHeading" data-i18n>This browser's server library</h2>
+<p data-i18n>Games and references stored by the optional local server, identified by this browser's private cookie. Browser data is separate. Check the current library before exporting or erasing it.</p>
+<div class="actions"><button id="serverLoad" data-i18n>Check server library</button><button id="serverExport" disabled data-i18n>Download server library</button><button id="serverErase" disabled data-i18n>Erase server library…</button></div>
+<p id="serverStatus" role="status" translate="no"></p></section>
+<p data-i18n>These controls do not delete conversations retained by an AI provider, other browser profiles, external account libraries or server backups. A server operator must handle those copies separately.</p>
+<p data-i18n>When usage persistence is enabled, the local server keeps daily request, token and cost totals and recent request times under a hashed browser ID. These export and erase controls leave those counters in place; the local operator manages them.</p>
+<dialog id="eraseConfirm" aria-labelledby="eraseTitle" aria-describedby="eraseDetails"><h2 id="eraseTitle"></h2><p id="eraseDetails"></p><div class="actions"><button id="eraseCancel" data-i18n>Cancel</button><button id="eraseProceed" data-i18n>Erase permanently</button></div></dialog>
+<script type="module" src="./platform/data-page.js"></script>
+</body></html>

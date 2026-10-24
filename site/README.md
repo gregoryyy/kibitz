@@ -12,6 +12,8 @@ ChatGPT url: https://chatgpt.com/g/g-p-69a21eed60a8819192ac813ccef2b58f-chess/c/
 
 The release target is a [local single-user app](../docs/DEPLOYMENT.md). `serve.mjs` already defaults to loopback. Its anonymous library cookie supplies local collection separation; hosted authentication and per-account keys remain deferred.
 
+The standard serve recipes retain daily AI usage and per-browser minute allowances in private `.kibitz-data/usage.sqlite`. Direct `serve.mjs` needs explicit `--usage FILE` for persistence. [Usage settings and limits](../docs/USAGE.md) describe cookie grouping, retention and completed-usage admission thresholds.
+
 ```bash
 npm install
 npm run serve            # builds dist/ and serves it with the AI gateway at http://127.0.0.1:8765/
@@ -22,11 +24,19 @@ npm run eval:retrieval   # offline labelled position-retrieval benchmark; no pro
 
 Click **Analyse** during a game to pause it and its clock immediately. Explore moves or navigate the game, then click **Play** or **Return to my game** to resume exactly where you left it. Reopening Analyse keeps your study variation while the game is unchanged; after you play another move, it starts from the updated game. Both sessions stay in memory until you start a new game or reload the page.
 
+**Keyboard board:** Tab enters once, arrows explore squares, Enter/Space selects a piece and destination, and Escape clears selection. Promotion offers explicit keyboard choices and restores focus. Arrow patterns and **Board mark descriptions** supplement colours; the operating system's reduced-motion preference disables piece animation. [Controls and verification limits](../docs/ACCESSIBILITY.md).
+
+**Settings → General → Move display** selects English SAN, German letters or figurines for the main/scratch score and recognized moves in coach answers. Earlier answers update immediately; figurines have spoken labels. Typed moves accept German letters and figurines too. [Notation, input and PGN behavior](../docs/NOTATION.md).
+
+The German interface also provides [German opening labels and authored classic-game comments](../docs/GERMAN-STUDY.md). Opening lookup accepts original/German labels and ECO codes; German built-in notes work in local search and source navigation. Imported comments retain their original text.
+
+**Settings → Offline app → Prepare or check updates** saves the engine, browser library UI, reference games and lessons for a later reload without the server. Model weights need their separate explicit load/cache; Ollama still needs the local Node gateway. Updates wait for open app tabs to close, and removal preserves saved games. [Preparation, coach choices and storage limits](../docs/OFFLINE.md).
+
 **Settings → Player profile** saves explanation level, optional reported rating/pool/time control and up to 500 characters of learning goals in this browser. Level changes save immediately; use **Save profile** for the other fields. Goals accompany coach requests as quoted user data. Failed saves retain drafts, and stale tab edits require an explicit reload. Profile changes invalidate pending/cached teaching context while preserving the game and opponent strength. [Format and limits](../docs/PROFILE.md) distinguish preferences from measured ability.
 
 **Review trends** summarizes compatible reports from your own reviewed games in the selected library. Counts and average move accuracy retain measured-move coverage by estimated phase. Bounded engine checks distinguish confirmed opportunities from refuted/unverified candidates; sample continuations open their exact source position. Re-running replaces a report, and deleting/changing its source or library removes its contribution. [Evidence and limits](../docs/REVIEWS.md) describe the historical-record boundary.
 
-**Practise your own mistakes** uses compatible own-game review positions on a separate board. Explicit preparation rechecks the original error; any legal alternative can meet the current engine target. SAN/coordinates/German input and explicit promotions work, with staged hints and separate reveal/mate/engine outcomes. Missing evidence has no failed-attempt penalty. The main game, clock and source collection stay intact. Results are session-local until scheduling work in 9.4; [scope and grading](../docs/OWN-PUZZLES.md).
+**Practise your own mistakes** uses compatible own-game review positions on a separate board. Explicit preparation rechecks the original error; any legal alternative can meet the current engine target. SAN/coordinates/German input and explicit promotions work, with staged hints and separate reveal/mate/engine outcomes. Missing evidence has no failed-attempt penalty. The main game, clock and source collection stay intact. See [scope and grading](../docs/OWN-PUZZLES.md). Completed results feed browser-local [spaced practice](../docs/PRACTICE.md), with acknowledged saves and visible retries.
 
 In **Openings**, choose a saved White or Black repertoire and press **Review due moves** to practise new or due positions. Play on the drill board or type SAN/coordinates; the saved opponent reply follows automatically. Any saved choice at that position is accepted, including transpositions. A starting-square hint counts as help, and a legal move outside your repertoire counts as a recall miss rather than a chess judgement. Review dates and recall/help statistics stay in this browser. The drill leaves your game intact and follows its live-help setting; switch to Analyse to train without a running game.
 
@@ -52,6 +62,10 @@ The **Problems** filter browses four mates in one and eight studies/reflections,
 
 With board relevance enabled, **Include similar pawn structures** optionally admits at least 75% colour-specific pawn-square overlap. Match details show shared and unmatched squares; exact positions keep their own label. [Pawn distance and its limits](../docs/PAWN-DISTANCE.md) include an offline benchmark (`just retrieval-eval --mode pawns`) and the known miss when the only pawn advances one square. The option defaults off and sends no new request until Search.
 
+## Provider privacy
+
+**Settings → Coach → Provider permissions** provides separate, initially off opt-ins for coach requests and passage/query embeddings per network provider, including Ollama. Acknowledged grants precede transport; revocations abort/fence pending work, with a safe retry if persistence fails. [Privacy notice and API attestation](../docs/PRIVACY.md) explain content, configured destinations, fonts and retention limits.
+
 ## Spaced practice
 
 The Lessons tab's **Spaced practice** queue combines current lesson/puzzle tasks, repertoire recalls and selected-library own-game exercises. `src/player/schedule.js` reuses the opening interval heuristic; `schedule-ui.js` supplies the localized bounded queue. See [practice identity, acknowledgements and limits](../docs/PRACTICE.md). Schedules stay in this browser even when a game library uses the server.
@@ -65,13 +79,15 @@ npm run build
 node scripts/serve.mjs dist --index _test.html --api --env ../.env --library ../.kibitz-data/library.sqlite
 ```
 
-Then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Database files must be private regular files outside the served directory, including through symlinks. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.
+Then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Library and usage databases must be private regular files outside both the static and any separate `--models` directory, including through symlinks. An explicit model directory must already exist; startup checks it before creating databases. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.
 
 Server libraries use an anonymous HttpOnly browser cookie. Clearing that cookie starts another library, leaving the earlier records in SQLite. Accounts and cross-device sign-in remain TODO 10.1–10.2. IndexedDB caches acknowledged records by the verified server scope. A failed cache write still reports a successful server save. Known-owner cached snapshots are read-only; a fresh load must verify the cookie owner before showing cached server data. Offline writes are not queued. Conflicts or an uncertain acknowledgement require **Refresh server library** before retrying; repeat imports then deduplicate against the refreshed records.
 
 Source/PGN bytes, record IDs and extra metadata remain intact. Late responses and held controls cannot cross storage contexts; unchanged records retain source-form drafts through ordinary acknowledgements. Current-game and lesson state stays separate. [Schema, API, limits and lifecycle](../docs/LIBRARY.md#server-library-and-browser-cache) describe the implementation and scope.
 
 ## Layout
+
+`src/data.html` is a standalone data-management page, linked from Settings and copied unchanged by the build. It does not boot app autosave. `platform/data.js` preserves raw browser exports and checks acknowledged erasure; `data-page.js` supplies localized downloads and separate browser/server confirmations. The server's cookie-scoped `/api/library/erase` uses an atomic revision-checked SQLite erase with a tombstone; [data lifecycle](../docs/DATA.md) documents scope and limits.
 
 The **Lessons** tab browses English/German teaching material by module, level ceiling and theme. Expand a lesson to read its introduction, objectives, prerequisites and exercise prompts. The authored core has 30 lessons and 36 exercises: thirteen tactical lessons, eleven strategy lessons and six endgame lessons. Strategy covers pawn structures, weak squares, outposts, bishops, open files, king safety, activity and prophylaxis. A capturable fork illustrates why recognizing a pattern does not prove a gain. Endgames cover queen/rook mates, king and pawn, opposition, Lucena and Philidor. Their ten exercises show recorded Syzygy outcomes for the exact FEN and worked branch; other legal reflections make no result claim. No recorded branch asserts a unique best move.
 
@@ -98,6 +114,8 @@ src/chess/            Rules, knowledge, engine integration and game helpers:
   style.js            Playing styles: picks among near-best engine candidates
   pgn.js              NAGs and exact mainline comment locations, including repeated positions
   notation.js         Typed moves and move descriptions for screen readers
+  keyboard-board.js   Native roving-focus board cells, legal destinations and orientation-aware input
+  board-marks.js      Non-colour arrow patterns and safe literal descriptions
   modes.js            Interesting moves, challenges and recorded theme progress
   sessions.js         Game-history checkpoints for suspended analysis
 src/coach/            Prompts, model support, checked answers and conversation tools:
@@ -167,7 +185,8 @@ data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.
 scripts/build.mjs     Copies the module directory tree and vendored libraries, builds opening data, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
-scripts/fetch-model.mjs  Downloads the in-browser model into models/ once and checks its SHA-256 (just offline)
+scripts/fetch-model.mjs  Downloads the in-browser model into models/ once (just offline); --timeout-ms sets the transfer deadline
+scripts/download-model.mjs Pinned byte cap and streaming SHA-256, verified publication and temporary-file cleanup
 scripts/record-ai-fixtures.mjs  Records real provider responses for the contract tests (uses .env keys)
 scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env;
                       --models serves the in-browser model's weights; --offline drops Google Fonts and other hosts;
@@ -182,7 +201,7 @@ server/api.mjs        GET /api/ai/status; POST /api/ai/sample (NDJSON stream), /
                       Host/Origin/size guards
 server/library-store.mjs SQLite owner/collection records, schema version, atomic revisions and quotas
 server/library-api.mjs Anonymous cookie scope, same-origin HTTP routes and validated record writes
-server/library-files.mjs Private database creation outside the static root
+server/library-files.mjs Private library creation outside all served roots
 server/fixtures/      Provider responses for the contract tests (recorded, or hand-written where marked)
 server/static.mjs     Security headers (incl. COOP/COEP for cross-origin isolation) and the hash-based CSP for served pages
 tests/unit/           node:test for the page modules; server/*.test.mjs for the gateway, incl. contract tests

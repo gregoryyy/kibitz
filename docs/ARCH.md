@@ -74,7 +74,11 @@ The **own-game exercise layer** (9.3, `player/mistake-puzzles.js`/`puzzle-player
 
 The **practice scheduler** (9.4, `player/schedule.js`/`schedule-ui.js`) combines current lesson revisions, existing opening-drill records and selected-owner own-exercise targets. It reuses deterministic opening intervals, keeps rules/recall/engine/self-assessment evidence separate and opens existing isolated players. Lesson progress is acknowledged before a separate scheduling write; failed schedule receipts remain visible for idempotent retry. Source/revision/help guards and read-only unknown formats preserve existing boundaries; [practice lifecycle](PRACTICE.md) documents limits and localStorage concurrency.
 
+The **data controls** (10.3, standalone `data.html`/`platform/data*.js`) run without app autosave. Raw versioned browser exports preserve unknown values; intentional browser erasure removes only the Kibitz namespace and named library cache after explicit confirmation. Separate current-owner server exports/erasure use bounded same-origin reads and a cookie/scope/revision-checked SQLite transaction, preserving a revision tombstone against older writes. Server acknowledgement and cache cleanup stay distinct; [data scope](DATA.md) excludes provider histories, host-managed account libraries, other devices and operator backups.
+
 ## 3. Generative-AI patterns, as built here
+
+The **provider privacy layer** (10.4, `platform/privacy.js`/`privacy-ui.js`) stores acknowledged provider/purpose grants, initially off for network providers. A shared transport rereads grants, attaches an exact destination/purpose attestation and aborts/fences pending work on changes. The gateway checks actual routing before SDK/budget admission, including tests/embeddings. Failed revocation denies the current tab while retaining a persistence retry; future formats stay closed. [Privacy scope](PRIVACY.md) distinguishes local model loading, configured endpoints, fonts, direct-client attestations and provider retention.
 
 The **curriculum catalogue** (6.1, `src/curriculum/`) is independent of the coach and active board. A pure compiler validates bounded module/lesson/exercise records, unique stable IDs, English/German teaching text, level and theme tags, attribution, and acyclic prerequisites. chess.js checks each starting position and recorded UCI line; mate exercises additionally establish terminal checkmate for the learner's colour. Reflection lines have authored rubrics and make no result claim unless accompanied by the exact tablebase evidence described below. The tactical catalogue (6.2) covers thirteen themes and includes a capturable-fork counterexample. Optional declared patterns must appear in the existing move/line motif detectors for that exact example; this checks geometric consistency, not tactical soundness or uniqueness. The Lessons panel filters and renders this data literally without provider requests or game changes. Exercise play and progress are described below.
 
@@ -218,6 +222,12 @@ Play and Study group the task tabs. **Analyse** immediately pauses a detached ga
 
 ### 3.6 Verification and guardrails
 
+`openings/names-de.js` formats catalogue labels and supplies bilingual search aliases while canonical names remain available to feature detection, selections and prompts. `library/classic-comments-de.js` localizes only project-authored built-ins at construction; translated PGNs receive ordinary revision-bound source snapshots and locators. Imported/saved notes are not rewritten, and translated annotations remain unverified. [Coverage and evidence boundaries](GERMAN-STUDY.md) record catalogue/comment audits and tablebase invariants.
+
+The opt-in [offline app](OFFLINE.md) uses a generated public asset manifest and a scoped module service worker. Installation verifies exact sizes/digests before activation. Failed updates remove incomplete caches; complete updates wait for existing tabs to close. Navigation/modules stay within one cached bundle. API/model-weight/private-owner requests are excluded, and confirmed browser erasure removes the app registration/cache. A separately validated, explicitly selected browser-model descriptor can restore the local coach when the gateway is unavailable; cloud status and user metadata are never replayed from the app cache.
+
+The main board's `chess/keyboard-board.js` supplies a native roving-focus grid over Chessground. chess.js derives square labels and legal destinations; keyboard moves call the existing guarded pointer path. Captured game/FEN/orientation permissions invalidate selections, and promotion choices retain game/scratch identity before acting. `board-marks.js` supplies distinct arrow patterns and text descriptions; reduced-motion changes update the actual Chessground animator. [Controls and verification limits](ACCESSIBILITY.md) distinguish automated coverage from accessibility conformance.
+
 The model's output is untrusted.
 
 - **Never HTML.** The page renders answers as text, with a minimal markdown subset built from DOM nodes.
@@ -265,13 +275,15 @@ Offline mode (`just offline`, TODO 2.16) runs the coach's language model inside 
   - The model unloads after ten idle minutes.
 - **Sharing the machine.** On the CPU, the model and Stockfish compete for cores: while the model generates, the analyst runs with fewer threads, applied between searches. On WebGPU the CPU is left to Stockfish.
 - **Same interface.** `browser-llm.js` exposes the same `sample()` call as the gateway client: streaming, cancellation, JSON-schema output. So the coach code doesn't care where the model runs. A setting can send only the quick requests (chips, automatic comments) to the in-browser model and everything else to a cloud provider.
-- **Offline guarantee.** In offline mode the server loads no `.env` and turns on local-only mode. It serves the page without Google Fonts and with a CSP that allows no other host: nothing leaves the machine.
+- **Offline page and provider policy.** Offline serving removes Google Fonts and restricts browser connections to the same origin. The standard offline recipe loads no `.env` and selects browser inference with local-only provider policy. An operator-configured Ollama endpoint can be on another machine; see the [network boundaries](THREAT-MODEL.md).
 - **What it's good for.** A 1–2 billion parameter model is weak at chess judgement but adequate for putting the engine's facts into words. That is why the neurosymbolic split matters most here: the smaller the model, the more the engine and the answer check carry.
 
 ## 5. Security in brief
 
+The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, data-flow diagram, asset/privilege boundaries, evidence and residual risks. The notes below are a brief overview rather than a release checklist.
+
 - **Keys stay on the server.** They are read from `.env` and used only by the gateway. They never appear in responses, logs or the page. The status endpoint names providers and models only.
-- **The gateway only serves its own page.** It accepts JSON only from its own origin (against CSRF), only under a local host name (against DNS rebinding), and only up to a size limit. The Ollama base URL is checked against an allowlist (against SSRF).
+- **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Host checks accept localhost or IP literals. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
 - **Page hardening:**
   - a hash-based CSP: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`;
   - cross-origin isolation;
@@ -295,4 +307,8 @@ Offline mode (`just offline`, TODO 2.16) runs the coach's language model inside 
   - The page tests run against the mock provider, and the in-browser model is replaced by a fake runtime.
 - **Live tests** with real providers or the real in-browser model run only when an environment flag is set (`KIBITZ_LIVE_AI=1`, `KIBITZ_LIVE_MODEL=1`).
 - **Playwright** drives the built page in Chrome: full games, the engine fallbacks, the coach, the layout, and a regression test for every fixed bug.
-- **Planned:** a tutor eval set scores the coach's answers on reference positions per provider, with engine checks plus a model as judge (3.8).
+- **Tutor evaluation:** fixed positions, recorded engine checks, lexical cue coverage and an optional judge remain separate evidence. German preparation retains the same concepts and language-specific references; mock results and lexical matches do not establish provider quality.
+
+### Persistent local accounting
+
+`server/usage-store.mjs` stores current-day counters and bounded minute admissions in a private versioned SQLite database. `usageAccounting()` shares it across coach/tests/embeddings, commits both server/user completion totals atomically and checks per-cookie plus aggregate rates before provider work. Cookie IDs are hashed; no prompts, responses, raw cookies or keys enter the ledger. Standard serve recipes select `.kibitz-data/usage.sqlite`; direct CLI calls default to memory. Shared private-file checks keep both usage and library databases outside the static tree. [Accounting behavior and lifecycle](USAGE.md) explain threshold overshoot, failures, retention and the deferred account boundary.

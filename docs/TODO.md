@@ -63,7 +63,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
 - [x] 2.9 Key management for the selected local single-user deployment: operator keys come from server env and never reach the browser, logs or prompts. An encrypted per-account store is deferred with hosted accounts; [deployment decision](DEPLOYMENT.md)
 - [x] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
-- [ ] 2.11 Limits: per-user rate limit, token budget, timeouts, cost display *(added)*. Done: timeouts, a daily token budget for the server, per-user budgets in tokens and dollars for paid models, and the tokens and cost of each answer and of the player's day in the dialogue. Users are told apart by a cookie, so the per-user budgets are soft until there are accounts. Remaining: a per-user rate limit, budgets tied to accounts (10.2), and usage kept across server restarts.
+- [x] 2.11 Limits for the selected local single-user app: shared and per-cookie minute rates, daily server tokens, per-cookie paid token/cost thresholds, timeouts and usage display. Standard serve recipes persist counters across restarts in private SQLite. Cookies supply soft local grouping; hosted account budgets remain deferred with 10.2. [Behavior, retention and admission-threshold limits](USAGE.md).
 - [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
 - [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
 - [x] 2.14 Settings UI: provider, model, connection test, local-only mode
@@ -213,21 +213,26 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 - [x] 10.1 Local single-user app, confirmed by the project owner: loopback Node server, browser-first storage, optional private SQLite library and operator env keys; [decision and plan consequences](DEPLOYMENT.md)
 - [ ] 10.2 Authentication, if hosted: sessions plus passkeys or OAuth. *Deferred by 10.1's local deployment decision; no hosted authentication is claimed.*
-- [ ] 10.3 Data export and deletion
-- [ ] 10.4 Privacy notice: what goes to which AI provider, with opt-in per provider
-- [ ] 10.5 Accessibility: keyboard play, colour-blind-safe arrows, reduced motion
+- [x] 10.3 Local data export/deletion: standalone raw browser/current-owner server JSON exports, separate explicit confirmations, cache-aware acknowledged erasure and atomic server revision tombstones; [formats and scope](DATA.md)
+- [x] 10.4 Explicit provider/purpose privacy opt-in: initially off network coach/test and passage/query-embedding grants, acknowledged saves/revocation retry, actual-routing gateway preconditions and cancelled late/cross-tab work; [data flows and limits](PRIVACY.md)
+- [x] 10.5 Accessibility: native keyboard square play with legal destinations and explicit promotion, independent arrow patterns/text descriptions and live reduced-motion control; [controls and verification limits](ACCESSIBILITY.md)
 - [x] 10.6 Mobile layout and dark mode *(prototype)*
-- [ ] 10.7 Offline use (PWA): engine, library and curriculum work offline; the coach works offline with Ollama or the in-browser model (2.16)
+- [x] 10.7 Explicit offline/PWA preparation: verified public engine/reference/lesson bundle, browser library, waiting updates, scoped removal and browser-coach fallback. Ollama retains its local gateway requirement; [preparation and storage limits](OFFLINE.md)
 - [ ] 10.8 Internationalization
   - [x] 10.8.1 A language switch in the header, English and German: the page in German, the coach's answers in German, German move letters read (Sf3), screen-reader moves in German
-  - [ ] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
-  - [ ] 10.8.3 Opening names in German (eco.json is English), and the classic games' PGN comments
+  - [x] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
+  - [x] 10.8.3 Opening names in German (eco.json is English), and the classic games' PGN comments
   - [ ] 10.8.4 The tutor eval set in German: the same positions with German key points, run against each provider
+    - [x] 10.8.4.1 German versions of the same ten positions/28 concepts, actual UI chips, language-bound reports and no-call planning; mock/unit/browser validation
+    - [x] 10.8.4.2 Record approved live German trials against the four configured providers; [results and limitations](eval/german-plan.md). Claude answered ten positions; OpenAI authentication, Mistral rate limits and missing Ollama model blocked the other runs. Legacy capture contamination is retained and labelled; future captures exclude source/tool/UI cards
+    - [ ] 10.8.4.3 Complete the provider comparison after credentials/quota/model availability are fixed, using a new approved plan and comparable `coach-prose-v2` captures; no semantic quality grade is inferred from regex cue scores
 
 ## 11. Security testing (before every release)
 
-- [ ] 11.1 Threat model covering the data flows: browser ↔ server ↔ providers, PGN imports, RAG store
-- [ ] 11.2 OWASP Top 10 (current edition): a checklist mapped to the code, with findings tracked as GitHub issues
+- [x] 11.1 Threat model covering browser/server/provider boundaries, PGN and retrieval data, browser inference, private libraries, usage counters, offline caches and exports; [flows, controls, evidence and residual risks](THREAT-MODEL.md).
+- [x] 11.2 OWASP Top 10:2025: [code/evidence checklist](OWASP-TOP10.md), supported local deployment and open findings tracked in issues #96–99. Review completion is not release approval; high-rated scanner alerts and security follow-ups remain unresolved
+  - [x] 11.2.1 Reject library/usage databases inside either served root, including aliases; validate model directories before file creation. Issue #96, unit and real-CLI Playwright regressions
+  - [x] 11.2.2 Bound model downloads by pinned bytes and a total deadline; verify before publishing, clean up handled failures and preserve earlier weights before publication. Issue #97, synthetic CLI and stream/filesystem tests
 - [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item:
   - [x] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
   - [ ] 11.3.2 LLM02 Sensitive information disclosure: API keys, other users' data
