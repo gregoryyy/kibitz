@@ -42,7 +42,7 @@ flowchart LR
     UI["Board, dialogue, panels<br/>index.html"]
     SF["Stockfish 19 (WASM)<br/>analyst + opponent workers<br/>engine.js"]
     KN["Symbolic knowledge<br/>knowledge.js, tutor.js, play.js"]
-    BL["In-browser model (optional)<br/>wllama on WebGPU / WASM<br/>browser-llm.js"]
+    BL["In-browser model (optional)<br/>wllama on WebGPU / WASM<br/>or Chrome Prompt API"]
   end
   subgraph Server["Local Node server (site/server)"]
     ST["Static files + security headers<br/>serve.mjs, static.mjs"]
@@ -263,6 +263,8 @@ Bounds:
 ## 4. A language model in the browser
 
 Offline mode (`just offline`, TODO 2.16) runs the coach's language model inside the page.
+
+The default below is wllama. The optional `BROWSER_RUNTIME=chrome` / `just offline-chrome` backend uses [`chrome-llm.js`](../site/src/coach/chrome-llm.js) with the same page-side sample result and quick-request routing. Its Window-only API, Chrome-managed weights, explicit Load per session, disposable request clones, cancellation/generation guards, context/output/deadline bounds and opaque resource/version limits are documented in [Offline app](OFFLINE.md#optional-chrome-built-in-coach). A Chrome descriptor has no weight URL or invented byte count; it cannot authorize loading automatically.
 
 - **Runtime.** [wllama](https://github.com/ngxson/wllama) (llama.cpp compiled to WebAssembly) runs a GGUF model on the GPU through WebGPU, or on the CPU with multi-threaded WebAssembly where there's no WebGPU. One MIT-licensed module and one wasm file are copied into `dist/` and imported only when the model is first needed.
 - **Models.** A small catalog (`server/models.mjs`) pins each model by size and SHA-256: Qwen2.5 1.5B Instruct by default, 0.5B as a lighter option, both Apache-2.0. `scripts/fetch-model.mjs` downloads one once into `site/models/`, and the local server hands it to the page. The page never fetches weights from another host.

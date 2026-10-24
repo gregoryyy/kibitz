@@ -1,6 +1,7 @@
 // Retain only the explicitly selected browser-model descriptor, never a network/API response.
 export const OFFLINE_COACH_KEY = 'kibitz.offlineCoach';
 function descriptor(value) {
+  if (!Array.isArray(value) && value?.runtime === 'chrome' && value.name === 'Chrome built-in model' && Object.keys(value).sort().join() === 'name,runtime') return { runtime: 'chrome', name: value.name };
   if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).sort().join() !== 'bytes,name,url'
     || typeof value.url !== 'string' || !/^models\/[a-z0-9][a-z0-9._-]{0,120}\.gguf$/.test(value.url)
     || typeof value.name !== 'string' || !value.name.trim() || value.name.length > 120 || [...value.name].some(c => c.codePointAt(0) < 32 || c.codePointAt(0) === 127)

@@ -73,6 +73,13 @@ function providerConfig(env, provider) {
   if (!PROVIDERS.includes(provider)) return off(`AI_PROVIDER "${provider}" is not one of ${PROVIDERS.join(', ')}`);
   if (provider === 'mock') return { ...cfg, model: 'mock', models: { quick: 'mock', chat: 'mock', review: 'mock' }, available: true };
   if (provider === 'browser') {
+    const runtime = (env.BROWSER_RUNTIME || 'wllama').trim().toLowerCase();
+    if (!['wllama', 'chrome'].includes(runtime)) return off('BROWSER_RUNTIME must be wllama or chrome');
+    if (runtime === 'chrome') {
+      const name = 'Chrome built-in model';
+      // Browser capability and download consent are checked by the page, never by Node.
+      return { ...cfg, model: name, models: { quick: name, chat: name, review: name }, available: true, browser: { runtime: 'chrome', name } };
+    }
     // Set by scripts/serve.mjs --models once the model file is downloaded and checked.
     const url = env.BROWSER_MODEL_URL || '', name = env.BROWSER_MODEL_NAME || 'In-browser model';
     if (!url) return off(env.BROWSER_MODEL_REASON || 'No in-browser model yet: run `just offline` once to download it');

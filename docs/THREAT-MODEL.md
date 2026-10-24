@@ -20,6 +20,7 @@ flowchart LR
     Rules[chess.js and Stockfish workers]
     ClientData[(Browser data and caches)]
     Runtime[wllama model runtime]
+    Native[Optional Chrome model runtime]
     Node[Loopback Node static and API server]
     Private[(Private SQLite and env)]
     Weights[(Local GGUF files)]
@@ -27,6 +28,7 @@ flowchart LR
     Browser <--> Rules
     Browser <--> ClientData
     Browser <--> Runtime
+    Browser <--> Native
     Browser <--> Node
     Node <--> Private
     Weights --> Node
@@ -34,6 +36,7 @@ flowchart LR
   end
   Node <--> Providers[Configured coach and embedding endpoints]
   Upstream[Pinned model download source] --> Download
+  ChromeModels[Chrome-managed model provisioning] --> Native
   Browser <--> Fonts[Google Fonts in online mode]
 ```
 
@@ -48,6 +51,7 @@ Arrows show data exchange, rather than authorization. In particular, a model res
 | Coach and connection tests | Questions/history, selected game/position, engine/tool evidence, retrieved excerpts and profile fields go through Node to the configured endpoint. | Separate provider/purpose permission, actual-route checks, request validation and limits precede model work. Keys stay in Node. [Privacy contract](PRIVACY.md), [gateway](../site/server/api.mjs). |
 | Embeddings | Explicitly selected passages and queries go to the configured embedding provider. | Permission is distinct from coaching. Vectors remain in browser memory; owner/config/source/policy changes invalidate them. [Embedding gateway](../site/server/embeddings.mjs), [dense index](../site/src/library/dense-search.js). |
 | Browser model | Same-origin GGUF weights and coach context enter wllama; inference runs locally. | Download/loading consent, configured model metadata, memory checks, cancellation and idle unloading apply. [Browser model](../site/src/coach/browser-llm.js), [model catalogue](../site/server/models.mjs). |
+| Optional Chrome model | Coach context enters Chrome's documented on-device Prompt API; Chrome provisions its own model. | Explicit operator selection and Load click; capability probe, empty-base/disposable-clone history, cancellation/generation checks, context/character/deadline limits and idle unloading. Browser-managed downloads, updates and weights are outside Kibitz's CSP, hash catalogue and erasure controls. [Adapter](../site/src/coach/chrome-llm.js), [scope and verification](OFFLINE.md#optional-chrome-built-in-coach). |
 | Public offline copy | Build-selected app assets enter a versioned service-worker cache. | Installation verifies exact sizes/digests; API responses, weights and private records are excluded. Updates wait for old tabs to close. [Offline worker](../site/src/platform/offline-worker.js), [offline limits](OFFLINE.md). |
 | Operational counters | Daily totals and bounded recent admission timestamps enter separate private SQLite under hashed cookie IDs. | Server/user writes are transactional; counters are excluded from chess-data erasure and contain no prompts/answers/keys. [Usage lifecycle](USAGE.md), [store](../site/server/usage-store.mjs). |
 | Export and external resources | Browser/library exports download to the operator's device. Online fonts carry ordinary connection metadata to Google. The explicit model-download command contacts the pinned upstream source. | Exports can contain personal text; the operator manages downloaded copies/backups. Font removal, model download and provider permission are independent paths. [Privacy](PRIVACY.md), [download command](../site/scripts/fetch-model.mjs). |
