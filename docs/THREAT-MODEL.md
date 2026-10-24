@@ -77,6 +77,6 @@ A provenance hash identifies source content, without proving that the source is 
 
 ## Verification and maintenance
 
-This model maps the supported flows and known assumptions. It does not mark the OWASP Top 10, LLM Top 10, ASVS or release checklist complete. Existing code-scanning alerts require triage and evidence under TODO 11.2/11.5; their presence is not automatically proof of an exploitable vulnerability, and a passing feature-level check is not a release audit.
+This model maps the supported flows and known assumptions. The [OWASP Top 10 review](OWASP-TOP10.md) maps code/evidence and tracks its open findings; LLM Top 10, ASVS and release verification remain separate. Existing code-scanning alerts require triage and evidence under TODO 11.5; their presence is not automatically proof of an exploitable vulnerability, and a passing feature-level check is not a release audit.
 
 Revisit this document when adding a provider/runtime, tool privilege, upload format, storage location, automatic network call or deployment mode. Hosted accounts, remotely exposed servers, shared vector stores and a future browser-managed model backend require explicit updates to the boundaries above. Release verification must record the exact commit, checks, findings and remaining limitations rather than copying this document as a pass certificate.

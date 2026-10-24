@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — OWASP Top 10 code mapping and tracked findings
+
+TODO items: 11.2.
+
+### Implementation notes
+
+- Added [the OWASP Top 10:2025 checklist](OWASP-TOP10.md) for the selected local single-user deployment, using the current official edition checked on the review date. All ten categories map concrete source controls and existing tests to explicit remaining risks; review completion is distinguished from release approval.
+- Created findings [#96](https://github.com/gregoryyy/kibitz/issues/96) (private databases under a separate model root), [#97](https://github.com/gregoryyy/kibitz/issues/97) (unbounded downloads/publication before verification), [#98](https://github.com/gregoryyy/kibitz/issues/98) (default URL/provider-error logs) and [#99](https://github.com/gregoryyy/kibitz/issues/99) (all eleven open CodeQL alerts with initial source-context triage). No alert was dismissed or assumed exploitable solely from scanner severity.
+- Reproduced #96 with a temporary mock server and a synthetic empty usage database named as a catalogue GGUF file in a separate model directory: HTTP 200 returned the SQLite header. No real model/key/personal data/provider request was used; the server and temporary files were cleaned up. Default private paths remain outside served roots.
+- Reviewed source snapshot `2203105`, whose checks/build and 566 unit/server passes (one live skip) and five focused mock browser passes are recorded in the preceding entry. This documentation-only milestone adds no runtime changes; local evidence/navigation links and the mapping were checked against the source.
+
+### Deviations
+
+- Findings are tracked rather than presented as fixed. Seven scanner-rated high alerts remain unresolved alongside the other findings. The LLM Top 10, ASVS, automated-scan/baseline and release gates remain open; this checklist is not an exhaustive new browser audit or an all-clear release result.
+
+### Insights
+
+- A security checklist needs a disposition for each observation, including local-only assumptions and queries over trusted HTML/test fixtures. Mapping an alert to its actual sink and recording a synthetic reproduction gives the next fix a testable target without confusing a scanner label with demonstrated impact.
+
 ## 2026-10-24 — Approved German provider trials and a prose-capture correction
 
 TODO items: 10.8.4.2; parent 10.8.4 and follow-up 10.8.4.3 remain open.

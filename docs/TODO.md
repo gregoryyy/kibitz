@@ -230,7 +230,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 ## 11. Security testing (before every release)
 
 - [x] 11.1 Threat model covering browser/server/provider boundaries, PGN and retrieval data, browser inference, private libraries, usage counters, offline caches and exports; [flows, controls, evidence and residual risks](THREAT-MODEL.md).
-- [ ] 11.2 OWASP Top 10 (current edition): a checklist mapped to the code, with findings tracked as GitHub issues
+- [x] 11.2 OWASP Top 10:2025: [code/evidence checklist](OWASP-TOP10.md), supported local deployment and open findings tracked in issues #96–99. Review completion is not release approval; high-rated scanner alerts and security follow-ups remain unresolved
 - [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item:
   - [x] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
   - [ ] 11.3.2 LLM02 Sensitive information disclosure: API keys, other users' data
