@@ -5,13 +5,17 @@ import { playLine } from './annotations.js';
 import { checkPosition, checkStart, fixCastling } from '../chess/play.js';
 import { quote } from './prompt.js';
 import { mainlineNags } from '../chess/pgn.js';
+import { filterGames, gameSearchError, recordedYear } from '../library/search.js';
 
 const str = description => ({ type: 'string', description });
 const schema = (properties, required = []) => ({ type: 'object', additionalProperties: false, properties, required });
 const tool = (description, properties, required = []) => ({ description, schema: schema(properties, required) });
 export const CHAT_TOOLS = {
-  search_library: tool('Find saved or classic games by player, opening or theme. Optional color and result refer to the player in their own games. Returns ids for load_game, newest first.', {
+  search_library: tool('Find saved or classic games by player, opening, recorded year, result or metadata theme. All fields combine. Optional color/result refer to the player in their own games; score is the absolute PGN result. Returns ids for load_game, newest known date first.', {
     query: str('Search words, or empty for all games.'), color: { type: 'string', enum: ['w', 'b'] }, result: { type: 'string', enum: ['win', 'loss', 'draw'] },
+    player: str('Name in either colour.'), opening: str('Opening name or ECO code.'), theme: str('Recorded theme ID or label; not a claim of engine verification.'),
+    yearFrom: { type: 'integer', minimum: 1, maximum: 9999 }, yearTo: { type: 'integer', minimum: 1, maximum: 9999 },
+    score: { type: 'string', enum: ['1-0', '0-1', '1/2-1/2', '*'] },
   }),
   search_openings: tool('Find named opening lines by name or ECO code. Returns moves for load_opening.', { query: str('Opening name or ECO code.') }, ['query']),
   load_game: tool('Show an existing library game in analysis, optionally at a half-move (ply 0 is the start). Leaving a running game asks the player first. Never edits saved games.', {
@@ -70,7 +74,8 @@ export function checkChatCall(Chess, name, input, { fen, plies = 0, playing = fa
   const s = CHAT_TOOLS[name].schema;
   if (Object.keys(input).some(k => !Object.hasOwn(s.properties, k)) || s.required.some(k => input[k] === undefined)) return fail('Invalid arguments for the chat action.');
   if (name === 'search_library') {
-    if ((input.query !== undefined && (typeof input.query !== 'string' || input.query.length > 200)) || (input.color !== undefined && !['w', 'b'].includes(input.color)) || (input.result !== undefined && !['win', 'loss', 'draw'].includes(input.result))) return fail('Invalid library search.');
+    const error = gameSearchError(input);
+    if (error || ['yearFrom', 'yearTo'].some(key => input[key] !== undefined && !Number.isInteger(input[key]))) return fail(error || 'Invalid library search.');
   } else if (name === 'search_openings') {
     if (typeof input.query !== 'string' || !input.query.trim() || input.query.length > 100) return fail('Use a short opening name or ECO code.');
   } else if (name === 'load_game') {
@@ -102,17 +107,9 @@ export function checkChatCall(Chess, name, input, { fen, plies = 0, playing = fa
 }
 
 // Returns only metadata, not PGN or comments. User-written fields reach the model through quote().
-export function searchGames(games, /** @type {{ query?: string, color?: string, result?: string }} */ { query = '', color, result } = {}) {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-  return games.filter(g => {
-    if (color && g.userColor !== color) return false;
-    if (result) {
-      const mine = g.userColor === 'w' ? '1-0' : g.userColor === 'b' ? '0-1' : null;
-      if (!mine || (result === 'draw' ? g.result !== '1/2-1/2' : !['1-0', '0-1'].includes(g.result) || (g.result === mine) !== (result === 'win'))) return false;
-    }
-    const text = [g.title, g.white, g.black, g.eco, g.opening, ...(g.tags || [])].join(' ').toLowerCase();
-    return words.every(w => text.includes(w));
-  }).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || (b.updatedAt || 0) - (a.updatedAt || 0)).slice(0, 8).map(g => ({
+export function searchGames(games, /** @type {import('../library/search.js').GameSearch} */ input = {}, labels = {}) {
+  return filterGames(games, input, labels).games.sort((a, b) => (recordedYear(b.date) || 0) - (recordedYear(a.date) || 0)
+    || String(b.date || '').localeCompare(String(a.date || '')) || (b.updatedAt || 0) - (a.updatedAt || 0)).slice(0, 8).map(g => ({
     id: g.id, title: quote(g.title, 100), white: quote(g.white, 80), black: quote(g.black, 80), date: quote(g.date, 30), result: quote(g.result, 12), opening: quote(g.opening, 100),
   }));
 }

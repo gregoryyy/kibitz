@@ -265,6 +265,9 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 #lessonLine { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; }
 #lessonLine [aria-pressed="true"] { border-color: var(--accent); }
 #libFilter { flex-wrap: wrap; max-width: 100%; }
+.library-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 10px; }
+.library-filters label { display: grid; gap: 4px; min-width: 0; }
+.library-filters input, .library-filters select { width: 100%; min-width: 0; }
 .lesson-promotion, .lesson-play-confirm { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 16px; max-width: calc(100vw - 32px); }
 .lesson-promotion::backdrop, .lesson-play-confirm::backdrop { background: rgb(0 0 0 / .35); }
 .lesson-promotion button, .lesson-play-confirm button { margin: 8px 4px 0 0; }
@@ -606,9 +609,22 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div id="studySearchResults" class="lib-list"></div>
       </section>
       <div class="row">
-        <input type="text" id="libSearch" placeholder="Search player, opening, result" style="flex:1;min-width:160px">
+        <input type="search" id="libSearch" aria-label="Search games" placeholder="Search player, opening, year, result, theme" maxlength="200" style="flex:1;min-width:160px">
         <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button><button data-v="problems" aria-pressed="false">Problems</button></div>
       </div>
+      <details class="box" id="libSearchFilters">
+        <summary>Filter games</summary>
+        <div class="library-filters">
+          <label for="libPlayer">Player (either colour)<input id="libPlayer" maxlength="200" type="search"></label>
+          <label for="libOpening">Opening or ECO<input id="libOpening" maxlength="200" type="search"></label>
+          <label for="libYearFrom">From year<input id="libYearFrom" type="text" inputmode="numeric" maxlength="4" aria-describedby="libSearchHelp libSearchStatus"></label>
+          <label for="libYearTo">To year<input id="libYearTo" type="text" inputmode="numeric" maxlength="4" aria-describedby="libSearchHelp libSearchStatus"></label>
+          <label for="libResult">Recorded result<select id="libResult"><option value="">Any result</option><option value="1-0">White wins</option><option value="1/2-1/2">Draw</option><option value="0-1">Black wins</option><option value="*">Unfinished / unknown</option></select></label>
+          <label for="libTheme">Theme<select id="libTheme"><option value="">All themes</option></select></label>
+        </div>
+        <p class="hint" id="libSearchHelp">Filters combine. Years use recorded dates; unknown years are excluded from a year range. Themes are catalogue metadata.</p>
+      </details>
+      <div class="row"><p class="hint" id="libSearchStatus" role="status" aria-live="polite" translate="no" data-raw></p><button class="btn small ghost" id="libSearchClear">Clear search</button></div>
       <div id="libList" class="lib-list"></div>
       <details class="box"><summary>Import PGN (games or annotated studies)</summary>
         <div class="field"><textarea id="importText" rows="5" placeholder="Paste one or more PGN games. Comments in { } are indexed so the coach can quote them when a similar position comes up."></textarea></div>
@@ -758,6 +774,7 @@ import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChall
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './library/classics.js';
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
 import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
+import { gameSearchData, gameSearchMetadata, filterGames } from './library/search.js';
 import { CURATED_PROBLEMS } from './library/problem-data.js';
 import { verifiedProblemEvidence } from './library/problems.js';
 import { PROBLEM_TABLEBASES } from './library/problem-tablebases.js';
@@ -997,7 +1014,7 @@ function loadNamedOpenings() {
   return namedRequest;
 }
 loadNamedOpenings();
-fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); })
+fetch('eco.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(j => { ECO = j; renderAll(); renderLibrary(); })
   .catch(() => toast('Opening names could not be loaded. Everything else still works.'));
 function saveSettings() { store.set('settings', { userColor: S.userColor, colorPick: S.colorPick, elo: S.elo, style: S.style, help: S.help, level: S.level, depth: S.depth, tc: S.tc, startKind: S.startPick.kind, startOpening: S.startPick.opening, startFen: S.startPick.fen, aspects: S.aspects, commentWhen: S.commentWhen, quickInBrowser: S.quickInBrowser, lines: S.lines, window: S.window }); }
 
@@ -1765,6 +1782,13 @@ function librarySnapshot(g, collection) {
   return cached.promise;
 }
 function allGames() { return [...Lib.games.values(), ...EXAMPLES]; }
+function librarySearchMetadata(g) {
+  const source = EXAMPLES.includes(g) ? 'classic' : 'library', cached = openingCache.get(`${source}:${g.id}`);
+  const info = gameSearchMetadata(g, cached?.search || null, ECO);
+  return { ...info, record: g, searchTitle: source === 'classic' ? t(info.title) : info.title };
+}
+function searchableLibraryGames() { return allGames().map(librarySearchMetadata); }
+const libraryThemeLabels = Object.fromEntries(Object.entries(K.TAG_LABELS).map(([tag, label]) => [tag, t(label)]));
 function onLibChange() {
   const gen = ++libraryIndexGen, items = [...[...Lib.games.values()].map(g => ({ g, collection: 'library' })), ...EXAMPLES.map(g => ({ g, collection: 'classic' }))];
   const ids = new Set(items.map(({ g, collection }) => `${collection}:${g.id}`));
@@ -1775,7 +1799,7 @@ function onLibChange() {
   for (const [source, collection] of [['library', [...Lib.games.values()]], ['classic', EXAMPLES]]) for (const g of collection) {
     const key = `${source}:${g.id}`; keys.add(key);
     let entry = openingCache.get(key);
-    if (!entry || entry.pgn !== g.pgn) openingCache.set(key, entry = { pgn: g.pgn, record: openingGame(Chess, g, source) });
+    if (!entry || entry.pgn !== g.pgn) openingCache.set(key, entry = { pgn: g.pgn, record: openingGame(Chess, g, source), search: gameSearchData(Chess, g) });
     records.push(entry.record);
   }
   for (const key of openingCache.keys()) if (!keys.has(key)) openingCache.delete(key);
@@ -2482,44 +2506,63 @@ function sourceDetails(g) {
   }
   return box;
 }
+const libraryCardRecords = new WeakMap();
+function librarySearchInput() {
+  return Object.fromEntries([['query', '#libSearch'], ['player', '#libPlayer'], ['opening', '#libOpening'], ['yearFrom', '#libYearFrom'], ['yearTo', '#libYearTo'], ['score', '#libResult'], ['theme', '#libTheme']]
+    .map(([key, selector]) => [key, $(selector).value.trim()]).filter(([, value]) => value !== ''));
+}
 function renderLibrary() {
   renderStudySearch();
-  const q = $('#libSearch').value.trim().toLowerCase();
+  const input = librarySearchInput(), searching = Object.keys(input).length > 0;
   const filt = $('#libFilter [aria-pressed="true"]')?.dataset.v || 'all';
   $('#libWhere').textContent = Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
   const mine = [...Lib.games.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   $('#libCount').textContent = mine.length ? String(mine.length) : '';
   // The classics (classics.js) under their own filter; in "All" only while the library is empty or a search is on.
-  const pool = filt === 'problems' ? EXAMPLES.filter(g => g.problem) : filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !q ? [] : EXAMPLES)];
-  const list = pool.filter(g => {
+  const pool = filt === 'problems' ? EXAMPLES.filter(g => g.problem) : filt === 'classics' ? EXAMPLES : [...mine, ...(mine.length && !searching ? [] : EXAMPLES)];
+  const result = filterGames(pool.filter(g => {
     if (filt === 'played' && g.kind !== 'played') return false;
     if (filt === 'study' && g.kind === 'played') return false;
-    if (!q) return true;
-    return [g.white, g.black, g.opening, g.eco, g.result, g.title].join(' ').toLowerCase().includes(q);
-  });
-  const box = $('#libList'); box.replaceChildren();
-  if (paneHidden('library')) return; // count and location above stay current; the list renders when the tab opens
-  if (!mine.length) box.append(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
-  for (const g of list) {
+    return true;
+  }).map(librarySearchMetadata), input, libraryThemeLabels);
+  $('#libSearchStatus').textContent = result.error ? t(result.error) : t(result.games.length === 1 ? '1 matching record.' : '{n} matching records.', { n: result.games.length });
+  $('#libSearchClear').disabled = !searching;
+  for (const id of ['#libYearFrom', '#libYearTo']) $(id).setAttribute('aria-invalid', result.error && (input.yearFrom || input.yearTo) ? 'true' : 'false');
+  const box = $('#libList'), previous = new Map([...box.querySelectorAll('.game')].map(card => [libraryCardRecords.get(card), card]));
+  if (paneHidden('library')) { box.replaceChildren(); return; } // count and location above stay current
+  const retained = new Set(result.games.map(info => info.record));
+  for (const child of [...box.children]) if (!retained.has(libraryCardRecords.get(child))) child.remove();
+  let row = 0;
+  const mount = card => { if (box.children[row] !== card) box.insertBefore(card, box.children[row] || null); row++; };
+  if (!mine.length && !searching) mount(el('p', { class: 'empty-note' }, 'Every game you finish against Stockfish is saved here with its analysis. You can also import PGN games or annotated studies below. The classic games below show how it works; they stay under Classics once you have games of your own.'));
+  for (const info of result.games) {
+    const g = info.record;
+    const meta = [info.date, info.eco && `${info.eco} ${info.opening || ''}`, g.plies ? t('{n} moves', { n: Math.ceil(g.plies / 2) }) : ''].filter(Boolean).join(' · ');
+    if (previous.has(g)) {
+      const card = previous.get(g), label = card.querySelector('.game-search-meta');
+      label.textContent = meta; mount(card); continue; // Preserve open source forms, focus and unsaved edits on ECO readiness.
+    }
     const problem = EXAMPLES.includes(g) ? g.problem : null;
-    const names = problem ? `${t('White')} – ${t('Black')}` : `${g.white} – ${g.black}`;
+    const names = problem ? `${t('White')} – ${t('Black')}` : `${info.white} – ${info.black}`;
     const youIdx = g.userColor;
     const acc = youIdx && g.accuracy?.[youIdx] != null ? `${Math.round(g.accuracy[youIdx])}% accuracy` : '';
     const c = youIdx ? g.counts?.[youIdx] : null;
     const pills = c ? el('span', { class: 'pills' }, c.blunder ? el('span', { class: 'c-blunder' }, `${c.blunder}??`) : null, c.mistake ? el('span', { class: 'c-mistake' }, `${c.mistake}?`) : null, c.inaccuracy ? el('span', { class: 'c-inaccuracy' }, `${c.inaccuracy}?!`) : null) : null;
     const del = el('button', { class: 'btn small ghost danger', onclick: () => {
-      del.replaceWith(el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id) }, 'Delete'), el('button', { class: 'btn small', onclick: renderLibrary }, 'Keep')));
+      const confirmation = el('span', { class: 'row' }, el('span', { class: 'hint' }, 'Delete for good?'), el('button', { class: 'btn small danger', onclick: () => Lib.delGame(g.id) }, 'Delete'), el('button', { class: 'btn small', onclick: () => confirmation.replaceWith(del) }, 'Keep'));
+      del.replaceWith(confirmation);
     } }, 'Delete');
-    box.append(el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
+    const card = el('div', { class: 'game', 'data-game-id': g.id, 'data-collection': EXAMPLES.includes(g) ? 'classic' : 'library' },
       el('div', {}, el('div', { class: 'title' }, problem ? el('span', { class: 'badge ex' }, problem.goal === 'mate-in-one' ? 'Problem' : 'Study') : g.kind === 'example' ? el('span', { class: 'badge ex' }, 'Example') : g.kind === 'played' ? null : el('span', { class: 'badge' }, 'Study'), g.title && g.kind !== 'played' ? el('span', { translate: EXAMPLES.includes(g) ? null : 'no' }, g.title + ' · ') : '', el('span', { translate: g.kind === 'played' ? null : 'no' }, names)),
-        el('div', { class: 'meta' }, [g.date, g.eco && `${g.eco} ${g.opening || ''}`, g.plies ? `${Math.ceil(g.plies / 2)} moves` : '', acc].filter(Boolean).join(' · '), ' ', pills),
+        el('div', { class: 'meta' }, el('span', { class: 'game-search-meta', translate: 'no' }, meta), acc ? ` · ${acc}` : '', ' ', pills),
         g.scoreNote ? el('p', { class: 'hint' }, g.scoreNote) : null,
         problem ? el('p', { class: 'problem-prompt', translate: 'no', 'data-raw': '' }, lessonText(problem.prompt, LANG)) : null),
-      el('div', { class: 'res' }, g.result || '*'),
+      el('div', { class: 'res' }, info.result || '*'),
       el('div', { class: 'acts' }, el('button', { class: 'btn small', onclick: () => openGame(g, problem ? 0 : null) }, g.reviewed ? 'Open review' : 'Open'),
         el('button', { class: 'btn small ghost', onclick: () => copyText(g.pgn, 'PGN copied') }, 'Copy PGN'),
         el('button', { class: 'btn small ghost', onclick: () => downloadPGN(g) }, 'Save .pgn'),
-        g.kind === 'example' ? null : del), sourceDetails(g)));
+        g.kind === 'example' ? null : del), sourceDetails(g));
+    libraryCardRecords.set(card, g); mount(card);
   }
 }
 async function copyText(t, msg) {
@@ -3130,7 +3173,7 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
     const color = /\bblack\b/i.test(query) ? 'b' : /\bwhite\b/i.test(query) ? 'w' : undefined;
     const result = /\bloss|lost\b/i.test(query) ? 'loss' : /\bwin|won\b/i.test(query) ? 'win' : /\bdraw\b/i.test(query) ? 'draw' : undefined;
     const words = /\bmy\b/i.test(query) ? query.replace(/\b(my|last|latest|game|with|as|a|the|black|white|loss|lost|win|won|draw)\b/gi, '').trim() : query.replace(/^the\s+/i, '');
-    const hits = ref ? [{ id: ref.id }] : searchGames(allGames(), { query: words, color, result });
+    const hits = ref ? [{ id: ref.id }] : searchGames(searchableLibraryGames(), { query: words, color, result }, libraryThemeLabels);
     if (!hits.length) {
       await loadOpenings();
       const op = OPENINGS.find(o => o[1].toLowerCase().includes(query.toLowerCase()));
@@ -3173,7 +3216,7 @@ async function chatAction(name, input, run, { preview = false, follow = false } 
   }
   const checked = checkChatCall(Chess, name, input, { ...actionState(), ...(preview && whatIfAllowed() ? { playing: false } : {}) });
   if (checked.error) return checked;
-  if (name === 'search_library') { await Lib.ready; return { games: searchGames(allGames(), input) }; }
+  if (name === 'search_library') { await Lib.ready; return { games: searchGames(searchableLibraryGames(), input, libraryThemeLabels) }; }
   if (name === 'search_openings') {
     await loadOpenings();
     const words = input.query.toLowerCase().split(/\s+/);
@@ -4256,6 +4299,13 @@ $('#chatUndo').addEventListener('click', () => submitChat('undo'));
 $('#coachInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#coachSend').click(); } });
 $('#coachStop').addEventListener('click', cancelChat);
 $('#libSearch').addEventListener('input', renderLibrary);
+for (const id of ['#libPlayer', '#libOpening', '#libYearFrom', '#libYearTo']) $(id).addEventListener('input', renderLibrary);
+for (const id of ['#libResult', '#libTheme']) $(id).addEventListener('change', renderLibrary);
+for (const [tag, label] of Object.entries(K.TAG_LABELS)) $('#libTheme').append(el('option', { value: tag }, label));
+$('#libSearchClear').addEventListener('click', () => {
+  for (const id of ['#libSearch', '#libPlayer', '#libOpening', '#libYearFrom', '#libYearTo', '#libResult', '#libTheme']) $(id).value = '';
+  renderLibrary(); $('#libSearch').focus();
+});
 $('#studyQuery').addEventListener('input', renderStudySearch);
 $('#studySource').addEventListener('change', renderStudySearch);
 $('#studyLanguage').addEventListener('change', renderStudySearch);
