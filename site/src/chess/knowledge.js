@@ -169,8 +169,9 @@ export function positionFeatures(chess, ctx = {}) {
   // Phase
   const queens = count('w', 'q') + count('b', 'q');
   const isEnd = (npW <= 13 && npB <= 13 && queens === 0) || (npW + npB <= 20);
-  const phase = isEnd ? 'endgame' : (ply <= 20 && ctx.opening) ? 'opening' : 'middlegame';
-  add(phase, 1, phase === 'opening' ? `Move ${Math.ceil((ply || 1) / 2)}, still in known opening territory` : phase === 'endgame' ? 'Little material left on the board' : 'Pieces developed, out of the opening');
+  const initial = ctx.standardStart && ply === 0;
+  const phase = isEnd ? 'endgame' : initial || (ply <= 20 && (ctx.opening || ctx.standardStart)) ? 'opening' : 'middlegame';
+  add(phase, 1, phase === 'opening' ? initial ? 'Standard initial position' : ctx.opening ? `Move ${Math.ceil((ply || 1) / 2)}, still in known opening territory` : 'Early mainline from the standard initial position' : phase === 'endgame' ? 'Little material left on the board' : 'Pieces developed, out of the opening');
 
   if (ctx.opening) {
     const fam = openingFamily(ctx.opening.name);
