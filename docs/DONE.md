@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Select the local single-user deployment
+
+TODO items: 10.1; 2.9's existing env-key path resolved by this decision. Hosted 10.2 deferred.
+
+### Implementation notes
+
+- Recorded the project owner's explicit local single-user choice in [DEPLOYMENT.md](DEPLOYMENT.md), README, architecture, design notes, roadmap and TODO. Confirmed that `serve.mjs` already binds to `127.0.0.1` by default; no listener behavior change was needed.
+- Defined operator env keys, browser-first data, optional private SQLite storage and cookie collection separation as the supported target. Local deployment can use cloud providers; offline/local-only inference remains a separate choice. The existing server-env path fulfills local key management, so 2.9 no longer waits for a hosted per-user store.
+- Kept hosted authentication explicitly deferred, with no passkey/OAuth/account claim. Recorded future hosted prerequisites, remaining persistent usage/rate limits, local export/deletion, provider consent and ASVS L1 verification scope. These consequences do not mark privacy/security/release checks complete.
+- Validation: documentation links and diff checked; ESLint/JSDoc checks, build and all 517 unit/server/fake-provider tests pass (one live-provider skip), including the existing loopback process, API-origin and cookie-isolation checks. No new application behavior was introduced.
+
+### Deviations
+
+- This milestone records a deployment decision rather than adding an authentication implementation. The current loopback default already supports the chosen operation. Hosted key/account work is deferred explicitly instead of being presented as completed.
+
+### Insights
+
+- Local hosting and local model inference are independent choices; privacy controls still need to cover an operator-selected cloud model.
+
 ## 2026-10-24 — Local spaced practice across lessons, openings and own mistakes
 
 TODO items: 9.4.

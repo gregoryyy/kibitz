@@ -2,6 +2,8 @@
 
 Ideas for where Kibitz could go beyond [TODO.md](TODO.md). These are directions to explore, not planned work. When an idea is picked up, it becomes TODO items, and this file links to them.
 
+The selected deployment is a [local single-user app](DEPLOYMENT.md). A future hosted service must revisit accounts, sessions/passkeys/OAuth, tenant isolation, account-based quotas, encrypted per-account provider keys and account-wide export/deletion before claiming multi-user support. TODO 10.2 remains explicitly deferred.
+
 ## 1. Show the options on the board
 
 The coach explains a position by showing the main options side by side, not just the best move.
