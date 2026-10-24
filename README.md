@@ -80,6 +80,8 @@ In **Library**, search words or combine player, opening/ECO, recorded year range
 
 An optional [server library](site/README.md#server-library) stores games and references in a private SQLite file, with a scoped IndexedDB browser cache. Choose it explicitly in Library; the existing browser library stays separate and is never uploaded automatically.
 
+**Settings → Export or erase your data** provides separate confirmed controls for saved browser data and this browser's server library. [Data formats and deletion scope](docs/DATA.md) explain retries, caches and copies outside the app.
+
 The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
 
 - **Run locally:** the page talks to the AI gateway in `site/server/`, which `site/scripts/serve.mjs --api` mounts. The gateway reads `.env`, calls the chosen provider, and keeps the API keys on the server.

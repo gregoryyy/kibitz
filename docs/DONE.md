@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Standalone data exports and confirmed browser/server erasure
+
+TODO items: 10.3 (implementation complete; full browser validation pending).
+
+### Implementation notes
+
+- Added standalone `src/data.html` and `platform/data.js`/`data-page.js`, linked from Settings and copied by the build. The data page does not boot app autosave, engine or game state. It downloads bounded versioned JSON without model calls: raw Kibitz browser values preserve unknown/future formats and original PGNs, while current-cookie server exports refresh and validate their exact owner snapshot. Other origin-storage keys, server env keys, transient drafts and provider histories are excluded.
+- Separate native confirmation dialogs distinguish browser data from the current server collection. Browser erasure compares its preview before/after cache deletion, waits for native IndexedDB deletion, removes only the Kibitz localStorage namespace and named library cache, and verifies completion without recreating app preferences. Changed previews, storage/cache failures and partial removals never claim a complete erase; retry inspects the remaining data again.
+- Added cookie/scope/revision/confirmation-checked `POST /api/library/erase`, with the existing same-origin/host, JSON/size/rate boundaries. SQLite atomically removes only that owner's games/references and retains an advanced revision tombstone so older pending writes cannot resurrect data, including after restart. Other owners and browser records remain separate. Acknowledged server deletion removes only the verified owner's cache; cache failure and uncertain server acknowledgement get distinct messages.
+- The page supports English/German, a phone-sized native modal, keyboard cancellation/focus, literal source contents and no reflection/prompt rendering. [Data formats and lifecycle](DATA.md) document raw exports, no automatic restore, caps, concurrent-tab limits, backups, physical SQLite remnants, provider/host-managed account exclusions and operator responsibilities.
+- Five unit scenarios cover raw export fidelity/namespaces, cache acknowledgement, changed previews/partial failures, future formats, localized copy and build output. Three server scenarios check transactional owner/tombstone/restart behavior, malformed erasure and explicit session/origin/confirmation/CAS constraints. Six new browser cases verify downloads, app navigation/autosave isolation, scoped cache removal, stale writes/previews, cancellation, partial/uncertain outcomes and German phone controls.
+- Validation: ESLint/JSDoc checks, build, all 525 unit tests (one live-provider skip), 16 focused server cases and all six data browser cases pass. The earlier focused run passed existing localization/settings/library-storage regressions; the German data translator binding was corrected and rechecked. German phone confirmation screenshot inspected. The complete browser suite is running.
+
+### Deviations
+
+- The selected local single-user target uses browser and optional cookie-owned Node storage. Host-managed artifact account libraries, provider retention and operator backups remain outside these controls and are identified explicitly. No hosted-account deletion or forensic disk erasure is claimed.
+- Browser key removal is not a transaction. Other tabs can recreate in-memory copies, so the page asks the player to close them; partial failure stays visible. Exports preserve saved raw values without adding an import/restore workflow.
+
+### Insights
+
+- Deletion needs both a persistence boundary and an acknowledgement boundary: stopping autosave prevents local recreation, while a retained server revision blocks older writes and keeps uncertain receipts from becoming false success messages.
+
 ## 2026-10-24 — Select the local single-user deployment
 
 TODO items: 10.1; 2.9's existing env-key path resolved by this decision. Hosted 10.2 deferred.
