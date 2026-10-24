@@ -12,6 +12,8 @@ ChatGPT url: https://chatgpt.com/g/g-p-69a21eed60a8819192ac813ccef2b58f-chess/c/
 
 The release target is a [local single-user app](../docs/DEPLOYMENT.md). `serve.mjs` already defaults to loopback. Its anonymous library cookie supplies local collection separation; hosted authentication and per-account keys remain deferred.
 
+The standard serve recipes retain daily AI usage and per-browser minute allowances in private `.kibitz-data/usage.sqlite`. Direct `serve.mjs` needs explicit `--usage FILE` for persistence. [Usage settings and limits](../docs/USAGE.md) describe cookie grouping, retention and completed-usage admission thresholds.
+
 ```bash
 npm install
 npm run serve            # builds dist/ and serves it with the AI gateway at http://127.0.0.1:8765/

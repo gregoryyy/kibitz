@@ -1381,4 +1381,5 @@ export default {
   '@fork': 'Gabel', '@pin': 'Fesselung', '@sacrifice': 'Opfer', '@discovered attack': 'Abzugsangriff', '@loose piece': 'lose Figur', '@mate': 'Matt', '@promotion': 'Umwandlung',
   '@a fork': 'eine Gabel', '@a pin': 'eine Fesselung', '@a sacrifice': 'ein Opfer', '@a discovered attack': 'einen Abzugsangriff', '@a loose piece': 'eine lose Figur', '@a mate': 'ein Matt', '@a promotion': 'eine Umwandlung',
   'mate': 'Matt', 'mated': 'matt',
+  "When usage persistence is enabled, the local server keeps daily request, token and cost totals and recent request times under a hashed browser ID. These export and erase controls leave those counters in place; the local operator manages them.": "Bei aktivierter Nutzungsprotokollierung speichert der lokale Server Tagessummen für Anfragen, Tokens und Kosten sowie jüngste Anfragezeiten unter einer gehashten Browser-Kennung. Diese Export- und Löschfunktionen lassen die Zähler bestehen; der lokale Betreiber verwaltet sie.",
 };

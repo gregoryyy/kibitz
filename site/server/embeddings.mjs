@@ -8,7 +8,8 @@ import { DENSE_LIMITS, EMBEDDING_INPUT_VERSION } from '../src/library/dense-sear
  * The page owns its library and vectors; the cookie scope is a cache boundary, not authentication.
  */
 export function createEmbeddingApi({ config = loadEmbeddingConfig(), embedder = config.available ? createEmbedder(config) : null,
-  localOnly, allow, ledger, users }) {
+  localOnly, allow, ledger, users,
+  countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); } }) {
   const salt = crypto.randomBytes(32), active = new Map();
   const fingerprint = crypto.createHash('sha256').update(JSON.stringify([config.provider, config.model, config.revision, config.baseURL, EMBEDDING_INPUT_VERSION])).digest('hex');
   const local = LOCAL_PROVIDERS.includes(config.provider);
@@ -27,14 +28,14 @@ export function createEmbeddingApi({ config = loadEmbeddingConfig(), embedder = 
       if (!Array.isArray(texts) || !texts.length || texts.some(t => typeof t !== 'string' || !t.trim())) throw new GatewayError('bad_request', 'Expected non-empty text strings', 400);
       if (texts.length > DENSE_LIMITS.batch || texts.some(t => t.length > 8000)) throw new GatewayError('prompt_too_large', 'At most 16 texts of 8000 characters', 413);
       ledger.check(); if (!local) users.check(uid);
-      if (active.has(uid) || active.size >= 4 || !allow()) throw new GatewayError('rate_limited', 'Embedding service is busy; try again shortly', 429);
+      if (active.has(uid) || active.size >= 4 || !allow(uid)) throw new GatewayError('rate_limited', 'Embedding service is busy; try again shortly', 429);
       const ctl = new AbortController(); active.set(uid, ctl);
       const abort = () => { if (!res.writableEnded) ctl.abort(); };
       res.on('close', abort);
       try {
         const batch = await embedder.embedBatch(texts, { signal: ctl.signal });
         // Count completed work even if its caller/policy changed during the request.
-        ledger.add(config.model, batch.usage); const cost = users.add(uid, config.model, batch.usage, { paid: !local });
+        const cost = countUsage(uid, config.model, batch.usage, { paid: !local });
         if (ctl.signal.aborted || !status(uid).available) throw new GatewayError('cancelled', 'Cancelled', 499);
         return { vectors: batch.vectors, metadata: { provider: identity.provider, model: identity.model, revision: identity.revision,
           fingerprint, scope: identity.scope, inputVersion: EMBEDDING_INPUT_VERSION, providerModel: batch.providerModel, dimensions: batch.vectors[0].length },

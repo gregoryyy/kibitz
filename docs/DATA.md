@@ -25,3 +25,7 @@ The advanced owner revision remains as a tombstone. Older in-flight writes canno
 The application does not claim forensic disk erasure, deletion from backups, deletion in other browser profiles/devices or removal of conversations already retained by a model provider. SQLite can retain data in database/WAL files or operator backups; the operator must handle those files and their retention. The revision tombstone contains an opaque owner identifier and revision, without game/reference contents. Server `.env` keys and downloaded model files are operator-managed and are excluded.
 
 These controls cover the standalone browser/optional Node-server library. An external Claude artifact's account library remains managed by its host; this page does not impersonate its account/authentication or delete provider histories. Any later hosted-account deployment must add its own account-wide export/deletion contract. The privacy notice and per-provider opt-in are tracked separately in TODO 10.4.
+
+## Operational usage counters
+
+The standard local serve recipes keep a separate private `.kibitz-data/usage.sqlite` for current-day request/token/cost counters and recent admission timestamps, grouped by hashed anonymous cookie IDs. Browser and library export/erase controls leave these operational limits intact. [Usage storage and lifecycle](USAGE.md) describe retention, private paths, operator inspection/reset, SQLite remnants and the absence of prompts, answers, raw cookies or keys.
