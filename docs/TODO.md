@@ -203,7 +203,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 ## 9. Progress and personalization *(added)*
 
-- [ ] 9.1 User profile: level, rating estimate, goals
+- [x] 9.1 Browser-local player profile: explanation level, optional self-reported rating/pool/time control and bounded learning goals. Acknowledged saves, future-format preservation, stale-tab draft protection and quoted request context keep preferences separate from measured ability/opponent strength; [lifecycle and limits](PROFILE.md)
 - [ ] 9.2 Weakness tracking from game reviews (missed themes, weak game phases)
 - [ ] 9.3 Puzzles generated from the user's own mistakes
 - [ ] 9.4 Spaced-repetition scheduler for puzzles, openings and lessons

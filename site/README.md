@@ -20,6 +20,8 @@ npm run eval:retrieval   # offline labelled position-retrieval benchmark; no pro
 
 Click **Analyse** during a game to pause it and its clock immediately. Explore moves or navigate the game, then click **Play** or **Return to my game** to resume exactly where you left it. Reopening Analyse keeps your study variation while the game is unchanged; after you play another move, it starts from the updated game. Both sessions stay in memory until you start a new game or reload the page.
 
+**Settings → Player profile** saves explanation level, optional reported rating/pool/time control and up to 500 characters of learning goals in this browser. Level changes save immediately; use **Save profile** for the other fields. Goals accompany coach requests as quoted user data. Failed saves retain drafts, and stale tab edits require an explicit reload. Profile changes invalidate pending/cached teaching context while preserving the game and opponent strength. [Format and limits](../docs/PROFILE.md) distinguish preferences from measured ability.
+
 In **Openings**, choose a saved White or Black repertoire and press **Review due moves** to practise new or due positions. Play on the drill board or type SAN/coordinates; the saved opponent reply follows automatically. Any saved choice at that position is accepted, including transpositions. A starting-square hint counts as help, and a legal move outside your repertoire counts as a recall miss rather than a chess judgement. Review dates and recall/help statistics stay in this browser. The drill leaves your game intact and follows its live-help setting; switch to Analyse to train without a running game.
 
 **Opening ideas** shows original study notes for twelve opening families and seven pawn patterns, in English or German. A guide explains the idea, typical plans and possible structures; separate pattern notes reflect the pawns currently on the board. Guides follow transpositions and scratch variations, identifying earlier opening matches as background. **Discuss these ideas** gives the coach the same notes alongside permitted Stockfish evidence. Static guides need no provider. During a game they require Full engine help, following the explorer's policy; unsupported/endgame positions show an empty state instead of a guessed explanation.
@@ -95,6 +97,9 @@ src/coach/            Prompts, model support, checked answers and conversation t
   annotations.js      Checked board marks and linked move sequences
   retrieval-context.js Bounded retrieved passages and request-bound citation identities
   browser-llm.js      In-browser wllama model: consent, streaming, resources and unloading
+src/player/           Browser-local teaching preferences:
+  profile.js          Validated profile, reported rating provenance, revisions and quoted goals
+  profile-ui.js       Settings drafts, acknowledgement/retry and stale-tab handling
 src/library/          Source-aware records, classics, patterns and passage retrieval:
   library.js          Source revisions, game occurrences, annotations and position-index adapter
   search.js           Local metadata search, legal PGN/ECO labels and combined field filters

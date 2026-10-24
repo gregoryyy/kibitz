@@ -58,11 +58,13 @@ flowchart LR
 ```
 
 - **The page** is a single HTML file plus plain ES modules, with no framework and no bundler. Stockfish runs in Web Workers. When the page is cross-origin isolated (COOP and COEP headers), the analyst uses the multi-threaded build.
-- **Source modules** are grouped by responsibility under `site/src/`: `chess/` for rules, knowledge, engine and game helpers; `coach/` for prompts, tools, annotations and model support; `curriculum/` for lesson records, authored material and catalogue UI; `library/` for source records, classics and passage search; `openings/` for opening guides, repertoires and drills; and `platform/` for storage and localization. `index.html` composes them. The build preserves these paths in `dist/`, where vendored libraries and Stockfish workers live at the root. The same pure modules are imported directly by Node tests, the gateway and offline evaluation tools.
+- **Source modules** are grouped by responsibility under `site/src/`: `chess/` for rules, knowledge, engine and game helpers; `coach/` for prompts, tools, annotations and model support; `curriculum/` for lesson records, authored material and catalogue UI; `library/` for source records, classics and passage search; `openings/` for opening guides, repertoires and drills; `player/` for teaching preferences, and `platform/` for storage and localization. `index.html` composes them. The build preserves these paths in `dist/`, where vendored libraries and Stockfish workers live at the root. The same pure modules are imported directly by Node tests, the gateway and offline evaluation tools.
 - **The local server** serves the page with a strict Content Security Policy. It mounts the AI gateway under `/api/ai/`, which holds the API keys (from `.env`), talks to the providers, enforces limits, and streams answers back as NDJSON. Keys never reach the page.
 - **Two other deployments** use the same page:
   - **As a Claude artifact,** where the page uses the host's `window.claude` model instead of the gateway.
   - **Fully offline** (`just offline`), where a small model runs in the page and nothing leaves the machine (section 4).
+
+The **player profile** (9.1, `player/`) stores a versioned browser-local explanation level, optional self-reported rating/pool/time control and bounded learning goals. Missing profiles inherit the old level in memory; unknown formats remain intact/read-only. Revision checks reject stale sequential-tab edits, with drafts retained after failed writes. Profile identity invalidates pending/cached teaching context and old model history without replacing the game; goals enter prompts through `quote()`. Ratings do not set opponent strength or infer measured ability. [Profile lifecycle and sharing](PROFILE.md) describe the limits.
 
 ## 3. Generative-AI patterns, as built here
 
