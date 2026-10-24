@@ -3,6 +3,7 @@ import { pickLang, translator } from './i18n.js';
 import DE from './i18n-de.js';
 import { browserData, exportBrowserData, eraseBrowserData, eraseLibraryCache } from './data.js';
 import { createLibraryCache } from '../library/cache.js';
+import { removeOfflineApp } from './offline-app.js';
 import { validateLibrarySnapshot, LIBRARY_LIMITS } from '../library/storage.js';
 
 const $ = selector => document.querySelector(selector), storage = browserStorage();
@@ -74,7 +75,10 @@ $('#eraseConfirm').addEventListener('cancel', () => { confirmation = null; });
 $('#eraseProceed').addEventListener('click', () => {
   const chosen = confirmation; if (!chosen || busy) return; confirmation = null; $('#eraseConfirm').close();
   if (chosen.kind === 'browser') run('browser', async () => {
-    await eraseBrowserData(storage, chosen.value, () => eraseLibraryCache(globalThis.indexedDB));
+    await eraseBrowserData(storage, chosen.value, async () => {
+      await removeOfflineApp(navigator.serviceWorker, globalThis.caches, location.href);
+      await eraseLibraryCache(globalThis.indexedDB);
+    });
     $('#browserStatus').textContent = t('Kibitz data in this browser has been erased. Server records remain.');
   }, true);
   else run('server', async () => {

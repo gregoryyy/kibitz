@@ -3,6 +3,22 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'Offline app': 'Offline-App',
+  'Prepare the engine, browser library, reference games and lessons for use without the server. API responses and model weights are not included.': 'Bereite Engine, Browserbibliothek, Referenzpartien und Lektionen für die Nutzung ohne Server vor. API-Antworten und Modellgewichte sind nicht enthalten.',
+  'Ollama needs the local server. For a browser coach without the server, select In browser and load its model first; cached weights and enough device storage are required.': 'Ollama benötigt den lokalen Server. Für einen Browsertrainer ohne Server wähle Im Browser und lade zuerst das Modell; zwischengespeicherte Gewichte und genug Gerätespeicher sind erforderlich.',
+  'Prepare or check updates': 'Vorbereiten oder auf Updates prüfen',
+  'Remove offline copy': 'Offline-Kopie entfernen',
+  'No offline copy has been confirmed.': 'Es wurde keine Offline-Kopie bestätigt.',
+  'An update is prepared. Close every Kibitz tab, then reopen the app to use it.': 'Ein Update ist vorbereitet. Schließe alle Kibitz-Tabs und öffne die App erneut, um es zu nutzen.',
+  'Offline app ready. Browser storage can still be cleared or evicted; keep exports of your games.': 'Offline-App bereit. Der Browserspeicher kann trotzdem gelöscht oder freigegeben werden; bewahre Exporte deiner Partien auf.',
+  'No complete offline copy has been confirmed. Prepare it while the server is running.': 'Es wurde keine vollständige Offline-Kopie bestätigt. Bereite sie bei laufendem Server vor.',
+  'The offline copy is incomplete. Remove it, reload with the server running, then prepare again.': 'Die Offline-Kopie ist unvollständig. Entferne sie, lade bei laufendem Server neu und bereite sie dann erneut vor.',
+  'Preparing the offline app… Keep this page open.': 'Offline-App wird vorbereitet… Lass diese Seite geöffnet.',
+  'Offline preparation could not be confirmed. Check free storage and the local server, then retry. A failed update does not replace an active copy.': 'Die Offline-Vorbereitung wurde nicht bestätigt. Prüfe freien Speicher und den lokalen Server und versuche es erneut. Ein fehlgeschlagenes Update ersetzt keine aktive Kopie.',
+  'Offline copy removed. Saved games and model weights remain. Reload with the server running before preparing again.': 'Offline-Kopie entfernt. Gespeicherte Partien und Modellgewichte bleiben erhalten. Lade bei laufendem Server neu, bevor du erneut vorbereitest.',
+  'Offline removal could not be completed. Retry before relying on removal.': 'Die Offline-Kopie konnte nicht vollständig entfernt werden. Wiederhole den Vorgang, bevor du dich auf die Entfernung verlässt.',
+  'Offline preparation needs service workers on localhost or HTTPS.': 'Die Offline-Vorbereitung benötigt Service Worker auf localhost oder über HTTPS.',
+  'The server is unavailable. Using your previously selected browser coach; its model must already be cached on this device.': 'Der Server ist nicht erreichbar. Dein zuvor gewählter Browsertrainer wird verwendet; sein Modell muss bereits auf diesem Gerät gespeichert sein.',
   'Keyboard chessboard': 'Schachbrett für Tastaturbedienung',
   'Keyboard board: arrows explore squares; Enter or Space selects a piece and destination; Escape clears selection. Home/End reach row ends; Control+Home/End reaches corners. Tab leaves the board. Typed moves also work below.': 'Tastaturbrett: Pfeiltasten wechseln das Feld; Eingabe oder Leertaste wählt Figur und Ziel; Escape hebt die Auswahl auf. Pos1/Ende erreicht den Zeilenrand, Strg+Pos1/Ende die Ecken. Tab verlässt das Brett. Unten kannst du Züge auch eintippen.',
   'The position changed. Choose a piece again.': 'Die Stellung hat sich geändert. Wähle erneut eine Figur.',
