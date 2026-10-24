@@ -18,6 +18,7 @@ TODO items: 6.1.
 - Added a keyboard-accessible Lessons tab and literal module/lesson summaries, goals, prerequisite titles and exercise prompts. Local filters use a level ceiling, module and theme. Browsing starts no model/engine request and never changes the active game. Localized lesson prose is separate from interface translation; explicit formatted labels avoid a second translation pass. Saved player levels are validated before application startup, and the catalogue also validates its initial filter.
 - Five unit scenarios cover the catalogue, filtering/detachment, schema limits, missing/duplicate IDs, translations, levels, prerequisites/cycles, illegal lines, unsupported mate claims and castling normalization. Browser scenarios cover filtering/game isolation, hostile literal text, German phone/keyboard behaviour and corrupt saved levels. Updated the grouped-navigation expectation for the new tab.
 - Verification: ESLint, JSDoc type checking and build pass; 370 unit/gateway tests and 216 Playwright tests pass, with one opt-in live test skipped in each suite. No real AI provider is used.
+- Linux CI exposed a citation-test assumption: Qh5 can appear in a real engine continuation from the fixture. The test now supplies fixed legal engine lines for its current/previous positions, retaining the strict source-is-not-engine-evidence assertion independently of machine-dependent PVs.
 
 ### Deviations
 
