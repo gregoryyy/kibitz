@@ -39,7 +39,8 @@ jobs:
   e2e:
     name: Playwright
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The complete browser suite has grown beyond 350 cases; slower runners exceed 30m.
+    timeout-minutes: 60
     env:
       PW_CHANNEL: chromium
     steps:

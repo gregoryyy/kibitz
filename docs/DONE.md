@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Optional German move letters and figurines
+
+TODO items: 10.8.2.
+
+### Implementation notes
+
+- Added pure complete-SAN-token formatting for English SAN, German K/D/T/L/S and white figurines for both colours, including promotion, captures, checks and punctuation. Typed moves also accept German/figurine letters through legal chess.js resolution; English SAN retains precedence.
+- Settings → General saves an independent notation choice after acknowledgement. Main/scratch move lists and recognized coach move tokens repaint immediately, including existing answers. Canonical English SAN remains in game state, PGNs, engine lines, stored answers and cache keys. Figurines retain localized screen-reader descriptions; literal prose is left alone.
+- Unknown saved preferences remain intact until an explicit selection. Failed saves retain the previous display; native cross-tab changes repaint presentation without changing games or invoking models. [Notation rules and limits](NOTATION.md) document the behavior.
+- Validation: checks/build, all 549 unit/server tests (one live-provider skip), all five new browser scenarios and a complete browser rerun with 361 passes (one optional live-model skip). German phone figurine screenshot inspected; production dependency audit reports zero vulnerabilities.
+
+### Deviations
+
+- Display formatting recognizes actual SAN tokens; it does not rewrite arbitrary imported or model prose. English SAN stays the default independently of interface language.
+- The first full browser run had 360 passes and one pre-existing scratch-board assertion failure before a move. That case passed five unchanged repeats, and the subsequent complete run passed all 361 cases. No product change or assertion relaxation was made for that intermittent failure.
+
+### Insights
+
+- Display notation needs to remain separate from canonical move data, especially when repainting an answer or switching interface language. A figurine's visible glyph also needs an accessible move description.
+
 ## 2026-10-24 — Verified offline app bundle and browser-coach fallback
 
 TODO items: 10.7.
@@ -19,6 +39,8 @@ TODO items: 10.7.
 - A bounded, versioned descriptor retains only an explicitly selected browser model's local URL/name/size. It restores the existing local coach path after gateway loss without replaying cloud status, usage or owner metadata. Unknown formats remain intact/closed; changing providers clears a readable saved choice. Existing load consent, memory limits and the wllama weight cache remain separate.
 - Nine unit scenarios cover path exclusions, cookie-free integrity checks, incomplete-install cleanup, scoped activation/removal, reads after erasure, model descriptor boundaries/future formats and the actual build manifest. Seven browser scenarios cover real offline reload/Stockfish reply, browser games/openings/lesson mate, actual waiting HTTP updates, rejected changed assets, removal/data erasure, gateway-loss browser coaching, incomplete-cache re-preparation/removal retry and German phone controls.
 - Validation: checks/build, all 547 unit/server tests (one live-provider skip), all seven new browser scenarios and all 356 browser tests (one optional live-model skip) pass. Production audit reports zero vulnerabilities. The real offline engine/reply and exact lesson mate run without network access; fake browser inference remains a separate test as described below.
+
+- CI follow-up: the manifest builder rejects file/directory symlinks and checks/hashes a no-follow opened regular-file descriptor rather than statting then reading a path. The regression fails on cfe6ee0. Checks/build, all 548 unit/server cases (one live skip), six offline browser cases and three repeats of the corrected activation case pass. The activation fixture now closes all old tabs before opening its replacement and records worker/client state on failure; installation waits cover the app's existing 120-second deadline. CI's browser deadline is 60 minutes after its expanded suite reached the old 30-minute job limit. The preceding complete app suite remains the 356-pass run described above; the follow-up changes build/test handling, without product UI logic changes.
 
 ### Deviations
 

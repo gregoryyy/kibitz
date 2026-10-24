@@ -61,8 +61,13 @@ test('a prepared update waits for the current game tab to close and then retires
   const updateStarted = context.waitForEvent('serviceworker');
   await openSettings(page); await page.locator('#offlinePrepare').click(); await expect(page.locator('#offlineStatus')).toContainText('An update is prepared', { timeout: INSTALL_TIMEOUT }); const worker = await updateStarted;
   expect(await appCaches(page)).toContain(old); expect(await page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration()).waiting)).toBe(true);
-  const next = await context.newPage(); await page.close(); await expect.poll(() => worker.evaluate(() => !self.registration.waiting && self.registration.active?.state === 'activated')).toBe(true);
-  await next.goto(site.url + '?debug'); await expect(next.locator('#engineDot')).toHaveClass(/ok/);
+  // Match the documented flow: close every tab before opening the replacement.
+  await page.close();
+  await expect.poll(() => worker.evaluate(async () => ({
+    waiting: self.registration.waiting?.state ?? null, active: self.registration.active?.state ?? null,
+    clients: (await self.clients.matchAll({ includeUncontrolled: true })).map(client => client.url),
+  })), { timeout: 60_000 }).toMatchObject({ waiting: null, active: 'activated' });
+  const next = await context.newPage(); await next.goto(site.url + '?debug'); await expect(next.locator('#engineDot')).toHaveClass(/ok/);
   await expect.poll(() => appCaches(next)).toEqual([old.slice(0, old.lastIndexOf(':') + 1) + revision]); await next.close();
   } finally { await site.close(); }
 });

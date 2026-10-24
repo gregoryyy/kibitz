@@ -220,7 +220,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 10.7 Explicit offline/PWA preparation: verified public engine/reference/lesson bundle, browser library, waiting updates, scoped removal and browser-coach fallback. Ollama retains its local gateway requirement; [preparation and storage limits](OFFLINE.md)
 - [ ] 10.8 Internationalization
   - [x] 10.8.1 A language switch in the header, English and German: the page in German, the coach's answers in German, German move letters read (Sf3), screen-reader moves in German
-  - [ ] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
+  - [x] 10.8.2 German letters or figurines in the move list and the answers, as a setting (today the app shows English SAN, as Lichess does)
   - [ ] 10.8.3 Opening names in German (eco.json is English), and the classic games' PGN comments
   - [ ] 10.8.4 The tutor eval set in German: the same positions with German key points, run against each provider
 

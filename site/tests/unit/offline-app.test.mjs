@@ -102,3 +102,18 @@ test('built offline bundle binds every public asset digest, removes remote fonts
   const html = readFileSync(new URL('offline.html', dist), 'utf8'); assert.ok(!html.includes('href="https://fonts.')); assert.ok(html.includes('rel="manifest"'));
   const manifest = JSON.parse(readFileSync(new URL('manifest.webmanifest', dist), 'utf8')); assert.equal(manifest.start_url, './'); assert.equal(manifest.scope, './'); assert.equal(manifest.display, 'standalone');
 });
+
+test('offline manifest rejects file/directory symlinks and hashes the opened regular assets', async () => {
+  const { buildOffline } = await import('../../scripts/build-offline.mjs');
+  const fs = await import('node:fs'), os = await import('node:os'), path = await import('node:path'), crypto = await import('node:crypto');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-offline-files-')), dist = path.join(dir, 'dist'); fs.mkdirSync(dist);
+  try {
+    fs.writeFileSync(path.join(dir, 'private.txt'), 'outside-secret'); fs.symlinkSync(path.join(dir, 'private.txt'), path.join(dist, 'link.txt'));
+    assert.throws(() => buildOffline(dist, '<p>app</p>'), /symbolic links/); fs.unlinkSync(path.join(dist, 'link.txt'));
+    fs.mkdirSync(path.join(dir, 'private')); fs.symlinkSync(path.join(dir, 'private'), path.join(dist, 'linked-dir'));
+    assert.throws(() => buildOffline(dist, '<p>app</p>'), /symbolic links/); fs.unlinkSync(path.join(dist, 'linked-dir'));
+    fs.writeFileSync(path.join(dist, 'asset.js'), 'export const asset=1;');
+    const result = buildOffline(dist, '<p>app</p>'), asset = result.assets.find(asset => asset.path === 'asset.js');
+    assert.deepEqual(asset, { path: 'asset.js', bytes: 21, sha256: crypto.createHash('sha256').update('export const asset=1;').digest('hex') });
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
