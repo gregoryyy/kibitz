@@ -7,6 +7,30 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Player profile and reported rating context
+
+TODO items: 9.1.
+
+### Implementation notes
+
+- Added `src/player/profile.js` and `profile-ui.js`, separating browser-local teaching preferences from opponent strength and game state. Version-one profiles retain explanation level, an optional self-reported rating/pool/time control and bounded learning goals. Missing records inherit the legacy level in memory without migration or inferred ratings; unknown/malformed/future data remains intact and read-only.
+- Settings preserve immediate level saves and offer explicit rating/goals save/reload controls. A successful single-key write precedes publication; failed writes retain drafts/effective preferences. Revisions and storage events reject stale sequential-tab forms and level clicks while preserving typed input. Returned profiles are detached and field/size/Unicode bounds are checked.
+- Reported ratings carry explicit provenance rather than a measured Kibitz Elo or cross-pool conversion. Level labels no longer imply a rating band. Goals reach position/general chat, tutor comments, review summaries and study plans through bounded `quote()` data, subordinate to app rules/help policy. Editing/saving makes no provider request and changes no game, clock or opponent strength.
+- Profile identity invalidates pending dialogue/tutor work, future model history and cached tutor context; stale review/study-plan results cannot apply after a preference change. Existing conversations/saved summaries/cache entries remain historical records. English/German settings and phone layouts explain local storage and sharing; [format/lifecycle](PROFILE.md) documents the limits. Source modules now include the separate `player/` responsibility.
+- Seven unit scenarios cover legacy/no-write loading, reported provenance, detached persistence, malformed/future formats, bounds, failed-write retry, stale revisions and quoted context identity. Seven browser scenarios cover reload/no implicit requests, literal goals, failed writes/level rollback, future formats, dirty cross-tab drafts, cancelled old responses, cache invalidation and German phone layout. Existing settings/localization regressions pass; the phone screenshot was inspected.
+- Validation: ESLint/JSDoc checks, build, 486 unit tests and 12 focused browser/settings/localization cases pass (one live-provider unit skip). The dependency audit reports zero vulnerabilities. The complete browser suite passes 302 tests (one optional live-model skip).
+
+### Deviations
+
+- This is a browser-local profile, without account synchronization or automatic performance-derived ability estimation. A reported rating is optional context, independent of explanation level and playing strength. Weakness tracking, own-mistake tasks and scheduling remain 9.2–9.4; broader export/deletion remains 10.3.
+
+### Insights
+
+- Explanation style, a rating from a particular pool/time control, and opponent strength are different settings. Removing implied rating bands avoids contradictory teaching context when a player deliberately chooses simpler or deeper explanations.
+- Draft fields and effective preferences need separate lifetimes. A storage event can update current coaching context while preserving typed input, but that draft must not silently overwrite a newer profile—even through an unrelated level click.
+
+---
+
 ## 2026-10-24 — Source position themes and recorded move patterns
 
 TODO items: 8.2.
