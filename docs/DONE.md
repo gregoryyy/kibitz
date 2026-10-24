@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Verified offline app bundle and browser-coach fallback
+
+TODO items: 10.7.
+
+### Implementation notes
+
+- The build generates an install manifest, authored SVG icon, font-free offline document and module worker with exact SHA-256/size metadata for every public asset. The bundle includes actual Stockfish builds, board/rules code, opening tables, classics, lessons, app/data modules and the browser-model runtime. Preparation is explicit in English/German Settings; no new dependency is needed.
+- Worker installation fetches without cookies and rejects redirects, failed responses, wrong sizes or changed digests before activation. Failed new bundles are removed. Scoped cached navigation/modules retain one version, and missing files produce a failure rather than mixing a newer module into an older page. API responses, model weights, other paths/origins and mutations bypass the app cache. Reads/status checks cannot recreate an erased cache.
+- Initial control starts on the next navigation. Update checks are explicit; complete updates wait for old controlled tabs to close, with no forced reload/activation. Cleanup removes only older app bundles in the same scope. Incomplete caches require explicit removal, reload and re-preparation; failures and retries stay visible. Separate removal preserves games/other caches/weights, while confirmed browser erasure also unregisters/removes the app copy before acknowledging completion.
+- A bounded, versioned descriptor retains only an explicitly selected browser model's local URL/name/size. It restores the existing local coach path after gateway loss without replaying cloud status, usage or owner metadata. Unknown formats remain intact/closed; changing providers clears a readable saved choice. Existing load consent, memory limits and the wllama weight cache remain separate.
+- Nine unit scenarios cover path exclusions, cookie-free integrity checks, incomplete-install cleanup, scoped activation/removal, reads after erasure, model descriptor boundaries/future formats and the actual build manifest. Seven browser scenarios cover real offline reload/Stockfish reply, browser games/openings/lesson mate, actual waiting HTTP updates, rejected changed assets, removal/data erasure, gateway-loss browser coaching, incomplete-cache re-preparation/removal retry and German phone controls.
+- Validation: checks/build, all 547 unit/server tests (one live-provider skip), all seven new browser scenarios and all 356 browser tests (one optional live-model skip) pass. Production audit reports zero vulnerabilities. The real offline engine/reply and exact lesson mate run without network access; fake browser inference remains a separate test as described below.
+
+### Deviations
+
+- [Offline scope and limits](OFFLINE.md) distinguish a browser-only offline app from locally running Ollama, which still needs the Node gateway. Browser weights need their separate prior load/cache; in-memory fallback is not proof of durable weight storage. Fresh offline private-server collections remain inaccessible without owner verification, while the separate browser library and bundled references work locally.
+- Installation controls and quotas are browser dependent. Tests use actual Stockfish but fake browser-model inference; no real-model performance or cross-browser guarantee is inferred. Unknown cached-file loss can require the browser's worker/cache controls if the app page itself cannot load.
+
+### Insights
+
+- Re-registering identical worker code does not reconstruct an evicted cache. Cache reads also need to avoid `caches.open()` after erasure, since it creates a new empty cache even from a still-controlled old tab.
+
 ## 2026-10-24 — Keyboard board play, patterned marks and reduced motion
 
 TODO items: 10.5.
