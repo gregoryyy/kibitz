@@ -3,6 +3,16 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'Repeated copies are skipped; different annotations or source details stay separate.': 'Wiederholte Kopien werden übersprungen; andere Kommentare oder Quellenangaben bleiben getrennt.',
+  'Importing games…': 'Partien werden importiert…',
+  'Import at most 5 million characters at a time.': 'Importiere höchstens 5 Millionen Zeichen auf einmal.',
+  'Import at most 500 games at a time.': 'Importiere höchstens 500 Partien auf einmal.',
+  'Skipped 1 duplicate.': '1 Duplikat übersprungen.',
+  'Skipped {n} duplicates.': '{n} Duplikate übersprungen.',
+  'Skipped 1 unreadable game.': '1 unlesbare Partie übersprungen.',
+  'Skipped {n} unreadable games.': '{n} unlesbare Partien übersprungen.',
+  'Could not save 1 game. Retry the import.': '1 Partie konnte nicht gespeichert werden. Versuche den Import erneut.',
+  'Could not save {n} games. Retry the import.': '{n} Partien konnten nicht gespeichert werden. Versuche den Import erneut.',
   // --- Play a lesson position against Stockfish (TODO 6.8) -------------------------------
   'Side for this game': 'Farbe für diese Partie',
   'Lesson practice': 'Lektionspartie',

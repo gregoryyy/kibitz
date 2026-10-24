@@ -180,7 +180,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 ## 7. Reference library: games and problems
 
 - [x] 7.1 Source-aware data model: stable collection-scoped game/source IDs, shared EPD positions, full-FEN occurrences and revision-bound annotations/studies. Separate score/comment licences, exact mainline PGN locators, optional import/source editing and non-destructive legacy handling; [schema and lifecycle](LIBRARY.md)
-- [ ] 7.2 PGN import with deduplication *(prototype)*. Remaining: deduplication.
+- [x] 7.2 PGN import with conservative document deduplication: skip repeat copies within a batch/current user library, allowing outside whitespace/header-order differences while preserving distinct annotations, variations, headers, full-FEN starts and source/licence assertions. Separate added/duplicate/unreadable/failed counts, bounded batches and retry-safe local/account writes
 - [ ] 7.3 Classic games collection: public game scores only, no copyrighted annotations. Started: 9 games and 4 studies in `classics.js`, tagged by theme, with our own notes, every score checked with chess.js; in the library under Classics. 7.1 now records their packaged source and project-authored annotation licence. Remaining: a larger collection and verified original score sources/licences per item
 - [ ] 7.4 Problems and studies collection. Started: four classic studies (Réti, Saavedra, Lucena, Philidor) in `classics.js`
 - [ ] 7.5 Search by player, opening, year, result, theme

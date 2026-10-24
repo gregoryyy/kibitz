@@ -611,8 +611,9 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div id="libList" class="lib-list"></div>
       <details class="box"><summary>Import PGN (games or annotated studies)</summary>
         <div class="field"><textarea id="importText" rows="5" placeholder="Paste one or more PGN games. Comments in { } are indexed so the coach can quote them when a similar position comes up."></textarea></div>
+        <p class="hint">Repeated copies are skipped; different annotations or source details stay separate.</p>
         <details><summary>Source and licences (optional)</summary><div id="importSourceFields"></div></details>
-        <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg"></span></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg" role="status" aria-live="polite" data-raw translate="no"></span></div>
       </details>
       <div class="row"><button class="btn small" id="btnSaveCurrent">Save current game</button><button class="btn small" id="btnExportAll">Copy all as PGN</button></div>
     </div>
@@ -755,6 +756,7 @@ import { STYLES, styleOf, pickStyled } from './chess/style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './chess/modes.js';
 import { classicGames, retrieveClassics, findGameRefs, keyPosition } from './library/classics.js';
 import { makeProvenance, readProvenance, compileLibraryGame, indexedLibraryPositions } from './library/library.js';
+import { splitPgnImport, deduplicatePgnImport } from './library/import.js';
 import { openingGame, buildOpeningIndex, openingContinuations } from './openings/openings.js';
 import { openingGuidePath, openingGuides, openingGuideContext, authoredGuideTexts } from './openings/opening-guides.js';
 import { annotationPassages, guidePassages, searchText } from './library/text-search.js';
@@ -1642,6 +1644,7 @@ const LOCAL_FULL = 'Browser storage is full, so this wasn\'t saved. Delete some 
 let libLoaded;
 const Lib = {
   where: 'loading', games: new Map(), books: new Map(), db: null, uid: null, unsub: [], indexed: Promise.resolve(),
+  importAcks: new Map(), // acknowledged account imports not yet delivered by the account snapshot
   // Writes wait for this, so a save during start-up can't overwrite the stored library with an empty one.
   ready: new Promise(r => { libLoaded = r; }),
   async init() {
@@ -1651,14 +1654,18 @@ const Lib = {
       this.db = db; this.uid = uid; this.where = 'cloud';
       const base = db.doc(`data/users/${uid}/kibitz`);
       this.gamesCol = base.collection('games'); this.booksCol = base.collection('books');
-      this.unsub.push(this.gamesCol.onSnapshot(s => { this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => this.fallback({ lost: true })));
+      this.unsub.push(this.gamesCol.onSnapshot(s => {
+        this.games = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }]));
+        for (const id of this.importAcks.keys()) if (this.games.has(id)) this.importAcks.delete(id);
+        onLibChange();
+      }, () => this.fallback({ lost: true })));
       this.unsub.push(this.booksCol.onSnapshot(s => { this.books = new Map(s.docs.map(d => [d.id, { id: d.id, ...d.data() }])); onLibChange(); }, () => {}));
       libLoaded();
     } else this.fallback();
   },
   fallback({ lost = false } = {}) {
     if (lost) toast('Your account library is unavailable. Saving in this browser until you reload.');
-    this.where = 'local'; this.db = null;
+    this.where = 'local'; this.db = null; this.importAcks.clear();
     this.games = new Map((store.get('games', [])).map(g => [g.id, g]));
     this.books = new Map((store.get('books', [])).map(b => [b.id, b]));
     libLoaded(); onLibChange();
@@ -1673,7 +1680,7 @@ const Lib = {
   },
   async putGame(g, options = {}) { return (await this.putGames([g], options)) === 1; },
   // Saves several games with one write (local) and one library refresh; returns how many were saved.
-  async putGames(list, { expected = null } = {}) {
+  async putGames(list, { expected = null, importReport = null } = {}) {
     await this.ready;
     try {
       list = list.map(g => {
@@ -1683,10 +1690,19 @@ const Lib = {
       await Promise.all(list.map(g => librarySnapshot(g, 'library')));
     } catch { toast('Source metadata or PGN is invalid or unsupported. Stored games have been kept.'); return 0; }
     if (expected && this.games.get(expected.id) !== expected) return 0;
+    if (importReport) {
+      // Recheck after asynchronous validation against the latest acknowledged library state.
+      const plan = deduplicatePgnImport(Chess, list, [...this.games.values(), ...this.importAcks.values()]);
+      list = plan.records; importReport.duplicates = plan.duplicates;
+    }
+    if (!list.length) return 0; // duplicate-only imports make no write or index change
     if (this.where === 'cloud') {
       let n = 0;
       for (const g of list) {
-        try { await this.gamesCol.doc(g.id).set(g); n++; }
+        try {
+          await this.gamesCol.doc(g.id).set(g); n++;
+          if (importReport && !this.games.has(g.id)) this.importAcks.set(g.id, g);
+        }
         catch (e) { toast(e?.code === 'quota_exceeded' ? 'Library is full. Delete some games first.' : 'Could not save to your library.'); break; }
       }
       return n;
@@ -1697,6 +1713,7 @@ const Lib = {
   },
   async delGame(id) {
     await this.ready;
+    this.importAcks.delete(id);
     if (this.where === 'cloud') { try { await this.gamesCol.doc(id).delete(); } catch { toast('Could not delete that game.'); } }
     else this.localChange(this.games, () => this.games.delete(id));
   },
@@ -2492,27 +2509,43 @@ async function downloadPGN(g) {
   if (!dl) { copyText(g.pgn, 'Saving files isn\'t available here, so the PGN was copied instead'); return; }
   try { await dl.save({ filename: name, data: g.pgn }); } catch (e) { if (e?.code && e.code !== 'cancelled' && e.code !== 'declined') toast('The file was not saved.'); }
 }
-function splitPGN(txt) { return txt.split(/\n\s*\n(?=\[Event |\[White |\[Site )/).map(s => s.trim()).filter(Boolean); }
+let importBusy = false;
 async function importPGN() {
-  const original = $('#importText').value, parts = splitPGN(original);
+  if (importBusy) return;
+  const original = $('#importText').value, batch = splitPgnImport(original);
+  const status = text => { $('#importMsg').textContent = t(text); };
+  if (batch.error) { status(batch.error); return; }
+  const parts = batch.games;
   let provenance; try { provenance = makeProvenance('imported', sourceInput($('#importSourceFields'))); }
-  catch { $('#importMsg').textContent = 'Check the source fields and use an HTTP or HTTPS URL without credentials.'; return; }
-  const recs = []; let bad = 0;
-  for (const p of parts) {
-    try {
-      if (p.length > 200_000) { bad++; continue; }
-      const c = new Chess(); c.loadPgn(p); const h = c.getHeaders();
-      if (!c.history().length && !h.FEN) { bad++; continue; }
-      const r = new Chess(h.FEN || START); let op = null;
-      c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < OPENING_PLIES) op = e; });
-      const rec = { id: 'i' + crypto.randomUUID(), kind: 'study', provenance, title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() };
-      await librarySnapshot(rec, 'library'); recs.push(rec);
-    } catch { bad++; }
+  catch { status('Check the source fields and use an HTTP or HTTPS URL without credentials.'); return; }
+  importBusy = true; $('#btnImport').disabled = true; status('Importing games…');
+  const recs = [], importIds = []; let bad = 0;
+  try {
+    for (const p of parts) {
+      try {
+        if (p.length > 200_000) { bad++; continue; }
+        const c = new Chess(); c.loadPgn(p); const h = c.getHeaders();
+        if (!c.history().length && !h.FEN) { bad++; continue; }
+        const r = new Chess(h.FEN || START); let op = null;
+        c.history().forEach((s, k) => { r.move(s); const e = ECO[K.epd(r.fen())]; if (e && k < OPENING_PLIES) op = e; });
+        const rec = { id: 'i' + crypto.randomUUID(), kind: 'study', provenance, title: h.Event && h.Event !== '?' ? h.Event : '', white: h.White || '?', black: h.Black || '?', result: h.Result || '*', date: (h.Date || '').replace(/\.\?\?/g, ''), eco: op?.[0] || h.ECO || '', opening: op?.[1] || h.Opening || '', plies: c.history().length, pgn: p, updatedAt: Date.now() };
+        importIds.push(rec.id); await librarySnapshot(rec, 'library'); recs.push(rec);
+      } catch { bad++; }
+    }
+    const report = { duplicates: 0 };
+    const ok = recs.length ? await Lib.putGames(recs, { importReport: report }) : 0; // one local write/re-index
+    const failed = recs.length - report.duplicates - ok, messages = [];
+    if (ok) messages.push(t(ok === 1 ? 'Added 1 game.' : 'Added {n} games.', { n: ok }));
+    if (report.duplicates) messages.push(t(report.duplicates === 1 ? 'Skipped 1 duplicate.' : 'Skipped {n} duplicates.', { n: report.duplicates }));
+    if (bad) messages.push(t(bad === 1 ? 'Skipped 1 unreadable game.' : 'Skipped {n} unreadable games.', { n: bad }));
+    if (failed) messages.push(t(failed === 1 ? 'Could not save 1 game. Retry the import.' : 'Could not save {n} games. Retry the import.', { n: failed }));
+    $('#importMsg').textContent = messages.join(' ') || t('No valid PGN found.');
+    if (!bad && !failed && (ok || report.duplicates) && $('#importText').value === original) $('#importText').value = '';
+  } catch { status('The games could not be saved.'); }
+  finally {
+    importBusy = false; $('#btnImport').disabled = false;
+    for (const id of importIds) if (!Lib.games.has(id) && !Lib.importAcks.has(id)) libraryCache.delete('library:' + id);
   }
-  const ok = recs.length ? await Lib.putGames(recs) : 0; // one write and one re-index for the whole batch
-  const skipped = bad ? `, skipped ${bad} that couldn't be read` : '';
-  $('#importMsg').textContent = ok ? `Added ${ok} game${ok > 1 ? 's' : ''}${skipped}.` : recs.length ? 'The games could not be saved.' : 'No valid PGN found.';
-  if (ok === recs.length && ok && $('#importText').value === original) $('#importText').value = '';
 }
 
 // ---------------------------------------------------------------- Review
