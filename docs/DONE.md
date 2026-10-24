@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Refresh the flipbook with current study flows and fresh coaching
+
+TODO items: 12.4.1; broader 12.4 user/provider/Ollama documentation remains open.
+
+### Implementation notes
+
+- Replaced the eleven-page 2026-10-21 snapshot with [nineteen current screenshots](flipbook/README.md): Opera Game coaching/review, source search, named opening ideas, repertoire editing/recall, a rules-verified lesson, spaced practice and two German phone views. Captured the app at `ea94943`, incorporating the completed Chrome milestone `56fec42`; no screenshots were edited.
+- After explicit approval, ran the nine-answer plan once with `claude-haiku-5-5` fixed for quick/chat/review. All nine answers and nineteen steps succeeded on 2026-10-24. No judge or embedding requests were made. Engine-tool follow-ups, format fallbacks and SDK retries can add provider requests; nine answers is not a request-count or billing cap.
+- Added `run.json` with actual provider/task-model labels, capture version, viewport/PNG sizes, main-board FENs and prose/check observations. Prose capture excludes source/tool/interface cards. Recorded 141 recognized tokens: 137 matched captured evidence, one was legal outside it and three were flagged. The three flagged strings occur in a piece-description sentence (`Bg5`, `Ra1`, `Rh1`); these counts are not a semantic quality grade or three established bad recommendations. Provider prose remains unchanged.
+- Extended the tour and runner with correct commentary controls, focused long-panel captures, full-board framing, engine-depth waits, scoped coaching consent, no-call planning, explicit worktree env/output options, button-answer counting, raw-HTML escaping and staged publication/rollback. Failed generation preserves the previous published directory. Mock CLI tests use temporary destinations outside the protected application tree and attach capture evidence, so the default Playwright command also works. The [capture guide](../site/flipbook/README.md) documents these controls and limits.
+- Updated root flipbook navigation and kept the published Primer's original figures/quotes identified as its earlier snapshot. Validation: integrated lint/JSDoc/build and all 591 unit/server tests pass, one live-provider skip; both complete mock/plan browser cases pass. The paid capture also passed page/CSP checks. Verified all nineteen PNG sizes, nine prose records, full-board/phone framing and absence of credential/cookie patterns; inspected desktop, long-panel and German phone images and local links.
+
+### Deviations
+
+- Used the approved Haiku 5.5 routes rather than carrying forward the original Opus snapshot's label or replaying its answers. Mock previews remain outside the published directory; no additional paid rerun was used for visual review or tests.
+- The refresh covers the agreed nineteen-step tour. It does not add an unapproved model benchmark or replace the Primer paper's existing example evidence.
+
+### Insights
+
+- Capturing actual coach prose separately from interface/source cards matters for trustworthy quotations. A complete capture still preserves fallible prose: the graph narration describes a queen/pawn-move pattern even though its listed mistakes include bishop/knight moves. Token checks cannot certify that generalization.
+- A valid screenshot can still crop the board. Explicit top framing, focused panel captures and recorded image dimensions make the walkthrough readable and reviewable.
+
 ## 2026-10-24 — Optional Chrome built-in coach
 
 TODO items: remaining 2.16.1 Chrome runtime; 2.16 completed with documented runtime differences.

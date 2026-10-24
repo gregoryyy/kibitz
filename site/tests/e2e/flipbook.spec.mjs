@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import net from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { steps } from '../../flipbook/tour.mjs';
@@ -16,14 +17,21 @@ async function run(args) {
   });
 }
 
-test('a no-call flipbook plan leaves existing output intact', async ({ baseURL }, info) => {
-  const out = info.outputPath('plan'); await fs.mkdir(out, { recursive: true }); await fs.writeFile(path.join(out, 'README.md'), 'retain this output');
+// The CLI deliberately refuses output inside site/. Default Playwright output lives there,
+// so use an actual temporary destination and attach the evidence before removing it.
+async function withOutput(check) {
+  const out = await fs.mkdtemp(path.join(os.tmpdir(), 'kibitz-flipbook-test-'));
+  try { await check(out); } finally { await fs.rm(out, { recursive: true, force: true }); }
+}
+
+test('a no-call flipbook plan leaves existing output intact', async () => withOutput(async out => {
+  await fs.writeFile(path.join(out, 'README.md'), 'retain this output');
   const result = await run(['--plan', '--out', out]); expect(result.stdout).toContain('about 9 calls'); expect(result.stdout).toContain('no model requests, browser or output changes');
   expect(await fs.readFile(path.join(out, 'README.md'), 'utf8')).toBe('retain this output'); expect(await fs.readdir(out)).toEqual(['README.md']);
-});
+}));
 
 test('the complete current flipbook renders desktop and German phone screenshots with mock coaching', async ({ baseURL }, info) => {
-  test.setTimeout(300_000); const out = info.outputPath('flipbook');
+  test.setTimeout(300_000); await withOutput(async out => {
   const result = await run(['--out', out]); expect(result.stdout).toContain(`${steps.length} steps`);
   const capture = JSON.parse(await fs.readFile(path.join(out, 'run.json'), 'utf8'));
   expect(capture.provider).toBe('mock'); expect(capture.capture).toBe('coach-prose-v2');
@@ -39,4 +47,6 @@ test('the complete current flipbook renders desktop and German phone screenshots
   const readme = await fs.readFile(path.join(out, 'README.md'), 'utf8'); expect(readme).toContain('UI preview, not coaching evidence');
   expect(readme).toContain('spaced practice'); expect(readme).toContain('German'); expect(readme).not.toContain('which the app strikes through');
   expect((await fs.readdir(out)).length).toBe(steps.length + 2);
+  for (const name of ['run.json', '01-load.png', '19-german-opening-guide.png']) await info.attach(name, { path: path.join(out, name) });
+  });
 });
