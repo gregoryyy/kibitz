@@ -38,6 +38,16 @@ async function answer(page, q) {
 
 test('chat quotes source data, refuses forged citations and opens the exact repeated occurrence', async ({ page }) => {
   const api = await setup(page); api.forged = true;
+  // Qh5 can occur later in a real Stockfish PV on some machines. Fix the supplied evidence
+  // for both request positions, so this tests source isolation rather than engine choice.
+  await page.evaluate(() => {
+    const { S, ANA } = window.__kibitz;
+    for (const [ply, pv] of [[5, ['g8f6']], [4, ['g1f3']]]) {
+      ANA.set(S.nodes[ply].fen.split(' ').slice(0, 4).join(' '), {
+        depth: 99, multipv: 5, best: pv[0], lines: [{ score: { cp: 0 }, pv }],
+      });
+    }
+  });
   const a = await answer(page);
   await expect(a.locator('.source-citation')).toHaveCount(1);
   await expect(a).toContainText('A citation was not supplied');

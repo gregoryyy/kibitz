@@ -58,13 +58,15 @@ flowchart LR
 ```
 
 - **The page** is a single HTML file plus plain ES modules, with no framework and no bundler. Stockfish runs in Web Workers. When the page is cross-origin isolated (COOP and COEP headers), the analyst uses the multi-threaded build.
-- **Source modules** are grouped by responsibility under `site/src/`: `chess/` for rules, knowledge, engine and game helpers; `coach/` for prompts, tools, annotations and model support; `library/` for source records, classics and passage search; `openings/` for opening guides, repertoires and drills; and `platform/` for storage and localization. `index.html` composes them. The build preserves these paths in `dist/`, where vendored libraries and Stockfish workers live at the root. The same pure modules are imported directly by Node tests, the gateway and offline evaluation tools.
+- **Source modules** are grouped by responsibility under `site/src/`: `chess/` for rules, knowledge, engine and game helpers; `coach/` for prompts, tools, annotations and model support; `curriculum/` for lesson records, authored material and catalogue UI; `library/` for source records, classics and passage search; `openings/` for opening guides, repertoires and drills; and `platform/` for storage and localization. `index.html` composes them. The build preserves these paths in `dist/`, where vendored libraries and Stockfish workers live at the root. The same pure modules are imported directly by Node tests, the gateway and offline evaluation tools.
 - **The local server** serves the page with a strict Content Security Policy. It mounts the AI gateway under `/api/ai/`, which holds the API keys (from `.env`), talks to the providers, enforces limits, and streams answers back as NDJSON. Keys never reach the page.
 - **Two other deployments** use the same page:
   - **As a Claude artifact,** where the page uses the host's `window.claude` model instead of the gateway.
   - **Fully offline** (`just offline`), where a small model runs in the page and nothing leaves the machine (section 4).
 
 ## 3. Generative-AI patterns, as built here
+
+The **curriculum catalogue** (6.1, `src/curriculum/`) is independent of the coach and active board. A pure compiler validates bounded module/lesson/exercise records, unique stable IDs, English/German teaching text, level and theme tags, attribution, and acyclic prerequisites. chess.js checks each starting position and recorded UCI line; mate exercises additionally establish terminal checkmate for the learner's colour. Reflection lines are legal examples with authored rubrics, without a best-move or result claim. The Lessons panel filters and renders this data literally without provider requests or game changes. Lesson play, alternative-answer grading and progress remain 6.6/6.7.
 
 Kibitz is also a working example of common patterns for building with language models. Each one below says where it lives in the code.
 

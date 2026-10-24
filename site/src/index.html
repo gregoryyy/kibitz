@@ -228,6 +228,15 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .opening-guide h4 { margin: 6px 0; }
 .opening-guide dt { font-weight: 600; margin-top: 8px; }
 .opening-guide dd { margin: 4px 0; }
+.curriculum-filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.curriculum-filters label { flex: 1 1 140px; display: grid; gap: 5px; min-width: 0; }
+.curriculum-filters select { width: 100%; min-width: 0; }
+.curriculum-module { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 12px 0; overflow-wrap: anywhere; }
+.curriculum-module h3 { margin: 0 0 10px; font-size: 16px; }
+.curriculum-lesson { border-top: 1px solid var(--line); padding: 10px 0; }
+.curriculum-lesson summary { cursor: pointer; }
+.curriculum-lesson h4 { margin: 12px 0 6px; }
+.curriculum-lesson li { margin-bottom: 6px; }
 #namedOpeningBody { display: grid; gap: 10px; padding-top: 12px; }
 #namedOpeningBody > p { margin: 0; }
 .named-opening-list { display: grid; gap: 10px; max-height: min(340px, 45vh); overflow-y: auto; overscroll-behavior: contain; padding: 3px; }
@@ -464,6 +473,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <button role="tab" data-tab="library" aria-selected="false">Library<span class="count" id="libCount"></span></button>
       <button role="tab" data-tab="reading" aria-selected="false">Reading</button>
       <button role="tab" data-tab="openings" aria-selected="false">Openings</button>
+      <button role="tab" data-tab="lessons" aria-selected="false">Lessons</button>
       </div>
     </div>
 
@@ -514,6 +524,12 @@ a.ext { color: var(--accent); font-size: 14px; }
           <span class="hint">within</span><div class="choice" id="optWindow"><button data-v="50">0.5</button><button data-v="100">1</button><button data-v="200">2</button></div><span class="hint">pawns of the best</span></div>
         <ol class="interesting" id="interesting" aria-labelledby="interestingLbl"></ol>
       </div>
+    </div>
+
+    <div class="pane" data-pane="lessons" hidden>
+      <h2>Lessons</h2>
+      <p class="hint">Explore modules, lesson goals and exercises by level or theme.</p>
+      <div id="curriculumPanel"></div>
     </div>
 
     <div class="pane" data-pane="review" hidden>
@@ -731,6 +747,9 @@ import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/
 import { sanToSpeech, parseMoveInput } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import DE from './platform/i18n-de.js';
+import { compileCurriculum } from './curriculum/curriculum.js';
+import { CURRICULUM } from './curriculum/catalogue.js';
+import { createCurriculumPanel } from './curriculum/ui.js';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const $ = s => document.querySelector(s);
@@ -896,7 +915,7 @@ analyst.ready.then(() => {
 const saved = store.get('settings', {});
 const S = {
   mode: 'play', userColor: saved.userColor || 'w', colorPick: saved.colorPick || 'w', elo: saved.elo || 1400, style: styleOf(saved.style).id,
-  help: saved.help || 'flags', level: saved.level || 2, depth: saved.depth || 14, orientation: 'white',
+  help: saved.help || 'flags', level: [1, 2, 3, 4].includes(saved.level) ? saved.level : 2, depth: saved.depth || 14, orientation: 'white',
   start: START, nodes: [{ fen: START, ply: 0 }], cursor: 0, over: null, thinking: false, hints: 0,
   gameId: null, meta: null, playing: false, reviewDone: false, summary: '', comments: {},
   gen: 0, // bumped whenever the game is replaced, so async work started for the old game can tell it's stale
@@ -3852,6 +3871,9 @@ async function addRef() {
   $('#refTitle').value = $('#refAuthor').value = $('#refNote').value = ''; renderRefTags();
   $('#refMsg').textContent = 'Added. It will show up when a matching position comes up.';
 }
+
+// The catalogue is independent of the current board and makes no engine/provider requests.
+createCurriculumPanel($('#curriculumPanel'), compileCurriculum(Chess, CURRICULUM), { language: LANG, level: S.level, t });
 
 // ---------------------------------------------------------------- Tabs & wiring
 // The panels under the dialogue (game, coach settings, review, library, reading) fold away, so the

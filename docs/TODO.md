@@ -168,7 +168,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 ## 6. Tactics and strategy curriculum
 
-- [ ] 6.1 Structure: modules → lessons → exercises, tagged by level
+- [x] 6.1 Curriculum structure: validated modules → lessons → exercises with stable IDs, levels, themes, bilingual authored text, acyclic prerequisites and source/licence metadata. Lessons catalogue filters by level/module/theme; positions and recorded lines are checked with chess.js, including terminal mate checks for mate exercises. Interactive lesson play and grading remain 6.6
 - [ ] 6.2 Tactics: fork, pin, skewer, discovered attack, double check, deflection, decoy, overloading, interference, removing the defender, zwischenzug, back rank, mating patterns
 - [ ] 6.3 Strategy: pawn structures (IQP, Carlsbad, hanging pawns, …), weak squares, outposts, good and bad bishops, open files, king safety, piece activity, prophylaxis
 - [ ] 6.4 Endgames: basic mates, king and pawn, opposition, Lucena, Philidor; checked against tablebases (Syzygy) *(added)*

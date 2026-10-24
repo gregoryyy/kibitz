@@ -2,7 +2,7 @@
 //   dist/index.html   page body as published to a Claude artifact (no <html>/<head>; the host wraps it)
 //   dist/_test.html   same page wrapped in a full document, for local testing
 //   dist/*.js|wasm    vendored libraries, served next to the page
-//   dist/{chess,coach,library,openings,platform}/   application ES modules, matching src/
+//   dist/{chess,coach,curriculum,library,openings,platform}/   application ES modules, matching src/
 //   dist/eco.json     opening names by position; dist/openings.json every named line with its moves
 //   dist/opening-variations.json   legal next moves and their nearby named destinations by EPD
 //   dist/LICENSE.txt, dist/THIRD_PARTY_NOTICES.md
