@@ -302,3 +302,7 @@ Offline mode (`just offline`, TODO 2.16) runs the coach's language model inside 
 - **Live tests** with real providers or the real in-browser model run only when an environment flag is set (`KIBITZ_LIVE_AI=1`, `KIBITZ_LIVE_MODEL=1`).
 - **Playwright** drives the built page in Chrome: full games, the engine fallbacks, the coach, the layout, and a regression test for every fixed bug.
 - **Planned:** a tutor eval set scores the coach's answers on reference positions per provider, with engine checks plus a model as judge (3.8).
+
+### Persistent local accounting
+
+`server/usage-store.mjs` stores current-day counters and bounded minute admissions in a private versioned SQLite database. `usageAccounting()` shares it across coach/tests/embeddings, commits both server/user completion totals atomically and checks per-cookie plus aggregate rates before provider work. Cookie IDs are hashed; no prompts, responses, raw cookies or keys enter the ledger. Standard serve recipes select `.kibitz-data/usage.sqlite`; direct CLI calls default to memory. Shared private-file checks keep both usage and library databases outside the static tree. [Accounting behavior and lifecycle](USAGE.md) explain threshold overshoot, failures, retention and the deferred account boundary.

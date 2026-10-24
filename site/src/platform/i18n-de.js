@@ -3,6 +3,7 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  "When usage persistence is enabled, the local server keeps daily request, token and cost totals and recent request times under a hashed browser ID. These export and erase controls leave those counters in place; the local operator manages them.": "Bei aktivierter Nutzungsprotokollierung speichert der lokale Server Tagessummen für Anfragen, Tokens und Kosten sowie jüngste Anfragezeiten unter einer gehashten Browser-Kennung. Diese Export- und Löschfunktionen lassen die Zähler bestehen; der lokale Betreiber verwaltet sie.",
   'Move display': 'Zugdarstellung',
   'English SAN (Nf3)': 'Englische SAN (Nf3)',
   'German letters (Sf3)': 'Deutsche Figurenbuchstaben (Sf3)',
