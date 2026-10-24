@@ -38,7 +38,7 @@ The existing source/language/collection filters apply before matching. Imported 
 
 Changing the fuzzy option cancels pending results and held source actions while retaining otherwise valid source vectors. Main/scratch-board changes recheck the captured FEN and intent; source/account/policy changes retain stricter index invalidation. Toggling the option sends no replacement query, and FENs/features stay local. No new provider, dependency, model call, persistent index or tutor prompt data is added.
 
-This consumer is Combined Library passage search. The older Reading/coach `similarPositions()` prototype continues to use exact pawn buckets; the remaining position-index work is tracked in 8.1. Material/placement features, richer motif indexing and cited tutor retrieval remain 8.1/8.2/8.6.
+This consumer is Combined Library passage search. The older Reading `similarPositions()` prototype continues to use exact pawn buckets. [Cited tutor/chat retrieval](RETRIEVAL-CITATIONS.md), added in 8.6, uses local keyword/exact-pawn/tag channels without fuzzy expansion. Remaining position-index/material/placement features and richer motif indexing are tracked in 8.1/8.2.
 
 ## Reproducible spatial benchmark
 

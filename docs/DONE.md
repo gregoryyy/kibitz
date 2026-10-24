@@ -7,6 +7,31 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Retrieved coach passages and exact source citations
+
+TODO items: 8.6.
+
+### Implementation notes
+
+- Added pure, JSDoc-typed `retrieval-context.js`. Local keyword/exact-pawn/tag retrieval supplies at most three distinct annotation/guide sections with 900-character Unicode-safe excerpts. Imported title/source/author/licence/text go through `quote()`; historical FENs, match reasons and source assertions remain separate from engine evidence. General chat uses its question without the active board; position questions and tutor aspects/themes use their captured board. No implicit embeddings or fuzzy expansion.
+- SHA-256 bundle identities bind citation namespaces to canonical records, query, board, language and account. Only tokens supplied with that answer become compact numbered source buttons; invented tokens stay text with a notice. Source details show supplied excerpts/licence assertions and match classes. Clicking rechecks the canonical passage, revision and exact occurrence, legally replays the PGN and preserves full FEN counters. FEN roots and repeated boards open the correct source step. Leaving live play requires confirmation and keeps the game/clock return snapshot and dialogue.
+- Source/account/help/provider changes revoke pending work/actions and remove source excerpts, including with Library closed. Source-bearing model history is cleared on policy changes. Restricted live help supplies no passages even in General chess; the older uncited similar-position prompt block is replaced. Successful board tools prepare fresh source context for their next model turn. Tutor cache keys include the bundle identity, preserving citations on cache hits/reload without binding old prose to changed evidence. The composer discloses source text accompanying questions; German strings and literal user/title rendering are covered.
+- Four new unit scenarios cover detached/stable request identities, repeated occurrences, foreign tokens, quote boundaries, Unicode/count bounds, language/deduplication/revisions, empty results and restricted lookup. Eleven browser scenarios cover chat/tutor/cache citations, forged tokens/HTML and unsupported source moves, deletion and held actions, live restrictions/history, late main/scratch results, confirmation/return, FEN roots, board-tool refresh and policy changes during confirmation, study-note expansion and German phone layout. The provenance regression now checks source ply/full-FEN/excerpt packets instead of the replaced uncited prompt wording.
+- Updated the root README with the motivation to experiment with LLMs and symbolic solvers, and links to the Primer's text and PDF for readers learning about search, grounding, tool use and agents through Kibitz.
+- Verification: `npm run check` and the build pass; 363 unit/gateway tests and 212 Playwright tests pass. One opt-in live test is skipped in each suite; no real AI provider is called.
+
+### Deviations
+
+- This is bounded automatic local retrieval at existing coach request boundaries. Model-requested passage tools, dense/fuzzy tutor retrieval, semantic entailment/abstention checks and outcome evaluation remain future extensions. Library search controls do not silently configure coach lookup. No new provider, dependency, external corpus, gateway route or `llmkit` code was added.
+
+### Insights
+
+- Valid citation identity establishes which supplied source can open, not whether a claim is supported or a source's advice transfers. Source moves must never be added to Stockfish evidence just because they have a citation.
+- The source bundle belongs in the cache key and the async policy fence. Correct move numbers alone cannot protect a cached answer or a pending source action after account/revision/help changes.
+- A historical EPD can match twice while its full FEN counters and occurrence differ. Preserve the original occurrence through both retrieval and the final legal replay.
+
+---
+
 ## 2026-10-23 — Fuzzy pawn-structure distance
 
 TODO items: 8.5.

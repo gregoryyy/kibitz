@@ -3,6 +3,13 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  // --- Retrieved coach passages and citations (TODO 8.6) -------------------------------------
+  'Relevant game comments and study notes may be sent with your question.': 'Passende Partiekommentare und Studiennotizen können mit deiner Frage gesendet werden.',
+  'Passages supplied to the coach': 'Dem Coach bereitgestellte Textstellen',
+  'These passages are source statements. Citation links identify sources; they do not verify the explanation.': 'Diese Textstellen geben Quellenaussagen wieder. Zitatlinks identifizieren Quellen; sie prüfen nicht die Erklärung.',
+  'A citation was not supplied for this answer and cannot be opened.': 'Ein Zitat wurde für diese Antwort nicht bereitgestellt und kann nicht geöffnet werden.',
+  'Source unavailable. Ask again to retrieve current sources.': 'Quelle nicht verfügbar. Frage erneut, um aktuelle Quellen abzurufen.',
+  'Related text; support is not verified.': 'Verwandter Text; inhaltliche Unterstützung ist nicht geprüft.',
   // --- Fuzzy pawn distance (TODO 8.5) ---------------------------------------------------------
   'Include similar pawn structures': 'Ähnliche Bauernstrukturen einbeziehen',
   'Similar structures require at least 75% overlap of colour-specific pawn squares.': 'Ähnliche Strukturen erfordern mindestens 75 % Überlappung der Bauernfelder bei gleicher Farbe.',
@@ -240,7 +247,7 @@ export default {
   'Return to my game': 'Zurück zu meiner Partie',
   'Undo board change': 'Brettänderung rückgängig',
   'Show this position': 'Diese Stellung zeigen',
-  'General chess: no position is sent to the coach.': 'Allgemeine Schachfragen: Dem Coach wird keine Stellung geschickt.',
+  'General chess: the current board is not sent to the coach.': 'Allgemeine Schachfragen: Das aktuelle Brett wird dem Coach nicht geschickt.',
   'Leave this game to analyse? You can return to it here.': 'Diese Partie zum Analysieren verlassen? Du kannst hier zu ihr zurückkehren.',
   'Leave and analyse': 'Verlassen und analysieren',
   'Returned to your game.': 'Zurück zu deiner Partie.',
