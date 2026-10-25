@@ -255,7 +255,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 11.3.11 Review all ten categories against code/tests, add four-adapter credential-context tests and a 2026 numbering crosswalk, and reproduce unresolved misinformation/stream-deadline limits without live calls
 - [x] 11.4 OWASP ASVS review: selected stable 5.0.0 L1 for the local single-user app; [70 individually assessed requirements](ASVS.md), pinned offline coverage/evidence/document checks in CI. Review completion is not compliance or release approval; HTTP findings, deployment deviations and incomplete inventory remain explicit
   - [x] 11.4.1 HTTP hardening from the L1 review: compare the AI gateway Origin's native scheme as well as host, preserve direct local clients, ignore forwarded-header spoofing, and declare UTF-8 on SVG responses; native HTTP/TLS and actual-CLI/browser regressions, both old behaviors reproduced
-- [ ] 11.5 Automated scans: Dependabot, CodeQL, secret scanning, OWASP ZAP baseline against staging, CSP check
+- [ ] 11.5 Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP baseline against isolated mock staging, CSP check and retained inventory/evidence; [implementation and pending actual ZAP verification](SECURITY-SCANS.md)
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings
 
 ## 12. Release and operations *(added)*

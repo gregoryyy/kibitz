@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Automated security baseline prepared for CI verification
+
+TODO item: 11.5 in progress; actual ZAP verification is still pending and the item remains unchecked.
+
+### Implementation notes
+
+- Added weekly bounded Dependabot npm/Actions version-PR configuration, with cooldown and no automatic merge. Existing npm audit, CodeQL security-extended and Gitleaks checks remain. Repository metadata shows native GitHub advisory/security-update/secret/push features disabled; this PR does not claim or change those settings.
+- Added a read-token PR/main/weekly/manual workflow and isolated staging runner. It launches a fresh actual CLI with empty env-file selection, explicit mock-only environment, memory library and ephemeral loopback port; no target option, operator server/configuration/provider credentials/model or private library is used. CSP/header rules check seven read-only paths. The ZAP hook seeds those paths, records enabled rules/completed passive queue and never suppresses findings.
+- Pinned the official ZAP 2.17.0 multi-platform image by independently verified registry manifest SHA-256; disabled add-on updates and active/Ajax scanning. Bounded scanner/child lifetimes, own-container cleanup, stale-output deletion, exact version/origin/coverage validation and a high-alert gate prevent silent clean results after scanner failures. JSON/HTML evidence, SBOM and full npm advisory results are retained on success/failure for thirty days.
+- Local validation: lint/JSDoc/build and complete unit/server suite pass (666 passes, one opt-in live skip), including six new negative/policy/deadline groups. Actual headers-only staging passes seven routes. Hook syntax compiles. npm audit reports zero findings and lockfile CycloneDX inventory has 128 components. Actual ZAP execution awaits Linux CI: the local Docker availability probe stalled and was stopped. No local baseline success is claimed.
+- User merges through #115 are incorporated without rewriting history. Main CodeQL revision `71a863d` has no open high findings and three open medium alerts (20, 21, 23), none manually dismissed. HTTP hardening PR #117 subsequently passed all CI, including full Playwright.
+
+### Deviations
+
+- A headers-only run is partial evidence. Lower ZAP findings remain visible and require review; the passive spider does not exercise every JavaScript flow or arbitrary model/import behavior. No runtime/UI feature changed and no new npm dependency was introduced.
+- SBOM/npm audit does not establish full component advisory-age compliance, hosted/native security feature enablement, ASVS compliance or release approval. Existing local deployment and LLM identity/prose limits remain open.
+
+### Insights
+
+- Default ZAP WARN status is not a risk threshold. Validate every alert's risk independently and require positive route/rule/completion evidence rather than accepting an empty or stale report.
+- Pinning the container is insufficient if the baseline updates its add-ons at startup. The versioned source's silent mode preserves the chosen image rule set for reviewed upgrades.
+
 ## 2026-10-25 — Native-Origin checks and explicit SVG encoding
 
 TODO item: 11.4.1. Remaining ASVS deployment deviations, TLS/inventory verification and release gates stay open.
