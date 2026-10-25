@@ -207,7 +207,7 @@ server/library-files.mjs Private library creation outside all served roots
 server/fixtures/      Provider responses for the contract tests (recorded, or hand-written where marked)
 server/public-files.mjs One validated regular descriptor for static/model metadata, reads, bounded streams and cleanup
 server/logging.mjs    Closed-vocabulary HTTP/AI/config/startup events, excluding raw URLs and provider prose
-server/static.mjs     Security headers (incl. COOP/COEP for cross-origin isolation) and the hash-based CSP for served pages
+server/static.mjs     Security headers (incl. COOP/COEP) and CSP hashes from parse5-parsed trusted HTML; not a sanitizer for model/user content
 tests/unit/           node:test for the page modules; server/*.test.mjs for the gateway, incl. contract tests
                       (SDKs replaying server/fixtures) and live tests (only with KIBITZ_LIVE_AI=1)
 tests/e2e/            Playwright: smoke (main flows), regressions (one test per fixed bug), preferences (Elo, style),

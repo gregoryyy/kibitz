@@ -22,6 +22,7 @@ test('log fields use a closed vocabulary even for hostile codes, statuses and co
   for (const value of [-1, NaN, Infinity, 600, '401', {}, null]) assert.equal(JSON.parse(aiErrorEvent('sample', 'openai', 'auth_failed', value)).status, 0);
   assert.equal(JSON.parse(aiErrorEvent('sample', 'openai', 'auth_failed', 401)).status, 401);
   assert.match(serverErrorEvent({ code: 'EADDRINUSE', message: hostile }), /Listener already in use/);
+  assert.match(serverErrorEvent({ code: 'ERR_MODULE_NOT_FOUND', message: hostile }), /Run npm ci/);
 });
 
 test('access events classify paths, count disconnects once and omit request identity/content', () => {

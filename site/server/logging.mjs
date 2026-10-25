@@ -4,7 +4,7 @@ const PROVIDERS = new Set(['anthropic', 'openai', 'mistral', 'ollama', 'browser'
 const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']);
 const ACTIONS = new Set(['sample', 'structured', 'test', 'embeddings']);
 const CODES = new Set(['auth_failed', 'bad_request', 'bad_output', 'budget_exceeded', 'cancelled', 'consent_required', 'forbidden', 'in_browser', 'model_not_found', 'not_found', 'prompt_too_large', 'provider_error', 'provider_rejected', 'rate_limited', 'refused', 'stale_embeddings', 'timeout', 'unavailable', 'usage_unavailable']);
-const SYSTEM_CODES = new Set(['EACCES', 'EADDRINUSE', 'EADDRNOTAVAIL', 'EEXIST', 'EINVAL', 'EISDIR', 'ENOENT', 'ENOTDIR', 'EPERM', 'ERR_INVALID_ARG_VALUE', 'ERR_SOCKET_BAD_PORT', 'ERR_PARSE_ARGS_UNKNOWN_OPTION', 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE', 'ERR_PARSE_ARGS_UNEXPECTED_POSITIONAL']);
+const SYSTEM_CODES = new Set(['EACCES', 'EADDRINUSE', 'EADDRNOTAVAIL', 'EEXIST', 'EINVAL', 'EISDIR', 'ENOENT', 'ENOTDIR', 'EPERM', 'ERR_MODULE_NOT_FOUND', 'ERR_INVALID_ARG_VALUE', 'ERR_SOCKET_BAD_PORT', 'ERR_PARSE_ARGS_UNKNOWN_OPTION', 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE', 'ERR_PARSE_ARGS_UNEXPECTED_POSITIONAL']);
 const ROUTES = new Map(['status', 'config', 'test', 'sample', 'structured', 'embeddings'].map(name => [`/api/ai/${name}`, `ai.${name}`]));
 export const logProvider = value => PROVIDERS.has(value) ? value : 'other';
 const statusNumber = value => Number.isInteger(value) && value >= 100 && value <= 599 ? value : 0;
@@ -51,5 +51,6 @@ const STARTUP_HINTS = new Map([
 ]);
 export function serverErrorEvent(error) {
   return line({ event: 'server_error', code: SYSTEM_CODES.has(error?.code) ? error.code : 'other',
-    hint: STARTUP_HINTS.get(error?.message) || (error?.code === 'EADDRINUSE' ? 'Listener already in use; stop the other server or pick another port.' : 'Check command options, directory existence, file permissions and server configuration.') });
+    hint: STARTUP_HINTS.get(error?.message) || (error?.code === 'EADDRINUSE' ? 'Listener already in use; stop the other server or pick another port.'
+      : error?.code === 'ERR_MODULE_NOT_FOUND' ? 'Run npm ci in site/ to install Node dependencies.' : 'Check command options, directory existence, file permissions and server configuration.') });
 }

@@ -26,6 +26,7 @@
     "@wllama/wllama": "3.8.1",
     "chess.js": "1.4.0",
     "openai": "7.39.0",
+    "parse5": "8.0.1",
     "stockfish": "19.0.1"
   },
   "devDependencies": {

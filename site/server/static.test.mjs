@@ -5,7 +5,7 @@ import { cspFor, isHiddenPath, BASE_HEADERS, offlineHtml } from './static.mjs';
 
 const sha = s => `'sha256-${crypto.createHash('sha256').update(s, 'utf8').digest('base64')}'`;
 
-test('CSP allows inline scripts by hash only, not external or injected ones', () => {
+test('CSP hashes the trusted document inline scripts and excludes external script bodies', () => {
   const inline = '\nimport { x } from "./x.js";\nx();\n';
   const csp = cspFor(`<p>hi</p><script type="module">${inline}</script><script src="a.js"></script>`);
   const scriptSrc = csp.split('; ').find(d => d.startsWith('script-src'));
@@ -47,5 +47,45 @@ test('offline: the CSP allows no other host, and the page loses its Google Fonts
   assert.doesNotMatch(csp, /https:/);
   assert.match(csp, /font-src 'self'(;|$)/);
   assert.match(csp, /connect-src 'self'/);
-  assert.match(cspFor(page), /https:\/\/fonts\.gstatic\.com/, 'online keeps the fonts');
+  assert.equal(cspFor(page).split('; ').find(d => d.startsWith('font-src ')), "font-src 'self' https://fonts.gstatic.com", 'online keeps the exact font source');
+});
+
+test('CSP follows parsed tag/attribute boundaries and browser text normalization', () => {
+  const body = 'globalThis.good = "A &amp; B";';
+  for (const html of [`<SCRIPT>${body}</SCRIPT >`, `<script data-note="a > b">${body}</script\n>`, `<script data-src="metadata">${body}</script>`]) {
+    assert.ok(cspFor(html).includes(sha(body)), html);
+  }
+  assert.ok(cspFor('<script>\r\nglobalThis.good = true;\r</script>').includes(sha('\nglobalThis.good = true;\n')));
+  assert.ok(!cspFor(`<script SRC="external.js">${body}</script>`).includes(sha(body)));
+  assert.ok(!cspFor(`<script src="">${body}</script>`).includes(sha(body)));
+});
+
+test('CSP excludes inert and unfinished script-looking content without treating data as HTML', () => {
+  const fake = 'globalThis.inert = true;', good = 'globalThis.active = true;';
+  const html = `<!-- <script>${fake}</script> --><textarea><script>${fake}</script></textarea><template><script>${fake}</script></template><noscript><script>${fake}</script></noscript><script type="application/json">${fake}</script><script>${good}</script><script>${fake}`;
+  assert.ok(!cspFor(html).includes(sha(fake))); assert.ok(cspFor(html).includes(sha(good)));
+});
+
+test('data-block and script-type distinctions preserve module/import-map policy without authorizing inert code', () => {
+  const body = 'globalThis.typeProbe = true;';
+  for (const type of ['application/json', 'text/plain', 'unknown', ' module ', '\u00a0text/javascript\u00a0', 'text/javascript;charset=utf-8']) {
+    assert.ok(!cspFor(`<script type="${type}">${body}</script>`).includes(sha(body)), type);
+  }
+  for (const type of ['', 'MODULE', 'importmap', 'speculationrules', ' TeXt/JavaScript\t', 'application/x-javascript']) {
+    assert.ok(cspFor(`<script type="${type}">${body}</script>`).includes(sha(body)), type);
+  }
+  assert.ok(!cspFor(`<script language="vbscript">${body}</script>`).includes(sha(body)));
+  assert.ok(cspFor(`<script language="javascript">${body}</script>`).includes(sha(body)));
+});
+
+test('SVG script text uses its parsed text and href semantics; duplicate hashes stay bounded', () => {
+  const raw = 'globalThis.svg = "A &amp; B";', decoded = 'globalThis.svg = "A & B";';
+  const html = `<svg><script>${raw}</script><script href="external.js">external</script></svg>`;
+  assert.ok(cspFor(html).includes(sha(decoded))); assert.ok(!cspFor(html).includes(sha('external')));
+  assert.equal(cspFor(`<script>${decoded}</script><script>${decoded}</script>`).split(sha(decoded)).length - 1, 1);
+});
+
+test('the entire policy input must be trusted: parsing does not sanitize supplied executable code', () => {
+  const body = 'globalThis.untrusted = true;';
+  assert.ok(cspFor(`<script>${body}</script>`).includes(sha(body)), 'callers must never supply model/user HTML to this function');
 });

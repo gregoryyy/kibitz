@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — HTML-aware CSP script selection
+
+TODO item: 11.2.7; contexts 2/3/5 under [#99](https://github.com/gregoryyy/kibitz/issues/99).
+
+### Implementation notes
+
+- Replaced regex script extraction with pinned server-side parse5 8.0.1 and its lockfile-pinned entities 8.1.0 decoder. The respective MIT/BSD-2-Clause licences are recorded in third-party notices; no existing package versions changed and no parser code is bundled into the browser. The dependency earns its place by handling HTML tag/attribute states, namespaces, inert content and text normalization rather than growing a partial sanitizer/lexer.
+- Walk parsed HTML/SVG script nodes iteratively; exact src/href attributes exclude external bodies. Comments, raw-text elements, templates/noscript, non-script data blocks and unfinished tags do not grant hashes. Script type selection retains JavaScript MIME essences, module/import-map/speculation-rule keywords and legacy language behavior. Script text uses browser parsing normalization, and a set deduplicates identical hashes. Existing policy directives remain intact. Parser-dependent imports stay inside the CLI startup handler, with a fixed npm-ci hint for missing modules.
+- Strengthened intentional unit-fixture checks to exact literal excerpt/CSP-directive values. Their earlier regexes were assertions, not production HTML filters or host validation. Deployment/threat/OWASP notes explicitly state the trusted-input boundary: `cspFor()` authorizes supplied inline code and cannot sanitize model/user HTML.
+- Validation: seventeen focused static/hybrid unit cases and four real-CLI browser cases pass, including quoted angles, data-src, closing-tag whitespace, normalized CRLF/SVG text, inert-source injection blocking, artifact module/isolation and a bounded missing-dependency error. Both browser regressions also fail on prior `deddbd6` code: valid variants never set the expected state, and an injected script reusing inert source text actually executes. Lint/JSDoc/build pass; the complete unit/server scope passes with bounded concurrency (615 passes, one optional live skip), and all fifteen focused browser cases pass (four CSP, seven PWA, four app smoke). The locked dependency audit reports zero vulnerabilities. Policies for all four current built HTML pages are byte-for-byte unchanged. Checked 235 local documentation targets and diff whitespace. Mock/synthetic data only; no provider or model requests.
+
+### Deviations
+
+- Static serving now requires the installed parser dependency, including without the optional gateway. The CLI gives a bounded actionable startup error if it is missing. Operator-owned public files remain the trust boundary; parsing is not a sanitizer or a release approval.
+- Incorporated the owner's latest merged main changes into the remaining PR chain without rewriting history, preserving the PDF exclusion and retrieval comparison. Other security/scanner/release items remain open.
+
+### Insights
+
+- A commented script example can accidentally receive an executable hash when extraction uses a tag regex. Parsing inert content prevents an attacker from reusing that hash for a later inline script, while actual allowed scripts retain their exact normalized text.
+- Matching `data-src` as though it were `src`, or reading a quoted angle as the tag boundary, can also block valid authored scripts. Browser execution and policy-violation checks distinguish those functional defects from a generic scanner label.
+
 ## 2026-10-24 — Native TLS protection for newly issued usage cookies
 
 TODO item: 11.2.6; cookie transport context 4 under [#99](https://github.com/gregoryyy/kibitz/issues/99).

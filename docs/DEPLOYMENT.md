@@ -49,6 +49,27 @@ every request. Stop the server during builds or publish regular assets atomicall
 do not rebuild its served `dist/` during an active browser run. The existing model
 marker is an availability check, not ongoing integrity verification.
 
+## CSP and trusted HTML
+
+Install production Node dependencies with `npm ci` in `site/`, including the pinned
+parse5 parser used by static serving. The parser and its decoder run on the server;
+they are not added to the browser bundle. Missing dependencies fail startup with a
+fixed installation hint and an allowlisted error code.
+
+The CSP hashes are selected from parsed HTML/SVG script nodes in the same trusted
+HTML body that is sent. Actual `src`/SVG `href` attributes exclude external bodies;
+comments, raw text, templates, noscript content, non-script data blocks and unfinished tags do not grant
+inline-script hashes. Browser-normalized line endings/character references feed the
+hash, and duplicate hashes are removed. Recognized JavaScript types, modules and CSP-controlled import maps/speculation rules retain their hashes. Module/worker/WebAssembly and offline host
+restrictions retain their existing policy.
+
+This generates a policy for operator-owned build files. Passing model/user HTML to
+`cspFor()` would authorize supplied inline script bodies; parsing does not make that
+input safe. Keep imported games, notes and model responses in literal text/rendering
+paths, and keep public build files under the operator's control. See the
+[HTML parsing standard](https://html.spec.whatwg.org/multipage/parsing.html) and
+[parser API](https://parse5.js.org/functions/parse5.parse.html).
+
 ## Consequences for the plan
 
 - TODO 10.2 hosted authentication is deferred. Passkeys/OAuth, account sessions, tenant isolation, account-based budgets and encrypted per-user provider keys are prerequisites for any later hosted service.
