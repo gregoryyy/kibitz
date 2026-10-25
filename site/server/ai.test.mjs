@@ -30,6 +30,17 @@ test('unknown provider is rejected', () => {
   assert.match(c.reason, /not one of/);
 });
 
+test('Chrome is an explicit local browser runtime with no weight URL, key or invented size; bad runtime fails closed', async () => {
+  const c = loadConfig({ AI_PROVIDER: 'browser', BROWSER_RUNTIME: 'chrome', BROWSER_MODEL_URL: 'models/ignored.gguf', OPENAI_API_KEY: 'private-test-key', AI_LOCAL_ONLY: '1' });
+  assert.equal(c.available, true); assert.equal(c.provider, 'browser'); assert.equal(c.localOnly, true);
+  assert.deepEqual(publicStatus(c).browser, { runtime: 'chrome', name: 'Chrome built-in model' });
+  assert.doesNotMatch(JSON.stringify(publicStatus(c)), /private-test-key|ignored|bytes|url/);
+  await assert.rejects(drain(createProvider(c).chat(msgs)), { code: 'in_browser' });
+  const bad = loadConfig({ AI_PROVIDER: 'browser', BROWSER_RUNTIME: 'remote-polyfill', BROWSER_MODEL_URL: 'models/ignored.gguf' });
+  assert.equal(bad.available, false); assert.match(bad.reason, /BROWSER_RUNTIME/);
+  assert.equal(loadConfig({ AI_PROVIDER: 'browser', BROWSER_MODEL_URL: 'models/m.gguf' }).browser.url, 'models/m.gguf');
+});
+
 test('public status never exposes keys or base URLs', () => {
   const s = publicStatus(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'secret-key', MISTRAL_BASE_URL: 'https://proxy.internal/v1' }));
   assert.deepEqual(Object.keys(s).sort(), ['available', 'browser', 'localOnly', 'model', 'models', 'provider', 'providers', 'reason']);

@@ -22,6 +22,8 @@ npm run test:e2e         # Playwright end-to-end tests in the installed Chrome (
 npm run eval:retrieval   # offline labelled position-retrieval benchmark; no provider or build needed
 ```
 
+The optional built-in Chrome coach is selected with `BROWSER_RUNTIME=chrome` in the root `.env` (then **In browser** in Settings), or with root `just offline-chrome`. It needs an explicit Load click and supported desktop Chrome; the browser manages its weights, size and updates. wllama remains the default. [Setup, consent, lifecycle and verification limits](../docs/OFFLINE.md#optional-chrome-built-in-coach).
+
 Click **Analyse** during a game to pause it and its clock immediately. Explore moves or navigate the game, then click **Play** or **Return to my game** to resume exactly where you left it. Reopening Analyse keeps your study variation while the game is unchanged; after you play another move, it starts from the updated game. Both sessions stay in memory until you start a new game or reload the page.
 
 **Keyboard board:** Tab enters once, arrows explore squares, Enter/Space selects a piece and destination, and Escape clears selection. Promotion offers explicit keyboard choices and restores focus. Arrow patterns and **Board mark descriptions** supplement colours; the operating system's reduced-motion preference disables piece animation. [Controls and verification limits](../docs/ACCESSIBILITY.md).

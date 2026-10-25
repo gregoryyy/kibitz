@@ -41,7 +41,11 @@ serve: build
 # Offline mode: serve with the in-browser model; nothing leaves this machine
 offline model="": build
     BROWSER_MODEL={{model}} node site/scripts/fetch-model.mjs
-    AI_PROVIDER=browser AI_LOCAL_ONLY=1 BROWSER_MODEL={{model}} node site/scripts/serve.mjs site/dist --api --env= --usage .kibitz-data/usage.sqlite --models site/models --offline --index _test.html --port {{port}} --host {{host}}
+    AI_PROVIDER=browser AI_LOCAL_ONLY=1 BROWSER_RUNTIME=wllama BROWSER_MODEL={{model}} node site/scripts/serve.mjs site/dist --api --env= --usage .kibitz-data/usage.sqlite --models site/models --offline --index _test.html --port {{port}} --host {{host}}
+
+# Optional Chrome coach: Chrome manages its own model; Load in the page explicitly starts it.
+offline-chrome: build
+    AI_PROVIDER=browser AI_LOCAL_ONLY=1 BROWSER_RUNTIME=chrome node site/scripts/serve.mjs site/dist --api --env= --usage .kibitz-data/usage.sqlite --offline --index _test.html --port {{port}} --host {{host}}
 
 # Lint (ESLint) and type-check (tsc --checkJs)
 check: install

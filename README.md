@@ -112,6 +112,8 @@ Changes there last until the server restarts; keys never reach the page.
 
 A small model is much weaker than the cloud ones: it puts what Stockfish found into words, and the answer check (TODO 3.4) marks moves it gets wrong.
 
+**Optional Chrome model:** `just offline-chrome` uses supported desktop Chrome's built-in model instead of the GGUF runtime. Press **Load** in the Coach tab to allow Chrome's model download/session; Chrome controls its size, storage and updates. Each reload/unload requires another explicit Load. See [setup, resource and offline limits](docs/OFFLINE.md#optional-chrome-built-in-coach). No API key is needed; the default `just offline` keeps wllama.
+
 Add `?debug` to the URL to get `window.__kibitz` (state, `contextFor`, the analysis cache and more) in the browser console.
 
 ## Tests

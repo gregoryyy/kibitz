@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Optional Chrome built-in coach
+
+TODO items: remaining 2.16.1 Chrome runtime; 2.16 completed with documented runtime differences.
+
+### Implementation notes
+
+- Added the injected `coach/chrome-llm.js` Prompt API adapter and explicit `BROWSER_RUNTIME=chrome` configuration. `just offline-chrome` serves with no env keys or GGUF provisioning; default wllama and `just offline` retain pinned same-origin weights. Public status names the native runtime without inventing a URL, size or version.
+- A non-downloading capability probe precedes explicit Load-per-session consent. Creation starts within the click gesture; loading timeout, Unload, replacement and late-result guards destroy superseded sessions. Each request clones an empty base and destroys its own history. Queued work, cancellation, idle unloading, context measurement/overflow, input/output character caps and request deadlines have independent coverage. No provider substitution or raw runtime-error reflection occurs.
+- Integrated the model notice, load cancellation, connection test, quick-request routing and English/German controls. Chrome remains Window-bound; its opaque CPU/GPU choice conservatively reduces analyst threads. A fixed native descriptor fits the existing bounded offline envelope without saving loading consent or reopening malformed/future records. Browser tests use a real CLI configuration and an injected fake Window API.
+- Documented browser-managed downloads/updates/storage, the page-CSP and erasure boundary, unsupported-device failures, character rather than token limits and the absence of real native-model quality measurements. Updated README, architecture, privacy, threat-model flows and TODO.
+- Validation: lint/JSDoc checks and build pass; all 588 unit/server tests pass with one optional live-provider skip. The final eleven adapter boundary tests pass separately. All 24 focused Chrome/wllama/privacy/PWA browser cases pass, including actual offline Stockfish use; the five Chrome cases pass again after final boundary guards. German phone screenshot inspected. Documentation links, recipe dry-run and diff checked. No real model downloads or provider calls.
+
+### Deviations
+
+- Chrome manages its model outside Kibitz's pinned catalogue and public offline cache, and its current API is unavailable in Workers. These explicit optional-runtime exceptions replace the earlier unimplemented Chrome note; they do not change wllama's deployment guarantees. Model availability/resource admission belongs to Chrome; character/time limits do not pretend to measure native tokens.
+
+### Insights
+
+- Remembering a backend is different from authorizing a model download. A fresh disposable context per request also prevents browser-maintained history from bypassing the application's own context controls.
+- Synchronous creation failures need the same settled-load cleanup as rejected promises, and input limits must include separators inserted while merging turns. Both boundaries have regression assertions.
+
 ## 2026-10-24 — Compare position retrieval with literature algorithms
 
 TODO items: documentation follow-up to completed 8.1, 8.2, 8.4, 8.5 and 8.8; no new algorithm milestone completed.

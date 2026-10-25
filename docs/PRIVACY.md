@@ -11,7 +11,7 @@ The selected deployment is a [local single-user app](DEPLOYMENT.md). **Settings 
 | Semantic index build | Only the source/language-filtered passages selected for that index | The separately configured embedding provider, after its embedding permission and a Build click. |
 | Semantic query | The written query | The same embedding provider, after permission and an explicit search. |
 | Rules, Stockfish, lessons, keyword search and ordinary library browsing | No model request | Browser/local assets; no model-provider permission required. |
-| In-browser model | Coach context processed on this device | Existing explicit model-load consent applies. Weights come from the local server and may be cached on the device. |
+| In-browser model | Coach context processed on this device | Explicit loading consent applies. Default wllama weights come from the local server; the optional Chrome backend requires a Load click per session and Chrome manages its own model download/storage. [Runtime and erasure limits](OFFLINE.md#optional-chrome-built-in-coach). |
 | Mock provider | Test/development requests | The local deterministic mock; no external model service. |
 
 Coach data follows live-help policy. Imported/user text still enters prompts through `quote()` and validated context; consent does not weaken move/source/tool checks. Lesson reflection drafts are not automatically sent to a model. Vectors stay in browser memory and clear on source/account/policy changes.

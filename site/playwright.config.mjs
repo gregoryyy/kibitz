@@ -28,7 +28,7 @@ export default defineConfig({
     // Mock provider only: keys from the shell are blanked, so no test can reach a real provider.
     env: {
       AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', EMBEDDING_REVISION: 'e2e-v1', AI_RATE_LIMIT_PER_MINUTE: '1000', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1000', AI_PRICES: 'mock=1000/2000' /* so the page shows costs */, ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', AI_LOCAL_ONLY: '',
-      ...(LIVE_MODEL ? {} : { BROWSER_MODEL_URL: 'models/fake.gguf', BROWSER_MODEL_NAME: 'Fake model', BROWSER_MODEL_BYTES: '1100000000' }),
+      BROWSER_RUNTIME: 'wllama', ...(LIVE_MODEL ? {} : { BROWSER_MODEL_URL: 'models/fake.gguf', BROWSER_MODEL_NAME: 'Fake model', BROWSER_MODEL_BYTES: '1100000000' }),
     },
     url: `http://127.0.0.1:${PORT}/`,
     reuseExistingServer: false,

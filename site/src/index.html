@@ -502,6 +502,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div class="chat-context"><label for="chatContext">Discuss</label><select id="chatContext"><option value="position">Current position</option><option value="general">General chess</option></select><button class="btn small" id="chatReturn" hidden>Return to my game</button><button class="btn small" id="chatUndo" hidden>Undo board change</button></div>
       <div class="notice model-box" id="browserModelBox" hidden>
         <div><strong id="browserModelName">In-browser model</strong> <span class="hint" id="browserModelState"></span></div>
+        <p id="browserModelNotice" hidden></p>
         <progress id="browserModelProgress" max="1" value="0" hidden></progress>
         <div class="row" style="margin-top:6px;gap:6px"><button class="btn small primary" id="btnLoadModel">Load</button><button class="btn small" id="btnUnloadModel" hidden>Unload</button></div>
       </div>
@@ -846,6 +847,7 @@ import { createOwnPuzzlePlayer } from './player/puzzle-player.js';
 import { gameCheckpoint } from './chess/sessions.js';
 import { quote } from './coach/prompt.js';
 import { createBrowserModel, cpuThreads } from './coach/browser-llm.js';
+import { createChromeModel, chromeLanguageModel } from './coach/chrome-llm.js';
 import { coachRules, ASPECTS, normaliseAspects, engineView, aspectsFor, commentRequest, COMMENT_WHEN, shouldComment, safetyNotes, checkAnswer, pvSans, SAN_RE, commentKey, lruCache } from './coach/tutor.js';
 import { STYLES, styleOf, pickStyled } from './chess/style.js';
 import { interestingMoves, interestingLines, flipSide, makeChallenge, checkChallenge, recordResult, themeLabel } from './chess/modes.js';
@@ -3066,14 +3068,21 @@ function renderCoachSettings() {
 // A small model the page runs itself (browser-llm.js, wllama), when the server has one: just
 // offline, or just serve with the model downloaded. It loads only after the player agrees, since
 // it takes a gigabyte of memory, and unloads itself after ten idle minutes.
-const BROWSER = { model: null, url: '', consent: !!store.get('browserModelOk', false) };
+const BROWSER = { model: null, key: '', consent: !!store.get('browserModelOk', false) };
 function browserModel() {
   const m = GATEWAY?.browser;
   if (!m) return null;
-  if (BROWSER.model && BROWSER.url === m.url) return BROWSER.model;
+  const key = JSON.stringify([m.runtime || 'wllama', m.url, m.name, m.bytes]);
+  if (BROWSER.model && BROWSER.key === key) return BROWSER.model;
   BROWSER.model?.unload();
-  BROWSER.url = m.url;
+  BROWSER.key = key;
   const cores = navigator.hardwareConcurrency || 2;
+  const onBusy = (busy, { gpu }) => analyst.limitThreads(busy && !gpu ? Math.max(1, Math.min(THREADS, cores - cpuThreads(cores) - 1)) : null);
+  if (m.runtime === 'chrome') {
+    BROWSER.model = createChromeModel({ api: chromeLanguageModel(window), activated: () => !!navigator.userActivation?.isActive,
+      onState: () => queueMicrotask(renderBrowserModel), onBusy });
+    return BROWSER.model;
+  }
   BROWSER.model = createBrowserModel({
     createRuntime: async () => {
       const { Wllama } = await import('./wllama.js');
@@ -3083,38 +3092,42 @@ function browserModel() {
     storageFree: async () => { const e = await navigator.storage?.estimate?.(); return e?.quota ? e.quota - (e.usage || 0) : undefined; },
     onState: () => renderBrowserModel(),
     // On the CPU the model and Stockfish share the cores: the analyst steps back while it generates.
-    onBusy: (busy, { gpu }) => analyst.limitThreads(busy && !gpu ? Math.max(1, Math.min(THREADS, cores - cpuThreads(cores) - 1)) : null),
+    onBusy,
   });
   return BROWSER.model;
 }
-async function browserSample(input, { signal, onText } = {}) {
+async function browserSample(input, { signal, onText, schema } = {}) {
   const m = browserModel();
   if (!m) throw { code: 'unavailable' };
-  if (!BROWSER.consent) { renderBrowserModel(); throw { code: 'needs_consent' }; }
-  return m.sample(input, { signal, onText });
+  if (GATEWAY?.browser?.runtime !== 'chrome' && !BROWSER.consent) { renderBrowserModel(); throw { code: 'needs_consent' }; }
+  return m.sample(input, { signal, onText, schema });
 }
 const GB = n => (n / 1e9).toFixed(n < 1e9 ? 2 : 1) + ' GB';
 function renderBrowserModel() {
   const g = GATEWAY, box = $('#browserModelBox');
   const used = !!g?.browser && (g.provider === 'browser' || S.quickInBrowser);
   box.hidden = !used;
-  if (!used) return;
-  const st = BROWSER.model?.status || { state: 'off', progress: 0, error: '', gpu: false };
-  $('#browserModelName').textContent = `${g.browser.name} (${GB(g.browser.bytes)}), in this browser`;
+  if (!used) { if (BROWSER.model) { const previous = BROWSER.model; BROWSER.model = null; BROWSER.key = ''; previous.unload(); } return; }
+  const native = g.browser.runtime === 'chrome';
+  const st = browserModel()?.status || { state: 'off', progress: 0, error: '', gpu: false };
+  $('#browserModelName').textContent = native ? t('Chrome built-in model') : `${g.browser.name} (${GB(g.browser.bytes)}), in this browser`;
+  $('#browserModelNotice').hidden = !native;
+  $('#browserModelNotice').textContent = native ? t('Load lets Chrome download its model if needed. Chrome controls the size, updates and storage. Coach text stays on this device. Loading needs a click each time; Unload stops loading and clears this session.') : '';
   $('#browserModelState').textContent = {
-    off: BROWSER.consent ? 'loads on the next question' : 'not loaded: it runs on this machine and sends nothing anywhere',
+    off: native ? t('not loaded: press Load to start Chrome’s model') : BROWSER.consent ? 'loads on the next question' : 'not loaded: it runs on this machine and sends nothing anywhere',
     loading: `loading… ${Math.round(st.progress * 100)}%`,
-    ready: `ready, on the ${st.gpu ? 'GPU (WebGPU)' : 'CPU'}`,
-    error: st.error,
+    ready: native ? t('ready in Chrome') : `ready, on the ${st.gpu ? 'GPU (WebGPU)' : 'CPU'}`,
+    error: native ? t(st.error) : st.error,
   }[st.state] || '';
   $('#browserModelProgress').hidden = st.state !== 'loading';
   $('#browserModelProgress').value = st.progress;
   $('#btnLoadModel').hidden = st.state === 'ready' || st.state === 'loading';
-  $('#btnLoadModel').textContent = st.state === 'error' ? 'Try again' : `Load (${GB(g.browser.bytes)})`;
-  $('#btnUnloadModel').hidden = st.state !== 'ready';
+  $('#btnLoadModel').disabled = native && st.availability === 'unavailable';
+  $('#btnLoadModel').textContent = st.state === 'error' ? 'Try again' : native ? t('Load') : `Load (${GB(g.browser.bytes)})`;
+  $('#btnUnloadModel').hidden = st.state !== 'ready' && !(native && st.state === 'loading');
 }
 $('#btnLoadModel').addEventListener('click', () => {
-  BROWSER.consent = true; store.set('browserModelOk', true);
+  if (GATEWAY?.browser?.runtime !== 'chrome') { BROWSER.consent = true; store.set('browserModelOk', true); }
   browserModel()?.load().catch(() => { /* shown in the box */ });
   renderBrowserModel();
 });
@@ -3178,7 +3191,8 @@ $('#btnTestAi').addEventListener('click', async () => {
     if (GATEWAY?.provider === 'browser') { // runs here, not on the server
       const t0 = performance.now();
       await browserSample('Reply with the single word OK.');
-      msg.textContent = `Working: ${PROVIDER_LABEL.browser}, ${GATEWAY.browser.name} on the ${BROWSER.model.status.gpu ? 'GPU' : 'CPU'}, ${Math.round(performance.now() - t0)} ms.`;
+      msg.textContent = GATEWAY.browser.runtime === 'chrome' ? t('Working in Chrome, {ms} ms.', { ms: Math.round(performance.now() - t0) })
+        : `Working: ${PROVIDER_LABEL.browser}, ${GATEWAY.browser.name} on the ${BROWSER.model.status.gpu ? 'GPU' : 'CPU'}, ${Math.round(performance.now() - t0)} ms.`;
     } else {
       const r = await gatewayPost('test', {}); msg.textContent = `Connected: ${PROVIDER_LABEL[r.provider] || r.provider}, ${r.model}, ${r.ms} ms.`;
       TOOLS_UNSUPPORTED.delete(toolModelKey({ provider: r.provider, model: r.model }));

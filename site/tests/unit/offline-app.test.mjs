@@ -93,6 +93,17 @@ test('malformed/future offline coach data remains closed and intact; model URLs 
   assert.equal(offlineCoach({ getItem() { throw Error('denied'); } }), null);
 });
 
+test('offline Chrome choice retains only its fixed runtime descriptor, without inventing downloaded weights or authorizing Load', () => {
+  const local = storage(), browser = { runtime: 'chrome', name: 'Chrome built-in model' };
+  assert.equal(rememberOfflineCoach(local, { provider: 'browser', available: true, browser, usage: 'private' }), true);
+  assert.deepEqual(JSON.parse(local.getItem(OFFLINE_COACH_KEY)), { version: 1, model: browser });
+  assert.deepEqual(offlineCoach(local).browser, browser);
+  for (const bad of [{ ...browser, url: 'https://bad.test/model' }, { ...browser, bytes: 1 }, { ...browser, runtime: 'other' }, { ...browser, name: 'arbitrary' }]) {
+    const empty = storage(); rememberOfflineCoach(empty, { provider: 'browser', available: true, browser: bad }); assert.equal(offlineCoach(empty), null);
+  }
+  rememberOfflineCoach(local, { provider: 'mock', available: true }); assert.equal(offlineCoach(local), null);
+});
+
 test('built offline bundle binds every public asset digest, removes remote fonts and supplies a scoped install manifest', () => {
   const dist = new URL('../../dist/', import.meta.url), worker = readFileSync(new URL('sw.js', dist), 'utf8');
   const [, list, revision] = worker.match(/registerOfflineWorker\(self, (\[.*\]), "([a-f0-9]+)"\)/), assets = JSON.parse(list);
