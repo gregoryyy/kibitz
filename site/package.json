@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.135.0",
-    "@lichess-org/chessground": "10.1.1",
+    "@lichess-org/chessground": "10.4.2",
     "@wllama/wllama": "3.8.1",
     "chess.js": "1.4.0",
     "openai": "7.39.0",
