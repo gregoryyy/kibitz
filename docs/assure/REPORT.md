@@ -27,7 +27,7 @@ flowchart LR
 | deviation | 220 |
 | reflection | 2 |
 
-4211 typed edges; 474 scanned text inputs; 349 unresolved references.
+4217 typed edges; 474 scanned text inputs; 349 unresolved references.
 
 ## TODO → DONE index
 
@@ -245,7 +245,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 | 11.4.2.5: **ASVS 8.2.1 — explicit function permissions:** enforce backend permissions for the authenticated local operator across AI, connection-test, embedding and private-library functions. Test missing/denied permission and cross-owner access; same-origin checks and sharing consent remain separate controls. | done | 2 | [docs/TODO.md:273](../../docs/TODO.md) |
 | 11.4.2.6: **ASVS 12.1.1 — actual TLS inventory:** record protocol settings and verified negotiated versions for every supported final browser/gateway/provider/service transport, allowing only currently recommended TLS versions and preferring the latest. Retain dated endpoint evidence without credentials; enforce the reviewed configuration and test downgrade refusal. Initial inventory review remains due 2026-11-01. | open | 2 | [docs/TODO.md:274](../../docs/TODO.md) |
 | 11.4.2.6.1: Add a transport inventory and bounded credential-free TLS probe, retaining dated direct handshakes at the three default cloud origins and model-source host. Distinguish runtime settings, latest-version negotiation, local-policy refusal and peer alerts; keep actual deployment/browser/image/SDK/redirect evidence and final enforcement open under the parent | done | 1 | [docs/TODO.md:275](../../docs/TODO.md) |
-| 11.4.2.7: **ASVS 12.2.1 — encrypted connectivity:** require TLS for the final browser/gateway deployment and external HTTP service connections, rejecting insecure fallback and unsupported plaintext endpoint overrides. Test actual native/container boundaries and failure behavior; update deployment/provider instructions. | open | 3 | [docs/TODO.md:276](../../docs/TODO.md) |
+| 11.4.2.7: **ASVS 12.2.1 — encrypted connectivity:** require TLS for the final browser/gateway deployment and external HTTP service connections, rejecting insecure fallback and unsupported plaintext endpoint overrides. Test actual native/container boundaries and failure behavior; update deployment/provider instructions. | done | 3 | [docs/TODO.md:276](../../docs/TODO.md) |
 | 11.4.2.7.1: Add native Node HTTPS with operator-supplied PEM identities, bounded private-file checks, refusal of invalid TLS configuration without HTTP fallback, real CLI/browser tests and a packaged-image TLS case. This prerequisite does not close cookie migration, final transport enforcement, external endpoint policy or the parent ASVS control | done | 1 | [docs/TODO.md:278](../../docs/TODO.md) |
 | 11.4.2.8: **ASVS 12.2.2 — public certificate trust:** inventory externally facing services and verify publicly trusted certificates, hostname checks and renewal/expiry handling. Test invalid/untrusted/expired certificates without a trust bypass; private test certificates are not release endpoint evidence. | open | 1 | [docs/TODO.md:279](../../docs/TODO.md) |
 | 11.4.2.9: **ASVS 13.4.1 — checkout isolation:** ensure source-control metadata is unavailable both over HTTP and to the application process in every supported final execution mode, including native operation. Stage or isolate native runtime files outside readable checkout metadata; test process-level and HTTP access while preserving packaged exclusion. | open | 1 | [docs/TODO.md:280](../../docs/TODO.md) |

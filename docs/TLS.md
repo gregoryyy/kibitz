@@ -8,8 +8,9 @@ Backend-issued [operator sessions](SESSIONS.md) address **11.4.2.3**.
 [Backend session termination](SESSION-TERMINATION.md) addresses **11.4.2.4**.
 [Explicit function grants](PERMISSIONS.md) address **11.4.2.5**.
 The [transport inventory](TLS-INVENTORY.md) records partial direct public-host evidence;
-its parent TODO 11.4.2.6 remains open. The remaining seven ASVS fixes include external endpoint
-transport policy, actual TLS inventory and public-certificate evidence. This
+its parent TODO 11.4.2.6 remains open. The remaining six ASVS fixes cover actual TLS inventory, public-certificate
+trust, checkout isolation, external FEN URLs, client-data cleanup and component
+evidence. [Encrypted service connections](TLS-POLICY.md) now address 11.4.2.7. This
 does not close the final-release gate.
 
 ## Start with an existing certificate and private key

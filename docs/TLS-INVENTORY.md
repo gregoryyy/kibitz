@@ -111,4 +111,5 @@ service matrix is verified and enforced, including latest-version preference
 and credible downgrade refusal. TODO 11.4.2.7 implements encrypted application/service paths with native and
 packaged regression coverage; its PR records source-specific verification. TODO 11.4.2.8 must resolve public trust and
 certificate lifecycle for the selected deployment, including the `.test` private
-identity boundary. The broader ASVS counts and RC dispositions are unchanged.
+identity boundary. Historical RC dispositions and remaining deadlines are unchanged; the current
+[assessment](ASVS.md) separately records technically verified remediation.

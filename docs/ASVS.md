@@ -36,9 +36,9 @@ the normal unit and browser suites provide behavioral evidence separately.
 
 The review leaves these findings visible:
 
-The [encrypted transport candidate](TLS-POLICY.md) now implements 11.4.2.7;
-its source-pinned packaged verification and assessment update are pending. The
-current matrix counts/statuses remain those of its recorded reviewed source.
+The [encrypted transport policy](TLS-POLICY.md) now verifies 11.4.2.7 at the
+recorded source with local SDK/native/browser and actual Linux image evidence.
+Operator/provider/CDN protocol inventory and public trust remain open.
 
 - TODO 11.4.1 is addressed at the recorded revision: AI gateway writes compare
   scheme and host against the native socket, ignore forwarding headers and reject
@@ -60,7 +60,7 @@ current matrix counts/statuses remain those of its recorded reviewed source.
   applicability: 6.1.1, 6.3.1, 6.3.2 and 7.2.4 are now verified instead of absent.
   The matrix also updates the password-scope reasons: this app accepts a generated
   256-bit installation machine key, without human account-password workflows.
-  The reviewed source has **37 verified, 26 not applicable, five deviations and
+  The reviewed source has **38 verified, 26 not applicable, four deviations and
   two open controls**. [Backend logout/termination](SESSION-TERMINATION.md) now
   addresses 7.4.1 with copied-token/restart and in-flight/cross-process evidence.
   [Explicit function permissions](PERMISSIONS.md) now address 8.2.1 with native,
