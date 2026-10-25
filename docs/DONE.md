@@ -9,7 +9,7 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ## 2026-10-25 — Private position analysis without navigation URLs (experimental)
 
-TODO item: 11.4.2.10 / ASVS 14.2.1. Source-specific CI and the final disposition remain pending; this entry does not close the release gate or client-data lifecycle.
+TODO item: 11.4.2.10 / ASVS 14.2.1. The reviewed implementation and cited verification technically address this control; the release gate and authenticated client-data lifecycle remain open.
 
 ### Implementation notes
 
@@ -17,6 +17,8 @@ TODO item: 11.4.2.10 / ASVS 14.2.1. Source-specific CI and the final disposition
 - Reuse live-help policy and guard again when activating: disable in restricted live play, require the visible Reading pane and captured game generation/cursor/FEN, and reject retained actions after game/position replacement or pane closure. Focus the scratch return control for keyboard use and add German wording/hints, including the restricted-play explanation.
 - Four new browser cases pass: private-position URLs/requests/referrers/history and unchanged score with a legal scratch move; restricted/closed/stale actions; engine failure diagnostics without transfer; German phone keyboard/focus/layout and zero translation gaps. The actual preceding built page fails the new privacy regression by exposing the exact synthetic FEN in its Lichess href. All 16 combined private-position/game-analysis/mode/Reading browser checks pass. Fresh build and lint/JSDoc checks pass; the complete mock-only unit suite passes 815 tests with one opt-in live skip and ambient cloud credentials removed.
 - Document the local replacement workflow and distinguish explicit user exports, public source links, saved data and authenticated client cleanup. No new dependency, provider request, model download or deployment identity/trust change.
+
+- Pin source 55d1c6a5e2824ce56a80bb5009639a491ac3fcca: Linux unit/build/check/audit run 40231780625 / job 121284854784, dedicated macOS job 121284855097 and actual image run 40231780606 / job 121284854687 pass, as do passive/security/secrets and both CodeQL gates with zero open PR alerts. Tick TODO 11.4.2.10 and update only ASVS 14.2.1 to verified: 40 verified, 26 not applicable, two deviations and two open. Correct the client-lifecycle scope note to acknowledge existing backend sessions while retaining its unsatisfied status. Full application browser and later assessment-head CI remain separate pending checks; historical RC evidence and original deadlines stay unchanged.
 
 ### Deviations
 

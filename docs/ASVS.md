@@ -60,7 +60,7 @@ Operator/provider/CDN protocol inventory and public trust remain open.
   applicability: 6.1.1, 6.3.1, 6.3.2 and 7.2.4 are now verified instead of absent.
   The matrix also updates the password-scope reasons: this app accepts a generated
   256-bit installation machine key, without human account-password workflows.
-  The reviewed source has **39 verified, 26 not applicable, three deviations and
+  The reviewed source has **40 verified, 26 not applicable, two deviations and
   two open controls**. [Backend logout/termination](SESSION-TERMINATION.md) now
   addresses 7.4.1 with copied-token/restart and in-flight/cross-process evidence.
   [Explicit function permissions](PERMISSIONS.md) now address 8.2.1 with native,
@@ -75,9 +75,13 @@ Operator/provider/CDN protocol inventory and public trust remain open.
   The trusted bootstrap/operator retains Git access outside the application.
   Development/recovery and future platform/mount/runtime changes require their
   own scope and verification; this is not release clearance.
-- Explicit Lichess navigation puts the selected FEN in the external URL/history.
-  API credentials, cookies and prompt bodies are not put there, but a private chess
-  position can still be sensitive. See [privacy guidance](PRIVACY.md).
+- Reading now uses the [local private-position analysis workflow](PRIVACY.md#explore-a-private-position-locally),
+  addressing 14.2.1 at the recorded source. The selected FEN stays in the page's
+  Stockfish scratch-board handoff, without external navigation or position-bearing
+  URL/history/referrers. Legal trials preserve the original score; help/generation
+  guards and engine-failure/English/German browser tests pass. Deliberate exports
+  and third-party retention remain separate from this in-page action. Saved client
+  data and offline authenticated cleanup remain 11.4.2.11.
 - Component update timeframes are documented in [MAINTENANCE.md](MAINTENANCE.md).
   Automated evidence includes lockfile/image inventories and
   [actual Node components, browser asset hashes and bounded package/Action provenance](COMPONENT-PROVENANCE.md); complete
