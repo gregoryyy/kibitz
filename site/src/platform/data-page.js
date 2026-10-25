@@ -1,3 +1,4 @@
+import { createClientSession, openSessionChannel, bindClientSession, withSessionLock } from './client-session.js';
 import { createOperatorPanel } from './operator-ui.js';
 import { browserStorage } from './store.js';
 import { pickLang, translator } from './i18n.js';
@@ -16,6 +17,8 @@ for (const node of document.querySelectorAll('[data-i18n]')) { node.textContent 
 let serverGeneration = 0;
 const serverPending = new Set();
 let busy = false, snapshot = null, confirmation = null, allowedRead = true, allowedErase = true;
+const CLIENT_SESSION = createClientSession({ storage, channel: openSessionChannel(), onEnd: endDataSession });
+bindClientSession(CLIENT_SESSION);
 const buttons = [...document.querySelectorAll('button')].filter(button => !['eraseCancel', 'eraseProceed'].includes(button.id));
 function updateButtons() {
   buttons.forEach(button => { button.disabled = busy || button.id === 'serverLoad' && !allowedRead || button.id === 'serverErase' && !allowedErase || ['serverExport', 'serverErase'].includes(button.id) && (!snapshot || !allowedRead); });
@@ -29,7 +32,7 @@ async function serverRequest(path, body = undefined) {
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 15000);
   serverPending.add(ctl);
   try {
-    const response = await fetch('api/library/' + path, { credentials: 'same-origin', redirect: 'error', signal: ctl.signal,
+    const response = await CLIENT_SESSION.request('api/library/' + path, { credentials: 'same-origin', redirect: 'error', signal: ctl.signal,
       ...(body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) });
     current();
     const limit = response.ok ? LIBRARY_LIMITS.totalBytes + 1_000_000 : 8192;
@@ -81,10 +84,14 @@ $('#eraseConfirm').addEventListener('cancel', () => { confirmation = null; });
 $('#eraseProceed').addEventListener('click', () => {
   const chosen = confirmation; if (!chosen || busy) return; confirmation = null; $('#eraseConfirm').close();
   if (chosen.kind === 'browser') run('browser', async () => {
-    await eraseBrowserData(storage, chosen.value, async () => {
-      await removeOfflineApp(navigator.serviceWorker, globalThis.caches, location.href);
-      await eraseLibraryCache(globalThis.indexedDB);
-    });
+    const erase = async () => {
+      await eraseBrowserData(storage, chosen.value, async () => {
+        await removeOfflineApp(navigator.serviceWorker, globalThis.caches, location.href);
+        await eraseLibraryCache(globalThis.indexedDB);
+      });
+      CLIENT_SESSION.storageReset();
+    };
+    if (CLIENT_SESSION.state.required === true) await withSessionLock(erase); else await erase();
     $('#browserStatus').textContent = t('Kibitz data in this browser has been erased. Server records remain.');
   }, true);
   else run('server', async () => {
@@ -98,10 +105,11 @@ $('#eraseProceed').addEventListener('click', () => {
   });
 });
 
-createOperatorPanel($('#operatorSignIn'), { t, onEndSession: async () => {
+async function endDataSession() {
   serverGeneration++; for (const ctl of serverPending) ctl.abort(); serverPending.clear();
   snapshot = null; confirmation = null; $('#eraseConfirm').close(); updateButtons();
   $('#serverStatus').textContent = t('The server library session changed. Reconnect before saving changes.');
   const cache = createLibraryCache();
   try { await cache.clear(); return true; } finally { cache.close(); }
-}, onAccess: grants => { allowedRead = grants === null || grants.includes('library:read'); allowedErase = grants === null || grants.includes('library:erase') && allowedRead; updateButtons(); }, onChange: state => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t(state.authenticated ? 'Sign-in complete. Check the server library before continuing.' : 'Signed out of the local server.'); } });
+}
+createOperatorPanel($('#operatorSignIn'), { t, session: CLIENT_SESSION, onEndSession: () => CLIENT_SESSION.end(), onAccess: grants => { allowedRead = grants === null || grants.includes('library:read'); allowedErase = grants === null || grants.includes('library:erase') && allowedRead; updateButtons(); }, onChange: state => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t(state.authenticated ? 'Sign-in complete. Check the server library before continuing.' : 'Signed out of the local server.'); } });

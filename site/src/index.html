@@ -853,6 +853,7 @@ import { Chess } from './chess.js';
 import { Chessground } from './chessground.js';
 import * as K from './chess/knowledge.js';
 import { Engine, stockfishAttempts } from './chess/engine.js';
+import { createClientSession, openSessionChannel, bindClientSession } from './platform/client-session.js';
 import { createStore, browserStorage } from './platform/store.js';
 import { createKeyboardBoard } from './chess/keyboard-board.js';
 import { BOARD_MARK_STYLES, describeBoardMarks } from './chess/board-marks.js';
@@ -939,6 +940,12 @@ const el = (tag, attrs = {}, ...kids) => {
 const LEVELS = { 1: 'beginner', 2: 'club player', 3: 'advanced player', 4: 'expert' };
 const GLYPH = { inaccuracy: '?!', mistake: '?', blunder: '??', best: '', good: '', book: '' };
 const CLS_LABEL = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', best: 'the best move', good: 'a good move', book: 'a book move' };
+const CLIENT_SESSION = createClientSession({ storage: browserStorage(), channel: openSessionChannel(), onEnd: reason => {
+  GATEWAY = { authenticationRequired: true, available: false };
+  const cleanup = SERVER_LIBRARY.endSession(reason); applyProviderPermissions(); return cleanup;
+} });
+const clientFetch = (input, init = {}) => CLIENT_SESSION.request(input, init);
+bindClientSession(CLIENT_SESSION);
 const store = createStore(browserStorage());
 
 // ---------------------------------------------------------------- Language (TODO 10.8)
@@ -1028,7 +1035,7 @@ const use = name => (window.claude && typeof window.claude.use === 'function')
 let GATEWAY = null; // the local gateway's last status; null inside an artifact or when it can't be reached
 async function localSample() {
   let status;
-  try { const r = await fetch('api/ai/status'); status = r.status === 401 ? { authenticationRequired: true, available: false } : r.status === 403 ? { permissionDenied: true, available: false } : r.ok ? await r.json() : null; } catch { status = null; }
+  try { const r = await clientFetch('api/ai/status'); status = r.status === 401 ? { authenticationRequired: true, available: false } : r.status === 403 ? { permissionDenied: true, available: false } : r.ok ? await r.json() : null; } catch { status = CLIENT_SESSION.state.required === true && !CLIENT_SESSION.state.authenticated ? { authenticationRequired: true, available: false } : null; }
   if (status && !status.authenticationRequired && !status.permissionDenied) rememberOfflineCoach(browserStorage(), status); else if (!status) status = offlineCoach(browserStorage());
   GATEWAY = status; renderCoachSettings();
   if (!status?.available) { coachOffText(status); return null; }
@@ -1054,7 +1061,7 @@ async function gatewaySample(input, { signal, onText, task, tools } = {}) {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
     let text = '', truncated = false, usage = null, toolCalls = [];
     try {
-      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json', ...privacyHeaders }, body: JSON.stringify({ messages, task, ...(tools ? { tools } : {}) }), signal: privacySignal });
+      const res = await clientFetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json', ...privacyHeaders }, body: JSON.stringify({ messages, task, ...(tools ? { tools } : {}) }), signal: privacySignal });
       if (!res.ok) { const err = (await res.json().catch(() => null))?.error; throw { code: err?.code || 'unavailable', message: err?.message }; }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buf = '';
@@ -2012,7 +2019,7 @@ const Lib = {
     else this.localChange(this.books, () => this.books.delete(id));
   },
 };
-const SERVER_LIBRARY = createServerLibrary({ onChange: state => {
+const SERVER_LIBRARY = createServerLibrary({ fetcher: clientFetch, onChange: state => {
   if (Lib.where === 'server' && Lib.serverSnapshot !== state.snapshot) {
     Lib.serverSnapshot = state.snapshot; Lib.uid = state.snapshot?.scope || null;
     Lib.games = new Map((state.snapshot?.games || []).map(g => [g.id, g]));
@@ -2683,7 +2690,7 @@ function syncDenseContext() {
 }
 /** No automatic ingestion: checking status reveals the destination before an explicit action. */
 async function loadEmbeddingStatus() {
-  const r = await fetch('api/ai/embeddings', { cache: 'no-store' });
+  const r = await clientFetch('api/ai/embeddings', { cache: 'no-store' });
   if (!r.ok) throw new Error('Embedding service unavailable');
   const descriptor = await r.json(); embeddingIdentity(descriptor); return descriptor;
 }
@@ -2719,7 +2726,7 @@ function renderDenseControls() {
 /** Transport only the selected literal texts. Keys/endpoint selection remain on the gateway. */
 async function requestEmbeddings(texts, descriptor, signal) {
   return Privacy.run(descriptor.provider, 'embeddings', async ({ headers, signal: privacySignal }) => {
-  const r = await fetch('api/ai/embeddings', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ texts, fingerprint: descriptor.fingerprint, scope: descriptor.scope }), signal: privacySignal });
+  const r = await clientFetch('api/ai/embeddings', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ texts, fingerprint: descriptor.fingerprint, scope: descriptor.scope }), signal: privacySignal });
   const j = await r.json();
   if (!r.ok) throw Object.assign(new Error('Embedding request failed'), { code: j?.error?.code });
   return j;
@@ -3190,7 +3197,7 @@ function usageText(u, server = false) {
 }
 async function gatewayPost(path, body) {
   const send = async (headers = {}, signal = undefined) => {
-  const r = await fetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body), signal });
+  const r = await clientFetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body), signal });
   const j = await r.json().catch(() => null);
   if (!r.ok) throw { code: j?.error?.code || 'unavailable', message: j?.error?.message };
   return j;
@@ -3198,7 +3205,7 @@ async function gatewayPost(path, body) {
   return path === 'test' ? Privacy.run(GATEWAY?.provider, 'coach', ({ headers, signal }) => send(headers, signal)) : send();
 }
 async function refreshGateway() {
-  try { const r = await fetch('api/ai/status'); if (r.status === 401) { GATEWAY = { authenticationRequired: true, available: false }; renderCoachSettings(); renderStudySearch(); } else if (r.status === 403) { GATEWAY = { permissionDenied: true, available: false }; renderCoachSettings(); renderStudySearch(); } else if (r.ok) { GATEWAY = await r.json(); rememberOfflineCoach(browserStorage(), GATEWAY); renderCoachSettings(); renderStudySearch(); } setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); } catch { /* keep the last status */ }
+  try { const r = await clientFetch('api/ai/status'); if (r.status === 401) { GATEWAY = { authenticationRequired: true, available: false }; renderCoachSettings(); renderStudySearch(); } else if (r.status === 403) { GATEWAY = { permissionDenied: true, available: false }; renderCoachSettings(); renderStudySearch(); } else if (r.ok) { GATEWAY = await r.json(); rememberOfflineCoach(browserStorage(), GATEWAY); renderCoachSettings(); renderStudySearch(); } setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); } catch { /* keep the last status */ }
 }
 async function changeGateway(body) {
   try { GATEWAY = await gatewayPost('config', body); rememberOfflineCoach(browserStorage(), GATEWAY); } catch (e) { toast(e.message || coachError(e)); }
@@ -4656,14 +4663,14 @@ keyboardBoard = createKeyboardBoard($('#keyboardBoard'), { Chess, t, announce: a
   onSelect: square => { cg.selectSquare(null); if (square) cg.selectSquare(square); },
 });
 window.addEventListener('storage', event => { if (event.key === PROFILE_KEY || event.key === null) profilePanel.reload(); });
-function canUseCoach() { return !!GATEWAY?.available && (GATEWAY.functions?.coach !== false || GATEWAY.provider === 'browser' || !!(S.quickInBrowser && GATEWAY.browser)) && (ProviderConsent.allowed(GATEWAY.provider, 'coach') || !!(S.quickInBrowser && GATEWAY.browser)); }
+function canUseCoach() { if (CLIENT_SESSION.state.required === true && !CLIENT_SESSION.check()) return false; return !!GATEWAY?.available && (GATEWAY.functions?.coach !== false || GATEWAY.provider === 'browser' || !!(S.quickInBrowser && GATEWAY.browser)) && (ProviderConsent.allowed(GATEWAY.provider, 'coach') || !!(S.quickInBrowser && GATEWAY.browser)); }
 function applyProviderPermissions() {
   if (window.claude?.hot) return;
   Privacy.changed(); cancelChat(); DENSE.request++; DENSE.session.cancel(); DENSE.busy = false; DENSE.message = ''; DENSE.hits = null;
   chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false;
   setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); renderStudySearch();
 }
-const operatorPanel = createOperatorPanel($('#operatorSignIn'), { t, enabled: !window.claude?.hot, onEndSession: () => SERVER_LIBRARY.endSession(), onChange: async state => { if (state.authenticated) await SERVER_LIBRARY.probe(); await refreshGateway(); applyProviderPermissions(); } });
+const operatorPanel = createOperatorPanel($('#operatorSignIn'), { t, enabled: !window.claude?.hot, session: CLIENT_SESSION, onEndSession: () => CLIENT_SESSION.end(), onChange: async state => { if (state.authenticated) await SERVER_LIBRARY.probe(); await refreshGateway(); applyProviderPermissions(); } });
 const privacyPanel = createPrivacyPanel($('#providerPrivacy'), { store: ProviderConsent, onChange: applyProviderPermissions, t });
 $('#btnPrivacy').addEventListener('click', () => $('#providerPrivacy').scrollIntoView({ block: 'start' }));
 $('#providerPrivacy').hidden = !!window.claude?.hot;

@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Shared client-session boundary (experimental)
+
+TODO item: 11.4.2.11.2, extending the cache boundary under 11.4.2.11 / ASVS 14.3.1. The parent remains unsatisfied, with 40 verified, 26 not applicable, two deviations and two open controls.
+
+### Implementation notes
+
+- Add `site/src/platform/client-session.js` as the common gateway, embedding and library/data transport boundary. Verify bounded status before protected work, propagate any mediated 401 without trusting its error body, and preserve function-specific 403 permission semantics. Abort/fence whole responses and cancel unread/streaming bodies, including transports that ignore cancellation; no late status response can reactivate an ended client.
+- Expose only an opaque domain-separated `clientId` and existing absolute `expires` in backend status/sign-in. Retain HttpOnly credentials and the private verifier, fixed permissions and SQLite schemas. The actual native HTTPS regression proves stable metadata, changed identity on fresh proof, and refusal of the public identifier as a credential.
+- Observe wall-clock plus elapsed expiry, keep the earlier same-session deadline and check on timer/resume/online/visible status polling. Expiry can withdraw library state offline. Same-origin BroadcastChannel/storage invalidation stops other live clients, with marker checks before protected work for missed events. Broadcast version/type/nonce only. Exclusive Web Locks serialize marker commits and explicit browser erasure; sign-in generation/nonce tickets reject delayed proof across a newer termination. Missing/refused coordination cannot activate an authenticated client. A bounded nonsecret marker retains acknowledged local termination across reloads; passive observations cannot adopt a replacement. A retained boundary also blocks cached browser-coach fallback before verification.
+- Wire the app/data page and operator panel to the boundary. Withdraw library state, cancel reusable coaching/search work, abort/fence pending private reads and preserve fresh-proof recovery of canonical server records. Show ended-session and separate persistence/cache errors with German wording. Pending cleanup is not reported as failed or complete. Preserve ordinary HTTP development, public offline browser routing and explicit browser export/erasure; acknowledge a whole-browser marker reset in RAM so subsequent checks do not immediately recreate erased keys.
+- Twenty-six focused controller groups and eight actual-backend session API groups pass. The preceding built page fails the gateway-401 regression with one private library card still present when zero are required. The final full mock-only suite passes 853 tests with one opt-in live skip and ambient cloud credentials removed. All 72 unique affected browser cases pass across the 52-case transport/native run, separate library/data coverage and the final nine lifecycle cases. The final cases include actual delayed proof with a still-valid backend token, offline browser-coach denial, held Web Lock timeout/recovery and browser erasure without recreated keys. The offline assertion uses an LLM-only control because Ask also accepts local chess commands. Fresh build/lint/JSDoc checks pass; all assurance levels are regenerated and checked before commit. Complete current-head CI remains separate and pending.
+- Expand [CLIENT-DATA-LIFECYCLE.md](CLIENT-DATA-LIFECYCLE.md), data/session guidance and the ASVS scope note. No dependency, production identity/trust change, paid provider request or model download.
+
+### Deviations
+
+- This establishes common termination signalling/transport fences and derived-library cleanup; it does not clear every active board, private draft, worker/model context, rendered source or persisted autosave. Startup still restores legacy browser autosave before full ownership/migration. Complete departure/BFCache and private data already copied into DOM/RAM remain open. A failed marker write cannot promise durable intent after destruction, and suspended browsers cannot execute timer callbacks until resumed. Backend revocation, canonical records and provider-accepted work retain their own boundaries. Keep the original RC dates and final-release gate; do not upgrade ASVS 14.3.1.
+
+### Insights
+
+- An independent client treating authentication failure as an ordinary outage can keep another client's private cache alive. A shared boundary needs both cancellation and result fences through the entire response, plus a nonauthorizing identity distinct from expiry. Offline termination needs an acknowledged local hint to prevent reuse across reloads; metadata persistence failure and cache deletion failure are different outcomes. Explicit data erasure must also coordinate its live in-memory observer to avoid immediately recreating erased keys.
+
 ## 2026-10-25 — Library-cache session cleanup (experimental)
 
 TODO item: 11.4.2.11.1, the first bounded part of 11.4.2.11 / ASVS 14.3.1. The parent and its deviation remain open; the ASVS matrix stays at 40 verified, 26 not applicable, two deviations and two open.

@@ -1,10 +1,13 @@
 import net from 'node:net';
+import { createHash } from 'node:crypto';
 import { PERMISSIONS, validatePermissions, permissionGranted } from './permissions.mjs';
 import { SESSION_GUARD } from './session-guard.mjs';
 import { operatorProof } from './operator.mjs';
 import { SessionError, SESSION_COOKIE, sessionCookie, sessionToken } from './sessions.mjs';
 import { legacyGrouping, retainGrouping } from './cookies.mjs';
 
+// Public change detector, domain-separated from the private registry verifier. Never authorizes.
+const clientSession = (value, expires) => ({ expires, clientId: createHash('sha256').update('kibitz-client-session-v1\0' + value).digest('hex') });
 const json = (res, status, body) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(body)); return true; };
 function boundary(req, hostname) {
   const scheme = req.socket.encrypted ? 'https:' : 'http:';
@@ -71,7 +74,7 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
         boundary(req, hostname);
         if (route === '/api/session/status' && req.method === 'GET') {
           let session; try { session = verify(req); } catch (error) { if (!(error instanceof SessionError) || error.code !== 'session_expired') throw error; }
-          return json(res, 200, { required, authenticated: !!session, ...(session ? { expires: session.expires, permissions: grants() } : {}) });
+          return json(res, 200, { required, authenticated: !!session, ...(session ? { ...clientSession(sessionToken(req), session.expires), permissions: grants() } : {}) });
         }
         if (route === '/api/session/logout' && req.method === 'POST') {
           if (!required || !req.socket.encrypted || !store) throw new SessionError('forbidden');
@@ -102,7 +105,7 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
         if (previous) stop(previous);
         retainGrouping(res, store.verify(operator, issued.value));
         sessionCookie(res, issued.value);
-        return json(res, 200, { required: true, authenticated: true, expires: issued.expires, permissions: currentGrants });
+        return json(res, 200, { required: true, authenticated: true, ...clientSession(issued.value, issued.expires), permissions: currentGrants });
       } catch (error) {
         const fault = error instanceof SessionError ? error : new SessionError(error?.code === 'bad_request' ? 'bad_request' : 'unavailable');
         return json(res, fault.status, { error: { code: fault.code, message: fault.message } });

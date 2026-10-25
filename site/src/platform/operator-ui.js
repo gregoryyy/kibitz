@@ -1,5 +1,5 @@
 // The operator proof stays in this form/request only; sessions use an HttpOnly cookie.
-export function createOperatorPanel(root, { t = text => text, onChange = _state => {}, onEndSession = async () => true, onAccess = _grants => {}, fetcher = fetch, enabled = true } = {}) {
+export function createOperatorPanel(root, { t = text => text, onChange = _state => {}, onEndSession = async () => true, session = null, onAccess = _grants => {}, fetcher = fetch, enabled = true } = {}) {
   if (!enabled) { root.hidden = true; return { probe() {}, clear() {} }; }
   const doc = root.ownerDocument;
   const element = (tag, text = '') => { const node = doc.createElement(tag); node.textContent = t(text); return node; };
@@ -39,6 +39,8 @@ export function createOperatorPanel(root, { t = text => text, onChange = _state 
     access.textContent = grants.length ? t('Enabled server functions:') + ' ' + grants.join(' · ') : t('No server functions are enabled. Enable access in the local operator configuration.');
   }
   const cleanupMessage = 'The library view was cleared, but its browser cache could not be erased. Close other Kibitz tabs and retry sign-out.';
+  const persistenceMessage = 'This browser could not record the ended session. Check browser storage and Web Locks, then retry.';
+  const cleanupProblem = () => session?.state.persistenceFailed ? persistenceMessage : cleanupMessage;
   const endSession = async () => {
     try { cleanupFailed = await onEndSession() === false; } catch { cleanupFailed = true; }
     return !cleanupFailed;
@@ -47,11 +49,13 @@ export function createOperatorPanel(root, { t = text => text, onChange = _state 
     if (submitting) return;
     pending?.abort(); const gen = ++generation;
     try {
-      const value = await request('api/session/status'); if (gen !== generation) return;
+      let value = await request('api/session/status'); if (gen !== generation) return;
+      if (session) { await session.observe(value); if (gen !== generation) return; value = { ...value, required: session.state.required, authenticated: session.state.authenticated }; }
       showAccess(value); if (value.authenticated) logoutConfirmed = false;
       root.hidden = value.required !== true; form.hidden = value.authenticated === true; logout.hidden = !form.hidden && !cleanupFailed;
       status.textContent = t(value.authenticated ? 'Signed in to the local server.' : 'Sign in to use the local gateway and server library.');
-      if (cleanupFailed) status.textContent += ' ' + t(cleanupMessage);
+      if (session?.state.ended) status.textContent = t('Your local server session ended. Sign in again.');
+      if (cleanupFailed) status.textContent += ' ' + t(cleanupProblem());
     } catch { if (gen === generation && !root.hidden) status.textContent = t('Sign-in could not be confirmed. Check the operator key and try again.'); }
   }
   form.addEventListener('submit', async event => {
@@ -59,13 +63,18 @@ export function createOperatorPanel(root, { t = text => text, onChange = _state 
     pending?.abort(); submitting = true;
     const gen = ++generation, value = secret.value; secret.value = ''; submit.disabled = true;
     try {
-      if (!await endSession()) throw Object.assign(Error('cleanup'), { code: 'library_cache_cleanup' });
+      const cleanup = endSession(), sessionGeneration = session?.generation();
+      if (!await cleanup) throw Object.assign(Error('cleanup'), { code: 'library_cache_cleanup' });
       if (gen !== generation) return;
-      const result = await request('api/library/session', { secret: value, migrate: check.checked }); if (gen !== generation) return; logoutConfirmed = false; showAccess(result);
+      if (session && session.generation() !== sessionGeneration) throw Object.assign(Error('changed'), { code: 'session_changed' });
+      const ticket = session?.ticket();
+      const result = await request('api/library/session', { secret: value, migrate: check.checked }); if (gen !== generation) return;
+      if (session && !await session.observe(result, true, ticket)) throw Object.assign(Error('changed'), { code: session.state.cleanupFailed || session.state.persistenceFailed ? 'library_cache_cleanup' : 'session_changed' });
+      if (gen !== generation) return; logoutConfirmed = false; showAccess(result);
       form.hidden = true; logout.hidden = false; status.textContent = t('Signed in to the local server.'); await onChange({ authenticated: true, permissions: result.permissions });
     } catch (error) {
       if (gen === generation && cleanupFailed) logout.hidden = false;
-      if (gen === generation) status.textContent = t(error.code === 'library_cache_cleanup' ? cleanupMessage : error.code === 'session_conflict' ? 'This collection belongs to another operator. Restore the intended setup file before migrating.' : error.code === 'rate_limited' ? 'Too many sign-in attempts. Try again in a minute.' : 'Sign-in could not be confirmed. Check the operator key and try again.');
+      if (gen === generation) status.textContent = t(error.code === 'library_cache_cleanup' ? cleanupProblem() : error.code === 'session_changed' ? 'Your local server session ended. Sign in again.' : error.code === 'session_conflict' ? 'This collection belongs to another operator. Restore the intended setup file before migrating.' : error.code === 'rate_limited' ? 'Too many sign-in attempts. Try again in a minute.' : 'Sign-in could not be confirmed. Check the operator key and try again.');
     } finally { if (gen === generation) { submitting = false; submit.disabled = false; } }
   });
   logout.addEventListener('click', async () => {
@@ -81,11 +90,18 @@ export function createOperatorPanel(root, { t = text => text, onChange = _state 
     finally {
       const cleaned = await cleanup;
       if (gen === generation) {
-        if (!cleaned) { status.textContent += ' ' + t(cleanupMessage); logout.hidden = false; }
+        if (!cleaned) { status.textContent += ' ' + t(cleanupProblem()); logout.hidden = false; }
         submitting = false; logout.disabled = false; submit.disabled = false;
       }
     }
   });
+  session?.subscribe(state => {
+    if (submitting || state.required !== true || !state.ended) return;
+    clear(); root.hidden = false; form.hidden = false; logout.hidden = !state.cleanupFailed && !state.persistenceFailed;
+    showAccess({ required: true, authenticated: false }); status.textContent = t('Your local server session ended. Sign in again.');
+    if (state.cleanupFailed || state.persistenceFailed) status.textContent += ' ' + t(cleanupProblem());
+  });
+  if (session?.state.required === true) root.hidden = false;
   doc.defaultView?.addEventListener('pagehide', clear); probe();
   return { probe, clear };
 }

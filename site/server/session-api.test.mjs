@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -119,4 +120,14 @@ test('the documented proof limit resets after one minute without permanently dis
   for (let i = 0; i < 10; i++) assert.equal((await tlsRequest(url, identity.ca, { body: { secret: 'x'.repeat(43), migrate: true } })).status, 401);
   assert.equal((await tlsRequest(url, identity.ca, { body: { secret: operator.secret, migrate: true } })).status, 429);
   now += 60_000; const allowed = await tlsRequest(url, identity.ca, { body: { secret: operator.secret, migrate: true } }); assert.equal(allowed.status, 200);
+});
+
+test('actual final session metadata supplies a stable nonauthorizing change detector distinct from the token and registry verifier', async t => {
+  const { server, call } = await fixture(t), cookie = await server.login();
+  const first = (await call('/api/session/status', { cookie })).data(), repeated = (await call('/api/session/status', { cookie })).data();
+  assert.match(first.clientId, /^[a-f0-9]{64}$/); assert.deepEqual(repeated, first); assert.equal(first.authenticated, true); assert(Number.isSafeInteger(first.expires));
+  const token = cookie.slice(cookie.indexOf('=') + 1); assert.notEqual(first.clientId, createHash('sha256').update(token).digest('hex')); assert(!JSON.stringify(first).includes(token));
+  assert.equal((await call('/api/ai/status', { cookie: '__Host-kibitz_session=' + first.clientId })).status, 401);
+  const renewed = await server.login(cookie), next = (await call('/api/session/status', { cookie: renewed })).data();
+  assert.notEqual(next.clientId, first.clientId); assert.equal((await call('/api/session/status', { cookie })).data().authenticated, false);
 });

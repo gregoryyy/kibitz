@@ -125,3 +125,12 @@ the real built form, board, mock gateway and library, including German mobile
 sign-in, secret clearing, response bounds and overlapping probe handling.
 The container workflow exercises the default image command with a private
 operator file. Read its actual CI result before claiming packaged verification.
+
+The experimental [shared client boundary](CLIENT-DATA-LIFECYCLE.md) reads a
+nonsecret `clientId` and absolute `expires` from successful session status/sign-in
+responses. The identifier is domain-separated from the registry verifier and
+cannot authorize any API request. It detects replacement even when two sessions
+have the same expiry; fresh proof remains necessary to reactivate a locally ended
+client. Server and browser assets must be upgraded together. This adds no registry
+schema change and does not replace backend expiry/revocation or complete client
+data cleanup.

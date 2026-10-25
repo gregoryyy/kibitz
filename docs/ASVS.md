@@ -66,9 +66,11 @@ Operator/provider/CDN protocol inventory and public trust remain open.
   [Explicit function permissions](PERMISSIONS.md) now address 8.2.1 with native,
   browser and actual-image grant/denial evidence. Complete authenticated client/offline
   cleanup remains unsatisfied. Backend termination does not claim client-data erasure.
-  The first [library-cache session boundary](CLIENT-DATA-LIFECYCLE.md) clears the
-  derived cache on explicit termination and observed identity/permission failure;
-  it leaves the parent control and the matrix counts unchanged.
+  The [library-cache and shared session boundaries](CLIENT-DATA-LIFECYCLE.md)
+  withdraw derived library state on explicit termination, mediated authentication
+  failure and observed expiry/replacement, including cross-tab signals and offline
+  checks. Complete private DOM/worker/autosave cleanup remains open; these
+  submilestones leave the parent control and matrix counts unchanged.
 
 - [Native filesystem isolation](NATIVE-ISOLATION.md) now addresses 13.4.1 for
   the owner-selected macOS/Linux final modes and the source-free image. OS
