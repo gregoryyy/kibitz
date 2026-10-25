@@ -30,7 +30,7 @@ TODO item: 11.5.2; repair PR #130.
 
 - The actual failed CodeQL run `40169734144` loaded configuration from `init` 4.38.2 into `analyze` 4.39.0 and rejected it. Update both to the same full commit, independently resolved from the official annotated 4.39.0 tag.
 - Group `github/codeql-action/*` in Dependabot so future updates arrive together. A unit regression checks immutable pins and their equality; it fails on the original PR's split versions. The corrected regression, local lint/JSDoc/ASVS and fresh build pass. The first full run had a 500 ms loopback SDK fixture timeout under load; all eleven focused stream cases then pass unchanged, and the full suite with two concurrent test files passes (698 passes, one opt-in live skip). Actual CI verification is recorded in the PR.
-- Merge current main into the existing PR branch without rewriting history, including the container startup recovery already reviewed in #125. The original PR also failed its packaged engine startup check; actual container CI must verify this integrated source.
+- Merge current main into the existing PR branch without rewriting history, including the container startup recovery already reviewed in #125. The original PR also failed its packaged engine startup check; actual container CI must verify this integrated source. Subsequent actual run `40176438854` exposes the separate Chessground style regression from #129. Integrate compatibility fix #135 into this branch so its own main-targeted CI tests the corrected app; the CodeQL-only source `288e2ab` already passes actual CodeQL run `40176438860`.
 
 ### Deviations and insights
 
