@@ -254,3 +254,4 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [ ] 12.2 Packaging: Docker image for the Node server and static client
 - [ ] 12.3 Logging and monitoring, with no personal data or prompts in logs by default
 - [ ] 12.4 Docs: user guide, provider setup, self-hosting with Ollama
+  - [x] 12.4.1 Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation remains open
