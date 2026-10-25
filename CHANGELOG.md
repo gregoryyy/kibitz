@@ -15,6 +15,10 @@ pending source, checks and decisions.
 
 ### Added
 
+- Experimental backend logout and absolute-expiry enforcement, copied-token replay
+  rejection across restart, cancellation of held responses across processes, and
+  English/German sign-out controls retaining collections for fresh-key recovery.
+
 - Experimental backend-issued local operator sessions for HTTPS gateway/library access,
   private explicit setup, English/German sign-in and proof-authorized migration
   preserving existing collections/counters. Native/container APIs require the

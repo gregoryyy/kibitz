@@ -1,4 +1,5 @@
 import net from 'node:net';
+import { SESSION_GUARD } from './session-guard.mjs';
 import { operatorProof } from './operator.mjs';
 import { SessionError, SESSION_COOKIE, sessionCookie, sessionToken } from './sessions.mjs';
 import { legacyGrouping, retainGrouping } from './cookies.mjs';
@@ -25,24 +26,51 @@ function readJson(req) {
     req.once('error', () => finish(new SessionError('bad_request'))); req.once('aborted', () => finish(new SessionError('bad_request')));
   });
 }
-export function createSessionApi({ operator = null, store = null, hostname = null, now = () => Date.now() } = {}) {
+export function createSessionApi({ operator = null, store = null, hostname = null, now = () => Date.now(), pollMs = 250 } = {}) {
   let attempts = 0, windowAt = now();
-  const required = !!operator;
+  const required = !!operator, active = new Set();
+  const stop = value => { for (const entry of active) if (entry.value === value) entry.res.destroy(); };
+
   const verify = req => {
     if (!req.socket.encrypted || !operator || !store) throw new SessionError();
     try { return store.verify(operator, sessionToken(req)); }
     catch (error) { throw error instanceof SessionError ? error : new SessionError('unavailable'); }
   };
   return {
-    identity(req, _res, kind) { return verify(req)[kind]; },
+    close() { for (const entry of active) entry.res.destroy(); },
+    identity(req, res, kind) {
+      const session = verify(req);
+      if (!req[SESSION_GUARD]) {
+        const value = sessionToken(req), entry = { value, res };
+        const check = () => { if (res.destroyed) throw new SessionError(); return verify(req); };
+        req[SESSION_GUARD] = res[SESSION_GUARD] = { check, run: action => { check(); return store.run(operator, value, action); } };
+        active.add(entry);
+        // Durable storage checks cover revocation by another native process too.
+        const inspect = () => { try { verify(req); } catch { res.destroy(); } };
+        const poll = setInterval(inspect, pollMs); poll.unref();
+        const expiry = setTimeout(inspect, Math.max(1, session.expires - now())); expiry.unref();
+        const clean = () => { clearInterval(poll); clearTimeout(expiry); active.delete(entry); };
+        res.once('close', clean); res.once('finish', clean);
+      }
+      return session[kind];
+    },
     async handle(req, res) {
       const route = new URL(req.url, 'http://x').pathname;
-      if (!['/api/session/status', '/api/library/session'].includes(route)) return false;
+      if (!['/api/session/status', '/api/library/session', '/api/session/logout'].includes(route)) return false;
       try {
         boundary(req, hostname);
         if (route === '/api/session/status' && req.method === 'GET') {
           let session; try { session = verify(req); } catch (error) { if (!(error instanceof SessionError) || error.code !== 'session_expired') throw error; }
           return json(res, 200, { required, authenticated: !!session, ...(session ? { expires: session.expires } : {}) });
+        }
+        if (route === '/api/session/logout' && req.method === 'POST') {
+          if (!required || !req.socket.encrypted || !store) throw new SessionError('forbidden');
+          const value = sessionToken(req), body = await readJson(req);
+          if (!body || Array.isArray(body) || Object.keys(body).length) throw new SessionError('bad_request');
+          // Expired registered tokens can be removed too; unknown/other-owner tokens cannot.
+          if (!store.revoke(operator, value)) throw new SessionError();
+          stop(value); sessionCookie(res, '', 0);
+          return json(res, 200, { required: true, authenticated: false });
         }
         if (route !== '/api/library/session' || req.method !== 'POST') throw new SessionError('bad_request');
         if (!required || !req.socket.encrypted || !store) throw new SessionError('forbidden');
@@ -56,9 +84,11 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
         const previous = present ? sessionToken(req) : null;
         let legacy = {};
         if (body.migrate) {
-          legacy = { ...(previous ? store.recover(operator, previous) : {}), ...legacyGrouping(req) };
+          legacy = legacyGrouping(req);
+          if (previous && Object.keys(legacy).length < 2) legacy = { ...store.recover(operator, previous), ...legacy };
         }
         const issued = store.issue(operator, legacy, previous);
+        if (previous) stop(previous);
         retainGrouping(res, store.verify(operator, issued.value));
         sessionCookie(res, issued.value);
         return json(res, 200, { required: true, authenticated: true, expires: issued.expires });

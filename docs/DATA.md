@@ -33,5 +33,5 @@ The standard local serve recipes keep a separate private `.kibitz-data/usage.sql
 The experimental [operator session registry](SESSIONS.md) is private operational
 identity data. It contains grouping identifiers for authenticated recovery; browser
 export/erase does not remove it or revoke sessions. Keep the operator JSON, registry,
-current usage/library files and profile together in private backups. Revocation and
-authenticated client cleanup remain separate release TODOs.
+current usage/library files and profile together in private backups. [Backend revocation](SESSION-TERMINATION.md) is separate from erasure; complete
+authenticated client cleanup remains a release TODO.

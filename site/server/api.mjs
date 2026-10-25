@@ -16,6 +16,7 @@
 //                           explicit bounded batches; no server text/vector storage
 import { CookieError } from './cookies.mjs';
 import { developmentIdentity } from './session-identity.mjs';
+import { checkSession, sessionAction } from './session-guard.mjs';
 import { SessionError } from './sessions.mjs';
 import net from 'net';
 import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
@@ -61,9 +62,10 @@ export function createApi({
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
       if (pathname === '/api/ai/embeddings' && req.method === 'POST') {
         checkPost(req);
-        const body = await readJson(req), providerName = embeddings.status(uid).provider;
+        const body = await readJson(req); checkSession(req);
+        const providerName = embeddings.status(uid).provider;
         requireConsent(req, providerName, 'embeddings');
-        try { return json(res, 200, await embeddings.embed(uid, body, res)); }
+        try { const result = await embeddings.embed(uid, body, res); checkSession(req); return json(res, 200, result); }
         catch (e) { report('embeddings', providerName, e); throw e; }
       }
       if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid));
@@ -74,8 +76,8 @@ export function createApi({
       throw new GatewayError('not_found', 'Not found', 404);
     } catch (e) {
       const g = e instanceof SessionError ? new GatewayError(e.code, e.message, e.status) : e instanceof CookieError ? new GatewayError(e.code, e.message, e.code === 'forbidden' ? 403 : 400) : toGatewayError(e);
-      if (!res.headersSent) json(res, g.status, { error: { code: g.code, message: g.message } });
-      else res.end();
+      if (!res.destroyed && !res.headersSent) json(res, g.status, { error: { code: g.code, message: g.message } });
+      else if (!res.destroyed) res.end();
     }
     return true;
   };
@@ -92,13 +94,12 @@ export function createApi({
 
   async function setConfig(req, res, uid) {
     checkPost(req);
-    const body = await readJson(req);
+    const body = await readJson(req); checkSession(req);
     let next = config;
     if (typeof body?.localOnly === 'boolean') next = applyLocalOnly({ ...next, localOnly: body.localOnly });
     if (body?.provider !== undefined) next = switchProvider(next, body.provider);
     if (next !== config) {
-      config = next; provider = config.available ? makeProvider(config) : null;
-      embeddings.policyChanged();
+      sessionAction(req, () => { config = next; provider = config.available ? makeProvider(config) : null; embeddings.policyChanged(); });
       log.info?.(aiConfigEvent(config));
     }
     return json(res, 200, status(uid));
@@ -122,6 +123,7 @@ export function createApi({
     let r;
     try { r = await complete(selected, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256, signal: ac.signal }); }
     catch (e) { report('test', providerName, e); throw e; }
+    checkSession(req);
     return json(res, 200, { ok: true, provider: providerName, model, ms: Date.now() - t0, usage: count(uid, model, r.usage, isPaid), user: users.today(uid) });
   }
 
@@ -129,7 +131,7 @@ export function createApi({
   // daily budgets and the rate limit.
   async function accept(req, uid) {
     checkPost(req);
-    const body = await readJson(req);
+    const body = await readJson(req); checkSession(req);
     // Reading a request body yields: route and consent must be captured together afterwards.
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
     requireConsent(req, config.provider, 'coach');
@@ -146,16 +148,17 @@ export function createApi({
     res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', ...SECURITY_HEADERS });
     const ac = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
-    const write = obj => res.write(JSON.stringify(obj) + '\n');
+    const write = obj => sessionAction(req, () => res.write(JSON.stringify(obj) + '\n'));
     try {
       const it = selected.chat(messages, { model, tools, signal: ac.signal });
       let r;
       while (!(r = await it.next()).done) write({ text: r.value });
+      checkSession(req);
       const toolCalls = r.value?.toolCalls?.length ? r.value.toolCalls : undefined;
       write({ done: true, truncated: !!r.value?.truncated, ...(toolCalls ? { toolCalls } : {}), usage: count(uid, model, r.value?.usage, isPaid), user: users.today(uid) });
     } catch (e) {
-      const g = toGatewayError(e, ac.signal);
-      if (g.code !== 'cancelled') { report('sample', providerName, e, g); write({ error: { code: g.code, message: g.message } }); }
+      const g = e instanceof SessionError ? e : toGatewayError(e, ac.signal);
+      if (g.code !== 'cancelled' && g.code !== 'session_expired' && !res.destroyed) { report('sample', providerName, e, g); write({ error: { code: g.code, message: g.message } }); }
     }
     res.end();
     return true;
@@ -169,10 +172,11 @@ export function createApi({
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
     try {
       const out = await completeJson(selected, messages, format, { model, signal: ac.signal });
+      checkSession(req);
       return json(res, 200, { ...out, usage: count(uid, model, out.usage, isPaid), user: users.today(uid) });
     }
     catch (e) {
-      const g = toGatewayError(e, ac.signal);
+      const g = e instanceof SessionError ? e : toGatewayError(e, ac.signal);
       report('structured', providerName, e, g);
       throw g;
     }
@@ -218,7 +222,6 @@ function readJson(req) {
 }
 
 function json(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', ...SECURITY_HEADERS });
-  res.end(JSON.stringify(body));
-  return true;
+  const send = () => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', ...SECURITY_HEADERS }); res.end(JSON.stringify(body)); return true; };
+  return status < 400 ? sessionAction(res, send) : send();
 }

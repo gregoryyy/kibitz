@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Backend logout and session termination (experimental)
+
+TODO item: 11.4.2.4 / ASVS 7.4.1. Explicit function permissions and complete authenticated client-data lifecycle remain separate final-release gates.
+
+### Implementation notes
+
+- Add native-TLS/same-origin/bounded-JSON logout that deletes the presented operator/credential-bound session before acknowledging success and expires its host cookie. Unknown/duplicate/other-owner sessions cannot delete another session. Replay stays denied across restart; absolute persisted expiry remains independent of browser cookies. Reclaim expired session rows during issuance without changing ownership bindings or existing private data schemas.
+- Track authenticated responses, close them on local revocation/reauthentication and observe cross-process revocation through the shared registry. Expiry timers and bounded polling abort existing provider controllers. Recheck asynchronous work before provider output/private mutation; serialize synchronous protected emission/mutation boundaries with durable revocation through short registry transactions, without holding locks across awaited work. Count already completed provider work according to existing usage semantics; do not claim to recall emitted bytes or committed actions.
+- Add English/German Sign out controls in Settings/Your data, acknowledgement/retry handling and fresh-proof collection recovery. Keep protected locators as non-authorizing recovery inputs; do not delete the previous collection or treat clearing cookies/closing a page as backend logout. Document registry pruning, concurrency boundaries, backups and remaining client/offline cleanup.
+- Native TLS tests cover actual CLI replay/restart and retained records, another operator/epoch, held chat/structured/test/embedding responses, asynchronous library writes, expiry between headers/body and during active work, and actual second-process registry revocation. Browser tests cover Settings, German mobile data controls, another tab, copied tokens, failed logout and recovery. Fresh build/check pass. The full mock-only unit suite passes 751 cases with one opt-in live skip; ten focused native termination groups and thirteen real browser cases pass. The actual pre-termination CLI at `01293e2` fails both the native route regression and the browser logout case: the new logout POST returns 404 instead of 200. All three new browser cases pass again with the explicit response assertion. Exact packaged/assessment source follows actual Linux CI in this PR.
+
+### Deviations
+
+- Local single-user only, generated identities/fake providers only, no new dependency or paid inference. Complete DOM/memory/storage/cache/offline cleanup and multi-tab lifecycle remain TODO 11.4.2.11; explicit function permissions remain .5. Already accepted provider work may incur usage after cancellation. Current client refresh/disconnect is not advertised as complete erasure.
+
+### Insights
+
+- Closing a browser cookie is insufficient, and cancelling transport alone cannot prevent a provider that ignores cancellation from returning late data. Durable token removal plus guarded output/mutation boundaries address those separately. Keeping collection locators and ownership bindings avoids turning logout/expiry into accidental data loss.
+
 ## 2026-10-25 — Backend-issued local operator sessions (experimental)
 
 TODO item: 11.4.2.3 / ASVS 7.2.1. Session termination, explicit function permissions and authenticated client cleanup retain their own final-release gates.

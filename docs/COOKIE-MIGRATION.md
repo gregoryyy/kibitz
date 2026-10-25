@@ -83,5 +83,6 @@ namespaces and cannot combine with TLS. It has no operator authentication and is
 for synthetic data/mock providers in separate profiles/databases. It is not final
 deployment. Operator eval/flipbook paid inference retains its separate approval.
 
-Logout/revocation, explicit function permissions and authenticated client cleanup
-remain TODO 11.4.2.4/11.4.2.5/11.4.2.11. Backend issuance does not close those gates.
+[Backend logout/revocation](SESSION-TERMINATION.md) now invalidates the session
+while retaining protected collection locators for fresh proof. Explicit function
+permissions and authenticated client cleanup remain TODO 11.4.2.5/11.4.2.11. Backend issuance does not close those gates.

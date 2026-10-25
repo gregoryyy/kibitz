@@ -93,4 +93,4 @@ $('#eraseProceed').addEventListener('click', () => {
   });
 });
 
-createOperatorPanel($('#operatorSignIn'), { t, onChange: () => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t('Sign-in complete. Check the server library before continuing.'); } });
+createOperatorPanel($('#operatorSignIn'), { t, onChange: state => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t(state.authenticated ? 'Sign-in complete. Check the server library before continuing.' : 'Signed out of the local server.'); } });

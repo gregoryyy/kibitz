@@ -21,10 +21,10 @@ export function sessionToken(req) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(value)) throw new SessionError();
   return value;
 }
-export function sessionCookie(res, value) {
+export function sessionCookie(res, value, age = SESSION_AGE / 1000) {
   const previous = res.getHeader('Set-Cookie');
   res.setHeader('Set-Cookie', [...(previous ? Array.isArray(previous) ? previous : [previous] : []),
-    `${SESSION_COOKIE}=${value}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${SESSION_AGE / 1000}`]);
+    `${SESSION_COOKIE}=${value}; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=${age}`]);
 }
 /** Separate version-one registry; existing usage/library schemas and identifiers remain unchanged. */
 export function sessionStore(filename = ':memory:', { now = () => Date.now(), limit = 1000 } = {}) {
@@ -42,6 +42,8 @@ export function sessionStore(filename = ':memory:', { now = () => Date.now(), li
     const get = db.prepare('SELECT operator,epoch,usage,library,expires FROM sessions WHERE verifier=?');
     const insert = db.prepare('INSERT INTO sessions VALUES(?,?,?,?,?,?)');
     const replaceSession = db.prepare('DELETE FROM sessions WHERE verifier=? AND operator=?');
+    const revoke = db.prepare('DELETE FROM sessions WHERE verifier=? AND operator=? AND epoch=?');
+    const prune = db.prepare('DELETE FROM sessions WHERE expires<=?');
     const owner = db.prepare('SELECT operator FROM ownership WHERE kind=? AND scope=?');
     const bind = db.prepare('INSERT OR IGNORE INTO ownership VALUES(?,?,?)');
     const size = db.prepare('SELECT count(*) AS n FROM sessions');
@@ -54,6 +56,7 @@ export function sessionStore(filename = ':memory:', { now = () => Date.now(), li
         db.exec('BEGIN IMMEDIATE');
         try {
           const expires = now() + SESSION_AGE, value = token(32);
+          prune.run(now());
           if (previous) replaceSession.run(hash(previous), operator.id);
           if (Number(size.get().n) >= limit) throw new SessionError('unavailable');
           for (const [kind, key] of [['usage', usage], ['library', library]]) {
@@ -66,9 +69,18 @@ export function sessionStore(filename = ':memory:', { now = () => Date.now(), li
           db.exec('COMMIT'); return { value, expires };
         } catch (error) { db.exec('ROLLBACK'); throw error; }
       },
+      run(operator, value, action) {
+        db.exec('BEGIN IMMEDIATE');
+        try { this.verify(operator, value); const result = action(); db.exec('COMMIT'); return result; }
+        catch (error) { db.exec('ROLLBACK'); throw error; }
+      },
+      revoke(operator, value) {
+        if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(value)) throw new SessionError();
+        return Number(revoke.run(hash(value), operator.id, operator.epoch).changes) > 0;
+      },
       recover(operator, value) {
-        // Requires fresh operator proof at the caller. Retain expired bindings for recovery;
-        // expiry never makes a grouping token a credential or silently abandons a collection.
+        // Requires fresh proof; recover a still-retained row, including expired rows.
+        // Protected locators preserve collections when expired rows are pruned.
         if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(value)) throw new SessionError();
         const row = get.get(hash(value));
         if (!row || row.operator !== operator.id || typeof row.usage !== 'string' || typeof row.library !== 'string') throw new SessionError();

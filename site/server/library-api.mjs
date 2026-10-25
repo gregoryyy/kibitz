@@ -1,5 +1,6 @@
 // Same-origin, cookie-scoped persistence. No provider calls or automatic browser-library upload.
 import crypto from 'node:crypto';
+import { checkSession, sessionAction } from './session-guard.mjs';
 import { developmentIdentity } from './session-identity.mjs';
 import net from 'node:net';
 import { Chess } from 'chess.js';
@@ -27,7 +28,10 @@ const ERRORS = {
 };
 /** @returns {never} */
 const fail = code => { throw Object.assign(new Error(code), { code }); };
-const json = (res, status, body) => { res.writeHead(status, HEADERS); res.end(JSON.stringify(body)); return true; };
+const json = (res, status, body) => {
+  const send = () => { res.writeHead(status, HEADERS); res.end(JSON.stringify(body)); return true; };
+  return status < 400 ? sessionAction(res, send) : send();
+};
 const scopeOf = token => crypto.createHash('sha256').update('kibitz-library-v1\0' + token).digest('hex');
 function checkOrigin(req, hostname) {
   let host;
@@ -102,17 +106,20 @@ export function createLibraryApi({ store = null, validate = validateLibraryChang
       if (!token) fail('no_session');
       if (Date.now() - windowAt >= 60_000) { windowAt = Date.now(); writes = 0; }
       if (++writes > 120) fail('rate_limited');
-      const body = await readJson(req), scope = scopeOf(token);
+      const body = await readJson(req), scope = scopeOf(token); checkSession(req);
       if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !(erasing ? ['scope', 'revision', 'confirm'] : ['scope', 'revision', 'changes']).includes(k))
         || !Number.isSafeInteger(body.revision) || body.revision < 0) fail('bad_request');
       if (body.scope !== scope) fail('session_changed'); // A precondition; only the cookie selects the owner.
       if (erasing) {
         if (body.confirm !== true) fail('bad_request');
-        return json(res, 200, store.erase(scope, body.revision));
+        const result = sessionAction(req, () => store.erase(scope, body.revision));
+        return json(res, 200, result);
       }
       await validate(body.changes);
       if (res.destroyed) return true;
-      return json(res, 200, store.change(scope, body.revision, body.changes));
+      checkSession(req);
+      const result = sessionAction(req, () => store.change(scope, body.revision, body.changes));
+      return json(res, 200, result);
     } catch (error) {
       const code = typeof error?.code === 'string' && Object.hasOwn(ERRORS, error.code) ? error.code : 'unavailable';
       const [status, message] = ERRORS[code];

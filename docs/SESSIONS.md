@@ -2,8 +2,8 @@
 
 TODO 11.4.2.3 implements backend-issued sessions for the local single-user app.
 Hosted accounts remain deferred. TLS, origin checks, provider sharing consent and
-function permissions are separate boundaries. Logout/revocation and authenticated
-client-data cleanup remain TODO 11.4.2.4/11.4.2.11; this is not final-release approval.
+function permissions are separate boundaries. [Backend logout/termination](SESSION-TERMINATION.md) implements 11.4.2.4; authenticated
+client-data cleanup remains TODO 11.4.2.11; this is not final-release approval.
 
 ## Setup and sign-in
 
@@ -69,10 +69,11 @@ though it never stores the operator key or raw session token. It must receive th
 same private path, backup and filesystem protection as the other private databases.
 Ownership bindings hash each grouping identifier and prevent reassignment to a
 different operator. Issuance/binding is one transaction. A failed migration does
-not claim a partial collection. The registry is bounded to 1,000 issued records
+not claim a partial collection. The registry is bounded to 1,000 retained session records
 and 2,000 ownership bindings; exhaustion refuses issuance without evicting data
-or identities. Expired bindings remain for proof-authorized recovery; cleanup
-and revocation policy belong to the next milestone.
+or identities. Issuance prunes expired session rows; ownership bindings and protected locators
+remain for proof-authorized recovery. Logout deletes the presented session row.
+Client-data lifecycle remains a separate milestone.
 
 This design follows OWASP's [session management guidance](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 on unpredictable issued identifiers, backend validation, cookie transport and
@@ -94,8 +95,8 @@ cookie changes. Restore the intended private setup/profile rather than guessing.
 
 Reauthentication issues a new token and invalidates the previous presented token
 in the same registry transaction; a failure rolls that change back. It cannot
-revoke another operator’s token. An existing session cookie lets fresh proof recover its same collection after
-expiry or a key change that preserves the operator `id`. The old token remains
+revoke another operator’s token. An existing retained session row or protected locators let fresh proof recover
+the same collection after expiry or a key change preserving the operator `id`. The old token remains
 unusable for API access. Unchecking migration explicitly creates a new collection;
 it does not recover the previous one. Losing both the original browser profile
 and its retained registry binding cannot be repaired by guessing database hashes.

@@ -17,6 +17,6 @@ export function tlsMaterial({ hostname = 'kibitz.test' } = {}) {
     fs.chmodSync(key, 0o600);
     const operator = path.join(dir, 'operator.json'), setup = newOperator();
     fs.writeFileSync(operator, JSON.stringify(setup), { mode: 0o600 });
-    return { dir, key, cert, operator, secret: setup.secret, ca: fs.readFileSync(cert), close };
+    return { dir, key, cert, operator, operatorId: setup.id, secret: setup.secret, ca: fs.readFileSync(cert), close };
   } catch (error) { close(); throw error; }
 }

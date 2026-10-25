@@ -219,6 +219,10 @@ test('the packaged non-root server supports native HTTPS from read-only operator
       const response = await client.get(probeUrl + file); expect(response.status()).toBe(404);
       expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
     }
+    expect((await client.post(probeUrl + '/api/session/logout', { data: {} })).status()).toBe(200);
+    expect((await client.get(probeUrl + '/api/ai/status', { headers: { cookie: '__Host-kibitz_session=' + session.value } })).status()).toBe(401);
+    expect(await page.evaluate(async () => (await fetch('/api/library/records')).status)).toBe(401);
+    expect((await client.post(probeUrl + '/api/library/session', { data: { secret: identity.secret, migrate: true } })).status()).toBe(200);
     await expect.poll(() => JSON.parse(docker('inspect', container))[0].State.Health.Status, { timeout: 15_000 }).toBe('healthy');
     expect(docker('logs', container)).not.toContain('PRIVATE KEY');
   } catch (error) {

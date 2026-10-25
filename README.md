@@ -169,3 +169,8 @@ just e2e               # or, in site/: npm run test:e2e
 ## Licence
 
 Kibitz is GPL-3.0-or-later ([LICENSE](LICENSE)), as Stockfish and chessground require. The third-party components and their licences are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); chess.js is BSD-2-Clause, and the opening names come from [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0).
+
+Experimental [operator sign-in](docs/SESSIONS.md) and
+[backend logout](docs/SESSION-TERMINATION.md) protect local gateway/library access.
+Logout preserves collections for fresh-key recovery; complete authenticated client
+cleanup and explicit function permissions remain final-release TODOs.
