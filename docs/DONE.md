@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — GPT-6 Luna Chat Completions tool mode
+
+TODO item: 2.10.1. Provider setup documentation remains a separate milestone.
+
+### Implementation notes
+
+- The OpenAI adapter sends `reasoning_effort: none` for the exact selected `gpt-6-luna` model, following its official Chat Completions function-calling requirement. Per-task overrides control the setting. Ordinary chat, native structured output, tool-result continuations and the small connection-test reply use the same supported mode. Other OpenAI model IDs, Mistral and Ollama receive no new parameter.
+- Three real-SDK tests intercept all transport and cover the rejection policy, per-task/provider matrix, structured response and continuation fields. Two browser regressions launch the actual CLI/SDK with a synthetic endpoint and no operator configuration; one completes a real Stockfish tool round and verifies its evidence, the other checks the settings connection button.
+- Validation: lint/JSDoc/ASVS, build and the full unit/server suite pass (670 passes, one opt-in live skip). Both new browser cases and all sixteen existing tool cases pass. The Stockfish browser regression fails against the previous backend with a provider rejection under the synthetic policy, then passes with this correction. No dependency, actual environment file, live provider, paid request or model download is used.
+
+### Deviations
+
+- The provider policy is synthetic and based on the documented contract. This is not a recorded live OpenAI rejection/success, availability check, or benchmark of explanation quality. TODO 2.15 and the missing live-provider comparison evidence remain open.
+- The correction retains the configured model and Chat Completions transport. It does not add a general reasoning setting or infer compatible model aliases.
+
+### Insights
+
+- A model default can conflict with a tool protocol even when a plain reply works. Connection checks and follow-up turns need the same model-specific transport policy, and the actual per-task selection must take precedence over the configured chat default.
+
 ## 2026-10-25 — Verified local container package and private persistence
 
 TODO item: 12.2 complete for packaging. Image publication, advisory clearance and the actual release gate remain separate.

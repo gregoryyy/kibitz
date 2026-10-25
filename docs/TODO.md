@@ -63,6 +63,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 2.8 Stream replies to the browser (NDJSON over `fetch`), with cancellation
 - [x] 2.9 Key management for the selected local single-user deployment: operator keys come from server env and never reach the browser, logs or prompts. An encrypted per-account store is deferred with hosted accounts; [deployment decision](DEPLOYMENT.md)
 - [x] 2.10 Model choice per task (quick comment, chat, deep review) and per provider *(added)*
+  - [x] 2.10.1 Use GPT-6 Luna's supported non-reasoning mode for Chat Completions, including per-task selection, Stockfish tool continuations, structured replies and the connection check; keep other models/providers unchanged
 - [x] 2.11 Limits for the selected local single-user app: shared and per-cookie minute rates, daily server tokens, per-cookie paid token/cost thresholds, timeouts and usage display. Standard serve recipes persist counters across restarts in private SQLite. Cookies supply soft local grouping; hosted account budgets remain deferred with 10.2. [Behavior, retention and admission-threshold limits](USAGE.md).
 - [x] 2.12 Allowlist for the Ollama base URL (SSRF guard) *(added)*
 - [x] 2.13 Mock provider with deterministic fixtures for tests and offline development *(added)*
