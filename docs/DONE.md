@@ -7,6 +7,21 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Preserve board style policy after Chessground upgrade
+
+TODO item: 11.5.3.
+
+### Implementation notes
+
+- Actual container runs `40176383203` (#134) and `40176438854` (#130) fail after the main-branch Chessground update (#129): each SVG overlay attempts a fixed inline color-scheme attribute, rejected by the existing strict CSP. This is separate from #130's corrected CodeQL version mismatch.
+- Adapt the pinned 10.4.2 bundle during the source build: remove the single known fixed declaration and express it in trusted CSS for Chessground's SVG overlays. Other upstream bytes are unchanged. Reject an unreviewed package version or missing/duplicate declaration so an upgrade cannot silently bypass this adaptation.
+- Update the shipped third-party notice from stale 10.1.1 to 10.4.2 and identify the local change and reproducible source. No installed package, lockfile or generated dist file is edited.
+- A real-browser regression fails before the fix with eight CSP events, four blocked style attributes and a `normal` computed scheme. The corrected SVG test covers all four layers, arrows, orientation changes and light/dark appearance. Existing hostile-style/attribute injection remains blocked. Local lint/JSDoc/ASVS, a fresh build, the full unit suite (697 passes, one opt-in live skip) and eleven focused browser cases pass, including a real Stockfish game through checkmate, saved review and illegal/out-of-turn move handling.
+
+### Deviations and insights
+
+- Keep this compatibility fix separate from the PDF and CodeQL PRs. Container/whole-suite CI must verify the resulting source; prior green evidence for 10.1.1 does not cover 10.4.2. No CSP relaxation, violation filtering, test retry or provider call is introduced.
+
 ## 2026-10-25 — Rebuild PDFs by modification date
 
 TODO item: 0.12.1.

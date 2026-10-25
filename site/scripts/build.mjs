@@ -30,7 +30,15 @@ copy(nm('stockfish/bin/stockfish-19-asm.js'), 'sf-asm.js');
 copy(nm('stockfish/bin/stockfish-19-lite.js'), 'sf-mt.js');
 copy(nm('stockfish/bin/stockfish-19-lite.wasm'), 'sf-mt.wasm');
 copy(nm('chess.js/dist/esm/chess.js'), 'chess.js');
-copy(nm('@lichess-org/chessground/dist/chessground.min.js'), 'chessground.js');
+// Chessground 10.4.2 sets color-scheme through an SVG style attribute, which our
+// style-src-attr 'none' policy blocks. Move that one fixed declaration to the
+// trusted page stylesheet below; leave all other upstream bytes intact. Reject
+// unexpected bundles so an upgrade requires reviewing this local adaptation.
+const cgBundle = fs.readFileSync(nm('@lichess-org/chessground/dist/chessground.min.js'), 'utf8');
+const cgVersion = JSON.parse(fs.readFileSync(nm('@lichess-org/chessground/package.json'), 'utf8')).version;
+const cgInlineScheme = ',style:"color-scheme:light only"';
+if (cgVersion !== '10.4.2' || cgBundle.split(cgInlineScheme).length !== 2) throw new Error('Review Chessground SVG color-scheme compatibility before building this version');
+fs.writeFileSync(path.join(dist, 'chessground.js'), cgBundle.replace(cgInlineScheme, ''));
 // wllama runs the in-browser model (TODO 2.16): one ES module and one wasm (WebGPU, or WebAssembly on the CPU)
 copy(nm('@wllama/wllama/esm/index.js'), 'wllama.js');
 copy(nm('@wllama/wllama/esm/wasm/wllama.wasm'), 'wllama.wasm');
