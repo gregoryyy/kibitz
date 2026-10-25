@@ -19,7 +19,7 @@ The [local Docker package](docs/CONTAINER.md) provides a mock-default recipe wit
 - **[just](https://github.com/casey/just)** (`brew install just`) is optional; every recipe has a plain npm equivalent below.
 - A recent desktop or mobile browser with WebAssembly support. Older browsers fall back to the slower asm.js engine.
 
-The page loads ES modules and Web Workers, so it must be served over HTTP. Opening `index.html` straight from disk (`file://`) won't work.
+The page loads ES modules and Web Workers, so it must be served over HTTP(S). Opening `index.html` straight from disk (`file://`) won't work.
 
 The supported target is a **local single-user app**, served on loopback by default. Cloud AI remains optional; Ollama and the in-browser model offer local inference. [Deployment decision](docs/DEPLOYMENT.md) records the scope and implications for accounts, keys and security.
 
@@ -39,6 +39,10 @@ just serve             # install if needed, build, serve on http://127.0.0.1:876
 ```
 
 Before using a network provider, open **Settings → Coach → Provider permissions** and explicitly allow coach requests or embeddings for that provider. Keys alone do not enable sharing. [Privacy and data flows](docs/PRIVACY.md) explain configured endpoints, separate choices and revocation limits.
+
+For native HTTPS with your own certificate/key pair, use
+[`serve.mjs --tls-key FILE --tls-cert FILE`](docs/TLS.md). Invalid TLS setup stops
+startup; certificate trust and data migration requirements are documented there.
 
 On start the server prints `AI coach: <provider> / <model>`, or why the coach is off. Other recipes:
 

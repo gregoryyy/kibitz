@@ -19,7 +19,19 @@ The server reads operator-supplied keys from the root `.env`; keys remain outsid
 
 The optional library's anonymous HttpOnly cookie separates browser collections, without providing a sign-in or cross-device account. Clearing the cookie loses that browser's route to the previous server collection. Browser profiles, progress, repertoires and practice schedules stay local to the browser. The operator is responsible for local files and backups. Explicit export/deletion is tracked in TODO 10.3.
 
-When the exported API handlers are mounted directly on a native TLS server, both issue new cookies with `Secure`, determined from the actual socket. Forwarding headers do not control that flag. The standard `serve.mjs` listener uses HTTP on loopback. Existing valid cookies retain their identity without being reissued; changing transport or cookie policy requires clearing the old browser cookies. These flags preserve local grouping and do not establish authenticated accounts or a trusted reverse-proxy deployment.
+The owner selected native Node HTTPS with operator-supplied certificates for the
+final local-app transport. `serve.mjs --tls-key FILE --tls-cert FILE` now starts
+that listener; [TLS setup and data-transition limits](TLS.md) describe private
+identity files, normal browser trust and the remaining ASVS work. Both options
+are required; an invalid pair exits without an HTTP fallback. HTTP remains the
+RC/development default when neither option is supplied.
+
+Both APIs issue new cookies with `Secure` on the actual TLS socket. Forwarding
+headers do not control the flag. Existing valid cookies retain their identity
+without being reissued; preserve private-library/profile backups before changing
+origin, and do not clear an ownership cookie as a migration strategy. Cookie
+prefix/migration work remains TODO 11.4.2.1. These flags preserve local grouping
+and do not establish authenticated accounts or a trusted reverse-proxy deployment.
 
 The existing `--host` option can change the listener for deliberate development/packaging use. Binding to a LAN/public address does not add accounts, transport security or authorization. A public/shared service is outside this deployment decision. A local machine's users, browser profiles and anonymous cookie scopes are not a hosted tenant-security boundary.
 

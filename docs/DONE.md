@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Native HTTPS listener prerequisite
+
+TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open.
+
+### Implementation notes
+
+- Added `--tls-key FILE --tls-cert FILE` to the actual CLI, sharing its existing API/static routes through Node HTTPS. The owner selected native TLS with supplied identities. A pair is parsed before private storage/listening; incomplete/invalid options exit with a fixed private diagnostic rather than falling back to HTTP. Supplying neither option preserves the current HTTP RC behavior.
+- Added a bounded descriptor reader for PEM identities outside every served root, resolving parent aliases while refusing leaf symlinks, hardlinks, empty/oversized/non-regular files and non-private POSIX key permissions. Node validates that certificate/key match; no identity is fetched/generated, permissions changed, CA installed or raw path/PEM/OpenSSL error logged. The TLS minimum is 1.2; real native clients negotiate 1.2/1.3 and reject older protocols, wrong names and untrusted chains.
+- Added six native TLS test groups, three health-probe groups and a real-browser built-app case for HTTPS Stockfish play, mock coaching, private-library writes, Secure issuance, local-only requests and unchanged CSP. Added a fifth explicit image case with read-only synthetic identity mounts, normal UID 1000 and HTTPS health checking. The container's exec-form probe supports an explicit HTTPS flag and bounded public CA file, retaining normal verification, a fixed static-only target and total deadline. The container case runs in Linux CI; no local Docker result is inferred. Documented identity ownership/trust/renewal/restart, health-probe settings and cross-origin data migration limits.
+- Fresh build and lint/JSDoc/ASVS checks pass; the full native suite has 708 passes/one opt-in skip, all nine focused TLS/health groups pass, and the three focused browser cases pass. The prior CLI rejects the new TLS options rather than supplying native HTTPS. No provider call, weight download or operator certificate/configuration was used. CI/image results retain their own source identities in the PR.
+
+### Deviations
+
+- Native HTTPS is a prerequisite for the first cookie remediation; it does not implement secure prefixes or data-preserving migration. All twelve ASVS fix TODOs and their technical statuses stay open/unchanged, including final transport enforcement and actual endpoint/certificate evidence. The existing HTTP RC/development path is retained until the final deployment transition is implemented. No release or merge approval is implied.
+
+### Insights
+
+- A working TLS listener and a secure deployment are different deliverables. Testing the real CLI avoids mistaking a wrapper's HTTPS support for application support, and checking identities before storage creation prevents failed transport setup from leaving new private databases behind.
+
 ## 2026-10-25 — Track ASVS fixes required before final release
 
 TODO items: 11.4.2.1–11.4.2.12 (all open); release gate 11.6 remains open.
