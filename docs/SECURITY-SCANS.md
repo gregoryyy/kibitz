@@ -33,7 +33,8 @@ without Docker and is explicitly partial evidence, not a ZAP run.
 
 The [workflow](../.github/workflows/security-baseline.yml) gives the scan only a
 read token. Docker receives only the synthetic report directory, with host
-networking to reach this staging server; it is not mounted on the checkout,
+networking to reach this staging server; the ZAP listener and API allowlist are
+restricted to loopback. It is not mounted on the checkout,
 operator configuration or Docker socket. The versioned official
 [ZAP 2.17.0 image](https://github.com/zaproxy/zaproxy/releases/tag/v2.17.0) is pinned to
 `sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6`.
@@ -53,7 +54,7 @@ cannot reuse stale prior output. High-risk alerts fail even if ZAP's default
 disposition calls them WARN. Lower findings remain in reports for explicit review;
 none is silently ignored, accepted or manually dismissed by this workflow.
 
-Artifacts under ignored `site/tests/out/security/` include `scan-summary.json`,
+Artifacts under ignored `site/tests/out/security/` include startup logs, `scan-summary.json`,
 `headers.json`, `scan-coverage.json`, `zap.json`, `zap.html`, `npm-audit.json` and
 `npm-sbom.json`. CI retains JSON/HTML for thirty days on success or failure. Use
 the [npm SBOM command](https://docs.npmjs.com/cli/v11/commands/npm-sbom/) to reproduce

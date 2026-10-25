@@ -127,7 +127,7 @@ export async function run(args = process.argv.slice(2)) {
   if (args.length > 1 || args.some(arg => arg !== '--headers-only')) throw new Error('Usage: node scripts/security-scan.mjs [--headers-only]');
   const output = resolve(site, 'tests/out/security'); mkdirSync(output, { recursive: true });
   // Stale reports must never stand in for a failed scanner execution.
-  for (const name of ['zap.json', 'zap.html', 'scan-coverage.json', 'scan-summary.json', 'headers.json']) rmSync(resolve(output, name), { force: true });
+  for (const name of ['zap.json', 'zap.html', 'zap.out', 'zap-home', 'scan-coverage.json', 'scan-summary.json', 'headers.json']) rmSync(resolve(output, name), { force: true, recursive: true });
   const headers = [];
   const container = `kibitz-zap-${process.pid}-${randomUUID().slice(0, 8)}`;
   const summary = { revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
@@ -154,9 +154,11 @@ export async function run(args = process.argv.slice(2)) {
       copyFileSync(resolve(root, '.github/zap/hooks.py'), resolve(output, 'hooks.py'));
       containerStarted = true;
       const code = await command('docker', ['run', '--rm', '--name', container, '--network', 'host',
-        '--user', `${process.getuid()}:${process.getgid()}`, '-v', `${output}:/zap/wrk:rw`, ZAP_IMAGE,
+        '--user', `${process.getuid()}:${process.getgid()}`, '--workdir', '/zap/wrk', '-v', `${output}:/zap/wrk:rw`, ZAP_IMAGE,
         'zap-baseline.py', '-t', staging.base + '/', '-m', '1', '-T', '5', '--autooff',
-        '--hook', '/zap/wrk/hooks.py', '-z', '-silent -dir /zap/wrk/zap-home', '-J', 'zap.json', '-r', 'zap.html']);
+        '--hook', '/zap/wrk/hooks.py', '-z', '-silent -dir /zap/wrk/zap-home -host 127.0.0.1 -config api.addrs.addr.name=127.0.0.1 -config api.addrs.addr.regex=false',
+        '-J', 'zap.json', '-r', 'zap.html']);
+      containerStarted = false; // docker run --rm has exited and removed this container.
       if (code !== 0 && code !== 2) throw new Error(`ZAP baseline failed with exit ${code}`);
       const result = checkZap(JSON.parse(readFileSync(resolve(output, 'zap.json'), 'utf8')),
         JSON.parse(readFileSync(resolve(output, 'scan-coverage.json'), 'utf8')), staging.base);
@@ -164,7 +166,9 @@ export async function run(args = process.argv.slice(2)) {
       if (result.errors.length) throw new Error(result.errors.join('; '));
     }
     summary.complete = true;
-    console.log(`Security ${summary.mode}: ${REQUIRED_PATHS.length} staged routes; ${summary.alerts.length} ZAP alert types. Inspect retained reports; this is not release approval.`);
+    console.log(`Security ${summary.mode}: ${REQUIRED_PATHS.length} staged routes; `
+      + (summary.mode === 'headers-only' ? 'ZAP was not run.' : `${summary.alerts.length} ZAP alert types.`)
+      + ' Inspect retained reports; this is not release approval.');
   } finally {
     try { writeFileSync(resolve(output, 'scan-summary.json'), JSON.stringify(summary, null, 2) + '\n'); }
     finally {

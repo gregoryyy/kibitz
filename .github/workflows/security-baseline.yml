@@ -47,5 +47,7 @@ jobs:
           path: |
             site/tests/out/security/*.json
             site/tests/out/security/*.html
+            site/tests/out/security/zap.out
+            site/tests/out/security/zap-home/zap.log
           if-no-files-found: error
           retention-days: 30
