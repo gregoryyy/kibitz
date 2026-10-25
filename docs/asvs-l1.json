@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "f9ce54a4207c994badf699a7e394e361ee8b5c53",
+  "revision": "00e7d165a8b9da6aa991e4fd84412f378f62d659",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -834,11 +834,12 @@
       "topic": "Component remediation evidence",
       "status": "open",
       "method": "documentation-review",
-      "note": "Automated evidence includes a 128-component lockfile SBOM, zero npm advisories at the recorded scan, and an 88-entry image OS inventory. Full dated advisory/age verification for runtime, Actions, WASM internals and image components against maintenance deadlines is still incomplete; these snapshots are not a release-wide CVE clearance.",
+      "note": "Automated evidence includes a 128-component lockfile SBOM, zero npm advisories at the recorded scan, an 88-entry image OS inventory, and three bundled fonts with pinned source/byte/licence manifests. Full dated advisory/age verification for runtime, Actions, WASM internals and image components against maintenance deadlines is still incomplete; these snapshots are not a release-wide CVE clearance.",
       "evidence": [
         "docs/MAINTENANCE.md",
         "docs/SECURITY-SCANS.md",
-        "docs/CONTAINER.md"
+        "docs/CONTAINER.md",
+        "site/src/fonts/manifest.json"
       ],
       "followUp": "TODO 11.6"
     },

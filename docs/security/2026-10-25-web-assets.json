@@ -1,0 +1,36 @@
+{
+  "scope": "dedicated-local-mock-staging",
+  "date": "2026-10-25T03:38:49.972Z",
+  "sourceRevision": "00e7d165a8b9da6aa991e4fd84412f378f62d659",
+  "scannedMergeRevision": "9c8d6843a0610b04c910f93b07afe00f392d3a1e",
+  "run": "https://github.com/gregoryyy/kibitz/actions/runs/40158959465",
+  "scannerVersion": "2.17.0",
+  "image": "ghcr.io/zaproxy/zaproxy:2.17.0@sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6",
+  "node": "v24.21.0",
+  "lockSha256": "30f3781532aba19e76993f30ba1e19afa90e38781812576cab13b90d3a27f1ed",
+  "rawReportSha256": "55238d655e9cec1b71e1814b922c209d5a1e759cd8530c0a5b6b9d40f16fd48a",
+  "requiredRoutes": 7,
+  "visitedPathCount": 15,
+  "enabledPassiveRules": 60,
+  "passivePending": 0,
+  "loopbackListenerVerified": true,
+  "findings": [
+    {
+      "id": "10027",
+      "ref": "10027",
+      "name": "Information Disclosure - Suspicious Comments",
+      "risk": 0,
+      "instances": 6
+    },
+    {
+      "id": "10112",
+      "ref": "10112",
+      "name": "Session Management Response Identified",
+      "risk": 0,
+      "instances": 3
+    }
+  ],
+  "npmAdvisories": 0,
+  "npmSBOMComponents": 128,
+  "releaseApproved": false
+}

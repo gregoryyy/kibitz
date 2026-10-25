@@ -92,9 +92,9 @@ CI artifacts; they are not counted as successful scans.
 
 | Finding | Disposition |
 | --- | --- |
-| Medium 10055-6, authored `style-src unsafe-inline` on two HTML pages | Historical verified finding; 11.5.1 replaces broad permission with trusted style hashes and blocks attributes; actual rerun pending |
-| Medium 90003, missing SRI on the Google Fonts stylesheet | Historical verified finding; 11.5.1 bundles the original fonts and removes external stylesheet links; actual rerun pending |
-| Informational 90011-2, header `utf-8` versus wrapper meta `utf8` | Historical verified finding; 11.5.1 canonicalizes the wrapper; actual rerun pending |
+| Medium 10055-6, authored `style-src unsafe-inline` on two HTML pages | Historical finding; absent in the actual 11.5.1 rerun after trusted style hashes and blocked attributes |
+| Medium 90003, missing SRI on the Google Fonts stylesheet | Historical finding; absent in the actual 11.5.1 rerun after original fonts are bundled and external links removed |
+| Informational 90011-2, header `utf-8` versus wrapper meta `utf8` | Historical finding; absent in the actual 11.5.1 rerun after canonical wrapper spelling |
 | Informational 10027, six source-comment instances | Reviewed public authored comments, including words SELECT/USER; no operator payload was staged |
 | Informational 10112, two cookie response instances | Expected opaque usage/library groups; session-management deviations remain documented in ASVS |
 
@@ -107,8 +107,13 @@ The checked-in policy tests deliberately fail weakened headers, high alerts,
 unknown reports, missing coverage and child-process deadlines. Existing browser
 CSP-violation tests remain separate. A traditional spider does not exercise every
 JavaScript interaction, model/tool response, authenticated flow or imported PGN.
-The [web-asset follow-up](WEB-ASSETS.md) documents local fonts and hashed styles;
-its real rerun must be recorded before completion. Worker blobs/WASM, local
+The [web-asset follow-up](WEB-ASSETS.md) documents local fonts and hashed styles.
+Its actual run `40158959465` at source `00e7d16`/merge `9c8d684` has zero high or
+medium findings; six public-comment instances and three grouping-cookie responses
+remain informational. The independently checked raw report covers all seven required
+routes, fifteen paths and sixty enabled rules, with an empty queue and verified
+loopback listener. [Sanitized metadata](security/2026-10-25-web-assets.json) retains
+the exact identities/digest, and no finding/rule/path is suppressed. Worker blobs/WASM, local
 HTTP/HSTS/cookie deviations, mutable model identities and unrestricted chess prose
 remain review concerns. The SBOM/audit snapshot is not a complete dated advisory
 assessment for Node, Actions, WASM internals, cloud models or future container

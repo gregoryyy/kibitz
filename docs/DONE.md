@@ -7,9 +7,9 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
-## 2026-10-25 — Local web assets and stricter stylesheet policy (verification in progress)
+## 2026-10-25 — Verified local web assets and stricter stylesheet policy
 
-TODO item: 11.5.1 remains open until the actual raw baseline rerun finishes.
+TODO item: 11.5.1 complete; release verification and informational findings remain separate.
 
 ### Implementation notes
 
@@ -18,6 +18,9 @@ TODO item: 11.5.1 remains open until the actual raw baseline rerun finishes.
 - Added CSS boundary and negative scan-policy tests, pinned font/offline-inventory/integrity tests, actual CLI/Chrome CSS-injection regression and desktop/German-phone font/layout checks. Full unit/server suite passes (674 passes, one opt-in live skip). Initial browser run passes six cases; the phone case reveals that a language switch legitimately refetches all three local fonts. Its assertion now checks the three exact URL identities and every response rather than one fetch per font; loaded faces, CSP, external-request and layout assertions remain.
 - The CSS regression fails against the previous actual backend: the injected inert-template CSS changes the trusted element's colour under its old broad permission. The corrected backend blocks that CSS and a style attribute while allowing the trusted block and property-based geometry. Expanded final browser checks and actual Linux passive baseline are pending; no successful scan is inferred from header/unit tests.
 - Final local verification passes all thirty browser cases, including desktop/German-phone fonts, normal play/review, settings, layout/session transitions and all seven actual offline-app/update/erasure cases. Visually inspected both font/layout captures. Final-build CSS/font/integrity/scan-policy tests pass all 22 cases; lint/JSDoc/ASVS checks and seven-route header preflight pass, 335 local links resolve and diff whitespace is clean. Actual Linux raw passive evidence is still pending; no live provider, operator environment or model download was used.
+- Actual Linux baseline `40158959465` passes at source `00e7d16`, scanned merge `9c8d6843a0610b04c910f93b07afe00f392d3a1e`. Independently inspected/rechecked raw JSON: zero high/medium findings; the CSS, external-font SRI and charset types are absent. Six public source-comment instances and three grouping-cookie responses remain informational. All seven required routes occur in fifteen visited paths; all sixty passive rules remain enabled and the queue is empty. Actual startup records a literal loopback listener. Retained sanitized source/image/lock/report identities, not cookies or raw response bodies. npm audit is zero, SBOM 128; no scanner rule/path is suppressed.
+- Re-reviewed ASVS records at the exact implementation source and added the pinned font inventory to the still-open component-advisory requirement. Counts remain 28 scoped verifications, 30 justified absences, ten deviations and two open; stronger CSS and a clean passive result do not resolve deployment/model/claim/advisory limits. Source CI also passes unit/audit, CodeQL, Gitleaks and actual image/browser/restart tests; the full browser suite remains pending at this recording.
+- Final evidence/document checks pass lint/JSDoc/ASVS and seven checklist regression groups; 592 local links resolve across seventeen changed documents and diff whitespace is clean. No runtime change follows source `00e7d16`; the raw scan remains bound to that exact implementation rather than a future release commit.
 
 ### Deviations
 
