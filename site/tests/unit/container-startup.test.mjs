@@ -20,13 +20,15 @@ test('normal container startup navigates once and removes only its own observers
   p.off('response', observer); cleaned(p);
 });
 
-test('one local module network-change failure permits one fresh navigation at the same URL', async () => {
-  const p = page(); let calls = 0;
-  const recovered = await openContainerApp(p, url, async (actual, target) => {
-    assert.equal(actual, p); assert.equal(target, url);
-    if (++calls === 1) { p.emit('requestfailed', request()); throw new Error('initial module graph aborted'); }
-  });
-  assert.equal(recovered, true); assert.equal(calls, 2); cleaned(p);
+test('one local module network-change failure permits one fresh navigation at the same HTTP or TLS published URL', async () => {
+  for (const targetUrl of [url, 'https://127.0.0.1:32772/?debug', 'https://kibitz.test:32772/?debug']) {
+    const p = page(); let calls = 0;
+    const recovered = await openContainerApp(p, targetUrl, async (actual, target) => {
+      assert.equal(actual, p); assert.equal(target, targetUrl);
+      if (++calls === 1) { p.emit('requestfailed', request('net::ERR_NETWORK_CHANGED', new URL('library/cache.js', targetUrl).href)); throw new Error('initial module graph aborted'); }
+    });
+    assert.equal(recovered, true); assert.equal(calls, 2); cleaned(p);
+  }
 });
 
 test('a repeated network-change failure remains a failure after the single recovery', async () => {
