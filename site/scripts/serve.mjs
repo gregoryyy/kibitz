@@ -1,7 +1,7 @@
 // Local static server; parse5 selects inline HTML scripts for CSP hashes.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
 //                          [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]
-//                          [--operator FILE --sessions FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]
+//                          [--operator FILE --sessions FILE --permissions FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); the gateway additionally needs the provider SDKs. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
@@ -40,11 +40,12 @@ async function main() {
       'http-dev': { type: 'boolean', default: false },
       operator: { type: 'string' },
       sessions: { type: 'string' },
+      permissions: { type: 'string' },
       'app-host': { type: 'string' },
       'legacy-origin': { type: 'boolean', default: false },
     },
   });
-  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--operator FILE --sessions FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]'); process.exit(2); }
+  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--operator FILE --sessions FILE --permissions FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]'); process.exit(2); }
   const root = fs.realpathSync(positionals[0]);
   let modelsDir = '';
   if (opt.models) {
@@ -76,10 +77,12 @@ async function main() {
       const { privateDatabaseFile } = await import('../server/private-files.mjs');
       // Operator proof/configuration precedes private database creation.
       const operator = readOperator(opt.operator, servedRoots);
+      const { readPermissions } = await import('../server/permissions.mjs');
+      readPermissions(opt.permissions, servedRoots, operator); // Validate before opening any private database.
       if (!opt.sessions) throw Object.assign(new Error('Configure a private operator identity and session database outside served directories.'), { code: 'ERR_KIBITZ_OPERATOR_CONFIG' });
       registry = sessionStore(privateDatabaseFile(opt.sessions, servedRoots));
       process.once('exit', () => registry.close());
-      sessionApi = createSessionApi({ operator, store: registry, hostname: appHost });
+      sessionApi = createSessionApi({ operator, store: registry, hostname: appHost, permissions: () => readPermissions(opt.permissions, servedRoots, operator) });
     } else sessionApi = createSessionApi(); // Explicit plaintext development, never final authentication.
   }
   const identity = tlsOptions ? sessionApi?.identity : undefined;

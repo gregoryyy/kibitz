@@ -46,4 +46,4 @@ VOLUME ["/data"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD ["/nodejs/bin/node", "scripts/healthcheck.mjs"]
 ENTRYPOINT ["/nodejs/bin/node"]
-CMD ["scripts/serve.mjs", "dist", "--api", "--operator", "/tls/operator.json", "--sessions", "/data/sessions.sqlite", "--tls-key", "/tls/key.pem", "--tls-cert", "/tls/cert.pem", "--env=", "--host", "0.0.0.0", "--port", "8765", "--index", "_test.html", "--usage", "/data/usage.sqlite", "--library", "/data/library.sqlite"]
+CMD ["scripts/serve.mjs", "dist", "--api", "--operator", "/tls/operator.json", "--permissions", "/tls/permissions.json", "--sessions", "/data/sessions.sqlite", "--tls-key", "/tls/key.pem", "--tls-cert", "/tls/cert.pem", "--env=", "--host", "0.0.0.0", "--port", "8765", "--index", "_test.html", "--usage", "/data/usage.sqlite", "--library", "/data/library.sqlite"]

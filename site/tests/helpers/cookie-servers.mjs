@@ -1,5 +1,5 @@
 // Real loopback HTTP/TLS fixtures; keys exist only in a temporary private directory.
-// Isolated legacy-cookie transport tests inject identityCookie deliberately; the final CLI
+// Isolated legacy-cookie transport tests inject identityCookie and an explicit mock authorizer; the final CLI
 // uses the issued-session authority instead. No provider/env file is used.
 import http from 'node:http';
 import https from 'node:https';
@@ -29,7 +29,7 @@ export async function cookieServers() {
     const urls = {};
     for (const encrypted of [false, true]) {
       const store = createLibraryStore(); stores.push(store);
-      const library = createLibraryApi({ store, identity: identityCookie, allowInsecureHttp: !encrypted }), api = createApi({ identity: identityCookie, allowInsecureHttp: !encrypted, config: loadConfig({ AI_PROVIDER: 'mock' }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }) });
+      const library = createLibraryApi({ store, identity: identityCookie, authorize: () => {}, allowInsecureHttp: !encrypted }), api = createApi({ identity: identityCookie, authorize: () => {}, allowInsecureHttp: !encrypted, config: loadConfig({ AI_PROVIDER: 'mock' }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }) });
       const handle = async (req, res) => {
         if (await library(req, res) || await api(req, res)) return;
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end('<!doctype html><title>Cookie transport fixture</title>');

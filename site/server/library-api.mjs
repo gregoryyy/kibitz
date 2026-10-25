@@ -1,5 +1,6 @@
 // Same-origin, cookie-scoped persistence. No provider calls or automatic browser-library upload.
 import crypto from 'node:crypto';
+import { authorizeFunction, permissionFor } from './permissions.mjs';
 import { checkSession, sessionAction } from './session-guard.mjs';
 import { developmentIdentity } from './session-identity.mjs';
 import net from 'node:net';
@@ -9,6 +10,8 @@ import { LIBRARY_LIMITS } from './library-store.mjs';
 
 const HEADERS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', Vary: 'Cookie' };
 const ERRORS = {
+  permission_unavailable: [503, 'Local operator permissions cannot be verified. Check private server configuration.'],
+  permission_denied: [403, 'This function is disabled for the local operator.'],
   session_expired: [401, 'Sign in to the local server to continue.'],
   forbidden: [403, 'Cross-origin library access is not allowed.'],
   bad_request: [400, 'Invalid library request.'],
@@ -79,9 +82,9 @@ export async function validateLibraryChanges(changes) {
 /**
  * Mount before the AI gateway, which otherwise handles all /api/ paths.
  * TLS requires an issued backend session; explicit HTTP development may create a synthetic group.
- * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean, hostname?: string|null, identity?: typeof developmentIdentity}} [options]
+ * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean, hostname?: string|null, identity?: typeof developmentIdentity, authorize?: typeof authorizeFunction}} [options]
  */
-export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false, hostname = null, identity = developmentIdentity } = {}) {
+export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false, hostname = null, identity = developmentIdentity, authorize = authorizeFunction } = {}) {
   let windowAt = Date.now(), writes = 0;
   return async (req, res) => {
     const { pathname } = new URL(req.url, 'http://x');
@@ -89,6 +92,7 @@ export function createLibraryApi({ store = null, validate = validateLibraryChang
     try {
       checkOrigin(req, hostname);
       let token = identity(req, res, 'library', { allowInsecureHttp });
+      authorize(req, permissionFor(req), { allowInsecureHttp });
       if (pathname === '/api/library/status') {
         if (req.method !== 'GET') fail('method');
         return json(res, 200, { available: !!store, scope: store && token ? scopeOf(token) : null });

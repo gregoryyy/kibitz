@@ -13,10 +13,10 @@ const language = pickLang(savedLanguage, [...navigator.languages]), i18n = trans
 document.documentElement.lang = language;
 document.title = 'Kibitz — ' + t('Your data');
 for (const node of document.querySelectorAll('[data-i18n]')) { node.textContent = t(node.textContent); node.setAttribute('translate', 'no'); }
-let busy = false, snapshot = null, confirmation = null;
+let busy = false, snapshot = null, confirmation = null, allowedRead = true, allowedErase = true;
 const buttons = [...document.querySelectorAll('button')].filter(button => !['eraseCancel', 'eraseProceed'].includes(button.id));
 function updateButtons() {
-  buttons.forEach(button => { button.disabled = busy || ['serverExport', 'serverErase'].includes(button.id) && !snapshot; });
+  buttons.forEach(button => { button.disabled = busy || button.id === 'serverLoad' && !allowedRead || button.id === 'serverErase' && !allowedErase || ['serverExport', 'serverErase'].includes(button.id) && (!snapshot || !allowedRead); });
 }
 function download(text, name) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json;charset=utf-8' })), link = document.createElement('a');
@@ -46,7 +46,7 @@ async function run(area, action, erasing = false) {
   catch (error) {
     if (area === 'server') {
       snapshot = null;
-      $('#serverStatus').textContent = t(['conflict', 'session_changed', 'no_session'].includes(error.code) ? 'The server library changed. Check it again before retrying.' : 'The server operation could not be confirmed. Check the library before retrying; no completion is claimed.');
+      $('#serverStatus').textContent = t(error.code === 'permission_unavailable' ? 'Server function permissions could not be confirmed.' : error.code === 'permission_denied' ? 'This function is disabled by the local operator.' : ['conflict', 'session_changed', 'no_session'].includes(error.code) ? 'The server library changed. Check it again before retrying.' : 'The server operation could not be confirmed. Check the library before retrying; no completion is claimed.');
     } else $('#browserStatus').textContent = t(erasing ? 'Browser erasure could not be completed. Data may be partly erased. Close other Kibitz tabs and retry.' : 'Browser data could not be read. No erasure was started.');
   } finally { busy = false; updateButtons(); }
 }
@@ -93,4 +93,4 @@ $('#eraseProceed').addEventListener('click', () => {
   });
 });
 
-createOperatorPanel($('#operatorSignIn'), { t, onChange: state => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t(state.authenticated ? 'Sign-in complete. Check the server library before continuing.' : 'Signed out of the local server.'); } });
+createOperatorPanel($('#operatorSignIn'), { t, onAccess: grants => { allowedRead = grants === null || grants.includes('library:read'); allowedErase = grants === null || grants.includes('library:erase') && allowedRead; updateButtons(); }, onChange: state => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t(state.authenticated ? 'Sign-in complete. Check the server library before continuing.' : 'Signed out of the local server.'); } });

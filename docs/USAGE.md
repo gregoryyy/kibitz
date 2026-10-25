@@ -18,7 +18,7 @@ legacy-origin recovery with the original profile. See [migration](COOKIE-MIGRATI
 `just serve`, `just offline` and `npm run serve` select the gitignored private `.kibitz-data/usage.sqlite`. Counters survive a server restart. For a direct invocation, opt in explicitly:
 
 ```sh
-node site/scripts/serve.mjs site/dist --api --env .env --operator .kibitz-data/tls/operator.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --usage .kibitz-data/usage.sqlite --index _test.html
+node site/scripts/serve.mjs site/dist --api --env .env --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --usage .kibitz-data/usage.sqlite --index _test.html
 ```
 
 Direct `serve.mjs --api` without `--usage`, evaluation tools and automated tests use `:memory:`; restarting those intentionally resets accounting. Startup states whether counters are persistent or in memory. `--usage` has no effect without `--api`.

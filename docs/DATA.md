@@ -35,3 +35,7 @@ identity data. It contains grouping identifiers for authenticated recovery; brow
 export/erase does not remove it or revoke sessions. Keep the operator JSON, registry,
 current usage/library files and profile together in private backups. [Backend revocation](SESSION-TERMINATION.md) is separate from erasure; complete
 authenticated client cleanup remains a release TODO.
+
+[Operator function grants](PERMISSIONS.md) independently control server read, write
+and erase. Permission denial or unverifiable policy cannot use a cached private
+library as fallback. Complete authenticated client cleanup remains a separate gate.

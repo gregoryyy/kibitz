@@ -21,7 +21,7 @@ the supplied host mapping is `127.0.0.1:8765`, preserving local browser access.
 
 First supply trusted native TLS files and a public issuer CA as described in
 [TLS setup](TLS.md). The default command requires `/tls/key.pem` and
-`/tls/cert.pem` plus the private `/tls/operator.json` from [operator setup](SESSIONS.md); Compose mounts `.kibitz-data/tls` read-only there (override with
+`/tls/cert.pem` plus private `/tls/operator.json` and `/tls/permissions.json` from [operator setup](SESSIONS.md) and [explicit permission setup](PERMISSIONS.md); Compose mounts `.kibitz-data/tls` read-only there (override with
 `KIBITZ_TLS_DIRECTORY`). Files must be readable by UID 1000, with owner-only key/operator
 permissions; keep them outside the build context/public directories. The health
 probe uses verified HTTPS and Compose explicitly supplies `/tls/ca.pem` as its

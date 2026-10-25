@@ -40,7 +40,7 @@ test('the final CLI enforces its isolated hostname and sends one-year HSTS throu
     ['/api/library/records', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }, 400],
     ['/api/ai/config', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{bad' }, 400],
     ['/api/ai/status', { headers: { origin: 'https://localhost:8765' } }, 403],
-    ['/api/ai/missing', {}, 404], ['/missing', {}, 404], ['/models/missing.gguf', {}, 404],
+    ['/api/ai/missing', {}, 403], ['/missing', {}, 404], ['/models/missing.gguf', {}, 404],
     ['/%zz', {}, 400], ['/', { method: 'POST' }, 405],
     ['/api/ai/test', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: '{}' }, 415],
   ];

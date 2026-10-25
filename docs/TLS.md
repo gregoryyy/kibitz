@@ -6,7 +6,8 @@ The owner selected native Node HTTPS with operator-supplied certificates on
 The isolated-host HSTS policy implements **11.4.2.2**.
 Backend-issued [operator sessions](SESSIONS.md) address **11.4.2.3**.
 [Backend session termination](SESSION-TERMINATION.md) addresses **11.4.2.4**.
-The remaining eight ASVS fixes include function permissions, external endpoint
+[Explicit function grants](PERMISSIONS.md) address **11.4.2.5**.
+The remaining seven ASVS fixes include external endpoint
 transport policy, actual TLS inventory and public-certificate evidence. This
 does not close the final-release gate.
 
@@ -19,10 +20,11 @@ npm --prefix site run build
 node site/scripts/serve.mjs site/dist --api --env .env \
   --index _test.html --host 127.0.0.1 --port 8765 \
   --usage .kibitz-data/usage.sqlite --library .kibitz-data/library.sqlite \
-  --operator .kibitz-data/tls/operator.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem
+  --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem
 ```
 
-First initialize the private [operator identity](SESSIONS.md) once, then supply
+First initialize the private [operator identity](SESSIONS.md) once and create its
+[explicit permission policy](PERMISSIONS.md), then supply
 both TLS files before running this command. The server neither generates
 certificates nor installs a certificate authority or changes a system/browser
 trust store. The unencrypted PEM private key and PEM certificate/chain must be
@@ -112,8 +114,8 @@ identity tokens, private-library ownership and usage counters on HTTPS **at the
 same original hostname**. The new `.test` hostname does not inherit those cookies. Back up
 the browser profile as well as databases before upgrading; ordinary JSON browser
 exports omit HttpOnly cookies. Existing groups are adopted only after operator proof; the new backend-issued
-session supplies authentication. Termination and function permissions remain
-**11.4.2.4–11.4.2.5**.
+session supplies authentication. Backend [termination](SESSION-TERMINATION.md) and
+[function permissions](PERMISSIONS.md) are verified separately.
 
 For recovery/export at the original IP/localhost origin, explicitly add
 **`--legacy-origin`** with a valid TLS pair and use the saved original profile and

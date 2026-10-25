@@ -2,10 +2,11 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { PERMISSIONS, validatePermissions } from '../../server/permissions.mjs';
 import { newOperator } from '../../server/operator.mjs';
 import { execFileSync } from 'node:child_process';
 
-export function tlsMaterial({ hostname = 'kibitz.test' } = {}) {
+export function tlsMaterial({ hostname = 'kibitz.test', permissions = [...PERMISSIONS] } = {}) {
   const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-test-tls-')));
   fs.chmodSync(dir, 0o700);
   const key = path.join(dir, 'key.pem'), cert = path.join(dir, 'cert.pem'), config = path.join(dir, 'openssl.cnf');
@@ -17,6 +18,8 @@ export function tlsMaterial({ hostname = 'kibitz.test' } = {}) {
     fs.chmodSync(key, 0o600);
     const operator = path.join(dir, 'operator.json'), setup = newOperator();
     fs.writeFileSync(operator, JSON.stringify(setup), { mode: 0o600 });
-    return { dir, key, cert, operator, operatorId: setup.id, secret: setup.secret, ca: fs.readFileSync(cert), close };
+    const policy = path.join(dir, 'permissions.json');
+    fs.writeFileSync(policy, JSON.stringify(validatePermissions({ version: 1, operator: setup.id, allow: permissions }, setup)), { mode: 0o600 });
+    return { policy, dir, key, cert, operator, operatorId: setup.id, secret: setup.secret, ca: fs.readFileSync(cert), close };
   } catch (error) { close(); throw error; }
 }

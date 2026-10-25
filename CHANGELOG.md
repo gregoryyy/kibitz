@@ -15,6 +15,10 @@ pending source, checks and decisions.
 
 ### Added
 
+- Experimental operator-bound backend function grants, private explicit policy setup,
+  live permission changes and read-only server-library access. TLS API startup now
+  requires a private permission file; browser claims/consent cannot grant functions.
+
 - Experimental backend logout and absolute-expiry enforcement, copied-token replay
   rejection across restart, cancellation of held responses across processes, and
   English/German sign-out controls retaining collections for fresh-key recovery.
@@ -22,8 +26,7 @@ pending source, checks and decisions.
 - Experimental backend-issued local operator sessions for HTTPS gateway/library access,
   private explicit setup, English/German sign-in and proof-authorized migration
   preserving existing collections/counters. Native/container APIs require the
-  operator file and separate private session registry. Explicit function
-  permissions and complete client cleanup retain their final-release TODOs.
+  operator file and separate private session registry. Complete client cleanup retains its final-release TODO.
 
 - Native HTTPS listener using operator-supplied certificates and private
   keys, with validated files and no HTTP fallback on invalid TLS configuration.

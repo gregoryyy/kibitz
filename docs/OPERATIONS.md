@@ -49,7 +49,7 @@ from the repository root, after `just build`:
 umask 077
 mkdir -p .kibitz-data
 chmod 700 .kibitz-data
-node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --index _test.html \
+node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --index _test.html \
   --usage .kibitz-data/usage.sqlite > .kibitz-data/runtime.log 2>&1
 ```
 

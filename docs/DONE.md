@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Explicit local operator function permissions (experimental)
+
+TODO item: 11.4.2.5 / ASVS 8.2.1. Hosted accounts stay deferred and complete authenticated client-data cleanup remains 11.4.2.11.
+
+### Implementation notes
+
+- Add an explicit private version-one policy bound to the operator ID and offline no-overwrite setup selecting named grants, all or none. Require the file before native TLS API storage/listening; share the bounded descriptor reader with operator setup while preserving its private-root/type/link/permission/size boundary. Standard native/container recipes name the policy in the existing read-only identity mount; keys, sessions and data schemas remain unchanged.
+- Map every gateway/library method and route to an explicit function grant, deny unmapped functions, and require read alongside library mutation/erasure grants. Check backend grants independently of authentication, ownership, Origin, provider consent and budgets; browser bodies/queries/cookies cannot add them. Reread validated current policy at dispatch and guarded output/mutation boundaries; polling aborts held responses after revocation without logging out the session. Invalid policy fails closed with fixed bounded errors.
+- List confirmed function access in English/German sign-in settings, disable denied provider/test/data-erase controls and explain denied operations. A denied or unverifiable library permission cannot fall back to a cached collection and withdraws the current snapshot; general DOM/memory/storage/offline lifecycle remains separate. Preserve existing profiles/keys/databases for adding a policy and proof-authorized recovery.
+- Policy/actual-CLI tests exercise empty and independent grants across every protected function, immutable validation, private setup and startup ordering, unchanged denied counters/records, client-claim rejection, collection/operator boundaries and held-provider revocation. Browser checks cover deny-all, German mobile read-only access and live policy changes; the actual previous CLI supplies the negative regression. Fresh build/check pass. Full mock-only unit suite: 763 passes, one opt-in live skip. All 45 focused browser cases pass, and 14 affected permission/library cases pass again after explicit policy-failure handling. The actual pre-permissions CLI (`aaec4e0`) fails the new browser regression with 200 instead of 403. A concurrent local unit/browser run hit two timing-sensitive failures; both existing groups pass unchanged in isolation (21 groups), and the final full suite passes alone without timeout/assertion changes. The Linux image case now tests a separate offline policy change, continued read access, denied test/embedding/erase and independent logout/recovery; actual source-specific package/assessment results follow CI.
+
+### Deviations
+
+- Local operator-owned policy files only; no hosted roles, browser grant editing, new dependency, paid inference or production-key generation. Explicit synthetic HTTP development stays outside final scope. Public assets/client-only operations are outside backend authorization. Already accepted/emitted work cannot be recalled; current permission checks do not claim retroactive erasure of exports or complete offline client cleanup.
+
+### Insights
+
+- Authentication and provider sharing consent do not establish function authority. A separate private allowlist also permits read-only use without granting inference or erasure. Denial must remain distinct from ordinary service downtime, because generic offline fallback could otherwise reopen a cached private collection after an explicit authorization failure.
+
 ## 2026-10-25 — Backend logout and session termination (experimental)
 
 TODO item: 11.4.2.4 / ASVS 7.4.1. Explicit function permissions and complete authenticated client-data lifecycle remain separate final-release gates.

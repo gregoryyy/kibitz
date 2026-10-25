@@ -1,4 +1,5 @@
 import net from 'node:net';
+import { PERMISSIONS, validatePermissions, permissionGranted } from './permissions.mjs';
 import { SESSION_GUARD } from './session-guard.mjs';
 import { operatorProof } from './operator.mjs';
 import { SessionError, SESSION_COOKIE, sessionCookie, sessionToken } from './sessions.mjs';
@@ -26,11 +27,17 @@ function readJson(req) {
     req.once('error', () => finish(new SessionError('bad_request'))); req.once('aborted', () => finish(new SessionError('bad_request')));
   });
 }
-export function createSessionApi({ operator = null, store = null, hostname = null, now = () => Date.now(), pollMs = 250 } = {}) {
+export function createSessionApi({ operator = null, store = null, hostname = null, now = () => Date.now(), pollMs = 250, permissions = () => null } = {}) {
   let attempts = 0, windowAt = now();
   const required = !!operator, active = new Set();
   const stop = value => { for (const entry of active) if (entry.value === value) entry.res.destroy(); };
 
+  const policy = () => {
+    try { return validatePermissions(permissions(), operator); } catch { throw new SessionError('permission_unavailable'); }
+  };
+  const allowed = scope => !!scope && permissionGranted(policy(), scope);
+  const requirePermission = scope => { if (!allowed(scope)) throw new SessionError('permission_denied'); };
+  const grants = () => { const current = policy(); return PERMISSIONS.filter(scope => permissionGranted(current, scope)); };
   const verify = req => {
     if (!req.socket.encrypted || !operator || !store) throw new SessionError();
     try { return store.verify(operator, sessionToken(req)); }
@@ -41,12 +48,15 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
     identity(req, res, kind) {
       const session = verify(req);
       if (!req[SESSION_GUARD]) {
-        const value = sessionToken(req), entry = { value, res };
-        const check = () => { if (res.destroyed) throw new SessionError(); return verify(req); };
-        req[SESSION_GUARD] = res[SESSION_GUARD] = { check, run: action => { check(); return store.run(operator, value, action); } };
+        const value = sessionToken(req), entry = { value, res }; let permission = null;
+        const check = () => { if (res.destroyed) throw new SessionError(); const session = verify(req); if (permission !== null) requirePermission(permission); return session; };
+        req[SESSION_GUARD] = res[SESSION_GUARD] = { check, allowed, permissions: grants,
+          authorize: scope => { permission = scope; check(); requirePermission(scope); },
+          run: action => { if (res.destroyed) throw new SessionError(); return store.run(operator, value, () => { requirePermission(permission); return action(); }); } };
+
         active.add(entry);
         // Durable storage checks cover revocation by another native process too.
-        const inspect = () => { try { verify(req); } catch { res.destroy(); } };
+        const inspect = () => { try { check(); } catch { res.destroy(); } };
         const poll = setInterval(inspect, pollMs); poll.unref();
         const expiry = setTimeout(inspect, Math.max(1, session.expires - now())); expiry.unref();
         const clean = () => { clearInterval(poll); clearTimeout(expiry); active.delete(entry); };
@@ -61,7 +71,7 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
         boundary(req, hostname);
         if (route === '/api/session/status' && req.method === 'GET') {
           let session; try { session = verify(req); } catch (error) { if (!(error instanceof SessionError) || error.code !== 'session_expired') throw error; }
-          return json(res, 200, { required, authenticated: !!session, ...(session ? { expires: session.expires } : {}) });
+          return json(res, 200, { required, authenticated: !!session, ...(session ? { expires: session.expires, permissions: grants() } : {}) });
         }
         if (route === '/api/session/logout' && req.method === 'POST') {
           if (!required || !req.socket.encrypted || !store) throw new SessionError('forbidden');
@@ -79,6 +89,7 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
         const body = await readJson(req);
         if (!body || Object.keys(body).some(key => !['secret', 'migrate'].includes(key)) || typeof body.migrate !== 'boolean') throw new SessionError('bad_request');
         if (!operatorProof(operator, body.secret)) throw new SessionError();
+        const currentGrants = grants();
         // Library-path endpoint receives both original canonical grouping cookies.
         const present = (req.headers.cookie || '').split(';').some(part => part.trim() === SESSION_COOKIE || part.trim().startsWith(SESSION_COOKIE + '='));
         const previous = present ? sessionToken(req) : null;
@@ -91,7 +102,7 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
         if (previous) stop(previous);
         retainGrouping(res, store.verify(operator, issued.value));
         sessionCookie(res, issued.value);
-        return json(res, 200, { required: true, authenticated: true, expires: issued.expires });
+        return json(res, 200, { required: true, authenticated: true, expires: issued.expires, permissions: currentGrants });
       } catch (error) {
         const fault = error instanceof SessionError ? error : new SessionError(error?.code === 'bad_request' ? 'bad_request' : 'unavailable');
         return json(res, fault.status, { error: { code: fault.code, message: fault.message } });

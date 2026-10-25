@@ -8,7 +8,7 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const token = size => randomBytes(size).toString('base64url');
 export class SessionError extends Error {
   constructor(code = 'session_expired') {
-    const messages = { session_expired: [401, 'Sign in to the local server to continue.'], forbidden: [403, 'Request not allowed.'],
+    const messages = { permission_unavailable: [503, 'Local operator permissions cannot be verified. Check private server configuration.'], permission_denied: [403, 'This function is disabled for the local operator.'], session_expired: [401, 'Sign in to the local server to continue.'], forbidden: [403, 'Request not allowed.'],
       bad_request: [400, 'Invalid session request.'], session_conflict: [409, 'This collection belongs to a different operator. Restore the intended private identity before migrating.'],
       rate_limited: [429, 'Too many sign-in attempts. Try again in a minute.'], unavailable: [503, 'Local session storage is unavailable.'] };
     const [status, message] = messages[code] || messages.unavailable; super(message); this.code = code; this.status = status;

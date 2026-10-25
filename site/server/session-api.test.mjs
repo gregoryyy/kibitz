@@ -11,6 +11,7 @@ import { legacyCookieData } from '../tests/helpers/legacy-cookie-data.mjs';
 import { createApi } from './api.mjs';
 import { createLibraryApi } from './library-api.mjs';
 import { loadConfig } from './ai.mjs';
+import { PERMISSIONS, validatePermissions } from './permissions.mjs';
 import { createSessionApi } from './session-api.mjs';
 import { sessionStore } from './sessions.mjs';
 import { newOperator, validateOperator } from './operator.mjs';
@@ -67,6 +68,7 @@ test('replacing the operator rejects another owner’s issued session and refuse
   const issued = await tlsRequest(server.base + '/api/library/session', identity.ca, { body: { secret: identity.secret, migrate: true } });
   const cookie = issued.headers['set-cookie'].filter(value => !value.includes('Max-Age=0')).map(value => value.split(';')[0]).join('; ');
   await server.close(); const replacement = newOperator(); fs.writeFileSync(identity.operator, JSON.stringify(replacement));
+  fs.writeFileSync(identity.policy, JSON.stringify({ version: 1, operator: replacement.id, allow: [...PERMISSIONS] }));
   const next = await httpsCli({ root, key: identity.key, cert: identity.cert, operatorSecret: replacement.secret, final: true }); t.after(next.close);
   assert.equal((await tlsRequest(next.base + '/api/ai/status', identity.ca, { cookie })).status, 401);
   const adoption = await tlsRequest(next.base + '/api/library/session', identity.ca, { cookie: cookie.split('; ').filter(part => part.startsWith('__Secure-')).join('; '), body: { secret: replacement.secret, migrate: true } });
@@ -110,7 +112,7 @@ test('direct TLS API construction fails closed without a backend identity author
 test('the documented proof limit resets after one minute without permanently disabling the operator', async t => {
   const identity = tlsMaterial(); t.after(identity.close); let now = 1000;
   const operator = validateOperator(newOperator()), store = sessionStore(':memory:', { now: () => now }); t.after(store.close);
-  const api = createSessionApi({ operator, store, now: () => now });
+  const api = createSessionApi({ operator, store, permissions: () => validatePermissions({ version: 1, operator: operator.id, allow: [...PERMISSIONS] }, operator), now: () => now });
   const server = https.createServer({ key: fs.readFileSync(identity.key), cert: identity.ca }, (req, res) => api.handle(req, res));
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }));
   const url = `https://127.0.0.1:${server.address().port}/api/library/session`;

@@ -3,6 +3,19 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'Server function permissions could not be confirmed.': 'Die Server-Berechtigungen konnten nicht bestätigt werden.',
+  'Enabled server functions:': 'Freigegebene Server-Funktionen:',
+  'No server functions are enabled. Enable access in the local operator configuration.': 'Es sind keine Server-Funktionen freigegeben. Aktiviere den Zugriff in der lokalen Betreiberkonfiguration.',
+  'Server coaching is disabled by the local operator.': 'Der Server-Trainer ist vom lokalen Betreiber deaktiviert.',
+  'This function is disabled by the local operator.': 'Diese Funktion ist vom lokalen Betreiber deaktiviert.',
+  'Server status': 'Serverstatus',
+  'Server coaching': 'Server-Trainer',
+  'Provider configuration': 'Anbieterkonfiguration',
+  'Connection tests': 'Verbindungstests',
+  'Server embeddings': 'Server-Embeddings',
+  'Read server library': 'Server-Bibliothek lesen',
+  'Save server library': 'Server-Bibliothek speichern',
+  'Erase server library': 'Server-Bibliothek löschen',
   'Sign out': 'Abmelden',
   'Signed out of the local server.': 'Vom lokalen Server abgemeldet.',
   'Sign-out could not be confirmed. Check the connection and try again.': 'Die Abmeldung konnte nicht bestätigt werden. Prüfe die Verbindung und versuche es erneut.',

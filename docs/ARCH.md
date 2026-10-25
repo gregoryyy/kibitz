@@ -304,7 +304,8 @@ The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, 
   no longer authorize TLS APIs. [Setup and migration](SESSIONS.md) describe storage
   and recovery. [Backend termination](SESSION-TERMINATION.md) serializes protected
   actions with durable revocation, closes held responses and preserves recovery
-  locators. Explicit permissions and complete client cleanup keep their TODOs.
+  locators. A private [operator-bound function policy](PERMISSIONS.md) is rechecked at backend
+  dispatch and guarded output/mutation boundaries; complete client cleanup retains its TODO.
 - **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Final Host checks accept the configured isolated `.test` hostname; explicit legacy/development modes retain localhost/IP checks. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
 - **Page hardening:**
   - a hash-based CSP: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`;

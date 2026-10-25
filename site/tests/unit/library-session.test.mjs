@@ -100,3 +100,23 @@ test('probes detect a changed cookie owner, and a closed session cannot reconnec
   await session.connect(); await session.probe(); assert.equal(session.state.snapshot, null); assert.equal(session.state.error, 'session_changed');
   session.close(); const n = net.calls.length; await assert.rejects(session.connect(), code('library_cancelled')); await assert.rejects(session.change([]), code('library_cancelled')); assert.equal(net.calls.length, n);
 });
+
+test('an explicit server permission denial never falls back to a previously cached private collection', async () => {
+  const saved = { version: 1, scope: a, snapshot: snapshot(), cachedAt: '2026-10-24T09:00:00Z' }, cache = memoryCache([[a, saved]]);
+  const net = transport({ available: true, scope: a }, () => response({ error: { code: 'permission_denied' } }, 403));
+  const session = createServerLibrary({ ...net, cache }); await session.connect();
+  assert.equal(session.state.snapshot, null); assert.equal(session.state.mode, 'unavailable'); assert.equal(session.state.error, 'permission_denied'); assert.deepEqual(cache.reads, []); session.close();
+});
+
+test('a fresh permission denial during a probe withdraws the current private snapshot', async () => {
+  const cache = memoryCache(), net = transport(...online(), () => response({ error: { code: 'permission_denied' } }, 403));
+  const session = createServerLibrary({ ...net, cache }); await session.connect(); assert(session.state.snapshot);
+  await session.probe(); assert.equal(session.state.snapshot, null); assert.equal(session.state.mode, 'unavailable'); assert.equal(session.state.error, 'permission_denied'); session.close();
+});
+
+test('an unverifiable permission response is not treated as an offline cache fallback', async () => {
+  const saved = { version: 1, scope: a, snapshot: snapshot(), cachedAt: '2026-10-24T09:00:00Z' }, cache = memoryCache([[a, saved]]);
+  const net = transport({ available: true, scope: a }, () => response({ error: { code: 'permission_unavailable' } }, 503));
+  const session = createServerLibrary({ ...net, cache }); await session.connect();
+  assert.equal(session.state.snapshot, null); assert.equal(session.state.mode, 'unavailable'); assert.equal(session.state.error, 'permission_unavailable'); assert.deepEqual(cache.reads, []); session.close();
+});

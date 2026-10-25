@@ -64,7 +64,8 @@ and exports; do not clear the registry or restore stale databases over newer wri
 This milestone establishes backend termination and basic UI acknowledgement.
 **Authenticated client-data lifecycle remains TODO 11.4.2.11**: complete cleanup
 of DOM, memory, browser storage, offline caches, multi-tab state and recovery is
-not claimed here. Explicit backend function permissions also retain TODO 11.4.2.5.
+not claimed here. [Explicit backend function permissions](PERMISSIONS.md) use a separate private
+policy and do not replace this termination boundary.
 The local single-user scope remains; no hosted accounts or release clearance.
 
 ## Verification

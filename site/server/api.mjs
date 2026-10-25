@@ -14,6 +14,7 @@
 //   GET  /api/ai/embeddings -> safe destination/configuration and opaque cookie scope
 //   POST /api/ai/embeddings {texts, fingerprint, scope} -> {vectors, metadata, usage, user}
 //                           explicit bounded batches; no server text/vector storage
+import { authorizeFunction, permissionFor, functionFlags } from './permissions.mjs';
 import { CookieError } from './cookies.mjs';
 import { developmentIdentity } from './session-identity.mjs';
 import { checkSession, sessionAction } from './session-guard.mjs';
@@ -43,11 +44,11 @@ export function createApi({
   users = userLedger({ tokensPerDay: config.userTokensPerDay, costPerDay: config.userCostPerDay, prices: parsePrices(config.prices) }),
   allow = usageAccounting(config).allow,
   countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); },
-  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false, hostname = null, identity = developmentIdentity,
+  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false, hostname = null, identity = developmentIdentity, authorize = authorizeFunction,
 }) {
   const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
-  const status = uid => ({ ...publicStatus(config), usage: ledger.today(), user: users.today(uid), paid: paid() });
+  const status = (uid, req) => ({ ...(functionFlags(req) ? { functions: functionFlags(req) } : {}), ...publicStatus(config), usage: ledger.today(), user: users.today(uid), paid: paid() });
   // Counts a finished request for the server and the user; returns its usage with the cost.
   const count = (uid, model, usage, isPaid) => ({
     input: usage?.input || 0, output: usage?.output || 0, cost: countUsage(uid, model, usage, { paid: isPaid }),
@@ -59,6 +60,7 @@ export function createApi({
       checkHost(req, hostname);
       checkOrigin(req);
       const uid = identity(req, res, 'usage', { allowInsecureHttp, create: true });
+      authorize(req, permissionFor(req), { allowInsecureHttp });
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
       if (pathname === '/api/ai/embeddings' && req.method === 'POST') {
         checkPost(req);
@@ -68,7 +70,7 @@ export function createApi({
         try { const result = await embeddings.embed(uid, body, res); checkSession(req); return json(res, 200, result); }
         catch (e) { report('embeddings', providerName, e); throw e; }
       }
-      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid));
+      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid, req));
       if (pathname === '/api/ai/config' && req.method === 'POST') return await setConfig(req, res, uid);
       if (pathname === '/api/ai/test' && req.method === 'POST') return await testConnection(req, res, uid);
       if (pathname === '/api/ai/sample' && req.method === 'POST') return await sample(req, res, uid);
@@ -102,7 +104,7 @@ export function createApi({
       sessionAction(req, () => { config = next; provider = config.available ? makeProvider(config) : null; embeddings.policyChanged(); });
       log.info?.(aiConfigEvent(config));
     }
-    return json(res, 200, status(uid));
+    return json(res, 200, status(uid, req));
   }
 
   // The server's daily budget, and the user's for paid models.

@@ -43,7 +43,7 @@ test('browser API, static, HEAD and error responses retain HSTS regardless of sp
   await page.goto(base + '/icon.svg');
   const results = await page.evaluate(async () => {
     const cases = [['/api/ai/status', 'GET', 200], ['/api/library/status', 'GET', 200], ['/', 'HEAD', 200], ['/missing', 'GET', 404],
-      ['/%zz', 'GET', 400], ['/api/ai/status', 'DELETE', 404], ['/api/library/records', 'DELETE', 405]];
+      ['/%zz', 'GET', 400], ['/api/ai/status', 'DELETE', 403], ['/api/library/records', 'DELETE', 403]];
     return await Promise.all(cases.map(async ([route, method, expected]) => {
       const response = await fetch(route, { method, headers: { 'x-forwarded-proto': 'http', 'x-forwarded-host': 'localhost' } });
       return { route, expected, status: response.status, hsts: response.headers.get('strict-transport-security') };

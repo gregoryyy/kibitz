@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const defaultScript = fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
 export function httpsCli({ root, key, cert, operatorSecret, extra = [], library = ':memory:', usage = ':memory:', script = defaultScript, final = false, nodeArgs = [] }) {
   const child = spawn(process.execPath, [...nodeArgs, script, root, '--api', '--env=', '--library', library, '--usage', usage, '--index', '_test.html',
-    '--port', '0', ...(script === defaultScript ? ['--operator', path.join(path.dirname(key), 'operator.json'), '--sessions', path.join(path.dirname(key), 'sessions.sqlite')] : []), ...(final || script !== defaultScript ? [] : ['--legacy-origin']), '--tls-key', key, '--tls-cert', cert, ...extra], {
+    '--port', '0', ...(script === defaultScript ? ['--operator', path.join(path.dirname(key), 'operator.json'), '--permissions', path.join(path.dirname(key), 'permissions.json'), '--sessions', path.join(path.dirname(key), 'sessions.sqlite')] : []), ...(final || script !== defaultScript ? [] : ['--legacy-origin']), '--tls-key', key, '--tls-cert', cert, ...extra], {
     env: { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', AI_LOCAL_ONLY: '1',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', BROWSER_MODEL_URL: '', BROWSER_RUNTIME: 'wllama' },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -46,6 +46,7 @@ export const tlsRequest = (url, ca, { cookie = '', body = undefined, method = bo
     lookup: (_name, _options, done) => done(null, [{ address: '127.0.0.1', family: 4 }]),
     headers: { cookie, ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...headers } }, res => {
     let text = ''; res.setEncoding('utf8'); res.on('data', part => text += part);
+    res.once('aborted', () => reject(Error('TLS fixture response aborted'))); res.once('error', reject);
     res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, text, data: () => JSON.parse(text) }));
   });
   req.once('error', reject); req.once('timeout', () => req.destroy(Error('TLS fixture timed out'))); req.end(body === undefined ? undefined : JSON.stringify(body));

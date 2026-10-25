@@ -14,7 +14,7 @@ just serve
 # Optional private, persistent library:
 cd site
 node scripts/serve.mjs dist --api --env ../.env --library ../.kibitz-data/library.sqlite \
-  --operator ../.kibitz-data/tls/operator.json --sessions ../.kibitz-data/sessions.sqlite --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem
+  --operator ../.kibitz-data/tls/operator.json --permissions ../.kibitz-data/tls/permissions.json --sessions ../.kibitz-data/sessions.sqlite --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem
 ```
 
 The server reads operator-supplied keys from the root `.env`; keys remain outside browser storage, exports, logs and prompts. Server-env key management satisfies TODO 2.9's supported local path. An encrypted store for separate account-owned keys belongs to a future hosted deployment.
@@ -45,7 +45,8 @@ The new default sends one-year HSTS for the dedicated name before every
 application route, including normal error responses. No unrelated localhost/IP
 policy or plaintext redirect is installed. See [HSTS and rollback](TLS.md).
 This closes cookie remediation 11.4.2.1 and HSTS 11.4.2.2, while backend issuance is implemented experimentally under 11.4.2.3. [Backend termination](SESSION-TERMINATION.md) also addresses 11.4.2.4.
-Permissions, complete client cleanup and the other final-release requirements remain open.
+[Explicit function grants](PERMISSIONS.md) address 11.4.2.5; complete client cleanup
+and the other final-release requirements remain open.
 
 The existing `--host` option can change the listener for deliberate development/packaging use. Binding to a LAN/public address does not add accounts, transport security or authorization. A public/shared service is outside this deployment decision. A local machine's users, browser profiles and anonymous cookie scopes are not a hosted tenant-security boundary.
 

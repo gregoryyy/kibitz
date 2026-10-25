@@ -44,7 +44,7 @@ export function createServerLibrary({ fetcher = fetch, cache = createLibraryCach
       const value = JSON.parse(text); current(gen);
       if (!response.ok) {
         const code = value?.error?.code;
-        throw problem(['conflict', 'session_changed', 'no_session', 'invalid_record', 'invalid_changes', 'quota', 'record_too_large', 'too_large', 'rate_limited'].includes(code) ? code : 'library_unavailable');
+        throw problem(['permission_denied', 'permission_unavailable', 'conflict', 'session_changed', 'no_session', 'invalid_record', 'invalid_changes', 'quota', 'record_too_large', 'too_large', 'rate_limited'].includes(code) ? code : 'library_unavailable');
       }
       return value;
     } catch (error) {
@@ -65,7 +65,9 @@ export function createServerLibrary({ fetcher = fetch, cache = createLibraryCach
         invalidate(); state.snapshot = null; state.mode = 'unavailable'; state.busy = false; state.cacheAvailable = null; state.error = 'session_changed';
       }
     }
-    catch (error) { if (gen !== generation) return; state.available = false; }
+    catch (error) { if (gen !== generation) return; state.available = false;
+      if (['permission_denied', 'permission_unavailable'].includes(error.code)) { invalidate(); state.snapshot = null; state.mode = 'unavailable'; state.busy = false; state.error = error.code; }
+    }
     notify(); return state.available;
   }
   async function connect() {
@@ -84,7 +86,7 @@ export function createServerLibrary({ fetcher = fetch, cache = createLibraryCach
       return state.snapshot;
     } catch (error) {
       current(gen);
-      const identityChanged = ['session_changed', 'no_session'].includes(error.code);
+      const identityChanged = ['session_changed', 'no_session', 'permission_denied', 'permission_unavailable'].includes(error.code);
       if (verified && !identityChanged) {
         try {
           const saved = await cache.read(verified); current(gen);
@@ -92,7 +94,7 @@ export function createServerLibrary({ fetcher = fetch, cache = createLibraryCach
         } catch (cacheError) { current(gen); state.cacheAvailable = false; }
       }
       if (!state.snapshot) state.mode = 'unavailable';
-      state.error = identityChanged ? 'session_changed' : 'library_unavailable';
+      state.error = ['permission_denied', 'permission_unavailable'].includes(error.code) ? error.code : identityChanged ? 'session_changed' : 'library_unavailable';
       return null;
     } finally { if (gen === generation) { state.busy = false; notify(); } }
   }
@@ -116,7 +118,7 @@ export function createServerLibrary({ fetcher = fetch, cache = createLibraryCach
       } catch (error) {
         current(gen);
         state.error = error.code || 'library_unavailable';
-        if (['session_changed', 'no_session'].includes(error.code)) { state.snapshot = null; state.mode = 'unavailable'; }
+        if (['session_changed', 'no_session', 'permission_denied', 'permission_unavailable'].includes(error.code)) { state.snapshot = null; state.mode = 'unavailable'; }
         else if (error.code === 'conflict') state.mode = 'conflict';
         else if (!['invalid_record', 'invalid_changes', 'quota', 'record_too_large', 'too_large', 'rate_limited'].includes(error.code)) state.mode = 'cached';
         throw error;

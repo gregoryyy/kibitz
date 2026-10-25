@@ -181,7 +181,7 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     docker('run', '--rm', '--pull=never', '--user', '0:0', '--network', 'none', '--read-only',
       '--mount', `type=bind,src=${identity.dir},dst=/input,readonly`, '--mount', `type=volume,src=${material},dst=/tls`,
       '--entrypoint', 'node', image, '-e', `const fs=require('node:fs');
-        for(const name of ['key.pem','cert.pem','operator.json']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
+        for(const name of ['key.pem','cert.pem','operator.json','permissions.json']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
         fs.chmodSync('/tls',0o700);fs.chownSync('/tls',1000,1000);`);
     containers.add(container);
     docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
@@ -218,6 +218,17 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     for (const file of ['/tls/key.pem', '/key.pem', '/operator.json', '/sessions.sqlite', '/.git/config']) {
       const response = await client.get(probeUrl + file); expect(response.status()).toBe(404);
       expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
+    }
+    // A separate offline operator process updates the private policy; the app's mount stays read-only.
+    docker('run', '--rm', '--pull=never', '--user', '1000:1000', '--network', 'none', '--read-only',
+      '--mount', `type=volume,src=${material},dst=/tls`, '--entrypoint', 'node', image, '-e', `const fs=require('node:fs');
+        const fd=fs.openSync('/tls/permissions.json','r+');try{const policy=JSON.parse(fs.readFileSync(fd,'utf8'));
+        policy.allow=['ai:read','library:read'];const text=JSON.stringify(policy);fs.ftruncateSync(fd,0);fs.writeSync(fd,text,0,'utf8');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}`);
+    expect((await client.get(probeUrl + '/api/ai/status')).status()).toBe(200);
+    expect((await client.get(probeUrl + '/api/library/records')).status()).toBe(200);
+    for (const route of ['/api/ai/test', '/api/ai/embeddings', '/api/library/erase']) {
+      const denied = await client.post(probeUrl + route, { data: {} }); expect(denied.status()).toBe(403);
+      expect((await denied.json()).error.code).toBe('permission_denied');
     }
     expect((await client.post(probeUrl + '/api/session/logout', { data: {} })).status()).toBe(200);
     expect((await client.get(probeUrl + '/api/ai/status', { headers: { cookie: '__Host-kibitz_session=' + session.value } })).status()).toBe(401);

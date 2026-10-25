@@ -23,16 +23,17 @@ The form clears its password immediately on submission and page departure; it
 does not save it in browser storage. Provider sharing permission is still required
 independently, and signing in never runs a paid connection test.
 
-Native TLS API/library serving requires both:
+Native TLS API/library serving requires the identity, registry and private
+[permission policy](PERMISSIONS.md):
 
 ```text
---operator .kibitz-data/tls/operator.json --sessions .kibitz-data/sessions.sqlite
+--operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite
 ```
 
 The standard `just serve`/npm recipes supply those paths. The default container
 reads `/tls/operator.json` from the same read-only, UID-1000-readable mount as its
 TLS identity, and writes `/data/sessions.sqlite` in its private data volume. Supply
-the operator file alongside the certificate and key before starting either mode.
+the operator and permission files alongside the certificate and key before starting either mode.
 Missing, public, oversized, symlinked or non-private operator files stop startup
 before database creation. No identity is silently generated at server startup.
 A static-only HTTPS server does not need an operator identity.

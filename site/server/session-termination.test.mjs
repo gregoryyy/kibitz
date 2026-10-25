@@ -9,6 +9,7 @@ import { httpsCli, tlsRequest } from '../tests/helpers/https-cli.mjs';
 import { legacyCookieData } from '../tests/helpers/legacy-cookie-data.mjs';
 import { validateOperator, newOperator } from './operator.mjs';
 import { sessionStore, SESSION_AGE } from './sessions.mjs';
+import { PERMISSIONS, validatePermissions } from './permissions.mjs';
 import { createSessionApi } from './session-api.mjs';
 import { createApi } from './api.mjs';
 import { loadConfig, loadEmbeddingConfig } from './ai.mjs';
@@ -21,7 +22,7 @@ async function fixture(t, { provider, embedder, validate, clock = () => Date.now
   const identity = tlsMaterial(), setup = validateOperator({ version: 1, id: identity.operatorId, secret: identity.secret });
   const registry = path.join(identity.dir, 'sessions.sqlite'); fs.writeFileSync(registry, '', { flag: 'wx', mode: 0o600 });
   const store = sessionStore(registry, { now: clock }), books = createLibraryStore();
-  const auth = createSessionApi({ operator: setup, store, now: clock, pollMs: 15 });
+  const auth = createSessionApi({ operator: setup, store, permissions: () => validatePermissions({ version: 1, operator: setup.id, allow: [...PERMISSIONS] }, setup), now: clock, pollMs: 15 });
   const identityOf = (req, res, kind) => { const value = auth.identity(req, res, kind); identityReady?.resolve(); return value; };
   const library = createLibraryApi({ store: books, identity: identityOf, ...(validate ? { validate } : {}) });
   const api = createApi({ config: loadConfig({ AI_PROVIDER: 'mock' }), identity: identityOf, ...(provider ? { provider } : {}), ...(embedder ? { embedder, embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }) } : {}), log: { error() {}, info() {} } });
