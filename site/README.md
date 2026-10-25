@@ -198,6 +198,7 @@ server/ai.mjs         AI gateway core: config from env (every provider, models p
                       adapters with chat() (Anthropic SDK; openai SDK for OpenAI, Mistral, Ollama), embed(),
                       validation, error mapping, rate limit, mock provider; "browser" (the in-browser model) as a local provider
 server/schema.mjs     Structured replies: the annotation format, a JSON Schema validator, fallback parsing
+server/provider-limits.mjs Total operation deadline, streamed-body/decoded-result caps, caller abort and cleanup
 server/usage.mjs      Tokens per day, the daily token budget, cost estimate from AI_PRICES
 server/models.mjs     Catalog of in-browser models (pinned by size and SHA-256), the download check, which files may be served
 server/api.mjs        GET /api/ai/status; POST /api/ai/sample (NDJSON stream), /structured, /config, /test;

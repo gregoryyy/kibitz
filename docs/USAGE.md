@@ -20,15 +20,25 @@ Direct `serve.mjs --api` without `--usage`, evaluation tools and automated tests
 | `AI_TOKEN_BUDGET_PER_USER_PER_DAY` | Completed paid-cloud tokens per cookie; 0 means unlimited. |
 | `AI_COST_BUDGET_PER_USER_PER_DAY` | Estimated paid-cloud dollars per cookie; 0 means unlimited. |
 | `AI_PRICES` | Operator-supplied input/output prices per million tokens, keyed by model. |
-| `AI_TIMEOUT_MS` | Existing provider request deadline. |
+| `AI_TIMEOUT_MS` | Total chat/embedding SDK-operation deadline, including body consumption/parsing; default 60 seconds, maximum 15 minutes. |
 
 Connection tests, streamed/structured coach turns, tool follow-up turns and embeddings share both rate allowances. A refusal returns `rate_limited`/HTTP 429 and does not invoke a provider. Failed accepted calls still consume their admission slot. Host/origin/content/consent and embedding-input checks precede admission. Numeric daily counters and minute slots reset at the server's **local midnight**, and minute slots also expire after 60 seconds. Changing the system clock/time zone can move that boundary.
 
 Daily paid-user thresholds exclude Ollama/mock. The server token threshold and gateway rates still apply to them. The in-browser model bypasses the gateway and is not counted here. Unknown model prices produce unpriced-token counts and no invented dollar charge; configure token limits as well as dollar limits. Costs are estimates based on configured prices, rather than provider invoices.
 
+## Provider response bounds
+
+Each network-provider chat or embedding operation has one independent deadline covering headers, response consumption, SDK iteration/parsing and final decoded results. Positive `AI_TIMEOUT_MS` values round up to milliseconds and cap at fifteen minutes; invalid/nonpositive configuration uses the existing sixty-second default. Connection tests have the same bounds and now propagate browser disconnects. Caller cancellation and deadline failure abort transport, cancel active readers and prevent late results from being applied; monotonic deadline checks also reject results after synchronous work delays timer delivery. JavaScript cannot preempt a synchronous parser mid-instruction.
+
+The fixed response-body cap is **8 MiB per operation**, measured after HTTP decompression and including SSE framing, invisible fields, tool arguments and error bodies. Decoded coaching text plus tool/result metadata has a smaller **128 KiB cumulative cap** before forwarding to the page. Decoded embedding JSON has an 8 MiB cap to allow vector batches. Injected test clients obey the decoded limits too. Ollama embedding inspection and vector response share one operation's clock/body counter, so failed inspection cannot proceed to text upload. These are per-call limits, not global memory reservations or spending caps.
+
+Gateway-created SDK clients disable automatic SDK retries/backoff. A connection or provider failure is returned for an explicit later retry; SDK debug loggers are silenced so configured vendor debug modes cannot bypass category-only app events. Existing native/JSON fallback, model-tool rounds and Anthropic server-side refusal fallback remain separate behavior: structured output can still make two bounded calls, while a response-limit/timeout failure does not trigger a format retry. Fixture capture keeps its own tighter limits.
+
+Timeouts return `timeout` (HTTP 504); body/result overflow returns `response_too_large` (HTTP 502). Streamed coach responses may already have HTTP 200 and end with an error frame; the page replaces the partial answer with a fixed translated hint. Disconnected work is `cancelled` and emits no AI-failure event. Failed/incomplete work keeps its rate-admission slot but supplies no completed-usage entry; the provider may already have performed/billed work. Aborting a socket cannot recall a provider's accepted work or guarantee its usage report. Daily thresholds retain the limits below.
+
 ## Admission thresholds and durability
 
-Budget checks compare completed usage before accepting another request. The final request can cross a threshold; concurrent requests, adapter retries/fallbacks, incomplete provider usage and a process crash during generation can exceed or under-report it. These are **not hard billing caps or token reservations**. Configure provider-side spending limits when a hard financial limit is required. A provider switch while a response is pending retains the request's original paid/local classification.
+Budget checks compare completed usage before accepting another request. The final request can cross a threshold; concurrent requests, format/tool/server-side fallbacks, incomplete provider usage and a process crash during generation can exceed or under-report it. These are **not hard billing caps or token reservations**. Configure provider-side spending limits when a hard financial limit is required. A provider switch while a response is pending retains the request's original paid/local classification.
 
 Admission commits server/user minute slots before inference. Completion commits both daily ledgers in one SQLite transaction, with WAL and synchronous FULL. Separate server processes using the same file see committed counters. Private-storage, schema and capacity failures refuse operation without silently resetting or falling back to memory. A failure while recording already completed inference cannot undo provider work. At most 10,000 current-day user scopes are accepted; capacity exhaustion preserves existing budgets and rejects another scope.
 

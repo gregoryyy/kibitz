@@ -114,8 +114,10 @@ export function createApi({
     checkBudgets(uid);
     if (!allow(uid)) throw new GatewayError('rate_limited', 'Too many requests; try again in a minute', 429);
     const model = modelFor(config, 'quick'), t0 = Date.now(), isPaid = paid(), selected = provider, providerName = config.provider;
+    const ac = new AbortController();
+    res.once('close', () => { if (!res.writableEnded) ac.abort(); });
     let r;
-    try { r = await complete(selected, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256 }); }
+    try { r = await complete(selected, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256, signal: ac.signal }); }
     catch (e) { report('test', providerName, e); throw e; }
     return json(res, 200, { ok: true, provider: providerName, model, ms: Date.now() - t0, usage: count(uid, model, r.usage, isPaid), user: users.today(uid) });
   }

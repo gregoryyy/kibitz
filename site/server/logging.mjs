@@ -3,7 +3,7 @@
 const PROVIDERS = new Set(['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock']);
 const METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']);
 const ACTIONS = new Set(['sample', 'structured', 'test', 'embeddings']);
-const CODES = new Set(['auth_failed', 'bad_request', 'bad_output', 'budget_exceeded', 'cancelled', 'consent_required', 'forbidden', 'in_browser', 'model_not_found', 'not_found', 'prompt_too_large', 'provider_error', 'provider_rejected', 'rate_limited', 'refused', 'stale_embeddings', 'timeout', 'unavailable', 'usage_unavailable']);
+const CODES = new Set(['auth_failed', 'bad_request', 'bad_output', 'budget_exceeded', 'cancelled', 'consent_required', 'forbidden', 'in_browser', 'model_not_found', 'not_found', 'prompt_too_large', 'provider_error', 'provider_rejected', 'response_too_large', 'rate_limited', 'refused', 'stale_embeddings', 'timeout', 'unavailable', 'usage_unavailable']);
 const SYSTEM_CODES = new Set(['EACCES', 'EADDRINUSE', 'EADDRNOTAVAIL', 'EEXIST', 'EINVAL', 'EISDIR', 'ENOENT', 'ENOTDIR', 'EPERM', 'ERR_MODULE_NOT_FOUND', 'ERR_INVALID_ARG_VALUE', 'ERR_SOCKET_BAD_PORT', 'ERR_PARSE_ARGS_UNKNOWN_OPTION', 'ERR_PARSE_ARGS_INVALID_OPTION_VALUE', 'ERR_PARSE_ARGS_UNEXPECTED_POSITIONAL']);
 const ROUTES = new Map(['status', 'config', 'test', 'sample', 'structured', 'embeddings'].map(name => [`/api/ai/${name}`, `ai.${name}`]));
 export const logProvider = value => PROVIDERS.has(value) ? value : 'other';
