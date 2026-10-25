@@ -19,7 +19,8 @@ Reject malformed/security-relevant input before provider calls or persistent wri
 The server owns consent checks, spending/rate admission, record ownership and storage
 limits. Client cookies identify opaque local groups rather than signed-in users.
 Direct non-browser clients on the trusted machine remain within the operator boundary.
-The HTTP Origin scheme discrepancy is tracked in TODO 11.4.1, not excused by these rules.
+AI writes compare the full Origin against the native socket scheme/host and ignore
+forwarding headers. Direct local clients without Origin remain within the operator boundary.
 
 Imported notes, PGN comments and library text reach prompts through
 [`quote()`](../site/src/coach/prompt.js). Safe text rendering, JSON serialization,
