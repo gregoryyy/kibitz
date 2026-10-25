@@ -148,6 +148,72 @@ TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open
 ### Insights
 
 - A working TLS listener and a secure deployment are different deliverables. Testing the real CLI avoids mistaking a wrapper's HTTPS support for application support, and checking identities before storage creation prevents failed transport setup from leaving new private databases behind.
+## 2026-10-25 — Confidence-weighted assurance links and review findings
+
+TODO item: 0.17.
+
+### Implementation notes
+
+- Extend all three graph contracts to version 2 with finite confidence weights, method, policy and rationale for each declared relation type. Extracted structural references retain direct support; unique suffixes and exact-name attribution use explicitly uncalibrated heuristic weights. Confidence does not claim implementation, truth, runtime execution or acceptance.
+- Add editable [typed assessments](assure/links.json) and their contract. Multiple relation types can coexist for the same pair; per-type overrides preserve extracted provenance. Initial author hypotheses link the inference utility and its fixtures to this TODO without inventing independent review or test-success evidence.
+- Add `utils/assure-infer.mjs`, [findings](assure/findings.json) and a [report](assure/FINDINGS.md). Rules distinguish authored deviations, unresolved/missing trace links, unassessed implementation/verification, competing assessments and bounded possible dependency impact. Each supported finding retains typed paths; path weights use the minimum, alternatives the maximum, without an independence or probability claim.
+- Validation passes the full unit/server suite (731 passes, one opt-in live skip), all thirty-one focused assurance cases, four real-browser cases, fresh app build, utility lint and normal lint/JSDoc/ASVS/freshness checks. Browser coverage exercises actual confidence filtering and finding support paths; no provider calls occur.
+- Final-head CI `40186985029` exposes an existing check-then-bind race in `site/server/usage-serve.test.mjs`: the child fails with `EADDRINUSE` after releasing its probe port. Use the CLI's existing `--port 0` allocation and reported bound URL in usage/library restart fixtures. A [fault injector](../site/tests/fixtures/reclaim-probe-ports.cjs) takes every released probe port; the old usage fixture fails deterministically while all three corrected restart cases pass. `site/tests/unit/cli-port-allocation.test.mjs` keeps that subprocess regression in the suite. No app/runtime change, retry or relaxed assertion is introduced.
+- Expand [the assurance README](assure/README.md) with the three levels, vocabulary, confidence policy, examples, inference semantics and maintenance. Extend the local browser with minimum-confidence filtering, weighted edges, findings search and inspectable support paths. Normal checks regenerate in memory and reject stale graphs or findings.
+
+### Deviations
+
+- The first rules infer evidence gaps and review scope. An absent authored `implements`/`verifies` assessment does not prove absent code/tests; a possible deviation impact is not an observed defect or root cause. Negative findings are scoped to the extracted graph and chosen threshold, with limits reported.
+- Weights are transparent initial support conventions, not calibrated probabilities. No LLM or paid service assigns confidence. Combined reflection headings remain separate from recorded deviations unless an analyst explicitly supplies a typed hypothesis.
+
+### Insights
+
+- Confidence belongs to a relation type: the same artifact pair may support both a strong reference link and a weaker implementation interpretation. Repeating evidence must not inflate support, and filtering must use the effective per-type override rather than retaining the stronger original in parallel.
+- Missing traceability and recorded deviations are different observations. Keeping their evidence paths and qualifications visible makes later inference reviewable without converting documentation omissions into defect claims.
+
+## 2026-10-25 — Object, PR-section and documentation assurance browser
+
+TODO items: 0.16, 0.16.1–0.16.3.
+
+### Implementation notes
+
+- Add separate [object/PR](assure/objects.json) and [documentation](assure/documents.json) graphs with a shared [typed contract](assure/detail-types.mjs). `utils/assure-detail.mjs` extracts functions, classes, methods and control-flow blocks without executing source; qualified identities, AST selectors, exact text hashes and source ranges support reproducible replay. Direct lexical calls and declared local imported exports retain their resolution evidence.
+- Retain public PR bodies, exact head/base commits, observed states and paginated changed-file lists in [a separate metadata snapshot](assure/pull-requests.json). PR description sections connect explicit TODO/file/object references; changed-file membership remains a distinct file-level relation. Explicit refresh is read-only network access; build/check/browser stay offline.
+- Add project Markdown heading hierarchy, fenced blocks, inline/reference-style links, local heading targets and external documentation URLs. Source containment locates the original TODO/DONE/insight/deviation nodes; unresolved anchors, historical paths and ambiguous object names remain gaps.
+- Local validation: all eight detailed-graph fixtures and the full unit/server suite pass (720 passes, one opt-in live skip); three focused Playwright cases pass with no external requests, page errors or CSP violations. Browser checks cover search, typed filters, replayed source, directions, history, deep links, truncation, text-only hostile labels and source/Host/method confinement. The fixed Cytoscape container rule is supplied by local CSS rather than an injected stylesheet.
+- Research [browser foundations](assure/LEVELS.md#browser-foundation-comparison) and choose exact development dependency Cytoscape.js 3.34.4 (MIT), served locally. Build [the small browser](../utils/assure-browser/README.md) under `utils/`: search, directed bounded walks, filters, history/deep links, graph/list navigation and hash-checked source inspection. A fixed-asset loopback server exposes graph IDs rather than arbitrary paths. CI checks all layers and runs focused Playwright coverage before the full app suite.
+
+### Deviations
+
+- These levels add reference precision, not compliance or completion claims. Static calls do not prove runtime execution; dynamic/member calls, re-export chains and unsupported languages remain outside extraction. Exact object mentions require a cited file and unambiguous name in the same authored section/item. PR file membership never becomes an inferred object-level change claim.
+- Retained PR descriptions are refreshable snapshots because GitHub does not supply immutable body revisions. Review comments and CI logs are not fetched. Documentation extraction covers common headings and inline/full/collapsed reference links, with unsupported anchors and schemes recorded rather than guessed.
+
+### Insights
+
+- Lexical scope matters: a parameter that shadows a function name must not become a call edge to the containing function. Independent fixtures exposed and corrected that mapping before real data generation.
+- A replayable range and content hash let readers inspect exactly what an edge refers to. Keeping PR/file changes separate from section/object mentions preserves that precision when historical descriptions are incomplete.
+
+## 2026-10-25 — Typed file-level assurance lineage
+
+TODO item: 0.15.
+
+### Implementation notes
+
+- Added [the assurance graph](assure/lineage.json), its [typed contract](assure/types.mjs), generated schema/report and a repository-local generator/query command in `utils/assure.mjs`. It inventories tracked artifacts and extracts TODO hierarchy/status, DONE references and individual insight/deviation notes with source locations. Combined headings keep a separate reflection type.
+- Link Markdown files and logical items to referenced files; parse literal local JavaScript imports and inline HTML modules without executing them. Preserve ambiguous/missing historical references as explicit unresolved records. Every typed edge has source evidence, and the checker validates endpoint types, ownership, hierarchy and deterministic freshness.
+- Add `just assure`, `just assure-build` and `just assure-query`; `just check` and CI include the freshness/integrity check. The normal Node suite includes small independent fixture cases for parsing, provenance, ranges, ambiguity, safety, integrity and stale data. Local validation passes lint/JSDoc/ASVS, a fresh application build and the full unit/server suite (712 passes, one opt-in live skip); all thirteen focused lineage cases and separate utility/contract lint pass. Actual TODO/file queries and deterministic build/check round trips are exercised without provider calls.
+
+- Initial PR CodeQL flags a backtracking Markdown-link regex (27) and ambiguous classifier anchoring (28). A real old-builder probe times out after two seconds on an unterminated link with 28 escaped pairs. Replace link/code-span extraction and report-label stripping with a scanner that advances through characters/runs, and express directory/extension classification as separate tests. A bounded child covers 100,000 escaped pairs plus a large unmatched-bracket input; title/escape/nesting/code-span cases pass. No query, assertion or finding is suppressed. Corrected scan `40181285750` marks both PR findings fixed. After #130 merged, the freshness gate detected the new main artifacts in the tested merge; integrating main and regenerating the graph restores coverage of that source.
+
+### Deviations
+
+- This first graph records file-level references and authored planning status. It does not infer implementation or requirement satisfaction from a DONE reference, conflate preparation with release approval, or repair historical paths by guessing. Runtime/dynamic dependencies, symbols and historical file revisions remain outside scope.
+- New/deleted files must be staged before regeneration, keeping untracked/private operator material outside the inventory. The generated report makes missing annotation links and unresolved references visible rather than treating them as verified lineage.
+
+### Insights
+
+- Insights and deviations explain why an artifact and a TODO are connected. Keeping them as addressable nodes preserves that rationale during traversal, including partial implementation and open limitations.
+- A source location and an explicit relation type distinguish a reference from a completion claim. The graph should preserve those distinctions even when its endpoint files exist and all structural checks pass.
 
 ## 2026-10-25 — Track ASVS fixes required before final release
 
