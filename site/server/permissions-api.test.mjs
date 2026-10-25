@@ -5,6 +5,7 @@ import path from 'node:path';
 import https from 'node:https';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { CONSENT_HEADER, providerConsentHeader } from '../src/platform/privacy.js';
 import { DatabaseSync } from 'node:sqlite';
 import { tlsMaterial } from '../tests/helpers/tls-material.mjs';
 import { httpsCli, tlsRequest } from '../tests/helpers/https-cli.mjs';
@@ -65,7 +66,7 @@ test('the real CLI enforces independent function grants including both library r
   }
   updatePermissions(f.identity, ['library:write']); assert.equal((await f.call('/api/library/records', { body: { scope: initial.scope, revision, changes: [] } })).status, 403);
   // Neither browser fields nor the provider-consent header can add policy grants.
-  for (const route of ['/api/ai/sample?permission=ai:coach', '/api/ai/test']) assert.equal((await f.call(route, { headers: { 'x-kibitz-provider-consent': 'mock:coach' }, body: { permissions: [...PERMISSIONS], prompt: 'hello' } })).status, 403);
+  for (const route of ['/api/ai/sample?permission=ai:coach', '/api/ai/test']) assert.equal((await f.call(route, { headers: { [CONSENT_HEADER]: providerConsentHeader('openai', 'coach') }, body: { permissions: [...PERMISSIONS], prompt: 'hello' } })).status, 403);
 });
 
 test('cross-collection scope fields and unknown functions cannot broaden an allowed operator session', async t => {
