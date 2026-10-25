@@ -98,7 +98,7 @@ test('a missing parser dependency produces a bounded actionable startup error', 
   try {
     fs.mkdirSync(path.join(dir, 'scripts')); fs.mkdirSync(path.join(dir, 'server'));
     fs.copyFileSync(script, path.join(dir, 'scripts', 'serve.mjs'));
-    for (const name of ['static.mjs', 'public-files.mjs', 'models.mjs', 'logging.mjs']) fs.copyFileSync(fileURLToPath(new URL('../../server/' + name, import.meta.url)), path.join(dir, 'server', name));
+    for (const name of ['static.mjs', 'public-files.mjs', 'models.mjs', 'logging.mjs', 'tls.mjs']) fs.copyFileSync(fileURLToPath(new URL('../../server/' + name, import.meta.url)), path.join(dir, 'server', name));
     // A self-reference guarantees a missing dependency even if a parent has node_modules.
     fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: 'parse5', type: 'module', exports: './PRIVATE_DEPENDENCY.mjs' }));
     const result = await new Promise(resolve => execFile(process.execPath, [path.join(dir, 'scripts', 'serve.mjs'), root, '--port', '0'], { timeout: 20_000 }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout, stderr })));
