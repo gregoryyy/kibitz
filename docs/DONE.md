@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Local release review preparation
+
+TODO item: 11.6 preparation; the release gate remains open.
+
+### Implementation notes
+
+- Added a dated review packet binding the source/prerequisite PRs to the actual OWASP application/LLM, ASVS, web-baseline, exact-image and test evidence. Separate implementation-source evidence from the future release candidate and its required full checks.
+- Listed each of the ten ASVS deviations and both open requirements with the concrete decision or missing evidence. Retained the 31 runtime finding targets and the three current-main CodeQL medium contexts; the API reports no open main highs at `42761c3`. No finding is suppressed, dismissed or accepted on the owner's behalf.
+- Recorded the external inputs for human calibration, recorded-provider/German trials, mutable model identities and unrestricted chess-claim verification. Updated release/maintenance guidance to reflect completed packaging/guides while retaining the actual gate.
+- Lint/JSDoc/ASVS checks and all eight checker regression groups pass; all 107 local link targets resolve and diff whitespace is clean. This prose-only change does not rerun or relabel the parent's full unit/browser/image suites as release-candidate evidence. No paid/provider call, model download, operator configuration inspection, version bump, tag or publication.
+
+### Deviations
+
+- The prerequisite PRs are still open and current CI is rerunning after reconciliation. This is a draft review packet, not a release candidate, completed TODO 11.6, ASVS compliance or release authorization.
+
+### Insights
+
+- A reviewable release decision needs exact evidence and individual unresolved conditions together. A passing feature check cannot supply an owner's risk disposition or evidence about a later merged revision.
+
 ## 2026-10-25 — Verified image advisories and minimal runtime
 
 TODO item: 11.6.1 complete. The parent release gate, lower-finding dispositions and broader ASVS component/advisory requirement remain open.
