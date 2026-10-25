@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { checkHeaders, checkZap, stagingTarget, command, REQUIRED_PATHS, ZAP_IMAGE } from '../../scripts/security-scan.mjs';
 
 const target = 'http://127.0.0.1:9123';
@@ -77,4 +78,13 @@ test('coverage needs every read-only seed, enabled passive rules and completed p
 test('security child commands have a real deadline and propagate nonzero exit status', async () => {
   assert.equal(await command(process.execPath, ['-e', 'process.exit(7)'], { timeout: 2000, env: {} }), 7);
   await assert.rejects(command(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { timeout: 100, env: {} }), /deadline exceeded/);
+});
+
+test('offline report helpers can be imported from stdin without invoking a scanner or CLI', () => {
+  const scanner = new URL('../../scripts/security-scan.mjs', import.meta.url).href;
+  const asvs = new URL('../../scripts/check-asvs.mjs', import.meta.url).href;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-'], { env: {}, encoding: 'utf8',
+    input: `import { checkZap } from ${JSON.stringify(scanner)}; import { baseline } from ${JSON.stringify(asvs)}; console.log(typeof checkZap, baseline.length);` });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout.trim(), 'function 70');
 });

@@ -122,6 +122,10 @@ export function run(args = process.argv.slice(2)) {
     + '. This checks records and document freshness, not compliance.');
 }
 
-if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
+const isMain = () => {
+  try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); }
+  catch { return false; } // stdin and REPL imports are not CLI invocations.
+};
+if (isMain()) {
   try { run(); } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

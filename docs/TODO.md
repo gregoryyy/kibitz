@@ -230,7 +230,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 ## 11. Security testing (before every release)
 
 - [x] 11.1 Threat model covering browser/server/provider boundaries, PGN and retrieval data, browser inference, private libraries, usage counters, offline caches and exports; [flows, controls, evidence and residual risks](THREAT-MODEL.md).
-- [x] 11.2 OWASP Top 10:2025: [code/evidence checklist](OWASP-TOP10.md), supported local deployment and open findings tracked in issues #96–99. Review completion is not release approval; high-rated scanner alerts and security follow-ups remain unresolved
+- [x] 11.2 OWASP Top 10:2025: [code/evidence checklist](OWASP-TOP10.md), supported local deployment and findings tracked in issues #96–99. Post-merge main `71a863d` has no open CodeQL highs and three reviewed medium alerts; deployment/LLM/asset follow-ups and release verification remain open
   - [x] 11.2.1 Reject library/usage databases inside either served root, including aliases; validate model directories before file creation. Issue #96, unit and real-CLI Playwright regressions
   - [x] 11.2.2 Bound model downloads by pinned bytes and a total deadline; verify before publishing, clean up handled failures and preserve earlier weights before publication. Issue #97, synthetic CLI and stream/filesystem tests
   - [x] 11.2.3 Remove raw URL/provider/config/path text from default runtime logs; fixed category/code/status events, startup diagnostics and local monitoring. Issue #98; hostile marker, malformed-target and CLI regressions
@@ -255,7 +255,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 11.3.11 Review all ten categories against code/tests, add four-adapter credential-context tests and a 2026 numbering crosswalk, and reproduce unresolved misinformation/stream-deadline limits without live calls
 - [x] 11.4 OWASP ASVS review: selected stable 5.0.0 L1 for the local single-user app; [70 individually assessed requirements](ASVS.md), pinned offline coverage/evidence/document checks in CI. Review completion is not compliance or release approval; HTTP findings, deployment deviations and incomplete inventory remain explicit
   - [x] 11.4.1 HTTP hardening from the L1 review: compare the AI gateway Origin's native scheme as well as host, preserve direct local clients, ignore forwarded-header spoofing, and declare UTF-8 on SVG responses; native HTTP/TLS and actual-CLI/browser regressions, both old behaviors reproduced
-- [ ] 11.5 Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP baseline against isolated mock staging, CSP check and retained inventory/evidence; [implementation and pending actual ZAP verification](SECURITY-SCANS.md)
+- [x] 11.5 Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP against isolated mock staging, CSP check and retained inventory/evidence; [actual CI baseline](SECURITY-SCANS.md) covers seven required routes / sixty passive rules, zero highs, two medium and three informational finding types. Native GitHub feature settings are documented separately; no release/compliance claim
+  - [ ] 11.5.1 Web asset follow-up from the baseline: reduce inline CSS authority, resolve the external Google Fonts stylesheet/SRI boundary and canonicalize the wrapper charset spelling; preserve the interface/offline behavior and add regressions, then rerun the raw baseline without suppressing findings
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings
 
 ## 12. Release and operations *(added)*

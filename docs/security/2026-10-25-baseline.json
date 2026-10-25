@@ -1,0 +1,57 @@
+{
+  "scope": "dedicated-local-mock-staging",
+  "date": "2026-10-25T01:40:14.137Z",
+  "sourceRevision": "45ff4b947a8f9b915beb6a7a16cbc38fcabde10c",
+  "scannedMergeRevision": "45df8e87bef8c2cf1ef6437d1d91007d579c7182",
+  "run": "https://github.com/gregoryyy/kibitz/actions/runs/40151516551",
+  "scannerVersion": "2.17.0",
+  "image": "ghcr.io/zaproxy/zaproxy:2.17.0@sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6",
+  "node": "v24.21.0",
+  "lockSha256": "30f3781532aba19e76993f30ba1e19afa90e38781812576cab13b90d3a27f1ed",
+  "rawReportSha256": "8e016ff17081680f2ffec8b770aed5362b02a059c7a37406e425d763c968f5f6",
+  "requiredRoutes": 7,
+  "visitedPathCount": 15,
+  "visitedURLCount": 16,
+  "enabledPassiveRules": 60,
+  "passivePending": 0,
+  "findings": [
+    {
+      "id": "10055",
+      "ref": "10055-6",
+      "name": "CSP: style-src unsafe-inline",
+      "risk": 2,
+      "instances": 2
+    },
+    {
+      "id": "90003",
+      "ref": "90003",
+      "name": "Sub Resource Integrity Attribute Missing",
+      "risk": 2,
+      "instances": 1
+    },
+    {
+      "id": "90011",
+      "ref": "90011-2",
+      "name": "Charset Mismatch (Header Versus Meta Charset)",
+      "risk": 0,
+      "instances": 1
+    },
+    {
+      "id": "10027",
+      "ref": "10027",
+      "name": "Information Disclosure - Suspicious Comments",
+      "risk": 0,
+      "instances": 6
+    },
+    {
+      "id": "10112",
+      "ref": "10112",
+      "name": "Session Management Response Identified",
+      "risk": 0,
+      "instances": 2
+    }
+  ],
+  "npmAdvisories": 0,
+  "npmSBOMComponents": 128,
+  "releaseApproved": false
+}

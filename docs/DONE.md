@@ -7,9 +7,9 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
-## 2026-10-25 — Automated security baseline prepared for CI verification
+## 2026-10-25 — Verified automated security baseline and retained findings
 
-TODO item: 11.5 in progress; actual ZAP verification is still pending and the item remains unchecked.
+TODO item: 11.5 complete for automation/evidence. Web asset follow-up 11.5.1, component advisory-age review and release gates remain open.
 
 ### Implementation notes
 
@@ -22,10 +22,12 @@ TODO item: 11.5 in progress; actual ZAP verification is still pending and the it
 - Verified network add-on 0.31.0 takes the first `-host` option, so the appended override was ineffective. The startup hook now replaces the pinned factory's initial wildcard value, aborts on unexpected/duplicate host arguments and preserves other options. Added four Python tests for that policy, fixed read-only seeds, rejected targets and the real `core.urls()` method interface. This changes startup/coverage plumbing only, not passive rules or alert dispositions.
 - Retained the superseded user-correction run's actual diagnostics: ZAP started but its wildcard listener accepted IPv6 loopback, rejected by the IPv4 allowlist. The next run confirms a literal `127.0.0.1` listener but the same list also checks API Host headers and rejects the Python client's virtual name `zap`. The hook now allows exactly those two values and refuses drift/duplicate policy arguments; a fifth Python test verifies allowed values and unrelated-host rejection. Actual baseline verification remains pending; no failed attempt is counted as a clean scan.
 - User merges through #115 are incorporated without rewriting history. Main CodeQL revision `71a863d` has no open high findings and three open medium alerts (20, 21, 23), none manually dismissed. HTTP hardening PR #117 subsequently passed all CI, including full Playwright.
+- Actual verification subsequently passes in run `40151516551` at source `45ff4b9`, scanned merge `45df8e87bef8c2cf1ef6437d1d91007d579c7182`, Node 24.21.0. Independently inspected raw JSON/coverage/startup artifacts: all seven required routes, sixteen URLs/fifteen paths, sixty enabled passive rules, empty passive queue and literal IPv4-loopback listener. Zero high findings; two medium types (inline CSS policy and external font stylesheet SRI) and three informational types (charset alias spelling, public authored comments and grouping-cookie identification). The full findings remain retained; 11.5.1 tracks actionable web-asset work. Stored only sanitized metadata/digests in Git, with no cookies or raw bodies. npm audit is zero and SBOM has 128 components.
+- Offline inspection exposed that stdin imports tried to realpath the `-` argv marker. Both pure checker helpers now tolerate stdin/REPL imports; a new child-process regression exercises both without starting a server/scanner. Final lint/JSDoc/build and complete settled-build unit/server verification pass (667 passes, one opt-in live skip), including seven Node policy/negative/deadline/import groups; all five Python launcher/seeding/API tests pass too. All 180 local documentation links resolve and diff whitespace is clean. The separate high-risk check evaluates the raw report, preserving the official baseline's built-in internal/example exclusions without adding custom rule/path suppressions.
 
 ### Deviations
 
-- A headers-only run is partial evidence. Lower ZAP findings remain visible and require review; the passive spider does not exercise every JavaScript flow or arbitrary model/import behavior. No runtime/UI feature changed and no new npm dependency was introduced.
+- A headers-only run is partial evidence. The actual baseline passes with retained medium/informational findings; it is not a clean-vulnerability claim. The passive spider does not exercise every JavaScript flow or arbitrary model/import behavior. No runtime/UI feature changed and no new npm dependency was introduced.
 - SBOM/npm audit does not establish full component advisory-age compliance, hosted/native security feature enablement, ASVS compliance or release approval. Existing local deployment and LLM identity/prose limits remain open.
 
 ### Insights

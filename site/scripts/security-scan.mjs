@@ -183,6 +183,10 @@ export async function run(args = process.argv.slice(2)) {
   }
 }
 
-if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
+const isMain = () => {
+  try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); }
+  catch { return false; } // stdin and REPL imports need no filesystem argv entry.
+};
+if (isMain()) {
   run().catch(() => { console.error('Security scan failed; inspect the workflow and retained reports.'); process.exitCode = 1; });
 }
