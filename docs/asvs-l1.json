@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "002fd92dd33e009f86cf8b79008180888a392e0f",
+  "revision": "54878f9396f7582226a17dc8b49ea522bc77e13e",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -192,15 +192,19 @@
     {
       "id": "v5.0.0-3.3.1",
       "topic": "Cookie transport and names",
-      "status": "deviation",
-      "method": "scope-review",
-      "note": "Local HTTP omits Secure; native TLS adds it, but neither grouping-cookie name has a secure prefix. HttpOnly and SameSite=Strict do not satisfy this whole requirement. Renaming library cookies needs a data migration decision. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Protected HTTPS usage/library cookies have __Secure- names, Secure, HttpOnly, SameSite=Strict and separate canonical API paths without Domain. Standard native/image launches require supplied TLS before opening storage; API constructors refuse plaintext by default. Existing valid legacy IDs migrate unchanged, preserving usage hashes/library owner keys, revisions and schema; ambiguous or malformed secure identities fail without cookie replacement. Browser/profile rollback and the actual previous HTTPS CLI retain post-upgrade writes/counters. Explicit HTTP development uses separate kibitz_dev_* identities and cannot adopt production cookies. This verifies cookie protection for the supported TLS mode, not authentication, HSTS, endpoint/public-cert evidence or default-branch alert dismissal. See the scoped migration record; the other eleven final-release fixes remain open.",
       "evidence": [
+        "site/server/cookies.mjs",
         "site/server/api.mjs",
         "site/server/library-api.mjs",
-        "site/server/cookie-transport.test.mjs",
-        "docs/DEPLOYMENT.md",
-        "docs/releases/0.1.0-rc.1.md"
+        "site/scripts/serve.mjs",
+        "site/server/cookies.test.mjs",
+        "site/server/cookie-migration.test.mjs",
+        "site/tests/e2e/secure-cookie-migration.spec.mjs",
+        "site/tests/container/image.spec.mjs",
+        "docs/COOKIE-MIGRATION.md"
       ],
       "followUp": "TODO 11.4.2.1"
     },
