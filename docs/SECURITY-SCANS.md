@@ -41,6 +41,10 @@ operator configuration or Docker socket. The versioned official
 `-silent` disables add-on updates, preserving the image's rule set. The pinned
 [baseline implementation](https://github.com/zaproxy/zaproxy/blob/v2.17.0/docker/zap-baseline.py)
 documents that behavior; upgrading requires review of the image and rule changes.
+The image's built-in UID 1000 retains access to its own home/browser-helper cache.
+Its primary group matches the runner and the report directory is mode 0770; a
+group-writable umask allows CI to collect and remove generated evidence without
+running the scanner as root or making the directory world-writable.
 
 The [baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) uses passive
 analysis rather than an active attack scan. Its
