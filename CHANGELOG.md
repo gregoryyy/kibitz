@@ -4,11 +4,16 @@ Notable user-facing changes are collected here. Detailed implementation history
 and verification notes are in [DONE.md](docs/DONE.md). Versions follow the
 [project release policy](docs/RELEASING.md) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The existing package value `0.1.0` is the development baseline. No published
-release or historical release date is inferred from it; the entries below are
-unreleased until a release PR names and verifies a specific version/commit.
+The former package value `0.1.0` was an unpublished development baseline.
+This branch prepares `0.1.0-rc.1`; it is a draft candidate, with no published
+release or tag. Its [review record](docs/releases/0.1.0-rc.1.md) identifies the
+pending source, checks and decisions.
 
 ## [Unreleased]
+
+Changes after the candidate scope will be recorded here.
+
+## [0.1.0-rc.1] — prepared 2026-10-25, unpublished draft
 
 ### Added
 
@@ -74,3 +79,4 @@ unreleased until a release PR names and verifies a specific version/commit.
   A feature PR, passing scanner or this changelog does not grant release approval.
 
 [Unreleased]: https://github.com/gregoryyy/kibitz/commits/main/
+[0.1.0-rc.1]: https://github.com/gregoryyy/kibitz/compare/be90b0f939cc2ab54554e06a2a585ebfcbbddb58...chore/release-candidate-0.1.0-rc.1

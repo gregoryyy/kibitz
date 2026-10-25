@@ -3,9 +3,12 @@
 TODO 12.1 establishes a version policy and a user-facing
 [changelog](../CHANGELOG.md). Kibitz follows
 [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
-The package and both root entries in `site/package-lock.json` currently agree on
-`0.1.0`. This is a development baseline; there are no release tags at the time
-this policy is introduced. This documentation does not publish a release.
+The package and both root entries in `site/package-lock.json` agree on the
+proposed `0.1.0-rc.1` candidate. The earlier `0.1.0` value was an unpublished
+development baseline; no release tag exists at this draft's preparation.
+The [candidate review](releases/0.1.0-rc.1.md) keeps prerequisite merges,
+final source verification and approval open. Preparing a draft on a stacked
+branch does not finalize step 1 below or authorize publication.
 The [dated local release review packet](RELEASE-REVIEW.md) collects prerequisite
 evidence and outstanding dispositions; it is not release approval.
 

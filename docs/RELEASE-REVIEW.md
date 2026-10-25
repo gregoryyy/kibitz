@@ -3,7 +3,10 @@
 Prepared on 2026-10-25 for TODO 11.6. **The release gate remains open.**
 This packet collects evidence and decisions for a local single-user release;
 it does not approve a release, accept risks or assign a published version.
-The package value `0.1.0` is still the unreleased development baseline.
+At this packet's initial preparation, `0.1.0` was the unpublished development
+baseline. The [draft `0.1.0-rc.1` candidate](releases/0.1.0-rc.1.md) now prepares
+version/changelog metadata on the prerequisite stack; its final merged source,
+candidate checks and release approval remain pending.
 
 ## Source and prerequisites
 

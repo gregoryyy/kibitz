@@ -1,6 +1,6 @@
 {
   "name": "kibitz-chess-coach",
-  "version": "0.1.0",
+  "version": "0.1.0-rc.1",
   "private": true,
   "type": "module",
   "description": "Neurosymbolic chess coach: Stockfish 19 in the browser plays and measures, an AI provider (Claude, OpenAI, Mistral or Ollama) explains; games library and position-matched reading.",

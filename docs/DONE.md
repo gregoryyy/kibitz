@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Prepare the first local candidate draft
+
+TODO item: 11.6 candidate preparation; the release gate remains open.
+
+### Implementation notes
+
+- Prepared `0.1.0-rc.1` with npm's no-tag/no-script version command, aligning the package and both lockfile roots while retaining `private: true`. The functional base is `be90b0f`; prerequisite PRs remain open, so this is a stacked draft rather than finalized merged-source or release approval.
+- Moved the current feature/security/compatibility notes into a dated unpublished candidate section and left a new Unreleased section. Added a candidate review covering actual deployment/platform evidence, unchanged data/cache/model formats, individual pending gates and the owner's experimental-prose scope. No tag, asset or registry image was published.
+- Rechecked official OWASP application/LLM references and the ASVS 5.0.0 source checksum. Updated A03/LLM03 for fixed Qwen source revisions and ASVS component evidence at the functional base, keeping counts at 28 scoped verifications, 30 justified absences, ten deviations and two open. Current main `8c82d3c` has three open medium CodeQL alerts (20/21/23), with no open high; no alert disposition changed.
+- Node 24.22.1 lint/JSDoc/ASVS and fresh build pass; the complete settled-build unit/server suite passes with 698 passes and one opt-in live skip. Independent manifest/lock comparison confirms only the three version fields changed, and application/server/scripts, Docker/Compose and workflows have no diff from the functional base. All 534 local Markdown link targets resolve and whitespace checks pass. Full candidate browser/security/image CI is still required; no live provider call or weight download is used.
+
+### Deviations
+
+- Candidate metadata can be prepared before prerequisite merges, but source/version finalization, retargeting to main and actual candidate verification remain required by the release procedure. Earlier feature tests/scans retain their own identities. TODO 11.6 is not ticked; component/deployment/finding dispositions and explicit release approval remain pending.
+
+### Insights
+
+- A concrete unpublished candidate makes the version, compatibility effects and remaining decisions reviewable while keeping the final merged-source evidence and publication decision distinct.
+
 ## 2026-10-25 — Pin browser-model source revisions
 
 TODO item: 11.3.3.1 complete; parent supply-chain review remains open.
