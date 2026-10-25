@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "42e6ecd5761f012d9f89c15c8386113e9a01124d",
+  "revision": "e544aa6dd907d8beee6ce81bba7145bf24981bd6",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -194,7 +194,7 @@
       "topic": "Cookie transport and names",
       "status": "verified",
       "method": "code-and-test",
-      "note": "Protected HTTPS usage/library cookies have __Secure- names, Secure, HttpOnly, SameSite=Strict and separate canonical API paths without Domain. Standard native/image launches require supplied TLS before opening storage; API constructors refuse plaintext by default. Existing valid legacy IDs migrate unchanged, preserving usage hashes/library owner keys, revisions and schema; ambiguous or malformed secure identities fail without cookie replacement. Browser/profile rollback and the actual previous HTTPS CLI retain post-upgrade writes/counters. Explicit HTTP development uses separate kibitz_dev_* identities and cannot adopt production cookies. This verifies cookie protection for the supported TLS mode, not authentication, HSTS, endpoint/public-cert evidence or default-branch alert dismissal. See the scoped migration record; the other eleven final-release fixes remain open.",
+      "note": "Native TLS sends a __Host- session cookie with Secure/HttpOnly/SameSite=Strict/Path=/ and protected __Secure- collection locators at their canonical API paths, without Domain. Locators are adopted only with operator proof and do not authorize access. Migration preserves usage/library hashes, records, revisions and counters without rewriting their version-one schemas; the separate session registry is private. Explicit HTTP development remains a separate synthetic namespace outside final deployment. Backend termination, function permissions, endpoint trust/inventory and client cleanup retain their own gates.",
       "evidence": [
         "site/server/cookies.mjs",
         "site/server/api.mjs",
@@ -362,12 +362,13 @@
     {
       "id": "v5.0.0-6.1.1",
       "topic": "Credential-attack policy",
-      "status": "not-applicable",
-      "method": "scope-review",
-      "note": "No application sign-in or password verification exists, so no credential-stuffing/lockout policy is claimed. Usage admission is not authentication protection.",
+      "status": "verified",
+      "method": "documentation-review",
+      "note": "The local operator sign-in policy documents a fixed ten-attempt per-process sixty-second window, foreign-origin rejection before counting, reset/restart behavior and no permanent account lockout state. A hostile process on the trusted local machine can still deny service; no adaptive service or hosted lockout policy is claimed. Operator secrets are generated 256-bit machine credentials, not human-chosen account passwords.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "site/server/session-api.mjs",
+        "site/server/session-api.test.mjs"
       ]
     },
     {
@@ -375,10 +376,10 @@
       "topic": "Password length",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "The application has no user password creation or validation. Server provider API keys are operator credentials, not account passwords.",
+      "note": "There are no user-set account passwords. Explicit offline setup generates a 256-bit installation key; its fixed base64url format is a machine-credential format, not a human password length policy. Hosted password authentication remains deferred.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -386,10 +387,10 @@
       "topic": "Password changes",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "There is no application password or password-change workflow.",
+      "note": "There is no account password or browser password-change workflow. The local operator manages the private machine-key file; preserving its operator ID while replacing the secret and restarting invalidates the previous credential epoch. This scope does not claim a hosted password-change implementation.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -397,10 +398,10 @@
       "topic": "Password-change proof",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "There is no current/new application password transaction to authorize.",
+      "note": "No current/new account-password transaction exists. Administrative replacement of the private installation key is outside a browser password-change workflow; registry checks bind sessions to the configured operator and credential epoch.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -408,10 +409,10 @@
       "topic": "Breached-password checks",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "There is no password enrolment/reset input or password verifier to check against a denylist.",
+      "note": "No account registration/reset accepts human passwords. Explicit setup generates an unpredictable 256-bit machine key; a common-password denylist is not the policy for this key format. Do not replace it with a human-chosen password.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -419,10 +420,10 @@
       "topic": "Password composition",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "There is no user password policy or password field.",
+      "note": "The application has no human account-password composition policy. The operator form accepts the exact fixed base64url machine-key format generated during explicit setup; this is not a user-password composition restriction.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -430,10 +431,10 @@
       "topic": "Password masking",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "No application account password input exists. Provider secrets are configured server-side rather than entered into a browser account form.",
+      "note": "No human/account password is collected. The installation-key form does conceal the high-entropy machine credential with a password-type input and clears it on submission/departure; this does not introduce a human password workflow.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -441,10 +442,10 @@
       "topic": "Password-manager support",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "No application password entry workflow exists to restrict paste or password managers.",
+      "note": "No user-password enrolment/entry or password-manager contract exists. The local machine-key form permits paste; it does not register a hosted account password.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -452,32 +453,38 @@
       "topic": "Password fidelity",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "There is no received account password that the application normalizes or verifies.",
+      "note": "There is no received human account password to normalize. Machine keys are compared exactly in their documented fixed format; trimming or normalizing them would change the credential.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
       "id": "v5.0.0-6.3.1",
       "topic": "Credential attack controls",
-      "status": "not-applicable",
-      "method": "scope-review",
-      "note": "No credential authentication endpoint exists; local rate/token admission does not constitute brute-force protection for hosted accounts.",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Native TLS, exact Host/Origin checks, bounded JSON proof and a fixed ten-attempt sixty-second sign-in window enforce the documented local machine-key policy. Tests reject bad proofs/foreign origins/oversized input, exercise 429, and advance the clock to confirm recovery without permanent operator disable. Private setup uses 256 random bits; hosted credential stuffing and adaptive risk services remain outside scope.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "site/server/operator.mjs",
+        "site/server/session-api.mjs",
+        "site/server/session-api.test.mjs",
+        "docs/SESSIONS.md"
       ]
     },
     {
       "id": "v5.0.0-6.3.2",
       "topic": "Default accounts",
-      "status": "not-applicable",
-      "method": "scope-review",
-      "note": "The app creates no root/admin/default user account or account registry. Local grouping cookies are not account authentication.",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "No factory/default operator account or key is supplied. Explicit private setup creates a new random operator ID and 256-bit secret; repeated initialization refuses overwrite. TLS API startup with absent/invalid operator configuration fails before database creation rather than opening anonymous access.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "site/server/operator.mjs",
+        "site/scripts/operator.mjs",
+        "site/scripts/serve.mjs",
+        "site/server/sessions.test.mjs",
+        "site/server/session-api.test.mjs",
+        "docs/SESSIONS.md"
       ]
     },
     {
@@ -485,10 +492,10 @@
       "topic": "Initial account secrets",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "No account activation codes or initial passwords are generated. Random grouping cookies have a separate scoped assessment.",
+      "note": "No temporary initial password or account activation code is issued. Explicit private setup generates a long-term 256-bit installation machine key, not a bootstrap password to be changed by a web account. Random session tokens are independently issued, replaced on reauthentication and expire at the backend.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -504,15 +511,22 @@
     },
     {
       "id": "v5.0.0-7.2.1",
-      "topic": "Backend grouping verification",
-      "status": "deviation",
-      "method": "scope-review",
-      "note": "Backend code validates cookie syntax and uses opaque values as storage keys, but has no issued-session registry or authenticated principal. A local client can choose another syntactically valid usage group; server-wide admission remains separate. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "topic": "Backend-issued session verification",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "All supported HTTPS gateway/library functions resolve identity through the backend-issued token registry bound to the private local operator ID and credential epoch. Only a SHA-256 token verifier is stored; unknown, invented, duplicate, expired and different-operator tokens fail. Raw grouping locators never grant access; migration/recovery requires fresh operator proof and transactional ownership bindings. Native CLI/browser and actual default Linux image checks exercise this boundary. Explicit synthetic HTTP development and legacy-origin recovery remain outside final deployment; hosted accounts, logout/revocation, function permissions and authenticated client cleanup retain their own scope/TODOs.",
       "evidence": [
+        "site/server/operator.mjs",
+        "site/server/sessions.mjs",
+        "site/server/session-api.mjs",
         "site/server/api.mjs",
         "site/server/library-api.mjs",
-        "docs/DEPLOYMENT.md",
-        "docs/releases/0.1.0-rc.1.md"
+        "site/scripts/serve.mjs",
+        "site/server/sessions.test.mjs",
+        "site/server/session-api.test.mjs",
+        "site/tests/e2e/operator-session.spec.mjs",
+        "site/tests/container/image.spec.mjs",
+        "docs/SESSIONS.md"
       ],
       "followUp": "TODO 11.4.2.3"
     },
@@ -521,11 +535,13 @@
       "topic": "Dynamic opaque groups",
       "status": "verified",
       "method": "code-and-test",
-      "note": "New usage/library group identifiers are generated dynamically by the server rather than using static provider credentials. This verifies the token-generation property only, not authenticated sessions.",
+      "note": "Authentication issues a fresh random reference session token, separate from the installation key and collection locators. The key is used only for fresh operator proof; presenting it or a grouping value as a session cookie does not create a registered session.",
       "evidence": [
-        "site/server/api.mjs",
-        "site/server/library-api.mjs",
-        "site/server/cookie-transport.test.mjs"
+        "site/server/operator.mjs",
+        "site/server/sessions.mjs",
+        "site/server/session-api.mjs",
+        "site/server/sessions.test.mjs",
+        "site/server/session-api.test.mjs"
       ]
     },
     {
@@ -533,22 +549,25 @@
       "topic": "Grouping-token entropy",
       "status": "verified",
       "method": "code-and-test",
-      "note": "Usage identifiers use 16 random bytes and library identifiers 32 random bytes from Node crypto.randomBytes, encoded base64url. The full local identity/lifecycle limitations remain deviations.",
+      "note": "Issued session tokens contain 32 CSPRNG bytes encoded as base64url. Registry lookup uses their SHA-256 verifier; token shape does not authorize access. Tests cover distinct issuance, strict cookie parsing, fabricated values, duplicate cookies and another operator. Usage/library locators are separate non-authorizing identifiers.",
       "evidence": [
-        "site/server/api.mjs",
-        "site/server/library-api.mjs",
-        "site/server/cookie-transport.test.mjs"
+        "site/server/sessions.mjs",
+        "site/server/sessions.test.mjs",
+        "site/server/session-api.test.mjs"
       ]
     },
     {
       "id": "v5.0.0-7.2.4",
       "topic": "Authentication rotation",
-      "status": "not-applicable",
-      "method": "scope-review",
-      "note": "There is no sign-in or reauthentication event. Grouping cookies do not establish authenticated sessions.",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Successful authentication issues a fresh token. When reauthenticating with a previous session cookie, the registry removes that operator-owned previous token and inserts its replacement in the same transaction. It cannot remove a different operator\u2019s token, and a failed issuance rolls back. Real TLS restart/recovery tests confirm the previous token returns 401 while the replacement retains the collection.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "site/server/sessions.mjs",
+        "site/server/session-api.mjs",
+        "site/server/sessions.test.mjs",
+        "site/server/session-api.test.mjs",
+        "docs/SESSIONS.md"
       ]
     },
     {
@@ -556,12 +575,13 @@
       "topic": "Backend token invalidation",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Cookie Max-Age/browser clearing does not revoke a copied token at the backend. There is no authenticated logout or server token-expiry registry; private-library erasure removes data rather than establishing session revocation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "note": "The backend now rejects expired sessions and replaced reauthentication tokens, but no authenticated logout/revocation endpoint or complete concurrent/in-flight termination policy exists. Private-library erasure is not session termination. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
         "docs/DEPLOYMENT.md",
-        "docs/releases/0.1.0-rc.1.md"
+        "docs/releases/0.1.0-rc.1.md",
+        "docs/SESSIONS.md"
       ],
       "followUp": "TODO 11.4.2.4"
     },
@@ -570,10 +590,10 @@
       "topic": "Account disablement",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "There is no application account registry or disable/delete-account workflow. Library erasure is a separate local-data action.",
+      "note": "There is no hosted account registry or account disable/delete workflow. The private installation operator and credential epoch are verified at the backend; library erasure remains a separate data action. General logout/revocation remains 7.4.1 / TODO 11.4.2.4.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "site/server/api.mjs"
+        "docs/SESSIONS.md",
+        "docs/DEPLOYMENT.md"
       ]
     },
     {
@@ -581,11 +601,11 @@
       "topic": "Authorization scope",
       "status": "verified",
       "method": "documentation-review",
-      "note": "Deployment/threat documentation identifies the trusted local operator, same-origin browser, per-cookie library data and deferred hosted roles/accounts. Provider consent is not person authentication.",
+      "note": "Deployment/threat/session documentation identifies the local operator principal, backend session registry, same-origin browser, protected collection recovery locators and deferred hosted accounts. Provider sharing consent remains separate from authentication; explicit function permissions still require TODO 11.4.2.5.",
       "evidence": [
         "docs/DEPLOYMENT.md",
         "docs/THREAT-MODEL.md",
-        "docs/VALIDATION.md"
+        "docs/SESSIONS.md"
       ]
     },
     {
@@ -593,12 +613,13 @@
       "topic": "Function permissions",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Functions are available to trusted local clients and browser consent attestations; there are no authenticated principals or explicit account permissions. Browser Origin/consent controls cannot authorize an untrusted direct client. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "note": "Backend-issued sessions now establish a local operator principal before TLS gateway/library access, but functions do not yet enforce an explicit permission policy for AI, connection tests, embeddings and library actions. Origin/sharing consent remain separate and hosted roles are deferred. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/api.mjs",
         "docs/DEPLOYMENT.md",
         "docs/THREAT-MODEL.md",
-        "docs/releases/0.1.0-rc.1.md"
+        "docs/releases/0.1.0-rc.1.md",
+        "docs/SESSIONS.md"
       ],
       "followUp": "TODO 11.4.2.5"
     },
@@ -607,12 +628,13 @@
       "topic": "Library data separation",
       "status": "verified",
       "method": "code-and-test",
-      "note": "Server queries use the current opaque library cookie owner; record IDs alone do not grant another group access. API tests cover independent clients, ownership and revisions. This proves cookie isolation, not person authentication.",
+      "note": "TLS server queries use the library identifier held in the verified operator session; changing legacy grouping cookies or client scope/record IDs cannot change those claims. Transactional collection bindings reject adoption by another operator. Actual CLI tests cover unissued/cross-owner tokens and preserved private data; explicit synthetic HTTP development remains outside final deployment.",
       "evidence": [
+        "site/server/session-api.mjs",
+        "site/server/sessions.mjs",
         "site/server/library-api.mjs",
-        "site/server/library-store.mjs",
-        "site/server/library-api.test.mjs",
-        "site/server/library-store.test.mjs"
+        "site/server/session-api.test.mjs",
+        "site/server/library-api.test.mjs"
       ]
     },
     {
@@ -620,10 +642,11 @@
       "topic": "Server data enforcement",
       "status": "verified",
       "method": "code-and-test",
-      "note": "Node enforces current-owner library scope, revision and write rules without trusting browser owner fields. A locally trusted direct client remains inside the declared boundary; hosted authorization is absent.",
+      "note": "Node enforces backend-session identity plus library scope/revision/write rules without trusting browser owner fields. Direct TLS API construction fails closed without an injected identity authority. Hosted authorization is absent and explicit function permissions retain TODO 11.4.2.5.",
       "evidence": [
+        "site/server/session-api.mjs",
         "site/server/library-api.mjs",
-        "site/server/library-store.mjs",
+        "site/server/session-api.test.mjs",
         "site/server/library-api.test.mjs"
       ]
     },

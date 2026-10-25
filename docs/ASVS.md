@@ -48,9 +48,17 @@ The review leaves these findings visible:
   HTTPS/HSTS hostname (11.4.2.2) now address those two controls in the current
   source. Explicit development/recovery modes stay outside final deployment.
   Actual provider/endpoint transport and trust inventories retain their TODOs.
-- Cookie values group usage and private-library data; they do not authenticate a
-  person. Backend format/scope checks do not provide issued-session registration,
-  revocation, logout or account lifecycle. Browser expiration is not server revocation.
+- Experimental [operator sessions](SESSIONS.md) now verify every supported TLS
+  gateway/library session at the backend, with fresh proof for migration and an
+  atomic previous-token replacement on reauthentication. Adding sign-in changes
+  applicability: 6.1.1, 6.3.1, 6.3.2 and 7.2.4 are now verified instead of absent.
+  The matrix also updates the password-scope reasons: this app accepts a generated
+  256-bit installation machine key, without human account-password workflows.
+  The reviewed source has **35 verified, 26 not applicable, seven deviations and
+  two open controls**. Logout/revocation, explicit function permissions and
+  authenticated client/offline cleanup remain unsatisfied. Backend absolute expiry
+  and reauthentication rotation do not close that remaining lifecycle work.
+
 - Static serving denies Git paths; the [tested package](CONTAINER.md) also excludes
   checkout metadata from the app process. The native Node process in a checkout
   can still read `.git`, so the overall supported local scope retains a deviation.
