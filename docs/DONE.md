@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Versioned ASVS L1 review and offline evidence checks
+
+TODO item: 11.4 (review/checklist complete, not compliance or release approval). Follow-up 11.4.1 and deployment/inventory deviations remain open.
+
+### Implementation notes
+
+- Selected stable OWASP ASVS 5.0.0 L1 for the confirmed local single-user scope. Recorded all seventy L1 IDs individually in machine-readable JSON and a generated, source-linked table: 26 verified within the stated scope, 30 individually justified not-applicable, 10 deviations and 4 open. Pinned the official CSV URL/SHA-256 and reviewed application revision; all IDs independently compared with its L=1 rows. The source has 345 requirements across all levels; V16/V17 have no L1 entries. Linked the standard's CC BY-SA 4.0 attribution without copying its normative text.
+- Added documented validation rules and risk-based third-party remediation/update targets. A full dated component/advisory inventory is still required; a passing npm audit is not presented as proof that all targets are satisfied. Cookie grouping is not authenticated session management, and opaque library isolation is not hosted person authentication.
+- Added an offline Node coverage/evidence/document checker and CI command. Seven negative/CLI test groups cover missing/duplicate/wrong-level IDs, source/version/scope drift, invalid methods/statuses/notes/follow-ups, missing or inappropriate evidence, traversal/secret paths and an existing-file symlink escape, literal Markdown rendering, document drift and explicit regeneration. The checker does not execute evidence tests, inspect live infrastructure or certify the assessment's truth.
+- Validation: lint/JSDoc, build and the complete unit/server suite pass (658 passes, one opt-in live skip), including all seven new groups. All 237 local links in the new guides/table resolve. No application runtime or page UI changes, no new dependency, no live provider call, model download or operator environment read. PR #115 independently finished all CI checks, including its complete browser suite.
+
+### Deviations
+
+- Actual mock loopback probes accept synthetic same-host HTTP, HTTPS and FTP Origin values on the AI connection-test route because it compares host only. This is policy inconsistency, not a demonstrated browser CSRF exploit: JSON/preflight and absent CORS approval remain separate defenses. SVG responses lack explicit charset. Both are tracked in the next HTTP hardening item, with actual-server/browser regressions required.
+- Local HTTP, secure cookie names/HSTS, backend grouping-token revocation, authenticated function permissions, persistent client data, deliberate FEN navigation and checkout Git-metadata access remain visible deviations. Native TLS Secure-cookie tests do not satisfy all cookie requirements. Do not silently rename existing library cookies or set localhost-wide HSTS.
+- Deployed TLS versions/certificates and complete component/advisory age evidence are not independently attested. Release security gates, unrestricted chess-prose verification and mutable model identity remain open. Review completion does not accept these risks for the owner.
+
+### Insights
+
+- Structural completeness can be checked offline without claiming security compliance. Keeping dispositions and source-qualified IDs separate prevents a well-formed checklist from becoming an all-clear badge.
+- Denying HTTP access to `.git` satisfies only half of the metadata requirement when the application process can still read its checkout. Packaging must address the process boundary too.
+
 ## 2026-10-25 — Independent provider operation deadlines and response bounds
 
 TODO item: 11.3.10.1; completes the reviewed local resource controls in 11.3.10. Parent 11.3 remains open for model identity and unrestricted claim verification.
