@@ -80,6 +80,10 @@ The [initial runtime exposure review](security/2026-10-25-runtime-triage.md)
 checks all 25 distinct CVEs against vendor records and the supplied configuration.
 It records CPU/function/service prerequisites, the resolver configuration concern
 and native-linkage/range gaps. All raw findings and owner dispositions remain open.
+The [compiled-component/package evidence](COMPONENT-PROVENANCE.md) additionally
+records verified registry signatures and exact upstream source candidates, while
+keeping the binary compilation link unverified. New packaged Node/asset capture
+is pending actual Linux artifact review; native smoke output is not substituted.
 
 ## Candidate work and external inputs
 

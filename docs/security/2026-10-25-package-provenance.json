@@ -1,0 +1,81 @@
+{
+  "scope": "pinned-browser-engine-and-model-runtime-package-metadata",
+  "checkedAt": "2026-10-25T06:18:13.736Z",
+  "keySource": "https://registry.npmjs.org/-/npm/v1/keys",
+  "lockSha256": "dc80b8bb98bc7faa34c977cfffa971a5ca9fbc748e55621522a5a9809250baaa",
+  "verification": "Current official registry keys verify name@version:integrity; integrity matches the repository lockfile. No tarball, model or provider request is made.",
+  "limitation": "Registry signatures do not sign gitHead or attest compilation from the candidate upstream source. npm ci supplies the separate tarball-integrity check.",
+  "packages": [
+    {
+      "name": "@wllama/wllama",
+      "version": "3.8.1",
+      "metadataSource": "https://registry.npmjs.org/%40wllama%2Fwllama/3.8.1",
+      "integrity": "sha512-Pl7BEJhPU8OHnV/yhn3DFZYhLLOdSHh+4TND79WCftHnlUAdQPAsyc/CfIOY+4mVxvf5VW3Xw3Uf7BBfotS1gw==",
+      "tarball": "https://registry.npmjs.org/@wllama/wllama/-/wllama-3.8.1.tgz",
+      "npmReportedGitHead": "b68fd6427063266176bb0054befe9ff70b3258f1",
+      "provenanceAttestationAdvertised": false,
+      "signatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "keyExpires": null,
+          "scheme": "ecdsa-sha2-nistp256",
+          "publicKeySpkiBase64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY6Ya7W++7aUPzvMTrezH6Ycx3c+HOKYCcNGybJZSCJq/fd7Qa8uuAKtdIkUQtQiEKERhAmE5lMMJhP8OkDOa2g==",
+          "signatureBase64": "MEUCIEkxUs9qhqvsk76eev+TBr0qXle4jCHBrRJXkthaUBtUAiEA1tabExFBsC36izXTdQKKrcbWtyiyWlVVS/ViKEi5T9g=",
+          "verified": true
+        },
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "keyExpires": null,
+          "scheme": "ecdsa-sha2-nistp256",
+          "publicKeySpkiBase64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY6Ya7W++7aUPzvMTrezH6Ycx3c+HOKYCcNGybJZSCJq/fd7Qa8uuAKtdIkUQtQiEKERhAmE5lMMJhP8OkDOa2g==",
+          "signatureBase64": "MEUCIQD7hBzBvpWKLB9VhqwtOKNsIlNnNVG7SGg0aTfCKYQFxgIgVfUvax6Qwntpd19Evfiz7ogVmlwZrhTUTzEGC/k9/VQ=",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "name": "stockfish",
+      "version": "19.0.1",
+      "metadataSource": "https://registry.npmjs.org/stockfish/19.0.1",
+      "integrity": "sha512-bTwsO4e9HAwPBKls1+szcfibmaWRNzTF20rQE/XPdB3LOSoT6XTZDr1zYwriwSRRFT5MkvqrglPmJrKEVXGnyQ==",
+      "tarball": "https://registry.npmjs.org/stockfish/-/stockfish-19.0.1.tgz",
+      "npmReportedGitHead": null,
+      "provenanceAttestationAdvertised": false,
+      "signatures": [
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "keyExpires": null,
+          "scheme": "ecdsa-sha2-nistp256",
+          "publicKeySpkiBase64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY6Ya7W++7aUPzvMTrezH6Ycx3c+HOKYCcNGybJZSCJq/fd7Qa8uuAKtdIkUQtQiEKERhAmE5lMMJhP8OkDOa2g==",
+          "signatureBase64": "MEQCIGBAEQNy2RGDxPSc/EOaU0O55c9jKdghKuWZX5NbwDP7AiAyxzQO6nqj1qnzYlSKFaYzEON5nzdAbP6ZuKfzfRJMyQ==",
+          "verified": true
+        },
+        {
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+          "keyExpires": null,
+          "scheme": "ecdsa-sha2-nistp256",
+          "publicKeySpkiBase64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEY6Ya7W++7aUPzvMTrezH6Ycx3c+HOKYCcNGybJZSCJq/fd7Qa8uuAKtdIkUQtQiEKERhAmE5lMMJhP8OkDOa2g==",
+          "signatureBase64": "MEQCIGWVfZEhAlGs0KL1K6FEDuCOzKcCmIO38MlVBwHA6byOAiArpCrZmGvCQPAD45qmrII97OJ0PUWgNj+kHIKLEz8fEw==",
+          "verified": true
+        }
+      ]
+    }
+  ],
+  "candidateSourceEvidence": {
+    "wllama": {
+      "releaseTag": "3.8.1",
+      "releaseCommit": "7ed17361caf221a84aa1e80ca85a3d6324f3af85",
+      "npmReportedCommit": "b68fd6427063266176bb0054befe9ff70b3258f1",
+      "bothTreesDeclareLlamaCpp": "46ca246de9bb1c35269722a6240d37d9dfd79cad",
+      "declaredSubmoduleOrigin": "https://github.com/ggerganov/llama.cpp",
+      "resolvedUpstreamCommit": "https://github.com/ggml-org/llama.cpp/commit/46ca246de9bb1c35269722a6240d37d9dfd79cad",
+      "status": "source candidate; artifact compilation not attested"
+    },
+    "stockfish": {
+      "releaseTag": "v19.0.1",
+      "releaseCommit": "0d5dd7944f88c817c07a26bc4fb1905d5f9c46d6",
+      "source": "https://github.com/nmrugg/stockfish.js/tree/0d5dd7944f88c817c07a26bc4fb1905d5f9c46d6",
+      "status": "source candidate; registry gitHead and artifact compilation attestation absent"
+    }
+  }
+}
