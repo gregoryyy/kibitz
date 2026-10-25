@@ -35,6 +35,13 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 0.13 Document the LLM and symbolic design across features in a brief [design overview](AI-DESIGN.md), distinguishing built behaviour, planned features and ROAD explorations. *(added)*
 - [x] 0.14 Organize existing source modules into `chess/`, `coach/`, `library/`, `openings/` and `platform/`; preserve directories in the build and update imports, tests, tools and documentation. *(added)*
 
+- [x] 0.15 Create a typed file-level assurance lineage graph linking artifacts, TODO items, DONE entries, insights and deviations; retain provenance/gaps and provide reproducible validation and queries. *(added)*
+- [x] 0.16 Extend assurance with separate object/PR and documentation/link graphs, reproducible object selection, and a small searchable dependency browser in `utils/`.
+  - [x] 0.16.1 Object/function/block lineage and retained PR description sections with explicit provenance.
+  - [x] 0.16.2 Documentation headings, fenced blocks, project links and cross-level planning/rationale connections.
+  - [x] 0.16.3 Compare compatible graph foundations and implement offline search, traversal and source inspection.
+- [x] 0.17 Add confidence-weighted typed links, editable relation assessments, transparent gap/deviation inference, browser filters and an assurance README.
+
 ## 1. Play against the engine
 
 - [x] 1.1 Board UI: legal moves, promotion, flip, coordinates *(prototype)*
@@ -267,6 +274,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
     - [ ] 11.4.2.5 **ASVS 8.2.1 — explicit function permissions:** enforce backend permissions for the authenticated local operator across AI, connection-test, embedding and private-library functions. Test missing/denied permission and cross-owner access; same-origin checks and sharing consent remain separate controls.
     - [ ] 11.4.2.6 **ASVS 12.1.1 — actual TLS inventory:** record protocol settings and verified negotiated versions for every supported final browser/gateway/provider/service transport, allowing only currently recommended TLS versions and preferring the latest. Retain dated endpoint evidence without credentials; enforce the reviewed configuration and test downgrade refusal. Initial inventory review remains due 2026-11-01.
     - [ ] 11.4.2.7 **ASVS 12.2.1 — encrypted connectivity:** require TLS for the final browser/gateway deployment and external HTTP service connections, rejecting insecure fallback and unsupported plaintext endpoint overrides. Test actual native/container boundaries and failure behavior; update deployment/provider instructions.
+      - [x] 11.4.2.7.1 Add [native Node HTTPS](TLS.md) with operator-supplied PEM identities, bounded private-file checks, refusal of invalid TLS configuration without HTTP fallback, real CLI/browser tests and a packaged-image TLS case. This prerequisite does not close cookie migration, final transport enforcement, external endpoint policy or the parent ASVS control
     - [ ] 11.4.2.8 **ASVS 12.2.2 — public certificate trust:** inventory externally facing services and verify publicly trusted certificates, hostname checks and renewal/expiry handling. Test invalid/untrusted/expired certificates without a trust bypass; private test certificates are not release endpoint evidence.
     - [ ] 11.4.2.9 **ASVS 13.4.1 — checkout isolation:** ensure source-control metadata is unavailable both over HTTP and to the application process in every supported final execution mode, including native operation. Stage or isolate native runtime files outside readable checkout metadata; test process-level and HTTP access while preserving packaged exclusion.
     - [ ] 11.4.2.10 **ASVS 14.2.1 — private positions in URLs:** replace the position-bearing external navigation path with a handoff that keeps sensitive FEN/private data out of URLs, query strings and browser history. Verify outbound navigation, referrers and error/log paths; document the replacement analysis workflow.

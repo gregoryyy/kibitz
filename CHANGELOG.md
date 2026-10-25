@@ -11,7 +11,11 @@ pending source, checks and decisions.
 
 ## [Unreleased]
 
-Changes after the candidate scope will be recorded here.
+### Added
+
+- Optional native HTTPS listener using operator-supplied certificates and private
+  keys, with validated files and no HTTP fallback on invalid TLS configuration.
+  Cookie migration and the remaining final-release ASVS fixes are still pending.
 
 ## [0.1.0-rc.1] — prepared 2026-10-25, unpublished draft
 

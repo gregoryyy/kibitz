@@ -78,6 +78,28 @@ retrieval-eval *args: install
 # Render docs/flipbook/: a happy path through the app, one screenshot per step
 flipbook ai="env" yes="": build
     node site/scripts/flipbook.mjs --ai {{ai}} {{ if yes != "" { "--yes" } else { "" } }}
+# Check tracked assurance lineage integrity and freshness
+assure: install
+    cd site && npm run check:assure
+
+# Rebuild docs/assure/ after staging new/deleted artifact paths
+assure-build: install
+    node utils/assure.mjs build
+    node utils/assure-detail.mjs build
+    node utils/assure-infer.mjs build
+
+# Refresh retained public PR descriptions and changed-file lists (network, no inference)
+assure-prs: install
+    node utils/assure-detail.mjs refresh-prs
+
+# Explore all assurance levels in a read-only loopback browser
+assure-browser: install
+    node utils/assure-browser/serve.mjs
+
+# Trace a TODO number, file path or exact graph node ID
+assure-query node: install
+    node utils/assure.mjs query {{quote(node)}}
+
 # --- Documents: Markdown → PDF (adapted from the OrgFab repo) ------------------------------------
 # pandoc (Markdown → standalone HTML, images and scripts embedded, math as MathML) + headless Chrome
 # (HTML → A4 PDF), typography from utils/pdf/style.css. Documents with ```mermaid blocks get

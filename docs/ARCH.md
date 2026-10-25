@@ -36,6 +36,12 @@ This split is also the user experience:
 
 The selected deployment is a local single-user app, confirmed in TODO 10.1. Existing loopback defaults, operator env keys and browser/optional private SQLite storage define the target; hosted authentication is deferred. [Deployment scope](DEPLOYMENT.md) distinguishes local hosting from the independent choice of cloud or local model inference.
 
+The owner selected [native Node HTTPS](TLS.md) with operator-supplied certificates
+for the final local deployment. The CLI's optional TLS listener shares the same
+static/API handlers and uses the real socket for Origin and cookie transport
+checks; public identity-file exclusion and validation happen before storage opens.
+Final transport enforcement and the other ASVS remediations remain separate TODOs.
+
 ```mermaid
 flowchart LR
   subgraph Browser["Browser page (site/src)"]
@@ -314,3 +320,5 @@ The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, 
 ### Persistent local accounting
 
 `server/usage-store.mjs` stores current-day counters and bounded minute admissions in a private versioned SQLite database. `usageAccounting()` shares it across coach/tests/embeddings, commits both server/user completion totals atomically and checks per-cookie plus aggregate rates before provider work. Cookie IDs are hashed; no prompts, responses, raw cookies or keys enter the ledger. Standard serve recipes select `.kibitz-data/usage.sqlite`; direct CLI calls default to memory. Shared private-file checks keep both usage and library databases outside the static tree. [Accounting behavior and lifecycle](USAGE.md) explain threshold overshoot, failures, retention and the deferred account boundary.
+
+The [assurance lineage](assure/README.md) connects file artifacts, TODO/DONE items, insights and deviations with source locations.
