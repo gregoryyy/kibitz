@@ -112,3 +112,16 @@ test('publication failure removes temporary files; a successful marker never fol
     assert.equal(await fs.readFile(target, 'utf8'), 'preserve operator file'); assert.equal((await fs.lstat(file + '.sha256')).isSymbolicLink(), false);
   } finally { await fs.rm(dir, { recursive: true, force: true }); }
 });
+
+
+test('plaintext and URL credentials fail before filesystem creation; insecure redirects cannot publish weights', async () => {
+  const dir = await directory(), absent = path.join(dir, 'absent'); let calls = 0;
+  try {
+    for (const source of ['http://127.0.0.1/fixture.gguf', 'https://user:PRIVATE_SENTINEL@localhost/model']) {
+      await assert.rejects(downloadModel(absent, { ...model, source }, { fetcher: async () => { calls++; return new Response(bytes); } }), /HTTPS transport policy/);
+    }
+    assert.equal(calls, 0); await assert.rejects(fs.access(absent), /ENOENT/);
+    await assert.rejects(downloadModel(dir, model, { fetcher: async () => { calls++; return new Response(null, { status: 302, headers: { location: 'http://127.0.0.1/leak?PRIVATE_SENTINEL' } }); } }), error => !error.message.includes('PRIVATE_SENTINEL'));
+    assert.equal(calls, 1); assert.deepEqual(await fs.readdir(dir), []);
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});

@@ -189,7 +189,9 @@ test('the packaged non-root server supports native HTTPS from read-only operator
       '--tmpfs', '/data:mode=0700,uid=1000,gid=1000',
       '--health-interval', '2s', '--health-start-period', '0s',
       '--env', 'KIBITZ_HEALTH_HTTPS=1', '--env', 'KIBITZ_HEALTH_CA=/tls/cert.pem',
-      '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image);
+      '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=0',
+      '--env', 'OPENAI_API_KEY=syntheticTransportKey', '--env', 'OPENAI_BASE_URL=http://127.0.0.1:9/v1',
+      '--env', 'EMBEDDING_PROVIDER=openai', '--env', 'EMBEDDING_MODEL=fixture', image);
     const probeUrl = publishedBase(container).replace('http:', 'https:'), url = probeUrl.replace('127.0.0.1', 'kibitz.test');
     // Node API clients connect directly to the mapped loopback port; Chromium resolves
     // the .test name with a browser-only loopback resolver rule. Both send the real application authority.
@@ -200,6 +202,10 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     expect((await client.get(probeUrl + '/api/ai/status')).status()).toBe(401);
     const login = await client.post(probeUrl + '/api/library/session', { data: { secret: identity.secret, migrate: true } }); expect(login.status()).toBe(200);
     expect(login.headers()['set-cookie']).toContain('__Host-kibitz_session=');
+    const configured = await (await client.get(probeUrl + '/api/ai/status')).json();
+    expect(configured.providers.find(provider => provider.name === 'openai')).toMatchObject({ available: false, reason: expect.stringContaining('HTTPS') });
+    expect((await client.post(probeUrl + '/api/ai/config', { data: { provider: 'openai' } })).status()).toBe(409);
+    expect((await (await client.get(probeUrl + '/api/ai/embeddings')).json()).available).toBe(false);
     expect(login.headers()['set-cookie']).toContain('; Secure');
     for (const route of ['/api/ai/status', '/api/library/records']) {
       const response = await client.get(probeUrl + route); expect(response.status()).toBe(200);

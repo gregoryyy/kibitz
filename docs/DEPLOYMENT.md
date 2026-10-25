@@ -4,6 +4,11 @@ Decision for TODO 10.1, confirmed by the project owner on 2026-10-24: **target a
 
 This deployment can still use a cloud AI provider chosen by the operator. “Local app” describes where the application runs; `AI_LOCAL_ONLY`, Ollama and the in-browser model provide the separate offline/local-inference options. Provider data sharing and explicit opt-in remain TODO 10.4.
 
+All final provider/embedding and model-provisioning connections obey the
+[encrypted transport policy](TLS-POLICY.md); plain loopback Ollama needs an
+existing trusted HTTPS front end or explicit isolated development. No keys,
+services or trust entries are provisioned automatically.
+
 ## Supported operation
 
 Initialize the private [operator identity](SESSIONS.md) once and supply trusted operator certificates and a loopback resolver mapping for

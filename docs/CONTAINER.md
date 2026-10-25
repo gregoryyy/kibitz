@@ -9,6 +9,10 @@ passes four image/browser/restart/previous-packaging compatibility cases at sour
 [Current evidence](security/2026-10-25-image-advisories.json) records exact identities.
 The [earlier packaging evidence](security/2026-10-25-container.json) remains historical.
 
+The packaged app enforces the same [HTTPS-only service policy](TLS-POLICY.md)
+as native operation. Plain provider overrides are unavailable even when the app
+itself is reached over valid HTTPS; local-only inference does not waive TLS.
+
 The [image advisory check](IMAGE-ADVISORIES.md) adds a pinned scanner and fresh
 database to the same CI-built image, retaining raw findings and failing on
 high/critical results or incomplete package evidence. Actual verification has zero

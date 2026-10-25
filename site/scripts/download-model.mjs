@@ -1,3 +1,4 @@
+import { secureFetch, transportUrl } from '../server/secure-fetch.mjs';
 // Bounded download of a catalogue-selected model. Nothing is published before size/hash match.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -15,6 +16,7 @@ export const MODEL_DOWNLOAD_TIMEOUT_MS = 30 * 60_000;
 export async function downloadModel(directory, model, { fetcher = fetch, timeoutMs = MODEL_DOWNLOAD_TIMEOUT_MS, signal, onProgress } = {}) {
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2 ** 31 - 1) throw Error('Model download timeout must be a positive integer up to 2147483647 ms.');
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.gguf$/.test(model.file) || !Number.isSafeInteger(model.bytes) || model.bytes < 1 || !/^[a-f0-9]{64}$/.test(model.sha256)) throw Error('Invalid pinned model descriptor.');
+  transportUrl(model.source); // Validate before creating even a temporary destination directory.
   const file = path.join(path.resolve(directory), model.file), suffix = randomUUID();
   const part = file + '.part-' + suffix, marker = file + '.sha256', markerPart = marker + '.part-' + suffix;
   const controller = new AbortController(), combined = signal ? AbortSignal.any([controller.signal, signal]) : controller.signal;
@@ -33,7 +35,7 @@ export async function downloadModel(directory, model, { fetcher = fetch, timeout
     combined.throwIfAborted();
     await fs.mkdir(path.dirname(file), { recursive: true });
     combined.throwIfAborted();
-    const response = await fetcher(model.source, { signal: combined });
+    const response = await secureFetch(model.source, { signal: combined }, { fetcher, download: true });
     if (!response.ok || !response.body) throw Error(`Model download failed: HTTP ${response.status}, ${response.body ? 'response rejected' : 'missing response body'}.`);
     output = await writable(part);
     await pipeline(Readable.fromWeb(/** @type {any} */ (response.body)), bounded, output, { signal: combined });

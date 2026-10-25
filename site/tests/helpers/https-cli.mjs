@@ -5,11 +5,11 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const defaultScript = fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
-export function httpsCli({ root, key, cert, operatorSecret, extra = [], library = ':memory:', usage = ':memory:', script = defaultScript, final = false, nodeArgs = [] }) {
+export function httpsCli({ root, key, cert, operatorSecret, extra = [], library = ':memory:', usage = ':memory:', script = defaultScript, final = false, nodeArgs = [], env = {} }) {
   const child = spawn(process.execPath, [...nodeArgs, script, root, '--api', '--env=', '--library', library, '--usage', usage, '--index', '_test.html',
     '--port', '0', ...(script === defaultScript ? ['--operator', path.join(path.dirname(key), 'operator.json'), '--permissions', path.join(path.dirname(key), 'permissions.json'), '--sessions', path.join(path.dirname(key), 'sessions.sqlite')] : []), ...(final || script !== defaultScript ? [] : ['--legacy-origin']), '--tls-key', key, '--tls-cert', cert, ...extra], {
     env: { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', AI_LOCAL_ONLY: '1',
-      ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', BROWSER_MODEL_URL: '', BROWSER_RUNTIME: 'wllama' },
+      ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', BROWSER_MODEL_URL: '', BROWSER_RUNTIME: 'wllama', ...env },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let output = '';

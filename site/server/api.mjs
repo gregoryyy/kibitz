@@ -20,7 +20,7 @@ import { developmentIdentity } from './session-identity.mjs';
 import { checkSession, sessionAction } from './session-guard.mjs';
 import { SessionError } from './sessions.mjs';
 import net from 'net';
-import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
+import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, loadEmbeddingConfig, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageAccounting, usageLedger, userLedger } from './usage.mjs';
 import { createEmbeddingApi } from './embeddings.mjs';
@@ -46,7 +46,7 @@ export function createApi({
   countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); },
   embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false, hostname = null, identity = developmentIdentity, authorize = authorizeFunction,
 }) {
-  const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
+  const embeddings = createEmbeddingApi({ config: embeddingConfig || loadEmbeddingConfig(process.env, { allowInsecureLoopback: !!config.allowInsecureLoopback }), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
   const status = (uid, req) => ({ ...(functionFlags(req) ? { functions: functionFlags(req) } : {}), ...publicStatus(config), usage: ledger.today(), user: users.today(uid), paid: paid() });
   // Counts a finished request for the server and the user; returns its usage with the cost.

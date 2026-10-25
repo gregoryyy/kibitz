@@ -186,7 +186,7 @@ test('usage is counted per request and the daily budget is enforced', async () =
 
 test('settings: switch provider, local-only mode, connection test; all same-origin only', async () => {
   const made = [];
-  const config = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', OLLAMA_MODEL: 'llama' });
+  const config = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', OLLAMA_MODEL: 'llama', OLLAMA_BASE_URL: 'https://localhost:11434' });
   const fakeProvider = name => ({ async *chat() { yield 'OK'; return { truncated: false, usage: { input: 5, output: 1 } }; }, name });
   const api = createApi({ allowInsecureHttp: true, config, provider: fakeProvider('anthropic'), makeProvider: c => { made.push(c.provider); return fakeProvider(c.provider); }, log: quiet });
   const s = http.createServer((req, res) => api(req, res));

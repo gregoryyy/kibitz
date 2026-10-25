@@ -10,7 +10,7 @@ import { wire } from '../tests/fixtures/ai-wire.mjs';
 
 for (const name of ['anthropic', 'openai', 'mistral', 'ollama']) test(`${name}: disclosure prompts cannot insert server credentials into model context or public status`, async t => {
   const keys = ['credential-anthropic-PRIVATE', 'credential-openai-PRIVATE', 'credential-mistral-PRIVATE'];
-  const config = loadConfig({ AI_PROVIDER: name, ANTHROPIC_API_KEY: keys[0], OPENAI_API_KEY: keys[1], MISTRAL_API_KEY: keys[2], OLLAMA_MODEL: 'fixture-model' });
+  const config = loadConfig({ AI_PROVIDER: name, ANTHROPIC_API_KEY: keys[0], OPENAI_API_KEY: keys[1], MISTRAL_API_KEY: keys[2], OLLAMA_MODEL: 'fixture-model', OLLAMA_BASE_URL: 'https://localhost:11434' });
   const seen = [], logs = [];
   const fetcher = async (url, init) => {
     seen.push({ body: JSON.parse(init.body), headers: new Headers(init.headers) });

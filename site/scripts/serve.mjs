@@ -104,7 +104,7 @@ async function main() {
     }
     const { loadConfig } = await import('../server/ai.mjs');
     const { createApi } = await import('../server/api.mjs');
-    const config = loadConfig();
+    const config = loadConfig(process.env, { allowInsecureLoopback: opt['http-dev'] });
     const { sqliteUsageStore } = await import('../server/usage-store.mjs');
     const { privateDatabaseFile } = await import('../server/private-files.mjs');
     const { usageAccounting } = await import('../server/usage.mjs');

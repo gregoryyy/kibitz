@@ -1,5 +1,6 @@
 // AI gateway core: settings, provider adapters and request validation.
 // Server-side only. API keys come from process.env (loaded from .env) and never leave this process.
+import { transportUrl } from './secure-fetch.mjs';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { exampleFor, providerSchema } from './schema.mjs';
@@ -13,7 +14,7 @@ const SDK_LOGGER = Object.freeze({ debug() {}, info() {}, warn() {}, error() {} 
 export const PROVIDERS = ['anthropic', 'openai', 'mistral', 'ollama', 'browser', 'mock'];
 // Small, fast models by default: coaching replies are short and grounded in engine output.
 const DEFAULTS = {
-  anthropic: { model: 'claude-haiku-5-5' },
+  anthropic: { model: 'claude-haiku-5-5', baseURL: 'https://api.anthropic.com' },
   openai: { model: 'gpt-6-luna', baseURL: 'https://api.openai.com/v1' },
   mistral: { model: 'mistral-small-latest', baseURL: 'https://api.mistral.ai/v1' },
   ollama: { model: '', baseURL: 'http://127.0.0.1:11434' },
@@ -36,10 +37,10 @@ export const LOCAL_PROVIDERS = ['ollama', 'browser', 'mock'];
 // chosen provider can't be used, so the client can hide the coach and say why. `choices` holds
 // every provider's settings (server-side only: they include the keys), so the settings UI can
 // switch between the ones .env sets up; `localOnly` (AI_LOCAL_ONLY) allows only local ones.
-export function loadConfig(env = process.env) {
+export function loadConfig(env = process.env, { allowInsecureLoopback = false } = {}) {
   const active = (env.AI_PROVIDER || 'anthropic').trim().toLowerCase();
-  const choices = Object.fromEntries(PROVIDERS.filter(p => p !== 'mock' || active === 'mock').map(p => [p, providerConfig(env, p)]));
-  return applyLocalOnly({ ...providerConfig(env, active), choices, localOnly: /^(1|true|yes|on)$/i.test(env.AI_LOCAL_ONLY || '') });
+  const choices = Object.fromEntries(PROVIDERS.filter(p => p !== 'mock' || active === 'mock').map(p => [p, providerConfig(env, p, allowInsecureLoopback)]));
+  return applyLocalOnly({ ...providerConfig(env, active, allowInsecureLoopback), choices, localOnly: /^(1|true|yes|on)$/i.test(env.AI_LOCAL_ONLY || '') });
 }
 
 // In local-only mode a cloud provider is never used: Ollama takes over if it's set up, else the
@@ -60,10 +61,10 @@ export function switchProvider(cfg, name) {
   return { ...next, choices: cfg.choices, localOnly: cfg.localOnly };
 }
 
-function providerConfig(env, provider) {
+function providerConfig(env, provider, allowInsecureLoopback) {
   const num = (v, d) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : d; };
   const cfg = {
-    provider, model: '', available: false, reason: '',
+    provider, model: '', available: false, reason: '', allowInsecureLoopback: allowInsecureLoopback === true,
     maxTokens: num(env.AI_MAX_OUTPUT_TOKENS, 16000),
     timeoutMs: num(env.AI_TIMEOUT_MS, 60000),
     ratePerMinute: num(env.AI_RATE_LIMIT_PER_MINUTE, 20),
@@ -86,6 +87,7 @@ function providerConfig(env, provider) {
     }
     // Set by scripts/serve.mjs --models once the model file is downloaded and checked.
     const url = env.BROWSER_MODEL_URL || '', name = env.BROWSER_MODEL_NAME || 'In-browser model';
+    if (url && !/^\/?models\/[A-Za-z0-9][A-Za-z0-9._-]*\.gguf$/.test(url)) return off("The browser model must be served from this app's /models/ directory.");
     if (!url) return off(env.BROWSER_MODEL_REASON || 'No in-browser model yet: run `just offline` once to download it');
     return { ...cfg, model: name, models: { quick: name, chat: name, review: name }, available: true, browser: { url, name, bytes: num(env.BROWSER_MODEL_BYTES, 0) } };
   }
@@ -102,8 +104,12 @@ function providerConfig(env, provider) {
     let host;
     try { host = new URL(cfg.baseURL).hostname.toLowerCase(); } catch { return off('OLLAMA_BASE_URL is not a valid URL'); }
     if (!allowed.includes(host)) return off(`OLLAMA_BASE_URL host "${host}" is not in OLLAMA_ALLOWED_HOSTS`);
+    try { const url = transportUrl(cfg.baseURL, { allowInsecureLoopback: cfg.allowInsecureLoopback }); if (url.search) throw Error(); }
+    catch { return off('This provider needs HTTPS with certificate verification and the reviewed TLS settings.'); }
     return { ...cfg, apiKey: 'ollama', available: true };
   }
+  try { const url = transportUrl(cfg.baseURL, { allowInsecureLoopback: cfg.allowInsecureLoopback }); if (url.search) throw Error(); }
+  catch { return off('This provider needs HTTPS with certificate verification and the reviewed TLS settings.'); }
   cfg.apiKey = env[`${P}_API_KEY`] || '';
   if (!cfg.apiKey) return off(`${P}_API_KEY is empty in .env`);
   return { ...cfg, available: true };
@@ -183,7 +189,7 @@ export function validateTools(names) {
 export function createProvider(cfg, /** @type {{ client?: any }} */ { client } = {}) {
   if (['anthropic', 'openai', 'mistral', 'ollama'].includes(cfg.provider)) return {
     async *chat(messages, /** @type {ChatOptions} */ opts = {}) {
-      const operation = providerOperation(cfg.timeoutMs, opts.signal);
+      const operation = providerOperation(cfg.timeoutMs, opts.signal, { allowInsecureLoopback: cfg.allowInsecureLoopback });
       try {
         const baseURL = cfg.provider === 'ollama' ? cfg.baseURL.replace(/\/+$/, '') + '/v1' : cfg.baseURL;
         const options = { apiKey: cfg.apiKey, baseURL, timeout: operation.timeoutMs, fetch: operation.fetch, maxRetries: 0, logger: SDK_LOGGER };
@@ -349,7 +355,7 @@ export async function complete(provider, messages, opts = {}) {
 export const EMBEDDING_PROVIDERS = ['openai', 'mistral', 'ollama', 'mock'];
 const EMBEDDING_DEFAULTS = { openai: 'text-embedding-3-small', mistral: 'mistral-embed', ollama: '' };
 export const EMBED_LIMITS = { texts: 128, chars: 8000 };
-export function loadEmbeddingConfig(env = process.env) {
+export function loadEmbeddingConfig(env = process.env, { allowInsecureLoopback = false } = {}) {
   const provider = (env.EMBEDDING_PROVIDER || 'ollama').trim().toLowerCase();
   const revision = (env.EMBEDDING_REVISION || '').trim().slice(0, 160);
   const off = reason => ({ provider, model: '', revision, available: false, reason });
@@ -357,11 +363,11 @@ export function loadEmbeddingConfig(env = process.env) {
   if (provider === 'mock') return { provider, model: 'mock', revision, available: true, reason: '' };
   // Read this provider's actual credentials/endpoint; runtime local-only policy is enforced
   // by the embedding route, without silently substituting the chat provider's local client.
-  const base = /** @type {any} */ (loadConfig({ ...env, AI_PROVIDER: provider, AI_LOCAL_ONLY: '', [`${provider.toUpperCase()}_MODEL`]: 'embeddings' }));
+  const base = /** @type {any} */ (loadConfig({ ...env, AI_PROVIDER: provider, AI_LOCAL_ONLY: '', [`${provider.toUpperCase()}_MODEL`]: 'embeddings' }, { allowInsecureLoopback }));
   const model = env.EMBEDDING_MODEL || EMBEDDING_DEFAULTS[provider];
   if (!model) return off('EMBEDDING_MODEL is empty; for Ollama, set it to an embedding model you have pulled (e.g. nomic-embed-text)');
   if (!base.available) return off(base.reason);
-  return { provider, model, revision, available: true, reason: '', apiKey: base.apiKey, baseURL: base.baseURL, timeoutMs: base.timeoutMs };
+  return { provider, model, revision, available: true, reason: '', apiKey: base.apiKey, baseURL: base.baseURL, timeoutMs: base.timeoutMs, allowInsecureLoopback: base.allowInsecureLoopback };
 }
 // embed(texts, {signal}) -> one vector (array of numbers) per text, in order.
 export function createEmbedder(cfg, /** @type {{ client?: any, inspectModel?: (model: string, signal?: AbortSignal) => Promise<any> }} */ { client, inspectModel } = {}) {
@@ -377,7 +383,7 @@ export function createEmbedder(cfg, /** @type {{ client?: any, inspectModel?: (m
   async function embedBatch(texts, /** @type {{signal?: AbortSignal}} */ { signal } = {}) {
     check(texts);
     if (cfg.provider === 'mock') return { vectors: texts.map(t => Array.from({ length: 8 }, (_, k) => [...t].reduce((a, ch, i) => a + (i % 8 === k ? ch.charCodeAt(0) : 0), 0) / 1000)), providerModel: 'mock', usage: { input: texts.reduce((s, t) => s + t.length, 0), output: 0, estimated: true } };
-    const operation = providerOperation(cfg.timeoutMs, signal, { maxDecodedBytes: PROVIDER_LIMITS.bytes });
+    const operation = providerOperation(cfg.timeoutMs, signal, { maxDecodedBytes: PROVIDER_LIMITS.bytes, allowInsecureLoopback: cfg.allowInsecureLoopback });
     try {
       if (cfg.provider === 'ollama') {
         const info = await operation.wait(async () => {

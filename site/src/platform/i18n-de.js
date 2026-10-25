@@ -3,6 +3,7 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'No in-browser model yet: run `just offline` once to download it': 'Noch kein Browser-Modell: Lade es einmal mit `just offline` herunter',
   'Server function permissions could not be confirmed.': 'Die Server-Berechtigungen konnten nicht bestätigt werden.',
   'Enabled server functions:': 'Freigegebene Server-Funktionen:',
   'No server functions are enabled. Enable access in the local operator configuration.': 'Es sind keine Server-Funktionen freigegeben. Aktiviere den Zugriff in der lokalen Betreiberkonfiguration.',
@@ -803,6 +804,11 @@ export default {
   'Unload': 'Entladen',
   'Try again': 'Nochmal versuchen',
   'The coach needs an AI provider in this view. Stockfish analysis, flags and review still work.': 'Der Coach braucht hier einen KI-Anbieter. Stockfish-Analyse, Markierungen und Auswertung funktionieren trotzdem.',
+  '{p}: No in-browser model yet: run `just offline` once to download it': '{p}: Noch kein Browser-Modell: Lade es einmal mit `just offline` herunter',
+  '{p}: This provider needs HTTPS with certificate verification and the reviewed TLS settings.': '{p}: Dieser Anbieter benötigt HTTPS mit Zertifikatsprüfung und den geprüften TLS-Einstellungen.',
+  "{p}: The browser model must be served from this app's /models/ directory.": '{p}: Das Browser-Modell muss aus dem Verzeichnis /models/ dieser App geladen werden.',
+  'This provider needs HTTPS with certificate verification and the reviewed TLS settings.': 'Dieser Anbieter benötigt HTTPS mit Zertifikatsprüfung und den geprüften TLS-Einstellungen.',
+  "The browser model must be served from this app's /models/ directory.": 'Das Browser-Modell muss aus dem Verzeichnis /models/ dieser App geladen werden.',
   'The coach is off: {r}. Change it in the coach settings below, or in .env and restart the server. Stockfish analysis, flags and review still work.': 'Der Coach ist aus: {r}. Ändere das unten in den Coach-Einstellungen oder in .env und starte den Server neu. Stockfish-Analyse, Markierungen und Auswertung funktionieren trotzdem.',
   'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.': 'Der Coach braucht das lokale KI-Gateway: Starte die App mit `just serve` und trage in .env einen Anbieter ein. Stockfish-Analyse, Markierungen und Auswertung funktionieren trotzdem.',
   'A comment on the aspects chosen in the Coach tab': 'Ein Kommentar zu den Aspekten, die im Coach-Tab gewählt sind',

@@ -36,6 +36,10 @@ the normal unit and browser suites provide behavioral evidence separately.
 
 The review leaves these findings visible:
 
+The [encrypted transport candidate](TLS-POLICY.md) now implements 11.4.2.7;
+its source-pinned packaged verification and assessment update are pending. The
+current matrix counts/statuses remain those of its recorded reviewed source.
+
 - TODO 11.4.1 is addressed at the recorded revision: AI gateway writes compare
   scheme and host against the native socket, ignore forwarding headers and reject
   non-HTTP(S) Origins. Direct local clients without Origin still work. SVG now

@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Encrypted provider, embedding and model-provisioning connections (experimental)
+
+TODO item: 11.4.2.7 / ASVS 12.2.1. Implementation/local verification is complete; source-pinned packaged-image verification and assessment are recorded separately before ticking the parent.
+
+### Implementation notes
+
+- Add a shared outbound preflight requiring HTTPS, certificate verification and reviewed Node TLS defaults. Validate every selected cloud/Ollama config without reflecting its URL/key, recheck the actual SDK/inspection destination before sending, refuse all provider redirects and preserve total response/cancellation/size/error bounds. Set an explicit Anthropic default rather than accepting a hidden ambient SDK endpoint. Apply the same rules independently to embeddings; provider switching cannot enable an invalid endpoint.
+- Restrict browser model configuration to an app-relative GGUF path under /models/. Permit plain HTTP only to exact loopback hosts with the explicit backend development option passed by `--http-dev`; do not expose an environment/request-body override or permit remote development HTTP. Default plain Ollama is now unavailable in final mode. Document the deliberate compatibility change and need for an existing trusted TLS service endpoint without provisioning one or changing the native Node application architecture.
+- Validate model sources before creating a directory; manually validate and bound HTTPS redirects without carrying credentials/headers/body. Preserve pinned byte/hash verification, temporary-file isolation and verified publication. Explicitly bound native listener/health protocols to 1.2–1.3 and require health peer verification even under the ambient TLS-disable flag. No new dependency.
+- Real local SDK fixtures cover all four coaching adapters, embedding requests and Ollama inspection over verified TLS 1.3, redirect leak traps, unsafe runtime flags and untrusted health behavior. Download tests cover initial/redirect downgrade, credentials, hop limits and unchanged filesystem/publication boundaries. Actual final-host native/browser tests deny configured plaintext coaching/embedding destinations before a synthetic key/context reaches a trap, in English/German. The actual pre-enforcement CLI (`ca1f8a6`) fails the new browser regression by reporting the endpoint available. All 16 unaffected browser cases passed before completing the newly covered missing-model notice translations; the two final English/German endpoint cases then pass. The actual packaged TLS case now also requires an invalid plaintext choice and its embeddings to remain unavailable. Fresh build and the complete mock-only unit suite pass: 806 tests, one opt-in live skip. The earlier runs identified outdated fake Ollama HTTP configs and a source/build mismatch while translations were still being edited; the final suite passes against the final fresh build without weakening assertions. Source-pinned image/full CI results follow in the PR.
+- Integrate current main's assurance tooling, retaining both progress histories and combining its race-free port-zero allocation with explicit HTTP-development startup in the two restart fixtures. Carry forward the independently verified German notice correction from PR #147. Rebuild every assurance layer after all authored edits and new paths are staged; retain the PR snapshot and authored confidence hypotheses.
+
+### Deviations
+
+- Final operator/browser/provider/CDN negotiation and public certificate/renewal evidence remain 11.4.2.6/11.4.2.8. Browser-managed model provisioning is outside the gateway's controls; no inference, model download, production credential/certificate generation or trust installation occurs. Development/recovery remain outside final scope. Existing private data and provider configuration files are not rewritten; an insecure configured provider becomes unavailable until corrected.
+
+### Insights
+
+- HTTPS on the application listener does not encrypt a second provider hop. Local-only routing, endpoint allowlisting, sharing consent and authenticated function authority are separate decisions from transport encryption. Redirect checks must precede the redirected socket, because validation of only the initial URL leaves download and SDK request paths able to downgrade.
+
 ## 2026-10-25 — Partial TLS transport inventory and reproducible probe (experimental)
 
 TODO item: 11.4.2.6.1, a prerequisite under 11.4.2.6 / ASVS 12.1.1. The parent, encrypted-connectivity and public-trust controls remain open.

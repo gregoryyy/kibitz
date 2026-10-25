@@ -60,7 +60,7 @@ test('local-only blocks cloud embedding even with a local chat provider, and emb
 
 test('Ollama cloud relays and unknown model metadata are refused before any text is sent', async () => {
   let calls = 0;
-  const cfg = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama', EMBEDDING_MODEL: 'alias' });
+  const cfg = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama', EMBEDDING_MODEL: 'alias', OLLAMA_BASE_URL: 'https://localhost:11434' });
   const client = { post: async () => { calls++; return { data: [{ index: 0, embedding: [1, 0] }] }; } };
   const local = { details: { format: 'gguf' }, model_info: { 'general.architecture': 'bert' }, capabilities: ['embedding'] };
   for (const info of [{}, { ...local, remote_host: 'ollama.com', remote_model: 'remote' }, { ...local, capabilities: ['completion'] }]) {

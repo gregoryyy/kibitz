@@ -40,7 +40,7 @@ export function loadTlsOptions({ key, cert, servedRoots, hostname = null }) {
       || !Array.isArray(servedRoots) || !servedRoots.length) throw Error();
     const roots = servedRoots.map(root => fs.realpathSync(root));
     const options = { key: readIdentityFile(key, roots, true), cert: readIdentityFile(cert, roots, false),
-      minVersion: /** @type {const} */ ('TLSv1.2') };
+      minVersion: /** @type {const} */ ('TLSv1.2'), maxVersion: /** @type {const} */ ('TLSv1.3') };
     // Parse the pair here, before any private database can be created. OpenSSL also
     // checks that the leaf certificate matches the supplied unencrypted private key.
     createSecureContext(options);

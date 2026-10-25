@@ -193,8 +193,9 @@ cookie-bearing CLI without TLS refuses startup before private storage creation;
 API constructors also refuse plaintext by default. Pure static serving can use
 HTTP. Controlled development/test tools explicitly select **`--http-dev`**, using
 separate development identities that cannot migrate production cookies. Combining
-that flag with TLS options is refused. External-service transport enforcement
-remains **11.4.2.7**; a native HTTPS listener does not close that parent item.
+that flag with TLS options is refused. External-service [transport enforcement](TLS-POLICY.md) is implemented under
+**11.4.2.7** and verified separately from this listener prerequisite. Actual
+endpoint inventory and public trust retain their own gates.
 
 ## Container use and verification
 
