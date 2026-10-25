@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "ea41d427b43c4f44396664197c8f5cea17ee16c3",
+  "revision": "57b7cc18fd494293a44aa4df6d6f757ffa52b647",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -242,16 +242,15 @@
     {
       "id": "v5.0.0-3.5.2",
       "topic": "Preflight and origin consistency",
-      "status": "open",
+      "status": "verified",
       "method": "code-and-test",
-      "note": "JSON and non-safelisted consent checks prevent simple cross-origin calls. The AI gateway nevertheless compares only URL.host: synthetic same-host HTTPS/FTP Origins are accepted over HTTP. Tighten scheme consistency; this probe is not a demonstrated browser exploit.",
+      "note": "All AI write routes require JSON and a full Origin matching the native socket scheme/host. Wrong HTTP/HTTPS, FTP, blob and null Origins are rejected despite forwarding-header spoofing. Direct local clients without Origin remain trusted; preflight receives no CORS approval.",
       "evidence": [
         "site/server/api.mjs",
-        "site/server/api.test.mjs",
-        "site/server/privacy.test.mjs",
-        "docs/ASVS.md"
-      ],
-      "followUp": "TODO 11.4.1"
+        "site/server/origin-transport.test.mjs",
+        "site/tests/e2e/http-hardening.spec.mjs",
+        "site/server/privacy.test.mjs"
+      ]
     },
     {
       "id": "v5.0.0-3.5.3",
@@ -269,15 +268,15 @@
     {
       "id": "v5.0.0-4.1.1",
       "topic": "Media type and charset",
-      "status": "open",
+      "status": "verified",
       "method": "code-and-test",
-      "note": "JSON, NDJSON, HTML, JS, CSS and text responses declare UTF-8. SVG is image/svg+xml without an explicit charset; add it and a real-server regression. Unknown binary files remain octet-stream.",
+      "note": "JSON, NDJSON, HTML, JS, CSS, text and SVG responses declare UTF-8 with their corresponding media type. Actual CLI GET/HEAD and browser SVG document checks verify the former SVG gap; binary/unknown assets remain binary media types.",
       "evidence": [
         "site/server/public-files.mjs",
         "site/server/public-files.test.mjs",
-        "site/server/api.mjs"
-      ],
-      "followUp": "TODO 11.4.1"
+        "site/server/api.mjs",
+        "site/tests/e2e/http-hardening.spec.mjs"
+      ]
     },
     {
       "id": "v5.0.0-4.4.1",

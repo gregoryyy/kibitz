@@ -34,13 +34,15 @@ the normal unit and browser suites provide behavioral evidence separately.
 
 The review leaves these findings visible:
 
-- TODO 11.4.1: AI gateway Origin checks compare the host without its scheme;
-  the library compares the full native origin. Synthetic HTTP requests with
-  same-host `http:`, `https:` and `ftp:` Origins all received 200 from the mock
-  connection-test endpoint. This demonstrates inconsistent policy, not a browser
-  CSRF exploit: JSON/non-safelisted headers and absent CORS approval still require
-  successful preflight. SVG responses also lack an explicit charset, unlike other
-  textual responses. Both are concrete HTTP hardening follow-ups.
+- TODO 11.4.1 is addressed at the recorded revision: AI gateway writes compare
+  scheme and host against the native socket, ignore forwarding headers and reject
+  non-HTTP(S) Origins. Direct local clients without Origin still work. SVG now
+  declares UTF-8. Real HTTP/TLS and CLI/browser regressions cover both changes.
+  The prior revision accepted synthetic same-host HTTPS/FTP Origins over HTTP;
+  the new regressions fail against that actual source and its SVG header.
+  These probes establish policy consistency, not a demonstrated browser CSRF
+  exploit: JSON/non-safelisted headers and absent CORS approval were already
+  separate defenses. Remaining deployment and verification gaps follow below.
 - Local HTTP does not meet the transport, cookie-prefix and HSTS requirements.
   Native TLS sets Secure, but current cookie names lack a secure prefix even there.
   Do not silently add HSTS for localhost or rename private-library cookies without

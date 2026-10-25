@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Native-Origin checks and explicit SVG encoding
+
+TODO item: 11.4.1. Remaining ASVS deployment deviations, TLS/inventory verification and release gates stay open.
+
+### Implementation notes
+
+- AI POST routes now compare the parsed HTTP(S) Origin with the native socket scheme and Host, rejecting wrong schemes and blob/FTP/null/malformed Origins. Forwarded and X-Forwarded-Proto cannot change the comparison. Same-origin browser calls and trusted direct local clients without Origin retain their behavior. The library already had a native full-origin check.
+- Static SVG GET/HEAD responses now declare `image/svg+xml; charset=utf-8`; binary media types and nosniff remain. The actual browser document reports SVG/UTF-8.
+- Two new server tests cover real HTTP and certificate-validated HTTPS across all five AI write routes, invalid Origins, spoofed forwarding metadata, same-origin acceptance and direct clients. Three new actual-CLI/browser cases verify scheme rejection, normal browser/direct-client/preflight behavior and SVG GET/HEAD/rendering; both existing HTTP/TLS browser cases now exercise automatic browser POST Origins too.
+- Validation: lint/JSDoc, build and the full unit/server suite pass (660 passes, one opt-in live skip), followed sequentially by all five focused browser cases on the same settled build. The two regressions fail on actual prior `5407d8a` source/build: a synthetic HTTPS Origin over HTTP receives 200 and SVG lacks charset. No live provider, model download or operator environment file is used. Re-reviewed the two ASVS entries at exact implementation revision `57b7cc1`, regenerated the table (28 scoped verifications, 30 justified absences, 10 deviations, 2 open) and retained the original review's historical counts.
+
+### Deviations
+
+- Synthetic API-client Origins prove consistent server policy; they do not prove a browser CSRF exploit existed. JSON/non-safelisted headers and lack of CORS approval already provided a separate defense.
+- This does not add a trusted reverse proxy, CLI TLS mode, cookie-name migration, HSTS, hosted authentication or release approval. Local HTTP and the other ASVS deviations remain explicit.
+
+### Insights
+
+- Scheme is part of an origin. A matching host cannot substitute for it, and client forwarding metadata cannot describe the native transport reliably.
+- Header assertions on actual GET/HEAD responses and an SVG browser navigation verify the encoding boundary directly without treating a source constant as a sufficient test.
+
 ## 2026-10-25 — Versioned ASVS L1 review and offline evidence checks
 
 TODO item: 11.4 (review/checklist complete, not compliance or release approval). Follow-up 11.4.1 and deployment/inventory deviations remain open.
