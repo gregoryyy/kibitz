@@ -1,0 +1,55 @@
+name: Security baseline
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  baseline:
+    name: Mock staging, CSP, inventory and ZAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - name: Pinned launcher loopback policy
+        run: python3 ../.github/zap/test_hooks.py
+      - name: Lockfile inventory and npm advisories
+        run: |
+          mkdir -p tests/out/security
+          npm sbom --sbom-format cyclonedx --package-lock-only > tests/out/security/npm-sbom.json
+          npm audit --json --audit-level=high > tests/out/security/npm-audit.json
+      - name: Isolated mock staging and passive baseline
+        run: npm run security:scan
+      - name: Preserve evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: security-baseline-${{ github.sha }}
+          path: |
+            site/tests/out/security/*.json
+            site/tests/out/security/*.html
+            site/tests/out/security/zap.out
+            site/tests/out/security/zap-home/zap.log
+          if-no-files-found: error
+          retention-days: 30
