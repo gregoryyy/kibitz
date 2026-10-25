@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Semantic versioning policy and unreleased changelog
+
+TODO item: 12.1. Packaging, remaining guides and the actual release gate remain separate.
+
+### Implementation notes
+
+- Added a root user-facing changelog with a clearly Unreleased development baseline, grouped capabilities/fixes and compatibility/quality/security limits. It links detailed DONE history and the current flipbook without inventing a past release date or tag.
+- Added a SemVer 2.0 policy with documented compatibility surfaces, deliberate 0.x minor/patch choices, candidate identifiers, independent stored-schema/model/cache revisions, migration/backups, aligned package/lock versions and immutable release tags. The release procedure requires an exact merged commit, reviewed release PR, tests/security evidence and explicit authorization before tagging/publishing.
+- Confirmed the existing private package and both lockfile root version fields agree on `0.1.0`; no metadata bump, tag or release is created by this documentation change. README links the changelog and policy.
+- Validation: lint/JSDoc, offline ASVS checks, build and complete unit/server suite pass (666 passes, one opt-in live skip). This is a reversible documentation/process change with no new logic, dependency or UI behavior; existing behavioral tests are retained. Local Markdown links and whitespace checked. No live provider, model download or operator environment read.
+
+### Deviations
+
+- There is no evidence of a historical tagged release, so the changelog starts with Unreleased rather than retrospectively assigning a release. The first real candidate version/date is decided in its release PR.
+- This completes versioning/changelog setup, not TODO 11.6 release approval or the packaging/user-guide milestones. Existing ASVS and LLM verification limits remain visible; feature PRs do not authorize automatic merges or releases.
+
+### Insights
+
+- Application versions, persisted schemas, model identity and offline caches have different compatibility boundaries. A SemVer bump cannot substitute for a data migration or source-revision check.
+- A changelog explains effects and limits for users; the implementation log and exact CI artifacts provide the separate reviewer evidence.
+
 ## 2026-10-25 — Automated security baseline prepared for CI verification
 
 TODO item: 11.5 in progress; actual ZAP verification is still pending and the item remains unchecked.
