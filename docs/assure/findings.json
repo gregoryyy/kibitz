@@ -3475,5 +3475,5 @@
     {"id":"finding:verifies_unassessed:fe7ef33c93fbe2af3204","rule":"verifies_unassessed","status":"candidate","subject":"todo:11.5.3","related":[],"message":"No explicit verifies assessment meets the selected confidence threshold. This is unassessed evidence, not proof the work or tests are absent.","confidence":{"value":1,"method":"rule","policy":"typed-links-1","rationale":"Closed-world observation about the retained graph, not missing real-world implementation."},"paths":[],"source":{"path":"docs/TODO.md","line":270,"endLine":270}},
     {"id":"finding:verifies_unassessed:ffb52d75fe2c0b3dfe82","rule":"verifies_unassessed","status":"candidate","subject":"todo:11.2.6","related":[],"message":"No explicit verifies assessment meets the selected confidence threshold. This is unassessed evidence, not proof the work or tests are absent.","confidence":{"value":1,"method":"rule","policy":"typed-links-1","rationale":"Closed-world observation about the retained graph, not missing real-world implementation."},"paths":[],"source":{"path":"docs/TODO.md","line":247,"endLine":247}}
   ],
-  "inputsSha256": "990e95f8cb92ec8f76cedd91bb7746373b856397efbf5df69d629bdaa57598c6"
+  "inputsSha256": "493fc2b67322097a277ac59b564e327129effe4a31caffa16fc85478bee6a0a6"
 }
