@@ -50,7 +50,7 @@
     {"path":"docs/VALIDATION.md","sha256":"44d6fa47f7633dc98cdb08a3ad3781ce35238b9750ab37e8dbf9b40d149f2928"},
     {"path":"docs/WEB-ASSETS.md","sha256":"197f88a5d7874a3bd2b0a3f52222e7cdfde3cc01087525f156efa9d202a84551"},
     {"path":"docs/assure/LEVELS.md","sha256":"a914aee7627ff2d04a2a296053f746ec4ca176fcf5c05e4fc35ceee11a5a9d00"},
-    {"path":"docs/assure/README.md","sha256":"7835f017437300f3bee167b0e34ba1be0cc68bde5dff97c916fc889d58f7f51c"},
+    {"path":"docs/assure/README.md","sha256":"d21265cd4b298001d4c274b3f9310d19c10fefa89b07d301d03f98027e57f46e"},
     {"path":"docs/assure/assessment-types.mjs","sha256":"d1c6b75fdf2f9b3963ed551257c024fdeefdea0e508b13c69a6b393eb4f899ce"},
     {"path":"docs/assure/confidence.mjs","sha256":"79a8da1276c47a705a4dce00eaa95f6de3fae4a83d079e3ef43c0fb63d168fce"},
     {"path":"docs/assure/detail-types.mjs","sha256":"c2328d293305de73ec7589ce59af7f7bd39591131a7da027b388c4538cc6340b"},
@@ -421,7 +421,7 @@
     {"path":"utils/assure-browser/model.mjs","sha256":"ce3fff2422c2dddb0dca79a438c14b437844d49ee477b6cb7748124b25f7fbf8"},
     {"path":"utils/assure-browser/serve.mjs","sha256":"d94eac79888fdc42c45f1887de08c3249b40bcc7739f9aaf81b03f106deb401d"},
     {"path":"utils/assure-detail.mjs","sha256":"ff88da4b75c43f278dae199b41ffab717fc6c8ed6008b4016ef7fbba66377466"},
-    {"path":"utils/assure-infer.mjs","sha256":"e23338489e56edd5106d0615020942c7840a2abe0e2a49d284678d92a28b5231"},
+    {"path":"utils/assure-infer.mjs","sha256":"7374d5e687dae84a183cb738a1eaec849c348c241856b22cebea42e8909b4f5c"},
     {"path":"utils/assure.mjs","sha256":"0008668a8cff6c73708ae5206d5ea2c94641de6ce4f21bc506467183a2bb7abc"},
     {"path":"utils/pdf/mermaid.html","sha256":"1b386a4ee0539d0ece548ac8a0d6756b528d7fc619a1ce84afa8ae6462b74427"},
     {"path":"utils/retrieval-eval.mjs","sha256":"902c47e36259ee230ed549d6894edcc82733929a025a71acdcad193dfdd92813"}

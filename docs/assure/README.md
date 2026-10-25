@@ -113,7 +113,7 @@ existing `from`/`to` IDs, analyst confidence and source evidence. For example:
     "rationale": "Initial author hypothesis; inspect inferFindings and its limits."
   },
   "evidence": {
-    "source": { "path": "utils/assure-infer.mjs", "line": 16, "endLine": 16 },
+    "source": { "path": "utils/assure-infer.mjs", "line": 17, "endLine": 17 },
     "reference": "inferFindings constructs deterministic typed-path findings.",
     "resolution": "authored_assessment"
   }

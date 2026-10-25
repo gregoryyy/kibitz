@@ -9,6 +9,7 @@ import { ASSESSMENT_SCHEMA, validateAssessments, applyAssessments } from '../doc
 import { confidence, pathConfidence } from '../docs/assure/confidence.mjs';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const json = value => JSON.stringify(value, null, 2) + '\n';
+const recordsJson = value => '{\n' + Object.entries(value).map(([key, item]) => `  ${JSON.stringify(key)}: ` + (Array.isArray(item) ? '[\n' + item.map(record => '    ' + JSON.stringify(record)).join(',\n') + '\n  ]' : JSON.stringify(item))).join(',\n') + '\n}\n';
 const sha = value => createHash('sha256').update(value).digest('hex');
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const evidencePath = edges => edges.map(e => ({ type: e.type, from: e.from, to: e.to, confidence: e.confidence.value }));
@@ -106,7 +107,7 @@ export function run(argv = process.argv.slice(2), root = ROOT) {
   if (extra.length || !['build', 'check'].includes(command)) throw new Error('Usage: node utils/assure-infer.mjs build|check');
   const { layers, assessments } = readAssurance(root), result = inferFindings(layers, assessments);
   result.inputsSha256 = sha(json({ layers, assessments }));
-  const values = [['docs/assure/findings.json', json(result)], ['docs/assure/FINDINGS.md', findingReport(result)], ['docs/assure/links-schema.json', json(ASSESSMENT_SCHEMA)]];
+  const values = [['docs/assure/findings.json', recordsJson(result)], ['docs/assure/FINDINGS.md', findingReport(result)], ['docs/assure/links-schema.json', json(ASSESSMENT_SCHEMA)]];
   for (const [file, value] of values) {
     if (command === 'build') fs.writeFileSync(path.join(root, file), value);
     else if (fs.readFileSync(path.join(root, file), 'utf8') !== value) throw new Error(`Stale assurance findings: ${file}; run node utils/assure-infer.mjs build`);
