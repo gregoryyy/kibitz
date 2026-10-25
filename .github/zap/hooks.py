@@ -18,6 +18,13 @@ def _loopback_start_options(mode, port, extra_params):
     if args[index] != "0.0.0.0":
         raise ValueError("Unexpected pinned ZAP listener default")
     args[index] = "127.0.0.1"
+    # This list checks remote addresses AND API Host headers. ZAPv2 deliberately
+    # uses virtual host "zap" through its local proxy; allow that exact name too.
+    addresses = [i for i, arg in enumerate(args) if arg.startswith("api.addrs.addr.name=")]
+    regex = [arg for arg in args if arg.startswith("api.addrs.addr.regex=")]
+    if len(addresses) != 1 or args[addresses[0]] != "api.addrs.addr.name=.*" or regex != ["api.addrs.addr.regex=true"]:
+        raise ValueError("Unexpected pinned ZAP API address defaults")
+    args[addresses[0]] = "api.addrs.addr.name=^(127[.]0[.]0[.]1|zap)$"
     return args
 
 

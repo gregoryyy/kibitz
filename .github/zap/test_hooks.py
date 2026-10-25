@@ -1,6 +1,7 @@
 """Startup policy tests with a stub launcher; no ZAP/network dependency on host."""
 import importlib.util
 import json
+import re
 from pathlib import Path
 import sys
 import types
@@ -10,7 +11,8 @@ from unittest.mock import patch, mock_open
 
 def baseline_args(mode, port, extra):
     return ["/zap/zap-x.sh", mode, "-port", str(port), "-host", "0.0.0.0",
-            "-config", "api.disablekey=true"] + extra
+            "-config", "api.disablekey=true", "-config", "api.addrs.addr.name=.*",
+            "-config", "api.addrs.addr.regex=true"] + extra
 
 
 sys.modules["zap_common"] = types.SimpleNamespace(create_start_options=baseline_args)
@@ -26,6 +28,8 @@ class StartupPolicy(unittest.TestCase):
         self.assertEqual(original[original.index("-host") + 1], "0.0.0.0")
         self.assertEqual(result[result.index("-host") + 1], "127.0.0.1")
         result[result.index("-host") + 1] = "0.0.0.0"
+        address = next(i for i, arg in enumerate(result) if arg.startswith("api.addrs.addr.name="))
+        result[address] = "api.addrs.addr.name=.*"
         self.assertEqual(result, original)
 
     def test_refuses_changed_or_duplicated_launcher_hosts(self):
@@ -35,6 +39,17 @@ class StartupPolicy(unittest.TestCase):
             with patch.object(hooks, "_start_options", return_value=list(args)):
                 with self.assertRaises(ValueError):
                     hooks._loopback_start_options("-daemon", 9911, [])
+
+    def test_api_allows_exact_client_virtual_host_and_ipv4_loopback(self):
+        result = hooks._loopback_start_options("-daemon", 9911, [])
+        pattern = next(arg.split("=", 1)[1] for arg in result if arg.startswith("api.addrs.addr.name="))
+        for allowed in ("127.0.0.1", "zap"):
+            self.assertIsNotNone(re.fullmatch(pattern, allowed))
+        for denied in ("untrusted.invalid", "127x0x0x1", "127.0.0.12", "zap.untrusted.invalid", "::1"):
+            self.assertIsNone(re.fullmatch(pattern, denied))
+        for extra in (["-config", "api.addrs.addr.name=.*"], ["-config", "api.addrs.addr.regex=false"]):
+            with self.assertRaises(ValueError):
+                hooks._loopback_start_options("-daemon", 9911, extra)
 
     def test_read_only_seeds_and_api_method_coverage(self):
         accessed = []

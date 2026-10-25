@@ -49,9 +49,11 @@ running the scanner as root or making the directory world-writable.
 The hook replaces the pinned launcher's initial wildcard listener with loopback,
 checking its expected argument structure before starting ZAP. The pinned network
 add-on takes the first host option, so appending an override is insufficient.
-Four Python regression tests exercise replacement, option preservation, source
+The API allowlist checks both peer address and Host header: it permits only the
+loopback address and the Python client's exact virtual API name `zap`.
+Five Python regression tests exercise replacement, option preservation, source
 drift rejection, read-only seeding and the actual URL-method coverage interface
-without needing ZAP on the host. No rule options are rewritten.
+and API-address rejection without needing ZAP on the host. No rule options are rewritten.
 
 The [baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) uses passive
 analysis rather than an active attack scan. Its
