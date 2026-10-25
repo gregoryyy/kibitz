@@ -42,7 +42,12 @@ A static-only HTTPS server does not need an operator identity.
 The same-origin JSON POST `/api/library/session` accepts only `secret` and boolean
 `migrate`. Its library path receives both old canonical grouping cookies. Native
 TLS/Host/Origin checks, a 4-KiB body limit, five-second body deadline and ten
-attempts per minute bound proof handling. Forwarding headers cannot authorize it.
+attempts per minute bound proof handling. This fixed per-process limiter has no
+account-disable/lockout state: its shared window resets after sixty seconds (and
+process restart), including after failed attempts. Foreign-origin requests are
+rejected before counting; a hostile local process can still deny service and is
+inside the trusted-machine boundary. No adaptive risk service or hosted account
+lockout is claimed. Forwarding headers cannot authorize it.
 The response sends a fresh random 256-bit `__Host-kibitz_session` cookie, with
 Path=/, Secure, HttpOnly, SameSite=Strict and a twelve-hour maximum age. No token
 or key appears in the JSON response. GET `/api/session/status` exposes only the
@@ -87,7 +92,9 @@ after sign-in cannot change the session's server-held collection. Ambiguous
 migration cookies or a collection bound to another operator are refused without
 cookie changes. Restore the intended private setup/profile rather than guessing.
 
-An existing session cookie lets fresh proof recover its same collection after
+Reauthentication issues a new token and invalidates the previous presented token
+in the same registry transaction; a failure rolls that change back. It cannot
+revoke another operator’s token. An existing session cookie lets fresh proof recover its same collection after
 expiry or a key change that preserves the operator `id`. The old token remains
 unusable for API access. Unchecking migration explicitly creates a new collection;
 it does not recover the previous one. Losing both the original browser profile

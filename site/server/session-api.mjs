@@ -52,12 +52,13 @@ export function createSessionApi({ operator = null, store = null, hostname = nul
         if (!body || Object.keys(body).some(key => !['secret', 'migrate'].includes(key)) || typeof body.migrate !== 'boolean') throw new SessionError('bad_request');
         if (!operatorProof(operator, body.secret)) throw new SessionError();
         // Library-path endpoint receives both original canonical grouping cookies.
+        const present = (req.headers.cookie || '').split(';').some(part => part.trim() === SESSION_COOKIE || part.trim().startsWith(SESSION_COOKIE + '='));
+        const previous = present ? sessionToken(req) : null;
         let legacy = {};
         if (body.migrate) {
-          const present = (req.headers.cookie || '').split(';').some(part => part.trim() === SESSION_COOKIE || part.trim().startsWith(SESSION_COOKIE + '='));
-          legacy = { ...(present ? store.recover(operator, sessionToken(req)) : {}), ...legacyGrouping(req) };
+          legacy = { ...(previous ? store.recover(operator, previous) : {}), ...legacyGrouping(req) };
         }
-        const issued = store.issue(operator, legacy);
+        const issued = store.issue(operator, legacy, previous);
         retainGrouping(res, store.verify(operator, issued.value));
         sessionCookie(res, issued.value);
         return json(res, 200, { required: true, authenticated: true, expires: issued.expires });

@@ -11,7 +11,9 @@ import { legacyCookieData } from '../tests/helpers/legacy-cookie-data.mjs';
 import { createApi } from './api.mjs';
 import { createLibraryApi } from './library-api.mjs';
 import { loadConfig } from './ai.mjs';
-import { newOperator } from './operator.mjs';
+import { createSessionApi } from './session-api.mjs';
+import { sessionStore } from './sessions.mjs';
+import { newOperator, validateOperator } from './operator.mjs';
 
 async function fixture(t, options = {}) {
   const identity = tlsMaterial(); t.after(identity.close);
@@ -55,7 +57,9 @@ test('fresh operator proof adopts existing private records; changing legacy asse
   assert.equal((await request('/api/ai/status', { cookie })).data().user.requests, 1);
   await migrated.close(); const restarted = await httpsCli({ root: path.join(identity.dir, 'public'), key: identity.key, cert: identity.cert, operatorSecret: identity.secret, library: data.library, usage: data.usage, final: true }); t.after(restarted.close);
   assert.equal((await tlsRequest(restarted.base + '/api/library/records', identity.ca, { cookie })).data().scope, data.scope);
-  const renewed = await restarted.login(cookie); assert.equal((await tlsRequest(restarted.base + '/api/library/records', identity.ca, { cookie: renewed })).data().scope, data.scope);
+  const renewed = await restarted.login(cookie);
+  assert.equal((await tlsRequest(restarted.base + '/api/library/records', identity.ca, { cookie })).status, 401); // old session invalidated at reauthentication
+  assert.equal((await tlsRequest(restarted.base + '/api/library/records', identity.ca, { cookie: renewed })).data().scope, data.scope);
 });
 
 test('replacing the operator rejects another owner’s issued session and refuses collection reassignment on actual restart', async t => {
@@ -101,4 +105,16 @@ test('direct TLS API construction fails closed without a backend identity author
   const server = https.createServer({ key: fs.readFileSync(identity.key), cert: identity.ca }, async (req, res) => { if (await library(req, res) || await api(req, res)) return; res.end(); });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }));
   for (const route of ['/api/ai/status', '/api/library/status']) assert.equal((await tlsRequest(`https://127.0.0.1:${server.address().port}${route}`, identity.ca, { cookie: '__Secure-kibitz_uid=' + 'a'.repeat(22) })).status, 401);
+});
+
+test('the documented proof limit resets after one minute without permanently disabling the operator', async t => {
+  const identity = tlsMaterial(); t.after(identity.close); let now = 1000;
+  const operator = validateOperator(newOperator()), store = sessionStore(':memory:', { now: () => now }); t.after(store.close);
+  const api = createSessionApi({ operator, store, now: () => now });
+  const server = https.createServer({ key: fs.readFileSync(identity.key), cert: identity.ca }, (req, res) => api.handle(req, res));
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }));
+  const url = `https://127.0.0.1:${server.address().port}/api/library/session`;
+  for (let i = 0; i < 10; i++) assert.equal((await tlsRequest(url, identity.ca, { body: { secret: 'x'.repeat(43), migrate: true } })).status, 401);
+  assert.equal((await tlsRequest(url, identity.ca, { body: { secret: operator.secret, migrate: true } })).status, 429);
+  now += 60_000; const allowed = await tlsRequest(url, identity.ca, { body: { secret: operator.secret, migrate: true } }); assert.equal(allowed.status, 200);
 });

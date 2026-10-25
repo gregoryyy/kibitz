@@ -75,3 +75,10 @@ test('setup CLI never prints its generated key or private path and refuses repea
   const again = spawnSync(process.execPath, [script, filename], { encoding: 'utf8', timeout: 5000 }); assert.equal(again.status, 1);
   assert.equal(JSON.parse(again.stderr).code, 'ERR_KIBITZ_OPERATOR_CONFIG'); assert(!again.stderr.includes(secret)); assert(!again.stderr.includes('private-marker'));
 });
+
+test('reauthentication replaces only the presenting operator’s token in the issuance transaction', t => {
+  const store = sessionStore(':memory:', { limit: 2 }); t.after(store.close); const a = operator(), b = operator();
+  const first = store.issue(a), owned = store.verify(a, first.value), second = store.issue(b);
+  const renewed = store.issue(a, owned, first.value); assert.throws(() => store.verify(a, first.value), code('session_expired')); assert.equal(store.verify(a, renewed.value).library, owned.library);
+  assert.throws(() => store.issue(a, {}, second.value), code('unavailable')); assert(store.verify(b, second.value)); // cannot delete another operator's token to make space
+});

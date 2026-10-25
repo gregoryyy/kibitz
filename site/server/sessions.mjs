@@ -41,6 +41,7 @@ export function sessionStore(filename = ':memory:', { now = () => Date.now(), li
     }
     const get = db.prepare('SELECT operator,epoch,usage,library,expires FROM sessions WHERE verifier=?');
     const insert = db.prepare('INSERT INTO sessions VALUES(?,?,?,?,?,?)');
+    const replaceSession = db.prepare('DELETE FROM sessions WHERE verifier=? AND operator=?');
     const owner = db.prepare('SELECT operator FROM ownership WHERE kind=? AND scope=?');
     const bind = db.prepare('INSERT OR IGNORE INTO ownership VALUES(?,?,?)');
     const size = db.prepare('SELECT count(*) AS n FROM sessions');
@@ -48,11 +49,12 @@ export function sessionStore(filename = ':memory:', { now = () => Date.now(), li
     db.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;');
     return {
       close: () => db.close(),
-      issue(operator, { usage = token(16), library = token(32) } = {}) {
+      issue(operator, { usage = token(16), library = token(32) } = {}, previous = null) {
         if (!/^[A-Za-z0-9_-]{22}$/.test(usage) || !/^[A-Za-z0-9_-]{43}$/.test(library)) throw new SessionError('bad_request');
         db.exec('BEGIN IMMEDIATE');
         try {
           const expires = now() + SESSION_AGE, value = token(32);
+          if (previous) replaceSession.run(hash(previous), operator.id);
           if (Number(size.get().n) >= limit) throw new SessionError('unavailable');
           for (const [kind, key] of [['usage', usage], ['library', library]]) {
             const scope = hash(key), previous = owner.get(kind, scope);
