@@ -19,15 +19,15 @@ flowchart LR
 
 | Node type | Count |
 | --- | ---: |
-| artifact | 524 |
+| artifact | 525 |
 | milestone | 13 |
-| todo | 206 |
-| done | 119 |
+| todo | 207 |
+| done | 120 |
 | insight | 285 |
 | deviation | 202 |
-| reflection | 1 |
+| reflection | 2 |
 
-3677 typed edges; 406 scanned text inputs; 294 unresolved references.
+3683 typed edges; 407 scanned text inputs; 294 unresolved references.
 
 ## TODO → DONE index
 
@@ -233,14 +233,15 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 | 11.4.1: HTTP hardening from the L1 review: compare the AI gateway Origin's native scheme as well as host, preserve direct local clients, ignore forwarded-header spoofing, and declare UTF-8 on SVG responses; native HTTP/TLS and actual-CLI/browser regressions, both old behaviors reproduced | done | 2 | [docs/TODO.md:261](../../docs/TODO.md) |
 | 11.5: Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP against isolated mock staging, CSP check and retained inventory/evidence; actual CI baseline covers seven required routes / sixty passive rules, zero highs, two medium and three informational finding types. Native GitHub feature settings are documented separately; no release/compliance claim | done | 1 | [docs/TODO.md:262](../../docs/TODO.md) |
 | 11.5.1: Web assets: trusted stylesheet hashes and blocked style attributes, original pinned local fonts/licences, canonical wrapper charset and preserved interface/offline behavior. Old-backend regression fails, thirty browser cases pass, and the actual unsuppressed raw baseline reports zero high/medium findings; informational source-comment/cookie findings remain recorded | done | 2 | [docs/TODO.md:263](../../docs/TODO.md) |
-| 11.5.3: Preserve strict style CSP with Chessground 10.4.2: move its fixed SVG color-scheme declaration to trusted CSS, document the local build adaptation and reproduce the attribute/appearance failure in Playwright | done | 1 | [docs/TODO.md:264](../../docs/TODO.md) |
-| 11.6: Release gate: security checklist in the release PR; no open high-severity findings. Dated local review packet records prerequisite evidence, individual ASVS deviations/open controls, retained advisory targets and required owner/candidate decisions; preparation does not close the gate | open | 1 | [docs/TODO.md:265](../../docs/TODO.md) |
-| 11.6.1: Exact image advisory evidence and minimal runtime: pinned verified publisher/scanner, fresh hashed DB, independent config/rootfs and OS/production-library coverage, four actual container/compatibility cases and a strict high/critical gate. Actual raw report has zero high/critical; 23 medium/eight low findings retain triage targets. CodeQL races fixed without dismissal. Parent release approval and broader component/model reviews remain separate | done | 1 | [docs/TODO.md:266](../../docs/TODO.md) |
-| 12.1: Semantic versioning and a changelog: documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; release procedure. Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published | done | 1 | [docs/TODO.md:270](../../docs/TODO.md) |
-| 12.2: Packaging: local Docker image and Compose recipe, pinned Node 24, non-root runtime, private named volume and excluded operator/checkout files; four actual Linux image/browser/restart/previous-packaging cases pass, with publisher signature and image/source/package advisory evidence (11.6.1). No registry publication or release approval | done | 1 | [docs/TODO.md:271](../../docs/TODO.md) |
-| 12.3: Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; operator checks and retention, fake-SDK and real-CLI regressions | done | 1 | [docs/TODO.md:272](../../docs/TODO.md) |
-| 12.4: Docs: user guide, provider setup and native Ollama self-hosting, linked to existing privacy, offline, data, evidence and container instructions; primary-source console references checked, mock/local commands verified without real inference | done | 2 | [docs/TODO.md:273](../../docs/TODO.md) |
-| 12.4.1: Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation is complete in 12.4 | done | 1 | [docs/TODO.md:274](../../docs/TODO.md) |
+| 11.5.2: Keep CodeQL initialization/analysis on the same immutable revision; group future Dependabot updates and reproduce the split-version failure with a unit regression (PR #130) | done | 1 | [docs/TODO.md:264](../../docs/TODO.md) |
+| 11.5.3: Preserve strict style CSP with Chessground 10.4.2: move its fixed SVG color-scheme declaration to trusted CSS, document the local build adaptation and reproduce the attribute/appearance failure in Playwright | done | 1 | [docs/TODO.md:265](../../docs/TODO.md) |
+| 11.6: Release gate: security checklist in the release PR; no open high-severity findings. Dated local review packet records prerequisite evidence, individual ASVS deviations/open controls, retained advisory targets and required owner/candidate decisions; preparation does not close the gate | open | 1 | [docs/TODO.md:266](../../docs/TODO.md) |
+| 11.6.1: Exact image advisory evidence and minimal runtime: pinned verified publisher/scanner, fresh hashed DB, independent config/rootfs and OS/production-library coverage, four actual container/compatibility cases and a strict high/critical gate. Actual raw report has zero high/critical; 23 medium/eight low findings retain triage targets. CodeQL races fixed without dismissal. Parent release approval and broader component/model reviews remain separate | done | 1 | [docs/TODO.md:267](../../docs/TODO.md) |
+| 12.1: Semantic versioning and a changelog: documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; release procedure. Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published | done | 1 | [docs/TODO.md:271](../../docs/TODO.md) |
+| 12.2: Packaging: local Docker image and Compose recipe, pinned Node 24, non-root runtime, private named volume and excluded operator/checkout files; four actual Linux image/browser/restart/previous-packaging cases pass, with publisher signature and image/source/package advisory evidence (11.6.1). No registry publication or release approval | done | 1 | [docs/TODO.md:272](../../docs/TODO.md) |
+| 12.3: Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; operator checks and retention, fake-SDK and real-CLI regressions | done | 1 | [docs/TODO.md:273](../../docs/TODO.md) |
+| 12.4: Docs: user guide, provider setup and native Ollama self-hosting, linked to existing privacy, offline, data, evidence and container instructions; primary-source console references checked, mock/local commands verified without real inference | done | 2 | [docs/TODO.md:274](../../docs/TODO.md) |
+| 12.4.1: Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation is complete in 12.4 | done | 1 | [docs/TODO.md:275](../../docs/TODO.md) |
 
 ## DONE → rationale and scope
 
@@ -248,6 +249,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 | --- | --- | ---: | ---: | ---: |
 | [2026-10-25 — Typed file-level assurance lineage](../DONE.md#2026-10-25--typed-file-level-assurance-lineage) | 0.15 | 2 | 2 | 0 |
 | [2026-10-25 — Preserve board style policy after Chessground upgrade](../DONE.md#2026-10-25--preserve-board-style-policy-after-chessground-upgrade) | 11.5.3 | 0 | 0 | 1 |
+| [2026-10-25 — Keep CodeQL action updates together](../DONE.md#2026-10-25--keep-codeql-action-updates-together) | 11.5.2 | 0 | 0 | 1 |
 | [2026-10-25 — Pin browser-model source revisions](../DONE.md#2026-10-25--pin-browser-model-source-revisions) | 11.3.3.1 | 1 | 1 | 0 |
 | [2026-10-25 — Local release review preparation](../DONE.md#2026-10-25--local-release-review-preparation) | 11.6 | 1 | 1 | 0 |
 | [2026-10-25 — Verified image advisories and minimal runtime](../DONE.md#2026-10-25--verified-image-advisories-and-minimal-runtime) | 11.6.1 | 2 | 2 | 0 |
@@ -426,7 +428,7 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [THIRD_PARTY_NOTICES.md:15](../../THIRD_PARTY_NOTICES.md) | wllama.js | missing |
 | [THIRD_PARTY_NOTICES.md:15](../../THIRD_PARTY_NOTICES.md) | wllama.wasm | missing |
 
-### Files without extracted relationships (39)
+### Files without extracted relationships (40)
 
 The first thirty are listed; these files remain in the inventory. Extraction coverage is described in README.md.
 
