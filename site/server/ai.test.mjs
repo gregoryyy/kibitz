@@ -173,12 +173,16 @@ test('mock provider streams a canned reply', async () => {
 });
 
 // ---------------------------------------------------------------- errors and limits
-test('a provider\'s reason is shown to the requesting page without anything that looks like a key', () => {
-  const e = Object.assign(new Error('401 Incorrect API key provided: sk-proj-********************************************sU5G. You can find your API key at https://platform.openai.com/account/api-keys.'), { status: 401 });
-  const why = providerReason(e);
-  assert.ok(!/sU5G|sk-proj/.test(why), why);
-  assert.match(why, /Incorrect API key provided: \[key\]/);
-  assert.ok(providerReason({ message: 'x'.repeat(500) }).length <= 200);
+test('provider reasons produce only fixed capability hints and never copy private prose', () => {
+  const privateText = 'dummyMistralCredential0123456789abcd https://private.example.invalid/user?note=PRIVATE\nFORGED';
+  for (const prefix of ['', 'Incorrect API key provided: ', 'x'.repeat(9000)]) {
+    assert.equal(providerReason({ message: prefix + privateText }), '');
+    assert.equal(toGatewayError({ status: 400, message: prefix + privateText }).message.includes('PRIVATE'), false);
+  }
+  assert.equal(providerReason({ error: { message: privateText + ' Model does not support tools' } }), 'This model does not support tools.');
+  assert.equal(providerReason({ error: { error: { message: 'response_format is not supported ' + privateText } } }), 'This model does not support the requested JSON format.');
+  assert.equal(providerReason({ message: 'Invalid schema: ' + privateText }), 'The provider rejected the response schema.');
+  assert.equal(providerReason({ message: 'Maximum context length ' + privateText }), 'The request exceeds the model context limit.');
   assert.equal(providerReason(null), '');
 });
 
@@ -187,12 +191,12 @@ test('provider errors map to the codes the page understands', () => {
   assert.equal(toGatewayError(Object.assign(new Error('x'), { status: 401 })).code, 'auth_failed');
   assert.equal(toGatewayError(Object.assign(new Error('x'), { status: 404 })).code, 'model_not_found');
   assert.equal(toGatewayError(new Error('boom')).code, 'provider_error');
-  // A rejected request (400) says why, in the provider's words, e.g. Ollama with an old model.
+  // A rejected request (400) reports a fixed hint without the provider's model/private prose.
   const ollama = Object.assign(new Error('400 "deepseek-R1:latest" does not support chat'), { status: 400, error: { message: '"deepseek-R1:latest" does not support chat' } });
   const g400 = toGatewayError(ollama);
   assert.equal(g400.code, 'provider_rejected');
-  assert.equal(g400.message, 'The AI provider rejected the request: "deepseek-R1:latest" does not support chat');
-  assert.equal(toGatewayError(Object.assign(new Error(''), { status: 400 })).code, 'provider_error', 'without a reason it stays generic');
+  assert.equal(g400.message, 'This model does not support chat.');
+  assert.equal(toGatewayError(Object.assign(new Error(''), { status: 400 })).code, 'provider_rejected');
   const ac = new AbortController(); ac.abort();
   assert.equal(toGatewayError(new Error('aborted'), ac.signal).code, 'cancelled');
   const g = new GatewayError('refused', 'no', 200);

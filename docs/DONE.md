@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Keep provider rejection prose out of public errors
+
+TODO item: 11.3.2.1; completes the reviewed local controls in 11.3.2. Parent 11.3 remains open for model identity, unrestricted misinformation and runtime-stream consumption.
+
+### Implementation notes
+
+- Replaced key-prefix redaction/truncation of HTTP 400 provider messages with a closed set of public hints for tool/chat/JSON-format/schema/context failures and a generic rejection. Classification reads at most 8192 input characters and never emits a substring of provider prose. Unknown or empty 400 messages now consistently use `provider_rejected` with fixed guidance; other status/error mappings are preserved.
+- Reuse the existing pure tool-support classifier on the server, so a fixed explicit unsupported-tools hint still triggers the intended context-only fallback/capability cache. Invalid schemas, parameters and generic refusals cannot disable tools through an incidental word. Six new German dictionary entries translate the fixed messages. Updated operations, threat model and LLM review dispositions while preserving the original reproduced finding as historical evidence.
+- Four new real-SDK/gateway cases cover every adapter and sample/structured/connection-test/embedding paths with reflected non-prefixed dummy credentials, private URLs, user/account markers and controls. Unknown/tool/schema variants retain useful capability behavior without reflecting any private marker into responses or category-only logs. Successful request/context separation remains covered separately. Existing native/fallback structured behavior and failed-call accounting are preserved.
+- Validation: lint/JSDoc/build and the complete unit/server suite pass (630 passes, one opt-in live skip) with bounded concurrency, including the final translation dictionary. All sixteen existing tool browser cases pass, as do three new actual-CLI/browser cases for private errors, tool fallback/cache and German hints; the final four selected cases pass after translation/fixture adjustments. The new credential browser regression fails against actual prior `e87364f` server code because the page contains the dummy configured credential. Every SDK fetch is intercepted; no live provider, operator `.env` or model load is involved. Local documentation targets and diff whitespace checked.
+
+### Deviations
+
+- Public rejection details are deliberately fixed hints. A provider's arbitrary diagnostic prose, model ID, URL or reflected user text is no longer forwarded for display; unknown cases ask the operator to check model/request settings. This does not filter arbitrary generated answers or certify upstream confidentiality. Existing retries/JSON fallbacks are unchanged and are not hard spending caps.
+- The initial German fixture exposed an unrelated untranslated no-browser-model status. Its advertised browser-model metadata now matches the standard E2E server; no fake model is loaded. The final rejection text itself translates and the fixture reports no interface translation gaps.
+
+### Insights
+
+- Recognized key shapes cannot cover an opaque provider credential or unknown private field. Fixed diagnostic vocabulary removes that reflection channel without needing to know every secret value or encoding.
+- Capability detection and public diagnostics can share one conservative policy while returning no provider-controlled text. This preserves the coach's tool fallback instead of treating every request error as lack of tool support.
+
 ## 2026-10-25 — LLM security evidence and reproduced open boundaries
 
 TODO item: 11.3.11; implemented/tested local controls mapped for 11.3.1, 11.3.4–8. Parent 11.3 and categories 11.3.2/3/9/10 remain open.
