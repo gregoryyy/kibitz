@@ -1,0 +1,63 @@
+name: Container
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: container-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-image:
+    name: Local image and browser persistence
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PW_CHANNEL: chromium
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - name: Validate explicit Compose configuration without env-file loading
+        run: docker compose --env-file /dev/null -f ../compose.yaml config --quiet
+      - name: Synthetic context-exclusion sentinel
+        run: node -e "require('node:fs').writeFileSync('server/.env.container-test','SYNTHETIC_CONTAINER_PRIVATE_MARKER',{mode:0o600})"
+      - name: Build local image from allowed source context
+        run: docker build --build-arg "VCS_REF=$GITHUB_SHA" --tag kibitz:container-test ..
+      - name: Record image identity and OS component inventory
+        run: |
+          mkdir -p tests/out/container-metadata
+          docker image inspect --format '{{.Id}}' kibitz:container-test > tests/out/container-metadata/image-id.txt
+          docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' kibitz:container-test > tests/out/container-metadata/revision.txt
+          docker run --rm --pull=never --entrypoint dpkg-query kibitz:container-test -W > tests/out/container-metadata/os-packages.txt
+      - run: npx playwright install --with-deps chromium
+      - name: Actual image, browser and restart checks
+        run: npx playwright test --config playwright.container.config.mjs
+      - name: Preserve traces on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: container-traces
+          path: site/tests/out/container/
+          retention-days: 7
+      - name: Retain image inventory on success or failure
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: container-metadata-${{ github.sha }}
+          path: site/tests/out/container-metadata/
+          if-no-files-found: warn
+          retention-days: 30

@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "57b7cc18fd494293a44aa4df6d6f757ffa52b647",
+  "revision": "f9ce54a4207c994badf699a7e394e361ee8b5c53",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -199,7 +199,7 @@
         "site/server/cookie-transport.test.mjs",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 12.2"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-3.4.1",
@@ -211,7 +211,7 @@
         "site/server/static.mjs",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 12.2"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-3.4.2",
@@ -496,7 +496,7 @@
         "site/server/library-api.mjs",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 11.4"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-7.2.2",
@@ -544,7 +544,7 @@
         "site/server/library-api.mjs",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 11.4"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-7.4.2",
@@ -580,7 +580,7 @@
         "docs/DEPLOYMENT.md",
         "docs/THREAT-MODEL.md"
       ],
-      "followUp": "TODO 11.4"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-8.2.2",
@@ -752,7 +752,7 @@
         "site/server/cookie-transport.test.mjs",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 12.2"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-12.2.1",
@@ -765,7 +765,7 @@
         "site/server/ai.mjs",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 12.2"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-12.2.2",
@@ -778,20 +778,21 @@
         "site/server/cookie-transport.test.mjs",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 12.2"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-13.4.1",
       "topic": "Source-control metadata",
       "status": "deviation",
       "method": "scope-review",
-      "note": "HTTP hidden-path denial works, but the checkout app user can read its .git metadata. Both external and application-process exclusion are required; package an image without source-control metadata.",
+      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. Native checkout execution still lets the app user read Git metadata, so the overall local-deployment requirement remains a deviation pending release scope/owner disposition.",
       "evidence": [
         "site/server/static.mjs",
         "site/server/static.test.mjs",
-        "docs/ASVS.md"
+        "site/tests/container/image.spec.mjs",
+        "docs/CONTAINER.md"
       ],
-      "followUp": "TODO 12.2"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-14.2.1",
@@ -803,7 +804,7 @@
         "site/src/index.html",
         "docs/PRIVACY.md"
       ],
-      "followUp": "TODO 11.4"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-14.3.1",
@@ -816,7 +817,7 @@
         "docs/PRIVACY.md",
         "docs/DEPLOYMENT.md"
       ],
-      "followUp": "TODO 11.4"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-15.1.1",
@@ -833,12 +834,13 @@
       "topic": "Component remediation evidence",
       "status": "open",
       "method": "documentation-review",
-      "note": "Pinned npm dependencies and existing audit checks are partial evidence. A dated full component/advisory inventory, first-known dates and compliance with the newly documented deadlines is not yet established; include runtime/WASM/actions and later image components.",
+      "note": "Automated evidence includes a 128-component lockfile SBOM, zero npm advisories at the recorded scan, and an 88-entry image OS inventory. Full dated advisory/age verification for runtime, Actions, WASM internals and image components against maintenance deadlines is still incomplete; these snapshots are not a release-wide CVE clearance.",
       "evidence": [
         "docs/MAINTENANCE.md",
-        "docs/TODO.md"
+        "docs/SECURITY-SCANS.md",
+        "docs/CONTAINER.md"
       ],
-      "followUp": "TODO 11.5"
+      "followUp": "TODO 11.6"
     },
     {
       "id": "v5.0.0-15.3.1",

@@ -50,15 +50,18 @@ The review leaves these findings visible:
 - Cookie values group usage and private-library data; they do not authenticate a
   person. Backend format/scope checks do not provide issued-session registration,
   revocation, logout or account lifecycle. Browser expiration is not server revocation.
-- Static serving denies Git paths, but the Node process in a checkout can read
-  `.git`. ASVS requires both external and application-process exclusion. Packaging
-  must exclude source-control metadata; the current checkout is a deviation.
+- Static serving denies Git paths; the [tested package](CONTAINER.md) also excludes
+  checkout metadata from the app process. The native Node process in a checkout
+  can still read `.git`, so the overall supported local scope retains a deviation.
+  ASVS requires both external and application-process exclusion. Release scope
+  and owner disposition remain explicit rather than assuming packaging fixes a checkout.
 - Explicit Lichess navigation puts the selected FEN in the external URL/history.
   API credentials, cookies and prompt bodies are not put there, but a private chess
   position can still be sensitive. See [privacy guidance](PRIVACY.md).
 - Component update timeframes are documented in [MAINTENANCE.md](MAINTENANCE.md).
-  A complete dated component/advisory inventory against those timeframes remains
-  TODO 11.5/12.2. A zero npm audit result alone cannot establish it.
+  Automated evidence now includes lockfile and image OS inventories; complete
+  advisory/age verification against those timeframes remains in release review
+  TODO 11.6. A zero npm audit result alone cannot establish it.
 
 The input rules are documented in [VALIDATION.md](VALIDATION.md). Authorization
 scope remains the trusted local operator, same-origin browser and cookie-separated

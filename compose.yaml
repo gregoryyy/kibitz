@@ -1,0 +1,21 @@
+services:
+  kibitz:
+    build: .
+    image: kibitz:local
+    init: true
+    ports:
+      - "127.0.0.1:8765:8765"
+    environment:
+      AI_PROVIDER: mock
+    volumes:
+      - kibitz-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  kibitz-data:
