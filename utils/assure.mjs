@@ -1,5 +1,6 @@
 // File-level lineage from tracked public repository artifacts. Never execute a
 // source module or read operator configuration while constructing this graph.
+import { classifyLink } from '../docs/assure/confidence.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -13,6 +14,7 @@ const { Linter } = require('eslint');
 const { parse } = require('parse5');
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const OUTPUTS = ['docs/assure/lineage.json', 'docs/assure/schema.json', 'docs/assure/REPORT.md'];
+const GENERATED_REPORTS = new Set([...OUTPUTS, 'docs/assure/FINDINGS.md']);
 const sha = text => createHash('sha256').update(text).digest('hex');
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const json = value => JSON.stringify(value, null, 2) + '\n';
@@ -189,7 +191,7 @@ export function buildGraph(root, files = trackedFiles(root)) {
       : /\.(?:m?js|ts|html|py|sh)$/.test(file.path) ? 'source' : /(?:^|\/)(?:data|eval)\//.test(file.path) || /\.(?:pgn|csv|tsv)$/.test(file.path) ? 'data'
         : /\.(?:json|ya?ml)$|(?:^|\/)(?:\.[^/]+|justfile|Dockerfile|LICENSE)$/.test(file.path) ? 'configuration' : 'asset';
     addNode({ id: `file:${file.path}`, type: 'artifact', path: file.path, kind, mode: file.mode });
-    if (['100644', '100755'].includes(file.mode) && !OUTPUTS.includes(file.path) && /\.(?:md|m?js|html)$/.test(file.path)) {
+    if (['100644', '100755'].includes(file.mode) && !GENERATED_REPORTS.has(file.path) && /\.(?:md|m?js|html)$/.test(file.path)) {
       const text = readText(root, file.path); texts.set(file.path, text); inputs.push({ path: file.path, sha256: sha(text) });
     }
   }
@@ -300,8 +302,9 @@ export function buildGraph(root, files = trackedFiles(root)) {
       walk(parse(text, { sourceCodeLocationInfo: true }));
     }
   }
-  const graph = { schemaVersion: 1, inventorySha256: sha(json(files)), inputs: inputs.sort((a, b) => compare(a.path, b.path)), nodes: [...nodes.values()].sort((a, b) => compare(a.id, b.id)), edges: [...edges.values()].sort((a, b) => compare(JSON.stringify([a.type, a.from, a.to]), JSON.stringify([b.type, b.from, b.to]))), unresolved: [...new Map(unresolved.map(u => [JSON.stringify(u), u])).values()].sort((a, b) => compare(JSON.stringify(a), JSON.stringify(b))) };
+  const graph = { schemaVersion: 2, inventorySha256: sha(json(files)), inputs: inputs.sort((a, b) => compare(a.path, b.path)), nodes: [...nodes.values()].sort((a, b) => compare(a.id, b.id)), edges: [...edges.values()].sort((a, b) => compare(JSON.stringify([a.type, a.from, a.to]), JSON.stringify([b.type, b.from, b.to]))), unresolved: [...new Map(unresolved.map(u => [JSON.stringify(u), u])).values()].sort((a, b) => compare(JSON.stringify(a), JSON.stringify(b))) };
   for (const edge of graph.edges) edge.evidence.sort((a, b) => compare(a.path, b.path) || a.line - b.line || compare(a.reference, b.reference));
+  for (const edge of graph.edges) edge.confidence = classifyLink(edge.type, edge.evidence);
   return validateGraph(graph);
 }
 

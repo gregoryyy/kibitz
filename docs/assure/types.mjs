@@ -1,3 +1,4 @@
+import { CONFIDENCE_SCHEMA } from './confidence.mjs';
 // Public vocabulary shared by the graph builder, schema and integrity checks.
 export const NODE_TYPES = ['artifact', 'milestone', 'todo', 'done', 'insight', 'deviation', 'reflection'];
 const notes = ['insight', 'deviation', 'reflection'];
@@ -29,19 +30,19 @@ const fields = {
 };
 export const SCHEMA = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
-  title: 'Kibitz file-level assurance lineage, version 1',
+  title: 'Kibitz file-level assurance lineage, version 2',
   type: 'object', additionalProperties: false,
   required: ['schemaVersion', 'inventorySha256', 'inputs', 'nodes', 'edges', 'unresolved'],
   properties: {
-    schemaVersion: { const: 1 }, inventorySha256: { type: 'string', pattern: '^[a-f0-9]{64}$' },
+    schemaVersion: { const: 2 }, inventorySha256: { type: 'string', pattern: '^[a-f0-9]{64}$' },
     inputs: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['path', 'sha256'], properties: { path: string, sha256: { type: 'string', pattern: '^[a-f0-9]{64}$' } } } },
     nodes: { type: 'array', items: { oneOf: NODE_TYPES.map(type => ({
       type: 'object', additionalProperties: false, required: ['id', 'type', ...Object.keys(fields[type])],
       properties: { id: string, type: { const: type }, ...fields[type] },
     })) } },
     edges: { type: 'array', items: {
-      type: 'object', additionalProperties: false, required: ['type', 'from', 'to', 'evidence'],
-      properties: { type: { enum: Object.keys(RELATIONS) }, from: string, to: string, evidence: { type: 'array', minItems: 1, items: {
+      type: 'object', additionalProperties: false, required: ['type', 'from', 'to', 'evidence', 'confidence'],
+      properties: { confidence: CONFIDENCE_SCHEMA, type: { enum: Object.keys(RELATIONS) }, from: string, to: string, evidence: { type: 'array', minItems: 1, items: {
         ...location, required: [...location.required, 'syntax', 'reference', 'resolution'],
         properties: { ...location.properties, syntax: { enum: ['heading', 'section', 'todo_annotation', 'code_span', 'markdown_link', 'js_import'] }, reference: { type: 'string' }, resolution: { type: 'string' } },
       } } },
@@ -64,6 +65,7 @@ export function shape(value, schema, at = 'graph') {
   }
   if ('const' in schema && value !== schema.const || schema.enum && !schema.enum.includes(value)) fail();
   if (schema.type === 'string' && (typeof value !== 'string' || value.length < (schema.minLength || 0) || schema.pattern && !new RegExp(schema.pattern).test(value))) fail();
+  if (schema.type === 'number' && (typeof value !== 'number' || !Number.isFinite(value) || value < (schema.minimum ?? -Infinity) || value > (schema.maximum ?? Infinity))) fail();
   if (schema.type === 'integer' && (!Number.isSafeInteger(value) || value < (schema.minimum ?? -Infinity))) fail();
   if (schema.type === 'array') {
     if (!Array.isArray(value) || value.length < (schema.minItems || 0)) fail();

@@ -86,6 +86,7 @@ assure: install
 assure-build: install
     node utils/assure.mjs build
     node utils/assure-detail.mjs build
+    node utils/assure-infer.mjs build
 
 # Refresh retained public PR descriptions and changed-file lists (network, no inference)
 assure-prs: install

@@ -1,6 +1,8 @@
 # Object, PR and documentation lineage
 
-Levels describe extraction granularity, not proof strength. Level 1 remains in
+Levels describe extraction granularity, not proof strength. All extracted edges
+now carry per-type confidence under schema version 2; see [confidence and
+findings](README.md). Level 1 remains in
 [lineage.json](lineage.json). Level 2 is a separate [object/PR graph](objects.json);
 level 3 is a separate [documentation graph](documents.json). Their shared
 [contract](detail-types.mjs) and [JSON Schema](detail-schema.json) validate types,

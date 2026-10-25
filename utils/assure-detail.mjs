@@ -1,4 +1,5 @@
 // Reproducible finer-grained reference lineage. Parsing never evaluates inputs.
+import { classifyLink } from '../docs/assure/confidence.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -92,7 +93,7 @@ export function sections(file, text, prefix = 'section') {
 const ownerAt = (nodes, offset, fallback) => nodes.filter(n => n.locator.start <= offset && offset < n.locator.end).sort((a, b) => b.locator.start - a.locator.start || a.locator.end - b.locator.end)[0]?.id || fallback;
 
 export function buildDetails(root, base, files = trackedFiles(root), prs = validatePullRequests(JSON.parse(readText(root, 'docs/assure/pull-requests.json')))) {
-  const baseText = compact(base), make = level => ({ schemaVersion: 1, level, extractor: 'kibitz-detail-1', baseSha256: sha256(baseText), exclusions: { externalImportCalls: 0, memberOrDynamicCalls: 0 }, inputs: [], nodes: [], edges: [], unresolved: [] });
+  const baseText = compact(base), make = level => ({ schemaVersion: 2, level, extractor: 'kibitz-detail-1', baseSha256: sha256(baseText), exclusions: { externalImportCalls: 0, memberOrDynamicCalls: 0 }, inputs: [], nodes: [], edges: [], unresolved: [] });
   const objects = make(2), documents = make(3), inventory = new Set(files.map(f => f.path)), texts = new Map(), edgeMaps = new Map([[objects, new Map()], [documents, new Map()]]);
   const addEdge = (layer, type, from, to, source, reference, resolution) => {
     const edge = { type, from, to, evidence: { source, reference, resolution } }, key = JSON.stringify([type, from, to]);
@@ -101,7 +102,7 @@ export function buildDetails(root, base, files = trackedFiles(root), prs = valid
   const issue = (layer, source, reference, reason, candidates = []) => layer.unresolved.push({ source, reference, reason, candidates });
   const modules = new Map(), exports = new Map(), pendingImports = [];
   for (const file of files) {
-    if (!['100644', '100755'].includes(file.mode) || !/\.(?:md|m?js|html)$/.test(file.path) || ['docs/assure/REPORT.md'].includes(file.path)) continue;
+    if (!['100644', '100755'].includes(file.mode) || !/\.(?:md|m?js|html)$/.test(file.path) || ['docs/assure/REPORT.md', 'docs/assure/FINDINGS.md'].includes(file.path)) continue;
     const text = readText(root, file.path); texts.set(file.path, text);
     if (!/\.(?:m?js|html)$/.test(file.path)) continue;
     objects.inputs.push({ path: file.path, sha256: sha256(text) });
@@ -343,6 +344,7 @@ export function buildDetails(root, base, files = trackedFiles(root), prs = valid
     layer.nodes.sort((a, b) => compare(a.id, b.id)); layer.edges.sort((a, b) => compare(JSON.stringify([a.type, a.from, a.to]), JSON.stringify([b.type, b.from, b.to])));
     layer.inputs.sort((a, b) => compare(a.path, b.path)); layer.unresolved.sort((a, b) => compare(JSON.stringify(a), JSON.stringify(b)));
   }
+  for (const layer of [objects, documents]) for (const edge of layer.edges) edge.confidence = classifyLink(edge.type, edge.evidence);
   validateLayers(base, [objects, documents]);
   return { objects, documents };
 }

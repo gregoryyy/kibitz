@@ -39,3 +39,18 @@ test('untrusted graph labels and source content remain text', async ({ page }) =
   await page.goto('/'); await expect(page.locator('#selected-name')).toHaveText('<img src=x onerror="globalThis.pwned=1">');
   expect(await page.evaluate(() => globalThis.pwned)).toBeUndefined(); await expect(page.locator('img')).toHaveCount(0);
 });
+
+test('confidence filters control weighted relations and findings expose typed supporting paths', async ({ page }) => {
+  await page.goto('/#' + encodeURIComponent('file:utils/assure-infer.mjs'));
+  await expect(page.locator('#selected-name')).toHaveText('utils/assure-infer.mjs');
+  await page.selectOption('#relation', 'implements'); await page.selectOption('#direction', 'out');
+  await expect(page.locator('#neighbors')).toContainText('implements [0.90]');
+  await page.selectOption('#confidence', '1'); await expect(page.locator('#neighbors button')).toHaveCount(0);
+  await page.selectOption('#confidence', '0.8'); await expect(page.locator('#neighbors')).toContainText('Initial author assessment');
+  await page.locator('#findings-panel summary').click(); await page.selectOption('#finding-status', 'recorded');
+  await expect(page.locator('#finding-count')).not.toHaveText(/^0 findings/);
+  await page.locator('#finding-results button').first().click(); await expect(page.locator('#finding-detail')).toContainText('recorded_deviation');
+  await expect(page.locator('#finding-detail')).toContainText('has_deviation');
+  await page.selectOption('#finding-status', 'candidate'); await page.fill('#finding-search', 'verifies_unassessed');
+  await expect(page.locator('#finding-results')).toContainText('verifies_unassessed');
+});

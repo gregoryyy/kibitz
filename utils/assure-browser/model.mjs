@@ -25,10 +25,11 @@ export function search(graph, query = '', options = {}, limit = 100) {
   }
   return { nodes: results, total, truncated: total > results.length };
 }
-export function walk(graph, root, { depth = 1, limit = 70, direction = 'both', relation = '', includeContainment = true, ...options } = {}) {
+export function walk(graph, root, { depth = 1, limit = 70, direction = 'both', relation = '', includeContainment = true, minConfidence = 0, ...options } = {}) {
   if (!graph.nodes.has(root)) throw new Error('Unknown browser root');
   if (!Number.isSafeInteger(depth) || depth < 0 || depth > 4 || !Number.isSafeInteger(limit) || limit < 1 || limit > 500 || !['both', 'out', 'in'].includes(direction)) throw new Error('Invalid walk bounds/direction');
-  const seen = new Set([root]), distances = new Map([[root, 0]]), eligible = e => (!relation || e.type === relation) && (includeContainment || !containment.has(e.type));
+  if (!Number.isFinite(minConfidence) || minConfidence < 0 || minConfidence > 1) throw new Error('Invalid confidence threshold');
+  const seen = new Set([root]), distances = new Map([[root, 0]]), eligible = e => e.confidence.value >= minConfidence && (!relation || e.type === relation) && (includeContainment || !containment.has(e.type));
   let frontier = [root], truncated = false;
   for (let step = 0; step < depth; step++) {
     const next = [];
