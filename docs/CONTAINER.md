@@ -3,8 +3,9 @@
 TODO 12.2 packages the Node gateway, optional private library and built browser app.
 It preserves the [local single-user scope](DEPLOYMENT.md). The image is built from
 this checkout; no registry publication or release is performed by the workflow.
-The package is currently awaiting its first actual Linux image/browser verification
-before the TODO item can be marked complete.
+The actual [Linux image/browser run](https://github.com/gregoryyy/kibitz/actions/runs/40156389739)
+passes all three cases at source `f9ce54a`. [Evidence metadata](security/2026-10-25-container.json)
+records the exact built image and scanned source identities.
 
 Use Docker Engine 28 or newer and the Compose plugin. The explicit loopback mapping
 follows [Docker's port-publishing behavior](https://docs.docker.com/engine/network/port-publishing/).
@@ -112,8 +113,13 @@ npx playwright test --config playwright.container.config.mjs
 ```
 
 Ordinary unit/e2e commands do not start Docker. The local Docker daemon was
-unavailable during preparation; listing tests and passing source checks is not
-reported as a successful image run. Actual Linux CI verification is required.
+unavailable during preparation; actual image verification ran in Linux CI.
+Compose validation, context exclusion, UID/permissions, packaged engine/coach,
+cookie isolation, private data/usage restart and static health all pass there.
+The retained inventory has 88 OS package entries. The first restart test used an
+old ephemeral host port; the corrected test re-reads Docker's mapping while
+keeping its cookie contexts and persistence assertions. The supplied Compose
+recipe uses a fixed host port.
 Other architectures and image vulnerability/advisory coverage require their own
 evidence. The metadata inventory is not an advisory clearance or release approval.
 Local HTTP, cookie prefixes/HSTS, account/session limits and other

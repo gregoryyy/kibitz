@@ -10,7 +10,7 @@ The app lives in [`site/`](site/): page source, build scripts, opening data, the
 
 [Changelog](CHANGELOG.md) records notable changes. The [version policy](docs/RELEASING.md) follows Semantic Versioning; the current `0.1.0` package is an unreleased development baseline.
 
-The [local Docker package](docs/CONTAINER.md) provides a mock-default recipe with private persistent storage and explicit loopback publishing; its first actual container verification is tracked in TODO 12.2.
+The [local Docker package](docs/CONTAINER.md) provides a mock-default recipe with private persistent storage and explicit loopback publishing, verified with real image/browser/restart tests in Linux CI.
 
 ## Prerequisites
 
