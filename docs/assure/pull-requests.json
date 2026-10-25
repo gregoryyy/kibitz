@@ -4945,6 +4945,51 @@
         "utils/assure.mjs"
       ],
       "filesComplete": true
+    },
+    {
+      "number": 137,
+      "title": "feat: connect source objects, PR sections and documentation in assurance browser",
+      "body": "## What and why\n\nTODO 0.16 and 0.16.1–0.16.3: extend file-level assurance into two separate datasets and provide a small local browser for searching and walking all three levels. Source objects, PR descriptions and documentation need precise locators; a PR changing a file must not imply that every contained function was described or verified.\n\nThis PR includes prerequisite #136, currently open, and targets `main` at `6788661`. Merge #136 first to make the remaining diff specific to this extension. No automatic merge, tag or publication is requested.\n\n## Objects and replay\n\n`utils/assure-detail.mjs` implements `buildDetails`, `sections` and `replay`. `docs/assure/objects.json` separately records functions, classes, methods and control-flow blocks, qualified identities, complete-file UTF-16 ranges, AST selectors and selected-text SHA-256. Replay reparses current tracked sources and rejects selector/range/content drift. ESLint's lexical scope manager supplies direct `calls` and read `references_binding`; declared local exports supply `imports_binding`. Source modules are never executed. Shadowed parameters and reassigned/multiply-defined bindings do not become guessed function targets.\n\n## PR provenance\n\n`utils/assure-detail.mjs` provides `refreshPullRequests` and `validatePullRequests`. `docs/assure/pull-requests.json` retains public PR bodies, observed states, exact head/base commits and paginated file lists. Each PR description section has its own identity, source range and hash. Explicit TODO/file/name references connect sections to planning items, files and unambiguous objects. File changes remain a separate `changes_file` relation. Normal build/check/viewing is offline; only explicit `just assure-prs` uses read-only GitHub metadata access.\n\n## Documentation\n\n`utils/assure-detail.mjs` extracts `sections` into separate `docs/assure/documents.json`: ATX/setext headings, duplicate anchors, hierarchy, fenced blocks, inline/full/collapsed reference links, local section targets and HTTP(S) documentation URLs. `locates_item` retains links to original TODO/DONE/insight/deviation nodes. External documentation is indexed without fetching its contents. `docs/assure/detail-types.mjs` uses `validateLayers` to check the shared schema, endpoint types, ownership and level-1 snapshot identity.\n\n## Browser\n\n`utils/assure-browser/model.mjs` supplies `indexGraph`, `search` and `walk`; `utils/assure-browser/serve.mjs` implements `createBrowser`. Run **`just assure-browser`**, then open the printed loopback URL. The viewer offers text/ID search, level/type/relation filters, incoming/outgoing walks, bounded depth, graph and keyboard-accessible list navigation, history/deep links, gap details and hash-checked source inspection. Search and traversal disclose their 100-result/70-node limits.\n\n[Foundation comparison](docs/assure/LEVELS.md#browser-foundation-comparison): choose exact development dependency Cytoscape.js **3.34.4**, MIT, over Graphology + Sigma for this bounded viewer. It is served locally from the locked npm package with its licence; no CDN or vendored bundle. It is not copied into the chess app or runtime image. The utility supplies Cytoscape's fixed container rule from local CSS, preserving a self-only script/stylesheet policy; runtime canvas style attributes are permitted only in this utility. The chess app's policy is unchanged.\n\n## Limits\n\nThese are reference-granularity levels, not proof-strength levels. Mentions/changes do not establish implementation, test success, compliance, completion or approval. Object mentions require an exact name plus a cited file in the same authored section/item; incomplete historical descriptions are not backfilled by guessing. PR descriptions are retained snapshots, not immutable GitHub body revisions. Dynamic/member calls, external package targets, re-export chains, unsupported languages, custom HTML/shortcut anchors and runtime execution remain outside extraction; exclusions and unresolved references are explicit. TODO checkbox state remains the sole planning-status source.\n\n## Validation\n\n- Node 24.22.1: lint, JSDoc type check, ASVS record check, utility lint and offline freshness/integrity checks pass; fresh app build passes.\n- Full unit/server suite: **720 passes, one opt-in live skip**. All **21 focused assurance fixtures** pass, including eight new object/document/PR cases.\n- **Three focused Playwright cases pass**, exercising actual viewer search/filter/source/direction/history/deep-link/truncation behavior, hostile text, source-ID/path confinement, Host/method checks and CSP. No external browser request, page error or CSP violation occurs. Visual inspection checks readable labels and directed layout.\n- Independent fixtures cover shadowed lexical names, imported exports, callbacks, inline HTML offsets, non-code scripts, commented/string fake declarations, duplicate/setext headings, literal fences, reference links, absent anchors, ambiguity, deterministic ordering, replay drift, malformed types/endpoints/ownership and bounded directed walks.\n- CI includes detailed freshness and utility lint in the normal check, and focused viewer tests before the full application browser suite.\n- No live provider call, model download, operator environment inspection or private-source scan.\n\n## Checklist\n\n- [x] Logic fixtures and real-browser tests\n- [x] Local check/build/full unit suite pass; focused browser cases pass\n- [x] TODO 0.16 and children ticked; DONE records implementation, deviations and insights\n- [x] New exact dependency is GPL-compatible and justified in the foundation comparison\n\n## Security impact\n\n- [x] Tracked regular inputs only; existing bounded UTF-8/regular-file reader and no source execution\n- [x] Read-only loopback server, Host validation, fixed assets and graph-ID source access; no arbitrary path/API endpoint\n- [x] Untrusted labels, PR bodies and source are text; URL schemes constrained; scripts and data are local\n- [x] No API keys, paid inference or application chess/prompt/game-generation change\n- [x] Release OWASP/ASVS acceptance remains separate; this PR grants no release approval\n",
+      "state": "OPEN",
+      "url": "https://github.com/gregoryyy/kibitz/pull/137",
+      "head": "17f19e8923cb1179f059dba86292a0ab813171b3",
+      "base": "678866198a19bf89416ddfaf3b1fc31f94d5f819",
+      "files": [
+        ".github/workflows/ci.yml",
+        "THIRD_PARTY_NOTICES.md",
+        "docs/ARCH.md",
+        "docs/DONE.md",
+        "docs/TODO.md",
+        "docs/assure/LEVELS.md",
+        "docs/assure/README.md",
+        "docs/assure/REPORT.md",
+        "docs/assure/detail-schema.json",
+        "docs/assure/detail-types.mjs",
+        "docs/assure/documents.json",
+        "docs/assure/lineage.json",
+        "docs/assure/objects.json",
+        "docs/assure/pull-requests.json",
+        "docs/assure/schema.json",
+        "docs/assure/types.mjs",
+        "justfile",
+        "site/eslint.config.mjs",
+        "site/package-lock.json",
+        "site/package.json",
+        "site/playwright.assure.config.mjs",
+        "site/scripts/check-assure-tools.mjs",
+        "site/tests/assure/assure-browser.spec.mjs",
+        "site/tests/unit/assure-detail.test.mjs",
+        "site/tests/unit/assure-lineage.test.mjs",
+        "utils/assure-browser/README.md",
+        "utils/assure-browser/app.mjs",
+        "utils/assure-browser/index.html",
+        "utils/assure-browser/model.mjs",
+        "utils/assure-browser/serve.mjs",
+        "utils/assure-browser/style.css",
+        "utils/assure-detail.mjs",
+        "utils/assure.mjs"
+      ],
+      "filesComplete": true
     }
   ]
 }
