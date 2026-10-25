@@ -1,5 +1,22 @@
 import { test, expect, open, openSettings, closeSettings } from './fixtures.mjs';
 
+for (const theme of ['light', 'dark']) test(`all Chessground SVG layers retain their light scheme under ${theme} without inline style violations`, async ({ page }) => {
+  await page.emulateMedia({ colorScheme: theme });
+  await open(page);
+  const layers = page.locator('#board cg-container > svg');
+  for (const orientation of ['white', 'black']) {
+    await page.evaluate(orientation => window.__kibitz.ground().set({ orientation }), orientation);
+    await expect(layers).toHaveCount(4);
+    expect(await layers.evaluateAll(nodes => nodes.map(node => ({
+      inlineStyle: node.getAttribute('style'), colorScheme: getComputedStyle(node).colorScheme,
+    })))).toEqual(Array.from({ length: 4 }, () => ({ inlineStyle: null, colorScheme: 'light only' })));
+  }
+  await page.evaluate(() => window.__kibitz.ground().setAutoShapes([{ orig: 'e2', dest: 'e4', brush: 'green' }]));
+  await expect(page.locator('#board svg.cg-shapes > g > *')).not.toHaveCount(0);
+  await expect(page.locator('#board cg-board')).toBeVisible();
+  // The shared fixture independently fails on every CSP violation.
+});
+
 for (const phone of [false, true]) test(`original fonts and board layout work locally ${phone ? 'on a German phone' : 'on desktop'}`, async ({ page }, testInfo) => {
   if (phone) await page.setViewportSize({ width: 390, height: 844 });
   const requests = [], fonts = [];
