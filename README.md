@@ -118,7 +118,7 @@ Changes there last until the server restarts; keys never reach the page.
 
 **Offline mode:** `just offline` runs the coach on a small model inside the browser, so it works without a network, a key or a provider:
 - **First run:** it downloads Qwen2.5 1.5B Instruct (about 1.1 GB, Apache-2.0) into `site/models/` and checks its SHA-256. `just offline qwen2.5-0.5b` takes a 0.5 GB model instead, which is faster but weaker.
-- **Serving:** it serves without `.env` keys, in local-only mode. The page loads nothing from other hosts; the fonts fall back to system ones.
+- **Serving:** it serves without `.env` keys, in local-only mode. The page loads nothing from other hosts; its original fonts are bundled locally.
 - **In the page:** the model loads only after you press Load in the Coach tab. It runs on the GPU through WebGPU where the browser has it, otherwise on the CPU in WebAssembly, where Stockfish gives it some of its threads while it answers. It unloads after ten idle minutes.
 - **With `just serve`:** a downloaded model also appears as "In browser" in the coach settings. There you can also send only the quick questions and comments to it, and everything else to your provider.
 

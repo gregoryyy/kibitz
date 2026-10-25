@@ -24,7 +24,7 @@ data volume. This is a reproducible local starting point with no provider keys o
 inference cost. `--env-file /dev/null` prevents implicit Compose loading of an
 operator `.env`; the app's default command also uses `--env=`. Real provider setup
 requires explicit runtime configuration and the app's separate sharing permission.
-The online page loads Google Fonts as described in [the privacy guide](PRIVACY.md).
+The original fonts are [bundled locally](WEB-ASSETS.md); normal and offline pages use the same strict font/style policy.
 
 The configuration runs as the image's `node` user (UID 1000), with a read-only root
 filesystem, `/tmp` tmpfs, dropped capabilities, no new privileges and Docker init.

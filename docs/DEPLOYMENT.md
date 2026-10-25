@@ -51,6 +51,8 @@ marker is an availability check, not ongoing integrity verification.
 
 ## CSP and trusted HTML
 
+The [web-asset policy](WEB-ASSETS.md) hashes actual trusted style blocks as well as scripts, blocks style attributes and bundles the original fonts with pinned bytes/licences. Both normal and offline pages restrict font/style resources to the same origin. Dynamic board/viewport geometry uses existing trusted CSSOM property updates.
+
 Install production Node dependencies with `npm ci` in `site/`, including the pinned
 parse5 parser used by static serving. The parser and its decoder run on the server;
 they are not added to the browser bundle. Missing dependencies fail startup with a

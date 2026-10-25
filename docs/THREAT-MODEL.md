@@ -37,7 +37,6 @@ flowchart LR
   Node <--> Providers[Configured coach and embedding endpoints]
   Upstream[Pinned model download source] --> Download
   ChromeModels[Chrome-managed model provisioning] --> Native
-  Browser <--> Fonts[Google Fonts in online mode]
 ```
 
 Arrows show data exchange, rather than authorization. In particular, a model response does not grant permission to save a game, use an arbitrary tool, navigate to an arbitrary URL or read a filesystem path.

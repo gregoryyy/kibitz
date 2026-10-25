@@ -37,12 +37,17 @@ export function checkHeaders(headers, { inline = true } = {}) {
   for (const [name, expected] of Object.entries({
     'default-src': ["'self'"], 'connect-src': ["'self'"], 'object-src': ["'none'"],
     'base-uri': ["'none'"], 'form-action': ["'none'"], 'frame-ancestors': ["'none'"], 'worker-src': ["'self'", 'blob:'],
+    'style-src-attr': ["'none'"], 'font-src': ["'self'"],
   })) if (JSON.stringify(directives.get(name)) !== JSON.stringify(expected)) errors.push(`Unexpected CSP ${name}`);
   const scripts = directives.get('script-src') || [];
   for (const required of ["'self'", "'wasm-unsafe-eval'", 'blob:']) if (!scripts.includes(required)) errors.push(`Missing CSP script permission ${required}`);
   if (inline && !scripts.some(value => /^'sha256-[A-Za-z0-9+/]{43}='$/.test(value))) errors.push('Missing inline script hashes');
   if (scripts.some(value => !["'self'", "'wasm-unsafe-eval'", 'blob:'].includes(value)
       && !/^'sha256-[A-Za-z0-9+/]{43}='$/.test(value))) errors.push('Unexpected CSP script source');
+  const styles = directives.get('style-src') || [];
+  if (!styles.includes("'self'") || !styles.some(value => /^'sha256-[A-Za-z0-9+/]{43}='$/.test(value))) errors.push('Missing CSP style permissions');
+  if (styles.some(value => value !== "'self'" && !/^'sha256-[A-Za-z0-9+/]{43}='$/.test(value))) errors.push('Unexpected CSP style source');
+  if (directives.has('style-src-elem')) errors.push('Unexpected CSP style override');
   if (!csp) errors.push('Missing CSP');
   return errors;
 }

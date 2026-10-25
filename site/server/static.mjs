@@ -9,7 +9,7 @@ export const BASE_HEADERS = {
   'X-Frame-Options': 'DENY',
   'Cross-Origin-Opener-Policy': 'same-origin',
   // With COOP, makes the page cross-origin isolated, so the multi-threaded Stockfish can use
-  // SharedArrayBuffer. Cross-origin resources must opt in (Google Fonts sends CORP: cross-origin).
+  // SharedArrayBuffer. All bundled fonts/resources are served from the same origin.
   'Cross-Origin-Embedder-Policy': 'require-corp',
   'Cross-Origin-Resource-Policy': 'same-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
@@ -48,29 +48,33 @@ function hasScriptType(node) {
   return ['module', 'importmap', 'speculationrules'].includes(asciiLower(raw));
 }
 
-// Content Security Policy for trusted, operator-owned HTML. Every supplied inline script
-// can receive a hash: this is policy generation, not an HTML sanitizer for model/user text.
-// Workers may come from blob: (the Stockfish fallback and
-// wllama), WebAssembly needs 'wasm-unsafe-eval', and the page loads its fonts from Google Fonts,
-// except offline (just offline, TODO 2.16): then nothing may come from another host.
+// Policy for trusted, operator-owned HTML, never an HTML sanitizer for model/user text.
+// Only actual complete script/style nodes grant hashes; attributes grant no authority.
+// Workers need blob: (Stockfish/wllama), WebAssembly needs 'wasm-unsafe-eval'.
 export function cspFor(html, { offline = false } = {}) {
-  const hashes = new Set();
-  for (const node of nodes(parse(html, { scriptingEnabled: true, sourceCodeLocationInfo: true }))) {
-    if (!('tagName' in node) || node.tagName !== 'script' || !node.sourceCodeLocation?.endTag) continue;
+  const hashes = new Set(), styles = new Set();
+  for (const node of nodes(parse(offline ? offlineHtml(html) : html, { scriptingEnabled: true, sourceCodeLocationInfo: true }))) {
+    if (!('tagName' in node) || !['script', 'style'].includes(node.tagName) || !node.sourceCodeLocation?.endTag) continue;
     const svg = node.namespaceURI === 'http://www.w3.org/2000/svg';
     if (!svg && node.namespaceURI !== 'http://www.w3.org/1999/xhtml') continue;
-    if (!hasScriptType(node)) continue;
-    if (node.attrs.some(attr => attr.name === (svg ? 'href' : 'src'))) continue;
+    if (node.tagName === 'script') {
+      if (!hasScriptType(node)) continue;
+      if (node.attrs.some(attr => attr.name === (svg ? 'href' : 'src'))) continue;
+    } else {
+      const type = node.attrs.find(attr => attr.name === 'type')?.value;
+      if (type && asciiLower(asciiTrim(type)) !== 'text/css') continue;
+    }
     let text = '';
     for (const child of nodes(node)) if (child.nodeName === '#text' && 'value' in child) text += child.value;
-    if (text.trim()) hashes.add(`'sha256-${crypto.createHash('sha256').update(text, 'utf8').digest('base64')}'`);
+    if (text.trim()) (node.tagName === 'style' ? styles : hashes).add(`'sha256-${crypto.createHash('sha256').update(text, 'utf8').digest('base64')}'`);
   }
   return [
     "default-src 'self'",
     `script-src 'self' 'wasm-unsafe-eval' blob: ${[...hashes].join(' ')}`.trim(),
     "worker-src 'self' blob:",
-    offline ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    offline ? "font-src 'self'" : "font-src 'self' https://fonts.gstatic.com",
+    `style-src 'self' ${[...styles].join(' ')}`.trim(),
+    "style-src-attr 'none'",
+    "font-src 'self'",
     "img-src 'self' data:",
     "connect-src 'self'",
     "object-src 'none'",
@@ -80,8 +84,8 @@ export function cspFor(html, { offline = false } = {}) {
   ].join('; ');
 }
 
-// The page as served offline: without the Google Fonts links (the CSS falls back to system fonts),
-// so it requests nothing from another host and the stricter CSP isn't violated.
+// Compatibility for older trusted pages: discard legacy external Google Fonts links offline.
+// The current app bundles its original fonts and uses the same strict policy in both modes.
 export const offlineHtml = html => html.replace(/^[ \t]*<link\b[^>]*\bhref="https:\/\/fonts\.(?:googleapis|gstatic)\.com[^>]*>[ \t]*\r?\n?/gim, '');
 
 // Paths with a dot-segment (".env", ".git/config", ...) are never served, even if the server

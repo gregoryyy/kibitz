@@ -17,7 +17,8 @@ test('CSP hashes the trusted document inline scripts and excludes external scrip
 
 test('CSP blocks framing, plugins and base-tag hijacking, and allows what the page needs', () => {
   const csp = cspFor('');
-  for (const d of ["frame-ancestors 'none'", "object-src 'none'", "base-uri 'none'", "connect-src 'self'", "worker-src 'self' blob:", 'https://fonts.gstatic.com']) assert.ok(csp.includes(d), d);
+  for (const d of ["frame-ancestors 'none'", "object-src 'none'", "base-uri 'none'", "connect-src 'self'", "worker-src 'self' blob:", "font-src 'self'", "style-src-attr 'none'"]) assert.ok(csp.includes(d), d);
+  assert.doesNotMatch(csp, /https:|unsafe-inline/);
   assert.ok(csp.includes("'wasm-unsafe-eval'"));
 });
 
@@ -47,7 +48,7 @@ test('offline: the CSP allows no other host, and the page loses its Google Fonts
   assert.doesNotMatch(csp, /https:/);
   assert.match(csp, /font-src 'self'(;|$)/);
   assert.match(csp, /connect-src 'self'/);
-  assert.equal(cspFor(page).split('; ').find(d => d.startsWith('font-src ')), "font-src 'self' https://fonts.gstatic.com", 'online keeps the exact font source');
+  assert.equal(cspFor(page).split('; ').find(d => d.startsWith('font-src ')), "font-src 'self'", 'online fonts are local too');
 });
 
 test('CSP follows parsed tag/attribute boundaries and browser text normalization', () => {
@@ -88,4 +89,16 @@ test('SVG script text uses its parsed text and href semantics; duplicate hashes 
 test('the entire policy input must be trusted: parsing does not sanitize supplied executable code', () => {
   const body = 'globalThis.untrusted = true;';
   assert.ok(cspFor(`<script>${body}</script>`).includes(sha(body)), 'callers must never supply model/user HTML to this function');
+});
+
+test('style hashes authorize complete parsed CSS blocks, never attributes or inert lookalikes', () => {
+  const good = '\n#trusted { color: red; }\n', inert = '#injected { color: green; }';
+  const html = `<STYLE data-note="a > b">\r\n#trusted { color: red; }\r</STYLE >`
+    + `<!--<style>${inert}</style>--><textarea><style>${inert}</style></textarea><template><style>${inert}</style></template>`
+    + `<style type="text/plain">${inert}</style><div style="${inert}"></div><style>${inert}`;
+  const csp = cspFor(html), style = csp.split('; ').find(d => d.startsWith('style-src '));
+  assert.ok(style.includes(sha(good))); assert.ok(!style.includes(sha(inert)));
+  assert.ok(!csp.split('; ').find(d => d.startsWith('script-src ')).includes(sha(good)));
+  assert.equal(cspFor(`<style>${good}</style><style>${good}</style>`).split(sha(good)).length - 1, 1);
+  assert.ok(csp.includes("style-src-attr 'none'")); assert.doesNotMatch(csp, /unsafe-inline|unsafe-hashes/);
 });

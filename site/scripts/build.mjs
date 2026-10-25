@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
 import { buildOffline } from './build-offline.mjs';
+import { copyFonts } from './build-fonts.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const nm = p => path.join(root, 'node_modules', p);
@@ -38,6 +39,8 @@ fs.cpSync(path.join(root, 'src'), dist, {
   recursive: true,
   filter: from => fs.statSync(from).isDirectory() || from.endsWith('.js'),
 });
+// Keep the original fonts local, with pinned bytes and the complete upstream licences.
+copyFonts(path.join(root, 'src/fonts'), path.join(dist, 'fonts'));
 // Licence texts ship with the page (GPL-3.0; chess.js's BSD notice is in the notices file)
 copy(path.join(root, '../LICENSE'), 'LICENSE.txt');
 copy(path.join(root, '../THIRD_PARTY_NOTICES.md'), 'THIRD_PARTY_NOTICES.md');
@@ -57,7 +60,7 @@ const page = fs.readFileSync(path.join(root, 'src/index.html'), 'utf8')
   .replace('/*CG_BASE*/', () => cgBase).replace('/*CG_PIECES*/', () => cgPieces);
 fs.writeFileSync(path.join(dist, 'index.html'), page);
 fs.writeFileSync(path.join(dist, '_test.html'),
-  '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + page + '</body></html>');
+  '<!doctype html><html><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>' + page + '</body></html>');
 copy(path.join(root, 'src/data.html'), 'data.html');
 copy(path.join(root, 'src/icon.svg'), 'icon.svg');
 buildOffline(dist, page);

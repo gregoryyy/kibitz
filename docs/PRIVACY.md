@@ -18,7 +18,7 @@ Coach data follows live-help policy. Imported/user text still enters prompts thr
 
 OpenAI/Mistral-compatible endpoints and the allowlisted Ollama endpoint can be operator-configured. The provider name alone does not identify every possible host. Ask the operator about the actual destination, account and retention settings before granting permission. The page exposes no keys/private endpoint URLs. This notice describes application transfers, without provider-retention or regulatory-compliance guarantees.
 
-The normal page can load Google Fonts. Font requests carry ordinary connection metadata, without coach prompts. `--offline` removes remote fonts and external-host CSP allowances. The local-model selector restricts model-provider routing; it does not change a configured Ollama endpoint or itself enable offline server mode.
+The page bundles its original fonts locally and permits only same-origin font/style assets, in normal and offline serving. It sends no Google Fonts requests. [Font provenance and CSS policy](WEB-ASSETS.md) describe the pinned assets and retained licences. The local-model selector restricts model-provider routing; it does not change a configured Ollama endpoint or itself enable offline server mode.
 
 ## Choices and revocation
 
