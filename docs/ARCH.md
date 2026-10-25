@@ -42,7 +42,11 @@ static/API handlers and uses the real socket for Origin and cookie transport
 checks; public identity-file exclusion and validation happen before storage opens.
 [Protected-cookie migration](COOKIE-MIGRATION.md) retains exact ownership/usage
 keys and rejects ambiguous identities. Explicit HTTP development uses separate
-cookies. External transport policy and other ASVS remediations remain open.
+cookies. The isolated `kibitz.test` hostname has exact-SAN startup validation,
+operator loopback resolution and one-year HSTS before application routing;
+IP/localhost aliases expose only the static health manifest. Cross-host data
+transition and explicit legacy-origin recovery are documented in the TLS guide.
+External transport policy and other ASVS remediations remain open.
 
 ```mermaid
 flowchart LR
@@ -293,7 +297,7 @@ The default below is wllama. The optional `BROWSER_RUNTIME=chrome` / `just offli
 The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, data-flow diagram, asset/privilege boundaries, evidence and residual risks. The notes below are a brief overview rather than a release checklist.
 
 - **Keys stay on the server.** They are read from `.env` and used only by the gateway. They never appear in responses, logs or the page. The status endpoint names providers and models only.
-- **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Host checks accept localhost or IP literals. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
+- **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Final Host checks accept the configured isolated `.test` hostname; explicit legacy/development modes retain localhost/IP checks. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
 - **Page hardening:**
   - a hash-based CSP: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`;
   - cross-origin isolation;

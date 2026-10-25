@@ -33,7 +33,10 @@ From the repository root:
 docker compose --env-file /dev/null up --build -d
 ```
 
-Open `https://127.0.0.1:8765/`. The supplied
+Map `kibitz.test` to `127.0.0.1` in the host/browser resolver, then open
+`https://kibitz.test:8765/`. Supply the exact DNS SAN plus the loopback IP SAN for
+the verified health probe. The default command sends one-year HSTS on this
+isolated name; IP/localhost serve only the exact static health manifest. The supplied
 [Compose configuration](../compose.yaml) uses the **mock coach** and a named private
 data volume. This is a reproducible local starting point with no provider keys or
 inference cost. `--env-file /dev/null` prevents implicit Compose loading of an
@@ -150,7 +153,7 @@ keeping its cookie contexts and persistence assertions. The supplied Compose
 recipe uses a fixed host port.
 Other architectures and image vulnerability/advisory coverage require their own
 evidence. The metadata inventory is not an advisory clearance or release approval.
-HSTS, account/session limits and other
+Account/session limits and other
 [ASVS deviations](ASVS.md) remain. Excluding Git in a packaged process does not
 change a native checkout's process access. The CSS/font findings were addressed
 in [11.5.1](WEB-ASSETS.md); component coverage and LLM identity/prose limits remain open.

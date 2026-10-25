@@ -2,7 +2,10 @@
 
 TODO 2.11 targets the selected local single-user app. The gateway groups browsers by the random HttpOnly `kibitz_uid` cookie. This is usage grouping, without sign-in or authenticated quotas: clearing or replacing the cookie starts another user. Hosted account budgets remain deferred with TODO 10.2.
 
-New usage cookies include HttpOnly, SameSite=Strict and the `/api/` path. Direct native TLS also adds Secure; local HTTP and spoofed forwarding headers do not. Existing valid IDs are reused without reissuing a cookie. The library has a separate cookie/path with the same transport policy. See the [deployment boundary](DEPLOYMENT.md).
+New usage cookies include HttpOnly, SameSite=Strict and the `/api/` path. Direct native TLS also adds Secure; local HTTP and spoofed forwarding headers do not. Existing valid IDs are reused without reissuing a cookie. The library has a separate cookie/path with the same transport policy. See the [deployment boundary](DEPLOYMENT.md). These exact-value guarantees apply
+on the same hostname; moving to the isolated `.test` origin creates a new grouping
+ID with separate per-group counters. Old counters remain in SQLite and the old
+profile can access them through explicit trusted-TLS legacy-origin recovery.
 
 `just serve`, `just offline` and `npm run serve` select the gitignored private `.kibitz-data/usage.sqlite`. Counters survive a server restart. For a direct invocation, opt in explicitly:
 

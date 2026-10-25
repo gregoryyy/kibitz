@@ -26,6 +26,21 @@ remain TODO 11.4.2.3–11.4.2.5. Browser JavaScript cannot read these HttpOnly v
 
 ## Upgrade
 
+The exact-token upgrade below applies **within the original hostname**. The
+HSTS deployment now defaults to `https://kibitz.test:8765/`, which needs a supplied
+matching DNS SAN and operator loopback mapping. Host-only cookies are not sent
+to that new hostname. To inspect/export the old collection, start trusted TLS
+with `--legacy-origin` and the original URL/profile. This explicit recovery mode
+retains the old ownership/counters and sends no HSTS; it is not final deployment.
+
+Export browser/server collections before moving, import them explicitly into the
+selected new-origin storage, and verify their contents before continuing. New
+cookie groups have separate ownership keys/usage counters; old groups remain in
+the current databases and original profile. Browser JSON exports omit HttpOnly
+tokens and are not a usage-identity transfer. Keep both profiles and current
+private databases for recovery. Neither this hostname change nor a rollback
+silently moves tokens, guesses an owner or uploads browser storage.
+
 1. Stop the server and close the app before making a consistent private backup
    of the browser profile and whole SQLite directory, including any WAL files.
    Keep backups outside public roots and Git. Browser JSON exports do not contain
@@ -34,7 +49,8 @@ remain TODO 11.4.2.3–11.4.2.5. Browser JavaScript cannot read these HttpOnly v
    [data controls](DATA.md). HTTP/HTTPS and changes of hostname or port create
    distinct browser storage origins. This cookie migration does not move
    localStorage, IndexedDB, drafts, service workers or offline caches across origins.
-3. Start the upgraded app with a trusted certificate at the intended hostname.
+3. Start the upgraded app with a trusted certificate at the original hostname
+   (`--legacy-origin` for IP/localhost recovery).
    On HTTPS, each existing valid legacy cookie is reissued under its protected
    name with **the identical opaque value**. The legacy cookie is expired only
    at its original canonical path. Existing usage hashes, library owner keys,
@@ -70,7 +86,8 @@ and usage after rollback. The old baseline retains the former cookie limitation;
 this is recovery, not a final-release deployment or a security clearance.
 
 No database downgrade, token rewrite or cookie-secret export endpoint is needed.
-A fresh pre-upgrade profile backup is necessary for this rollback route. Moving
+A fresh pre-upgrade profile backup is necessary for this rollback route. Cached HSTS at `kibitz.test` survives changing the port/build; keep trusted HTTPS
+on that name and export new-origin work before using original-origin recovery. Moving
 back to an earlier plaintext build or another origin needs its own compatibility
 review and is not covered by this proof.
 

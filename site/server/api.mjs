@@ -40,7 +40,7 @@ export function createApi({
   users = userLedger({ tokensPerDay: config.userTokensPerDay, costPerDay: config.userCostPerDay, prices: parsePrices(config.prices) }),
   allow = usageAccounting(config).allow,
   countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); },
-  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false,
+  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false, hostname = null,
 }) {
   const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
@@ -53,7 +53,7 @@ export function createApi({
     const { pathname } = new URL(req.url, 'http://x');
     if (!pathname.startsWith('/api/')) return false;
     try {
-      checkHost(req);
+      checkHost(req, hostname);
       checkOrigin(req);
       const uid = identityCookie(req, res, 'usage', { allowInsecureHttp, create: true });
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
@@ -178,11 +178,11 @@ export function createApi({
 }
 
 // DNS-rebinding guard: a rebinding attack reaches us under an attacker-controlled host name,
-// so only accept requests addressed to localhost or to an IP literal.
-function checkHost(req) {
+// so accept the configured application hostname; legacy/dev callers retain localhost/IP checks.
+function checkHost(req, hostname) {
   let host;
   try { host = new URL(`http://${req.headers.host}`).hostname.replace(/^\[|\]$/g, ''); } catch { host = ''; }
-  if (host !== 'localhost' && !net.isIP(host)) throw new GatewayError('forbidden', 'Host not allowed', 403);
+  if (hostname ? host !== hostname : host !== 'localhost' && !net.isIP(host)) throw new GatewayError('forbidden', 'Host not allowed', 403);
 }
 
 // CSRF guard: browsers send Origin on cross-site POSTs, so a page on another site can't spend

@@ -65,8 +65,8 @@ For a no-inference liveness check with the operator-supplied public issuer CA
 certificate at `.kibitz-data/tls/ca.pem`, use:
 
 ```sh
-curl --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error --output /dev/null https://127.0.0.1:8765/
-curl --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error --output /dev/null https://127.0.0.1:8765/api/ai/status
+curl --resolve kibitz.test:8765:127.0.0.1 --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error --output /dev/null https://kibitz.test:8765/
+curl --resolve kibitz.test:8765:127.0.0.1 --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error --output /dev/null https://kibitz.test:8765/api/ai/status
 ```
 
 The first checks static serving; the second checks the enabled gateway handler.

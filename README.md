@@ -35,15 +35,19 @@ The [user guide](docs/GUIDE.md) walks through playing, analysis, reviews, practi
 
 ```bash
 cp .env.example .env   # then set AI_PROVIDER and that provider's key and model
-just serve             # build, then HTTPS at https://127.0.0.1:8765/ (supply TLS files first)
+just serve             # build, then HTTPS at https://kibitz.test:8765/ (supply TLS files first)
 ```
 
 Before using a network provider, open **Settings → Coach → Provider permissions** and explicitly allow coach requests or embeddings for that provider. Keys alone do not enable sharing. [Privacy and data flows](docs/PRIVACY.md) explain configured endpoints, separate choices and revocation limits.
 
 Before serving, supply your trusted certificate/key pair at `.kibitz-data/tls/`
 as described in [native HTTPS setup](docs/TLS.md). Standard recipes require those
-files; invalid TLS setup stops startup. [Cookie migration and rollback](docs/COOKIE-MIGRATION.md)
-preserve existing server-library ownership and usage counters. HTTP development
+files, the exact `kibitz.test` DNS SAN and an operator-configured loopback name
+mapping; invalid TLS setup stops startup. Every application response carries
+one-year HSTS for this isolated hostname. [Cookie migration and rollback](docs/COOKIE-MIGRATION.md)
+preserve existing server-library ownership and usage counters at the original
+hostname. Moving to the isolated `.test` origin requires explicit export/import;
+retain the original profile and current databases for recovery. HTTP development
 requires the explicit `--http-dev` option and separate development identities.
 
 On start the server prints `AI coach: <provider> / <model>`, or why the coach is off. Other recipes:

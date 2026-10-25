@@ -17,15 +17,20 @@ The release target is a [local single-user app](../docs/DEPLOYMENT.md). `serve.m
 The standard serve recipes retain daily AI usage and per-browser minute allowances in private `.kibitz-data/usage.sqlite`. Direct `serve.mjs` needs explicit `--usage FILE` for persistence. [Usage settings and limits](../docs/USAGE.md) describe cookie grouping, retention and completed-usage admission thresholds.
 
 The CLI also supports [native HTTPS](../docs/TLS.md) with `--tls-key FILE` and
-`--tls-cert FILE`. Operator identities stay outside public trees; invalid TLS
+`--tls-cert FILE`. The default application name is `kibitz.test` with one-year HSTS; supply its
+exact DNS SAN and configure loopback resolution. `--host` selects the listener,
+`--app-host` selects another dedicated `.test` name, and TLS `--legacy-origin`
+is explicit original-profile recovery only. Operator identities stay outside public trees; invalid TLS
 inputs fail before private storage opens. This supplies the listener prerequisite
 for the final-release ASVS fixes. [Protected-cookie migration](../docs/COOKIE-MIGRATION.md)
-preserves exact existing identities and documents rollback. Cookie-bearing HTTP
+preserves exact existing identities on the original hostname and documents
+rollback. A move to `.test` requires explicit export/import; it does not move
+old cookies or browser storage automatically. Cookie-bearing HTTP
 requires explicit `--http-dev` and separate development cookies.
 
 ```bash
 npm install
-npm run serve            # builds dist/ and serves it with the AI gateway at https://127.0.0.1:8765/
+npm run serve            # builds dist/ and serves it with the AI gateway at https://kibitz.test:8765/
 npm test                 # AI gateway tests, then feature detection + retrieval checks (Node)
 npm run test:e2e         # Playwright end-to-end tests in the installed Chrome (own server, mock AI provider)
 npm run eval:retrieval   # offline labelled position-retrieval benchmark; no provider or build needed

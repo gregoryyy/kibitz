@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Isolated application HSTS
+
+TODO item: 11.4.2.2 / ASVS 3.4.1. Native implementation and focused verification are complete; packaged/current-head CI is recorded in the PR before finalizing the assessment. The other ten ASVS remediations and final-release gate remain open.
+
+### Implementation notes
+
+- Default native TLS to the dedicated `kibitz.test` application authority, with operator loopback resolution and an exact DNS SAN checked before private storage/listening. Allow another canonical dedicated `.test` name through `--app-host`; reject localhost/IP/public hostnames, wildcard/CN-only identities and incompatible mode combinations. Chromium ignores HSTS on `*.localhost`, so an earlier proposed reserved-localhost name was rejected after checking the browser's transport implementation. No host-file/trust-store changes or identity generation occur in production.
+- Set `Strict-Transport-Security: max-age=31536000` before static/model/API routing, including normal success, HEAD, streaming and 4xx/5xx paths. No includeSubDomains/preload directive, forwarded-host/proto trust or plaintext redirect. Preserve browser authority ports through Docker mappings and require native scheme/full-authority agreement for API Origins. An IP/localhost alias serves only exact GET/HEAD `/manifest.webmanifest`, without an identity or HSTS; other aliases cannot open app/API/model routes. Parser failures close without an HTTP response outside hostname policy.
+- Keep original profiles usable for trusted-TLS recovery through explicit `--legacy-origin`, with protected-cookie migration and no HSTS. Document that a new hostname has new cookies/storage/groups, not an automatic identity transfer; export/import explicitly and preserve both profiles/current SQLite files. Describe host-wide policy lifetime across ports, trusted renewal/restart, cross-origin collection/counter limits and rollback without plaintext or trust bypass. Update native/container/provider/operations commands and the actual fifth Linux-image case for the final hostname.
+- Fresh build and lint/JSDoc/ASVS record checks pass. Full mocked unit/server suite: 727 passes, one opt-in live skip. Eleven focused transport/HSTS groups pass, including exact/custom SAN, aliased/mapped authorities, all routed status classes, real synthetic model and mock-answer streams, an injected filesystem 500, parser close, startup/storage ordering and original-origin recovery. A real curl HSTS client rejects a wrong CA, caches the policy only with its exact generated CA and upgrades HTTP on the same port without redirect or verification bypass.
+- All fourteen focused browser cases pass: built board/Stockfish/mock coach/library, application/error/HEAD headers, no alias cookie/app access, existing native HTTPS/cookie migration/CSP/preflight cases. The HSTS regression fails against the actual pre-HSTS cookie CLI on its missing header. Test-only browser resolver/trust exceptions do not prove operator trust or browser HSTS-cache acceptance. Linux packaging, full-app CI and assessment source identities are tracked in the PR; no local Docker result is claimed.
+
+### Deviations
+
+- Local resolver mapping and supplied, normally trusted exact-SAN identities are explicit deployment prerequisites. Tests use temporary synthetic certificates and HSTS-enabled curl; actual operator endpoint/TLS/public-trust inventories remain TODO 11.4.2.6/11.4.2.8. Controlled HTTP development and legacy-origin recovery remain outside supported final deployment. Cross-host cookie/usage identities are not silently transferred, and the old groups remain available with their original profile/current database.
+- No new npm dependency, provider call, model download, runtime trust bypass, unrelated localhost-wide policy or RC finding dismissal. Cookie backend verification, termination and permissions remain separate work.
+
+### Insights
+
+- An emitted header is insufficient evidence for a working browser policy: Chromium's localhost exception rules out an apparently convenient hostname. HSTS and cookies also span ports, so isolation belongs to the hostname; comparing Host's published port to the container's internal listener would break valid mappings while adding no authentication.
+
 ## 2026-10-25 — Protected cookies with identity-preserving migration
 
 TODO item: 11.4.2.1 / ASVS 3.3.1. The other eleven ASVS remediations and final-release gate remain open.

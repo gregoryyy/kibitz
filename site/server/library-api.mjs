@@ -28,10 +28,10 @@ const ERRORS = {
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 const json = (res, status, body) => { res.writeHead(status, HEADERS); res.end(JSON.stringify(body)); return true; };
 const scopeOf = token => crypto.createHash('sha256').update('kibitz-library-v1\0' + token).digest('hex');
-function checkOrigin(req) {
+function checkOrigin(req, hostname) {
   let host;
   try { host = new URL(`http://${req.headers.host}`).hostname.replace(/^\[|\]$/g, ''); } catch { fail('forbidden'); }
-  if (host !== 'localhost' && !net.isIP(host) || req.headers['sec-fetch-site'] === 'cross-site') fail('forbidden');
+  if ((hostname ? host !== hostname : host !== 'localhost' && !net.isIP(host)) || req.headers['sec-fetch-site'] === 'cross-site') fail('forbidden');
   if (req.headers.origin) {
     const scheme = req.socket.encrypted ? 'https:' : 'http:';
     let origin;
@@ -74,15 +74,15 @@ export async function validateLibraryChanges(changes) {
 /**
  * Mount before the AI gateway, which otherwise handles all /api/ paths.
  * Status offers storage without creating a session; explicitly loading records creates one.
- * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean}} [options]
+ * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean, hostname?: string|null}} [options]
  */
-export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false } = {}) {
+export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false, hostname = null } = {}) {
   let windowAt = Date.now(), writes = 0;
   return async (req, res) => {
     const { pathname } = new URL(req.url, 'http://x');
     if (pathname !== '/api/library' && !pathname.startsWith('/api/library/')) return false;
     try {
-      checkOrigin(req);
+      checkOrigin(req, hostname);
       let token = identityCookie(req, res, 'library', { allowInsecureHttp });
       if (pathname === '/api/library/status') {
         if (req.method !== 'GET') fail('method');

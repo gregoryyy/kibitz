@@ -4,6 +4,8 @@ import { test, expect, open, move } from '../e2e/fixtures.mjs';
 import { openContainerApp } from './startup.mjs';
 import { tlsMaterial } from '../helpers/tls-material.mjs';
 
+test.use({ launchOptions: { args: ['--host-resolver-rules=MAP kibitz.test 127.0.0.1', '--no-proxy-server'] } });
+
 const image = process.env.KIBITZ_CONTAINER_IMAGE || 'kibitz:container-test';
 const suffix = randomUUID().slice(0, 8), name = `kibitz-image-${suffix}`, volume = `kibitz-data-${suffix}`;
 const docker = (...args) => execFileSync('docker', args, { encoding: 'utf8', timeout: 60_000, maxBuffer: 2_000_000 });
@@ -188,20 +190,26 @@ test('the packaged non-root server supports native HTTPS from read-only operator
       '--health-interval', '2s', '--health-start-period', '0s',
       '--env', 'KIBITZ_HEALTH_HTTPS=1', '--env', 'KIBITZ_HEALTH_CA=/tls/cert.pem',
       '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image);
-    const url = publishedBase(container).replace('http:', 'https:');
-    client = await playwright.request.newContext({ ignoreHTTPSErrors: true });
-    await expect.poll(async () => { try { return (await client.get(url + '/manifest.webmanifest')).status(); } catch { return 0; } }, { timeout: 30_000 }).toBe(200);
+    const probeUrl = publishedBase(container).replace('http:', 'https:'), url = probeUrl.replace('127.0.0.1', 'kibitz.test');
+    // Node API clients connect directly to the mapped loopback port; Chromium resolves
+    // the .test name with a browser-only loopback resolver rule. Both send the real application authority.
+    client = await playwright.request.newContext({ ignoreHTTPSErrors: true, extraHTTPHeaders: { host: new URL(url).host } });
+    await expect.poll(async () => { try { return (await client.get(probeUrl + '/manifest.webmanifest')).status(); } catch { return 0; } }, { timeout: 30_000 }).toBe(200);
     expect(docker('exec', container, 'node', '-p', 'process.getuid()').trim()).toBe('1000');
     expect(JSON.parse(docker('inspect', container))[0].Mounts.find(mount => mount.Destination === '/tls').RW).toBe(false);
     for (const route of ['/api/ai/status', '/api/library/records']) {
-      const response = await client.get(url + route); expect(response.status()).toBe(200);
+      const response = await client.get(probeUrl + route); expect(response.status()).toBe(200);
+      expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
       expect(response.headers()['set-cookie']).toMatch(/^__Secure-kibitz_(uid|library)=/);
       expect(response.headers()['set-cookie']).toContain('; Secure');
     }
     context = await browser.newContext({ ignoreHTTPSErrors: true }); const page = await context.newPage();
     await page.route('**/*', route => new URL(route.request().url()).origin === url ? route.continue() : route.abort());
     await open(page, url + '/?debug'); await expect(page.locator('#board cg-board')).toBeVisible();
-    for (const file of ['/tls/key.pem', '/key.pem', '/.git/config']) expect((await client.get(url + file)).status()).toBe(404);
+    for (const file of ['/tls/key.pem', '/key.pem', '/.git/config']) {
+      const response = await client.get(probeUrl + file); expect(response.status()).toBe(404);
+      expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
+    }
     await expect.poll(() => JSON.parse(docker('inspect', container))[0].State.Health.Status, { timeout: 15_000 }).toBe('healthy');
     expect(docker('logs', container)).not.toContain('PRIVATE KEY');
   } catch (error) {

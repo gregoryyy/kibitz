@@ -3,7 +3,8 @@
 The owner selected native Node HTTPS with operator-supplied certificates on
 2026-10-25. This completes the listener prerequisite **TODO 11.4.2.7.1**.
 [Protected cookies and migration](COOKIE-MIGRATION.md) implement **11.4.2.1**.
-The remaining eleven ASVS fixes include authentication, HSTS, external endpoint
+The isolated-host HSTS policy implements **11.4.2.2**.
+The remaining ten ASVS fixes include authentication, external endpoint
 transport policy, actual TLS inventory and public-certificate evidence. This
 does not close the final-release gate.
 
@@ -36,12 +37,55 @@ it does not change file permissions, fetch identities or print key/certificate
 contents, filenames or raw OpenSSL errors. Invalid or incomplete TLS options
 exit before private database creation and do not open an HTTP fallback listener.
 
-Open the printed **`https://127.0.0.1:8765/`** URL. The certificate must match that
-IP address; use `--host localhost` and its printed URL only with a matching DNS
-identity. The browser must trust the issuer through the operator's normal trust
-configuration. Supported API Host values remain localhost/IP literals; a new
-custom DNS hostname needs the separate rebinding/hostname review. Do not bypass
-certificate warnings or disable certificate verification to operate the app.
+Open the printed **`https://kibitz.test:8765/`** URL. Configure the operator's
+local resolver/hosts file to map the dedicated name to loopback, for example:
+
+```text
+127.0.0.1 kibitz.test
+```
+
+The app does not modify hosts files or system/browser trust. The certificate
+must contain the exact **DNS SAN `kibitz.test`**; wildcard or Common Name-only
+identities are refused before storage/listening. Include **IP SAN `127.0.0.1`**
+when using the packaged health probe. Trust the issuer through the operator's
+normal local trust configuration. Never bypass certificate warnings to operate
+the app. `--host` controls the listening interface, normally `127.0.0.1`;
+`--app-host study.kibitz.test` instead selects a different dedicated canonical
+lowercase `.test` name with its own matching SAN and loopback mapping. Bare
+`test`, localhost/IP names, public domains, schemes and ports are refused by
+that option.
+
+The reserved [.test namespace](https://www.rfc-editor.org/rfc/rfc6761.html#section-6.2)
+needs explicit local resolution; it does not automatically resolve like
+`.localhost`. Chromium's [transport-security implementation](https://github.com/chromium/chromium/blob/main/net/http/transport_security_state.cc)
+ignores HSTS for `*.localhost`, so that namespace cannot supply this browser
+policy. Use a name dedicated to this app; another app on another port of the
+same hostname would share the browser's host-wide HSTS state.
+
+## Isolated application HSTS
+
+Every application response for the configured hostname receives
+**`Strict-Transport-Security: max-age=31536000`** before static/model/API routing,
+including HEAD, streams and normal 4xx/5xx error responses. There is no
+`includeSubDomains` or preload directive. Forwarding headers cannot select the
+host or disable HSTS; native TLS, a valid Host authority and the configured
+hostname control it. API Origin checks still compare the full native scheme
+and browser authority, including its published port. Docker may map the listener
+to another host port without changing hostname isolation.
+
+IP/localhost aliases cannot serve the app, APIs or models, create cookies or
+redirect to another hostname. Their sole exception is GET/HEAD of the exact
+static `/manifest.webmanifest` health resource, without cookies or HSTS.
+Malformed HTTP parser input closes the connection without an HTTP response;
+it cannot establish an application authority. Unrelated hosts receive no HSTS.
+
+As specified by [RFC 6797](https://www.rfc-editor.org/rfc/rfc6797.html#section-8.3),
+the policy is host-wide across ports, and a non-default explicit port is kept
+when HTTP is upgraded to HTTPS. Clients learn it only after a valid, trusted
+HTTPS response. Start with the printed HTTPS URL; there is no plaintext redirect
+listener and no first-visit HTTP protection before the policy is learned. IP
+literals cannot serve as HSTS identities. Certificate/chain/hostname errors must
+be repaired rather than bypassed after HSTS is cached.
 
 The server uses Node's
 [`https.createServer()`](https://github.com/nodejs/node/blob/v24.22.1/doc/api/https.md#httpscreateserveroptions-requestlistener)
@@ -61,10 +105,31 @@ changing the URL, export browser data and the selected server library and keep
 an appropriate browser-profile/private-SQLite backup as described in
 [data lifecycle](DATA.md) and [container operation](CONTAINER.md).
 [Cookie migration and rollback](COOKIE-MIGRATION.md) preserve the exact legacy
-identity tokens, private-library ownership and usage counters on HTTPS. Back up
+identity tokens, private-library ownership and usage counters on HTTPS **at the
+same original hostname**. The new `.test` hostname does not inherit those cookies. Back up
 the browser profile as well as databases before upgrading; ordinary JSON browser
 exports omit HttpOnly cookies. The remaining operator-session and permission
 requirements are **11.4.2.3–11.4.2.5**. These grouping cookies are not authentication.
+
+For recovery/export at the original IP/localhost origin, explicitly add
+**`--legacy-origin`** with a valid TLS pair and use the saved original profile and
+URL. This recovery mode has no HSTS and cannot combine with `--app-host` or
+`--http-dev`; it is not the supported final deployment. It preserves original
+cookie ownership and lets the operator verify/export old data before an explicit
+import at the new origin. New-origin grouping IDs and their counters are separate;
+the original owner/counters remain in current SQLite files and the old profile.
+No raw-token export, automatic cross-host transfer or secret-in-URL handoff exists.
+Keep current databases and both profiles; do not overwrite post-transition writes
+with a pre-transition database snapshot. The [migration guide](COOKIE-MIGRATION.md)
+details the boundary.
+
+To roll back, export new-origin work, stop the server and keep a consistent
+**current** database/profile backup. A previous build must continue trusted HTTPS
+at its supported original origin with its saved profile; changing builds/ports or
+stopping the app does not remove cached HSTS for `kibitz.test`. Do not fall back
+to HTTP or remove browser trust checks. Renewal uses the same hostname/SAN and
+trusted issuer; replace the pair and restart before expiration. No automatic
+policy-clearing or certificate-renewal service is provided.
 
 The standard serve recipes and container command require the TLS pair. A
 cookie-bearing CLI without TLS refuses startup before private storage creation;
@@ -105,8 +170,8 @@ Reproduce native checks after a build:
 ```sh
 cd site
 npm run check
-node --test server/tls.test.mjs
-npx playwright test tests/e2e/native-https.spec.mjs tests/e2e/cookie-transport.spec.mjs tests/e2e/secure-cookie-migration.spec.mjs
+node --test server/tls.test.mjs server/transport.test.mjs server/hsts.test.mjs
+npx playwright test tests/e2e/hsts.spec.mjs tests/e2e/native-https.spec.mjs tests/e2e/cookie-transport.spec.mjs tests/e2e/secure-cookie-migration.spec.mjs
 ```
 
 The tests generate short-lived identities in temporary private directories.
@@ -117,3 +182,12 @@ real built board/Stockfish/mock coach/private library and retains the normal CSP
 checks. No operator identity, trust-store installation, inference or model
 download is used. The separate Linux image workflow runs the packaged TLS case;
 ordinary native tests do not start Docker.
+
+HSTS client verification additionally needs an installed curl build with the
+`HSTS` feature (`curl --version`). The test trusts only its generated CA, rejects
+a wrong CA, persists a private temporary policy cache and verifies a real HTTP
+upgrade on the same port with no redirect or verification bypass. Browser tests
+use a test-only loopback resolver and allow only their generated identity errors;
+they verify delivery, app/engine/mock coach/library behavior and error headers,
+not real operator browser trust or browser HSTS-cache acceptance. Actual endpoint
+trust/inventory evidence remains in TODO 11.4.2.6/11.4.2.8.

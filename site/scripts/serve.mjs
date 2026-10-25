@@ -1,7 +1,7 @@
 // Local static server; parse5 selects inline HTML scripts for CSP hashes.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
 //                          [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]
-//                          [--tls-key FILE --tls-cert FILE | --http-dev]
+//                          [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); the gateway additionally needs the provider SDKs. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
@@ -18,6 +18,7 @@ import { parseArgs } from 'util';
 import { modelEnv, servableModel } from '../server/models.mjs';
 import { aiConfigEvent, logProvider, logRequest, serverErrorEvent } from '../server/logging.mjs';
 import { loadTlsOptions } from '../server/tls.mjs';
+import { applicationHost, enforceTransport } from '../server/transport.mjs';
 
 async function main() {
 
@@ -37,9 +38,11 @@ async function main() {
       'tls-key': { type: 'string' },
       'tls-cert': { type: 'string' },
       'http-dev': { type: 'boolean', default: false },
+      'app-host': { type: 'string' },
+      'legacy-origin': { type: 'boolean', default: false },
     },
   });
-  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--tls-key FILE --tls-cert FILE | --http-dev]'); process.exit(2); }
+  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]'); process.exit(2); }
   const root = fs.realpathSync(positionals[0]);
   let modelsDir = '';
   if (opt.models) {
@@ -48,7 +51,13 @@ async function main() {
   }
   // Validate every public tree before creating a private database or any missing parents.
   const servedRoots = [root, ...(modelsDir ? [modelsDir] : [])];
-  const tlsOptions = loadTlsOptions({ key: opt['tls-key'], cert: opt['tls-cert'], servedRoots });
+  const tlsSelected = opt['tls-key'] !== undefined || opt['tls-cert'] !== undefined;
+  if ((opt['app-host'] !== undefined && (!tlsSelected || opt['legacy-origin'] || opt['http-dev']))
+    || (opt['legacy-origin'] && (!tlsSelected || opt['http-dev']))) {
+    throw Object.assign(new Error('Invalid application transport configuration.'), { code: 'ERR_KIBITZ_APP_HOST' });
+  }
+  const appHost = tlsSelected && !opt['legacy-origin'] ? applicationHost(opt['app-host']) : null;
+  const tlsOptions = loadTlsOptions({ key: opt['tls-key'], cert: opt['tls-cert'], servedRoots, hostname: appHost });
   if ((!tlsOptions && (opt.api || opt.library) && !opt['http-dev']) || (tlsOptions && opt['http-dev'])) {
     throw Object.assign(new Error('TLS required'), { code: 'ERR_KIBITZ_HTTPS_REQUIRED' });
   }
@@ -61,7 +70,7 @@ async function main() {
     const { openPrivateLibrary } = await import('../server/library-files.mjs');
     const { createLibraryApi } = await import('../server/library-api.mjs');
     libraryStore = openPrivateLibrary(opt.library, servedRoots);
-    library = createLibraryApi({ store: libraryStore, allowInsecureHttp: opt['http-dev'] });
+    library = createLibraryApi({ store: libraryStore, allowInsecureHttp: opt['http-dev'], hostname: appHost });
     process.once('exit', () => libraryStore.close());
   }
 
@@ -80,7 +89,7 @@ async function main() {
     const { usageAccounting } = await import('../server/usage.mjs');
     const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
     process.once('exit', () => usageStore.close());
-    api = createApi({ config, allowInsecureHttp: opt['http-dev'], ...usageAccounting(config, { store: usageStore }) });
+    api = createApi({ config, allowInsecureHttp: opt['http-dev'], hostname: appHost, ...usageAccounting(config, { store: usageStore }) });
     console.log(aiConfigEvent(config));
     apiStatus = config.available ? `AI coach: ${logProvider(config.provider)} (configured)` : 'AI coach off: check Settings or server configuration';
   }
@@ -89,6 +98,7 @@ async function main() {
 
   const handle = async (req, res) => {
     logRequest(req, res);
+    if (appHost && !enforceTransport(req, res, { hostname: appHost })) return send(res, 403, 'Host not allowed');
     // API routers also parse the target. Reject malformed URLs before an async rejection
     // could reach Node's default stack printer with its raw `input` property.
     try { new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request'); }
@@ -107,12 +117,15 @@ async function main() {
     return servePublicFile(req, res, { root, relative: rel.slice(1), offline: opt.offline });
   };
   const server = tlsOptions ? https.createServer(tlsOptions, handle) : http.createServer(handle);
+  // Parser/TLS failures cannot establish a valid application host. Close rather
+  // than emitting Node's default HTTP response outside the application policy.
+  server.on('clientError', (_error, socket) => socket.destroy());
   server.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
     console.error(serverErrorEvent(e));
     process.exit(1);
   }).listen(Number(opt.port), opt.host, function () {
     const port = this.address().port;
-    const host = ['127.0.0.1', 'localhost', '::1'].includes(opt.host) ? (opt.host === '::1' ? '[::1]' : opt.host) : null;
+    const host = appHost || (['127.0.0.1', 'localhost', '::1'].includes(opt.host) ? (opt.host === '::1' ? '[::1]' : opt.host) : null);
     const scheme = tlsOptions ? 'https' : 'http';
     console.log(host ? `Serving Kibitz at ${scheme}://${host}:${port}/` : `Serving Kibitz on configured interface, port ${port} (${scheme})`);
     if (apiStatus) { console.log(apiStatus); console.log(opt.usage === ':memory:' ? 'AI usage: in memory; restart resets counters' : 'AI usage: private persistent counters'); }

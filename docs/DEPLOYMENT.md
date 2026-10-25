@@ -6,7 +6,8 @@ This deployment can still use a cloud AI provider chosen by the operator. “Loc
 
 ## Supported operation
 
-Supply trusted operator certificates as described in [TLS setup](TLS.md), then build and run from the repository:
+Supply trusted operator certificates and a loopback resolver mapping for
+`kibitz.test` as described in [TLS setup](TLS.md), then build and run from the repository:
 
 ```sh
 just serve
@@ -33,7 +34,16 @@ existing separate API paths on the actual TLS socket. Forwarding headers do not
 control this policy. [Migration and rollback](COOKIE-MIGRATION.md) retain exact
 legacy tokens, library owner keys and usage counters, without changing SQLite
 schemas. Preserve profile/private-database backups before changing origin.
-This closes cookie remediation 11.4.2.1, while authentication, revocation,
+Cookie migration preserves identities on the **same original hostname**. Moving
+to the isolated `kibitz.test` URL creates a new browser origin and new cookie
+groups; it does not automatically transfer old cookies, browser storage or
+collections. Export/import explicitly and retain old profiles/current databases.
+TLS-only `--legacy-origin` enables recovery/export at the exact old IP/localhost
+URL with its old profile; it has no HSTS and is not final-deployment mode.
+The new default sends one-year HSTS for the dedicated name before every
+application route, including normal error responses. No unrelated localhost/IP
+policy or plaintext redirect is installed. See [HSTS and rollback](TLS.md).
+This closes cookie remediation 11.4.2.1 and HSTS 11.4.2.2, while authentication, revocation,
 permissions and the other final-release requirements remain open.
 
 The existing `--host` option can change the listener for deliberate development/packaging use. Binding to a LAN/public address does not add accounts, transport security or authorization. A public/shared service is outside this deployment decision. A local machine's users, browser profiles and anonymous cookie scopes are not a hosted tenant-security boundary.

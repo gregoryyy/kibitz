@@ -11,6 +11,8 @@ pending source, checks and decisions.
 
 ## [Unreleased]
 
+- Isolated local HTTPS defaults to `kibitz.test` with one-year HSTS, exact DNS-SAN startup checks and a static-only health alias. Supply its loopback name mapping; use explicit legacy-origin TLS recovery/export before transitioning old profiles.
+
 ### Added
 
 - Native HTTPS listener using operator-supplied certificates and private
