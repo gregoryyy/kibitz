@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
 import { test, expect, open, move } from '../e2e/fixtures.mjs';
 import { openContainerApp } from './startup.mjs';
 import { tlsMaterial } from '../helpers/tls-material.mjs';
@@ -181,7 +182,7 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     // Test setup copies only synthetic bytes into a private, runtime-owned volume.
     // No host path is writable from the initializer; the app runs as its usual UID.
     docker('run', '--rm', '--pull=never', '--user', '0:0', '--network', 'none', '--read-only',
-      '--mount', `type=bind,src=${identity.dir},dst=/input,readonly`, '--mount', `type=volume,src=${material},dst=/tls`,
+      '--mount', `type=bind,src=${path.dirname(identity.key)},dst=/input,readonly`, '--mount', `type=volume,src=${material},dst=/tls`,
       '--entrypoint', 'node', image, '-e', `const fs=require('node:fs');
         for(const name of ['key.pem','cert.pem','operator.json','permissions.json']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
         fs.chmodSync('/tls',0o700);fs.chownSync('/tls',1000,1000);`);

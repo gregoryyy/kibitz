@@ -61,7 +61,6 @@ See [README](README.md) for weights, inference rules, exclusions and maintenance
 
 ### unresolved_reference
 
-- gap; 1.00; `object:site/tests/container/image.spec.mjs#program%3A%3CArrowFunctionExpression%3A195c27a8cf05%3E%3Afunction:0`: unresolved\_import\_call: ../e2e/fixtures.mjs\#test
 - gap; 1.00; `object:site/tests/e2e/chat.spec.mjs#program%3A%3CArrowFunctionExpression%3Adf6b514e835c%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 - gap; 1.00; `object:site/tests/e2e/chat.spec.mjs#program%3A%3CArrowFunctionExpression%3Ae634ba4a9f91%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 - gap; 1.00; `object:site/tests/e2e/operator-permissions.spec.mjs#program%3A%3CArrowFunctionExpression%3A01496ee28e9b%3E%2F%3CArrowFunctionExpression%3Afdfedf55e37a%3E%3Afunction:1`: unresolved\_import\_call: ./fixtures.mjs\#expect
@@ -69,6 +68,7 @@ See [README](README.md) for weights, inference rules, exclusions and maintenance
 - gap; 1.00; `object:site/tests/e2e/pawn-distance.spec.mjs#program%3Asetup%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 - gap; 1.00; `object:site/tests/e2e/retrieval-citations.spec.mjs#program%3A%3CArrowFunctionExpression%3A910f53aa1c66%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#test
 - gap; 1.00; `pr:28`: historical\_PR\_file\_absent: site/src/notation.js
+- gap; 1.00; `section:docs/PROVIDERS.md#self-host-with-native-ollama`: missing: --library .kibitz-data/library.sqlite
 
 ### verifies_unassessed
 
