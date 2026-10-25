@@ -1,0 +1,69 @@
+{
+  "reviewedAt": "2026-10-25T07:02:57.967Z",
+  "scope": "official-Qwen-GGUF-source-revisions-and-small-public-metadata-only",
+  "models": [
+    {
+      "id": "qwen2.5-1.5b",
+      "repository": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+      "revision": "91cad51170dc346986eccefdc2dd33a9da36ead9",
+      "revisionLastModified": "2024-09-20T06:31:38.000Z",
+      "metadataUrl": "https://huggingface.co/api/models/Qwen/Qwen2.5-1.5B-Instruct-GGUF/revision/91cad51170dc346986eccefdc2dd33a9da36ead9?blobs=true",
+      "metadataSha256": "77b5e8703aefb5907c51fe79ccc9fdb3f9ddbeec782f845356f911b1a3e23f36",
+      "file": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "bytes": 1117320736,
+      "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+      "gitLfsPointer": {
+        "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/raw/91cad51170dc346986eccefdc2dd33a9da36ead9/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+        "blobId": "eca68f83004d8b86fa1742ee507ddee8f4b2abce",
+        "bytes": 135,
+        "sha256": "f1a7b30e7257cb4c6092747d3412fe465910e375737c6a32c347c70cb1802a8e",
+        "text": "version https://git-lfs.github.com/spec/v1\noid sha256:6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e\nsize 1117320736\n"
+      },
+      "modelCard": {
+        "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/raw/91cad51170dc346986eccefdc2dd33a9da36ead9/README.md",
+        "sha256": "57c72d4010fb11a98fc8e62dc8ef112b23a7a7525b71e571ca978d35cb3b2eec",
+        "declaredBaseModel": "Qwen/Qwen2.5-1.5B-Instruct"
+      },
+      "licence": {
+        "spdx": "Apache-2.0",
+        "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/raw/91cad51170dc346986eccefdc2dd33a9da36ead9/LICENSE",
+        "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+      },
+      "source": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/91cad51170dc346986eccefdc2dd33a9da36ead9/qwen2.5-1.5b-instruct-q4_k_m.gguf"
+    },
+    {
+      "id": "qwen2.5-0.5b",
+      "repository": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "revision": "9217f5db79a29953eb74d5343926648285ec7e67",
+      "revisionLastModified": "2024-09-20T06:20:24.000Z",
+      "metadataUrl": "https://huggingface.co/api/models/Qwen/Qwen2.5-0.5B-Instruct-GGUF/revision/9217f5db79a29953eb74d5343926648285ec7e67?blobs=true",
+      "metadataSha256": "8ae88d757bf805b52c91d7ba603062532113b97d8a23a9725afeee31f5b0dc75",
+      "file": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+      "bytes": 491400032,
+      "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+      "gitLfsPointer": {
+        "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/raw/9217f5db79a29953eb74d5343926648285ec7e67/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+        "blobId": "a0ee18ee2bcb22c2b6c95360b292c2c40a2d7a03",
+        "bytes": 134,
+        "sha256": "ce3f3d08c26b6112b85a9bdeadb1b8b3b4db7da6755bf5adc58ace0ef5e06eee",
+        "text": "version https://git-lfs.github.com/spec/v1\noid sha256:74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db\nsize 491400032\n"
+      },
+      "modelCard": {
+        "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/raw/9217f5db79a29953eb74d5343926648285ec7e67/README.md",
+        "sha256": "fa1fede7f775a20f111cc098c00900092020572ce78976970a5b0ad9ca211999",
+        "declaredBaseModel": "Qwen/Qwen2.5-0.5B-Instruct"
+      },
+      "licence": {
+        "spdx": "Apache-2.0",
+        "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/raw/9217f5db79a29953eb74d5343926648285ec7e67/LICENSE",
+        "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e"
+      },
+      "source": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/9217f5db79a29953eb74d5343926648285ec7e67/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+    }
+  ],
+  "limitations": [
+    "Existing model size/hash pins match exact-revision metadata and raw Git LFS pointers; weight bodies were not downloaded or independently rehashed in this review.",
+    "Model cards and declared base models are publisher statements, not verified training/quantization lineage, safety or chess-quality evidence.",
+    "A commit locator and digest do not guarantee continued upstream availability, establish a signed model-build attestation or resolve cloud/Ollama/Chrome identity."
+  ]
+}

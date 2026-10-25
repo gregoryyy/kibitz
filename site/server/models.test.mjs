@@ -13,12 +13,39 @@ test('catalog: unique ids and files, pinned sizes and SHA-256, Hugging Face sour
     assert.match(m.file, /^[\w.-]+\.gguf$/, m.id);
     assert.match(m.sha256, /^[0-9a-f]{64}$/, m.id);
     assert.ok(Number.isInteger(m.bytes) && m.bytes > 1e8 && m.bytes < 2 ** 31, `${m.id}: under wllama's 2 GB per-file limit`);
-    assert.ok(m.source.startsWith('https://huggingface.co/') && m.source.endsWith('/' + m.file), m.id);
+    const source = new URL(m.source);
+    assert.equal(source.origin, 'https://huggingface.co', m.id);
+    assert.match(source.pathname, /^\/Qwen\/[^/]+\/resolve\/[a-f0-9]{40}\/[^/]+\.gguf$/, `${m.id}: full source commit required`);
+    assert.equal(source.pathname.split('/').at(-1), m.file, m.id);
+    assert.equal(source.search + source.hash + source.username + source.password, '', m.id);
     assert.ok(['Apache-2.0', 'MIT'].includes(m.licence), m.id);
   }
   assert.equal(browserModel().id, DEFAULT_BROWSER_MODEL);
   assert.equal(browserModel('').id, DEFAULT_BROWSER_MODEL);
   assert.throws(() => browserModel('gpt-9'), /Unknown in-browser model/);
+});
+
+test('catalogue pins match retained exact-revision LFS pointers and declared licences', () => {
+  const evidence = JSON.parse(fs.readFileSync(new URL('../../docs/security/2026-10-25-browser-models.json', import.meta.url), 'utf8'));
+  assert.equal(evidence.models.length, BROWSER_MODELS.length);
+  for (const model of BROWSER_MODELS) {
+    const record = evidence.models.find(entry => entry.id === model.id);
+    assert.ok(record, model.id);
+    assert.equal(record.source, model.source, model.id);
+    assert.equal(record.file, model.file, model.id);
+    assert.equal(record.bytes, model.bytes, model.id);
+    assert.equal(record.sha256, model.sha256, model.id);
+    assert.equal(record.licence.spdx, model.licence, model.id);
+    assert.equal(record.source, `https://huggingface.co/${record.repository}/resolve/${record.revision}/${model.file}`);
+    const pointer = Buffer.from(record.gitLfsPointer.text);
+    assert.equal(pointer.toString(), `version https://git-lfs.github.com/spec/v1\noid sha256:${model.sha256}\nsize ${model.bytes}\n`);
+    assert.equal(pointer.length, record.gitLfsPointer.bytes);
+    assert.equal(crypto.createHash('sha256').update(pointer).digest('hex'), record.gitLfsPointer.sha256);
+    assert.equal(crypto.createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${pointer.length}\0`), pointer])).digest('hex'), record.gitLfsPointer.blobId);
+    for (const source of [record.gitLfsPointer.url, record.modelCard.url, record.licence.url]) {
+      assert.ok(source.startsWith(`https://huggingface.co/${record.repository}/raw/${record.revision}/`), model.id);
+    }
+  }
 });
 
 test('verify and the quick check: size, hash, marker', async () => {

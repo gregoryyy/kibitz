@@ -36,6 +36,24 @@ TODO item: 11.5.2; repair PR #130.
 
 - This repairs the existing dependency PR rather than opening another overlapping action upgrade. PR #131's separate initialization bump becomes redundant once #130 merges. No check is suppressed and no application behavior is changed by the action update.
 
+## 2026-10-25 — Pin browser-model source revisions
+
+TODO item: 11.3.3.1 complete; parent supply-chain review remains open.
+
+### Implementation notes
+
+- Replaced both official Qwen GGUF download locators' mutable `main` component with full repository commits. Exact-revision API metadata and raw LFS pointer text match the existing size/SHA-256 pins; replayed Git blob IDs match the metadata. Filenames, weights, markers and default selection are unchanged.
+- Retained the two small LFS pointers, source/revision URLs and observed model-card/licence metadata hashes. Checked Apache-2.0 declarations and the cards' respective instruct-base-model names. Documented an upgrade review covering revision, bytes, licence and compatibility together, and added fixed source links to third-party notices.
+- Strengthened catalogue tests to require full source commits and replay the retained pointers. The actual download-CLI regression now preserves the production URLs while intercepting every fetch with tiny synthetic bytes; it exercises both catalogue models. The new unit assertions and CLI case fail against the old `main` locators, then the twelve focused model/download unit cases pass after pinning.
+- Node 24.22.1 lint/JSDoc/ASVS record checks and build pass. The complete settled-build unit/server suite passes with 698 passes and one opt-in live skip; all four download-CLI Playwright cases pass. All 100 local link targets in changed Markdown files resolve and diff whitespace is clean. No live provider call or actual weight body is used.
+
+### Deviations
+
+- This review reads only public metadata, model-card/licence text and 134/135-byte LFS pointers. It neither downloads weights nor runs inference or a provider. Declared base-model lineage, quantization/training provenance and quality remain unverified; mutable cloud/Ollama/Chrome identities and TODO 11.3.3 stay open. Existing checked caches need no migration or forced download.
+
+### Insights
+
+- A content hash rejects changed upstream weights, while a full source revision also preserves the intended file locator when an upstream branch moves. These establish identity and reproducibility boundaries; neither establishes model truth or teaching quality.
 
 ## 2026-10-25 — Local release review preparation
 

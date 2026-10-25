@@ -45,6 +45,9 @@ unreleased until a release PR names and verifies a specific version/commit.
 
 ### Security
 
+- Pin browser-model download URLs to exact official source revisions matching
+  the existing size/hash pins. Model files and already checked caches remain
+  compatible; this does not certify model training or coaching accuracy.
 - Permit trusted hashed stylesheets and block style attributes, preserving dynamic
   board geometry. Original fonts and their licences now ship locally in normal
   and offline pages, removing the external font stylesheet and its metadata

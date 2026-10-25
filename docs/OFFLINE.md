@@ -27,6 +27,17 @@ The offline descriptor stores only `{runtime: 'chrome', name: 'Chrome built-in m
 
 `just offline` downloads the selected catalogue model before building/serving. The Node download command limits the response to the pinned byte count while streaming and checks its exact size and SHA-256 before replacing the final model file. Unique exclusive temporary files keep concurrent downloads separate; handled failures/cancellation remove that run's temporary files and leave earlier weights/markers intact before publication. The byte cap applies per download.
 
+Both Qwen download URLs select full upstream commits rather than `main`. The
+[dated source record](security/2026-10-25-browser-models.json) matches those
+revisions' LFS pointers to the existing byte/hash pins and identifies their model
+cards and Apache-2.0 licences. The weights and local filenames have not changed,
+so already checked files keep their existing fast path. For an upgrade, review
+the official repository, full revision, LFS size/hash, model card, licence and
+runtime compatibility together in a PR; update the catalogue and evidence, then
+run the catalogue/download regressions before making a separate approved weight
+download or inference trial. Publisher metadata does not verify training or
+quantization lineage, teaching quality or continued upstream availability.
+
 The default total transfer deadline is 30 minutes, covering response headers and body. To allow an hour, run `node site/scripts/fetch-model.mjs --timeout-ms 3600000` from the repository root. The option accepts a positive integer up to 2147483647 milliseconds. Invalid sizes, hashes, failed HTTP responses, stalled transfers and interrupted streams produce a failure rather than publishing unchecked weights. Already checked files retain the existing no-download fast path.
 
 File and marker publication use separate atomic replacements; an interrupted marker update can leave verified weights needing another full check. A process crash can leave `.part-*` files, which are not served as models; remove abandoned partials only when no download is running. The `.sha256` marker is a quick availability check in an operator-controlled directory, not a fresh hash of every served byte. Keep model files/markers trusted; a same-size local edit with an old marker is outside that shortcut's detection. The download/verification command and browser weight cache have separate lifecycles from the public offline app bundle.
