@@ -8,8 +8,13 @@ needed after installation.
 
 See [levels, semantics, replay and foundation comparison](../../docs/assure/LEVELS.md).
 Search by file, symbol, TODO number, PR number or rationale text. Select a result,
-then follow graph nodes or the relation list. Direction, relation and containment
-filters control the walk; Back and copied URL fragments preserve navigation.
+then single-click graph nodes, relations, search results or findings to inspect
+the element without changing the current path, root highlight, layout, zoom or
+pan. Double-click to start a new path from that element. **Walk from inspected
+element** offers the same action with a standard keyboard/touch button. Enter or
+Space on a result inspects it; use that explicit button to navigate. Back and
+copied URL fragments track path changes, not inspections. Direction, relation,
+confidence and containment filters still control the current root's walk.
 Choose **Show captured source** to inspect verified text of an object, document
 section, fenced block or PR section. Gaps are counted, not converted into claims.
 

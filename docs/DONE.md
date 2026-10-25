@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Inspect assurance elements without replacing the reviewed path
+
+TODO item: 0.16.4.
+
+### Implementation notes
+
+- Separated the inspected element from the current walk root and path history. Single-clicks on graph nodes, relation entries, search results and findings show details/source without rebuilding the graph, moving its root highlight or changing its edges, layout, viewport or URL. Double-clicking explicitly starts a new walk; the standard **Walk from inspected element** button supports keyboard and touch. Back records path changes only, and filters still operate on that path's root.
+- Disabled incidental graph selection styling so inspection retains the existing root highlight. Guarded double taps by element identity: Cytoscape groups nearby taps by time even across different nodes, so two distinct inspections must not become a path change. Captured source reads use the inspected identity and an inspection revision; an old response cannot overwrite a later inspection, including returning to the same element. Kept literal rendering, source confinement and the existing confidence semantics. Regenerated the assurance layers/findings for the updated code, tests, requirement and documentation.
+- Validation: fresh build, full mocked unit/server suite (733 passes/one opt-in live skip), all 32 assurance groups and all nine focused browser cases pass. The single-click regression fails against the previous live browser by observing the path URL change. Lint/JSDoc/ASVS and regenerated assurance integrity/freshness checks pass; CI remains source-specific in the PR.
+- Added state/history unit coverage and actual browser regressions for single/double canvas clicks, rapid distinct-node clicks, unchanged graph instance/edges/layout/viewport/URL/history, keyboard walking, search/findings inspection and out-of-order source reads. Updated existing navigation cases to double-click for intentional walks. Validation results are recorded in the PR.
+
+### Deviations
+
+- Search results and findings use the same inspect/navigation distinction as graph nodes and relation entries. No new dependency, confidence policy or inference rule is introduced. Inspection is transient; copied URL fragments and reload retain the reviewed path root.
+
+### Insights
+
+- A selected detail panel and a traversal root are different review actions. Keeping their state separate lets a reader verify evidence along a path without changing the context being reviewed; source requests need the same distinction to avoid stale detail replacement.
+
 ## 2026-10-25 — Confidence-weighted assurance links and review findings
 
 TODO item: 0.17.

@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { buildGraph, trackedFiles } from '../../../utils/assure.mjs';
 import { buildDetails, sections, replay, sha256, validatePullRequests } from '../../../utils/assure-detail.mjs';
 import { validateLayers } from '../../../docs/assure/detail-types.mjs';
-import { indexGraph, search, walk } from '../../../utils/assure-browser/model.mjs';
+import { createNavigation, indexGraph, search, walk } from '../../../utils/assure-browser/model.mjs';
 const fixture = t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-detail-')); t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const write = (p, text) => { fs.mkdirSync(path.dirname(path.join(root, p)), { recursive: true }); fs.writeFileSync(path.join(root, p), text); };
@@ -97,4 +97,19 @@ test('search and bounded directed traversal retain provenance and disclose limit
 test('Markdown headings ignore fenced examples and support duplicate and setext selectors', () => {
   const parsed = sections('docs/a.md', '# Hello\n```md\n# Fake\n```\n# Hello\nSection\n=======\n');
   assert.deepEqual(parsed.map(n => n.anchor), ['hello', 'hello-1', 'section']);
+});
+
+
+test('inspection keeps the path root and history until an explicit walk; Back follows path changes only', () => {
+  const navigation = createNavigation({ nodes: new Map(['a', 'b', 'c'].map(id => [id, { id }])) });
+  assert.equal(navigation.back(), false); assert.equal(navigation.walkFrom('a'), true);
+  const revision = navigation.revision;
+  assert.equal(navigation.inspect('b'), true); assert.equal(navigation.root, 'a'); assert.equal(navigation.inspected, 'b'); assert.equal(navigation.steps, 0);
+  navigation.inspect('a'); assert(navigation.revision > revision); // A→B→A cannot revive an old source request.
+  assert.equal(navigation.inspect('missing'), false); assert.equal(navigation.walkFrom('missing'), false); assert.equal(navigation.root, 'a'); assert.equal(navigation.steps, 0);
+  navigation.walkFrom('b'); navigation.inspect('c'); assert.equal(navigation.steps, 1); assert.equal(navigation.root, 'b');
+  navigation.walkFrom('b'); assert.equal(navigation.steps, 1); assert.equal(navigation.inspected, 'b');
+  navigation.walkFrom('c'); assert.equal(navigation.steps, 2);
+  navigation.back(); assert.equal(navigation.root, 'b'); assert.equal(navigation.inspected, 'b'); assert.equal(navigation.steps, 1);
+  navigation.back(); assert.equal(navigation.root, 'a'); assert.equal(navigation.steps, 0); assert.equal(navigation.back(), false);
 });

@@ -20,7 +20,11 @@ node utils/assure-detail.mjs replay 'EXACT_OBJECT_OR_SECTION_ID'
 The browser searches all levels, walks incoming/outgoing dependencies, filters
 relation types and minimum confidence, shows weighted edges and source evidence,
 and lists **Gap and deviation findings** with their supporting typed paths.
-Graph filters affect traversal; the selected root stays visible. Search returns
+Single-click inspects an element while preserving the highlighted path and
+viewport. Double-click, or **Walk from inspected element**, starts a new path.
+Back and the URL track path navigation only. Captured source belongs to the
+inspected element; stale responses cannot replace a later inspection.
+Graph filters affect traversal; the path root stays visible. Search returns
 100 nodes, graph walks at most 70 nodes, and finding lists show the first 40
 matches. Every limit is stated. The findings' rule threshold is separate from the
 browser's graph display filter.

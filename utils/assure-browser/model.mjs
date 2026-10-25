@@ -1,6 +1,23 @@
 // Shared by the offline browser and Node tests; no DOM or mutable graph state.
 export const containment = new Set(['recorded_in', 'part_of', 'contains_object', 'contains_section', 'contains_block', 'locates_item', 'has_description']);
 export const label = node => node.name || node.title || node.path || node.text?.split('\n')[0] || node.number || node.id;
+// Inspection is deliberately independent of path navigation and its history.
+export function createNavigation(graph) {
+  let root = null, inspected = null, revision = 0;
+  const history = [];
+  const inspect = id => {
+    if (!graph.nodes.has(id)) return false;
+    inspected = id; revision++; return true;
+  };
+  const walkFrom = (id, remember = true) => {
+    if (!graph.nodes.has(id)) return false;
+    if (remember && root && root !== id) history.push(root);
+    root = id; inspect(id); return true;
+  };
+  return { inspect, walkFrom, back: () => history.length ? walkFrom(history.pop(), false) : false,
+    get root() { return root; }, get inspected() { return inspected; },
+    get revision() { return revision; }, get steps() { return history.length; } };
+}
 export function indexGraph(layers) {
   const nodes = new Map(), adjacency = new Map(), edges = [];
   for (const layer of layers) for (const node of layer.nodes) {

@@ -39,6 +39,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 0.16.1 Object/function/block lineage and retained PR description sections with explicit provenance.
   - [x] 0.16.2 Documentation headings, fenced blocks, project links and cross-level planning/rationale connections.
   - [x] 0.16.3 Compare compatible graph foundations and implement offline search, traversal and source inspection.
+  - [x] 0.16.4 Keep the reviewed assurance path highlighted while inspecting elements; single-click inspects, double-click or an explicit keyboard/touch button changes the path, with correct Back/source behavior.
 - [x] 0.17 Add confidence-weighted typed links, editable relation assessments, transparent gap/deviation inference, browser filters and an assurance README.
 
 ## 1. Play against the engine
