@@ -7,7 +7,7 @@ Kibitz is licensed under the GNU General Public License, version 3 or (at your o
 | Component | Version | Licence | Files in `dist/` |
 |---|---|---|---|
 | [Stockfish.js](https://github.com/nmrugg/stockfish.js) (Stockfish 19), (c) Chess.com, LLC; based on [Stockfish](https://github.com/official-stockfish/Stockfish) by T. Romstad, M. Costalba, J. Kiiski, G. Linscott and other contributors | 19.0.1 | GPL-3.0 | `sf.js`, `sf.wasm`, `sf-asm.js` |
-| [chessground](https://github.com/lichess-org/chessground), Lichess team | 10.1.1 | GPL-3.0-or-later | `chessground.js`, CSS inlined into `index.html` |
+| [chessground](https://github.com/lichess-org/chessground), Lichess team | 10.4.2, locally adapted 2026-10-25 | GPL-3.0-or-later | `chessground.js`, CSS inlined into `index.html` |
 | cburnett chess pieces, Colin M.L. Burnett, bundled with chessground | | GPL-2.0-or-later | CSS inlined into `index.html` |
 | [chess.js](https://github.com/jhlywa/chess.js), Jeff Hlywa | 1.4.0 | BSD-2-Clause (text below) | `chess.js` |
 | [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) | | CC0-1.0 | `eco.json`, built from `site/data/eco/` |
@@ -20,6 +20,12 @@ The page also ships numerical outcomes for 28 fixed endgame teaching positions, 
 The classic-game collection also ships twelve complete game scores from José Raúl Capablanca's *Chess Fundamentals* (1921), [Project Gutenberg ebook 33870](https://www.gutenberg.org/ebooks/33870), identified there as public domain in the USA. Nine earlier game-score records use fixed Wikipedia revisions credited to **Wikipedia contributors**, retaining [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); their revision links provide access to contributor histories. Changes: move notation normalized; third-party prose, variations and judgement glyphs omitted. These score records retain their stated source rights separately from original Kibitz teaching notes under GPL-3.0-or-later. Per-game attribution, revision/page URLs and retrieval evidence are in [the source manifest documentation](site/data/classics/README.md), `library/classic-sources.js` and `library/capablanca.js`. The runtime metadata and this notice ship with the page. No GPL-3.0-or-later relicensing of the CC BY-SA score data is asserted. The frozen original retrieval fixtures use the same earlier scores and original Kibitz notes; their historical metadata is retained for reproducible measurements.
 
 The problems collection retains the published Réti/Saavedra diagram/score facts under CC BY-SA 4.0, credited to Wikipedia contributors with fixed revision links and diagram records in [the source manifest](site/data/problems/README.md). No source prose is included. Lucena/Philidor setups are identified as authored teaching variants under the project licence, with separate method references. Eight additional exercises reuse original Kibitz curriculum material. The collection adds numerical Syzygy facts for 22 fixed published-study FENs in `library/problem-tablebases.js`, alongside 28 shared curriculum records; query/date/digest metadata accompanies each. These are computed chess facts, not bundled tablebase files. No current player position is sent to a tablebase service; explicit refresh targets only the fixed source diagrams/branches.
+
+Chessground's SVG color-scheme declaration is moved from its fixed inline style
+attribute into the trusted page stylesheet for Kibitz's CSP. The reproducible
+transformation is in [the build script](site/scripts/build.mjs), with the CSS in
+`site/src/index.html`; all other upstream bundle bytes are retained. The build
+rejects an unexpected bundle instead of silently skipping this adaptation.
 
 ## Loaded by the page, not shipped
 
