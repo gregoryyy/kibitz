@@ -1,0 +1,119 @@
+{
+  "scope": "local-single-user-unpublished-release-candidate",
+  "reviewed": "2026-10-25",
+  "sourceRevision": "002fd92dd33e009f86cf8b79008180888a392e0f",
+  "mainRevision": "678866198a19bf89416ddfaf3b1fc31f94d5f819",
+  "testedMergeRevision": "117842780fa4391b9643e750b367e3ac8ceeb926",
+  "sourceAndMergeTree": "fef86135cbf1fc1cf25f2abe42b76d0769a44a40",
+  "rawDirectory": "evidence/0.1.0-rc.1/002fd92",
+  "unit": {
+    "run": 40187595208,
+    "job": 121151579916,
+    "passed": 699,
+    "skipped": 1,
+    "failed": 0
+  },
+  "codeql": {
+    "run": 40187595296,
+    "analysis": 2021957484,
+    "rules": 126,
+    "results": 0,
+    "openDefaultBranchAlerts": [
+      20,
+      21,
+      23
+    ],
+    "openDefaultBranchHigh": 0
+  },
+  "image": {
+    "run": 40187595328,
+    "artifactId": 12596571229,
+    "artifactName": "container-metadata-117842780fa4391b9643e750b367e3ac8ceeb926",
+    "imageId": "sha256:e314a1cb6f2a160cdcaf51387cf0287c6e870ed6f9f40e4395db8e03462bb4ce",
+    "configId": "sha256:74bdd4a5c40b48c61f121a51a74e49ddb4cfe76e19d6c8c7e006a68e82695f85",
+    "reportSha256": "e0719470b3c4ecadbf83174375eb2be55672ccd49f1d1960a0201fe4c8d1e1c4",
+    "archiveSha256": "f4d18b0227f91df4d782a2bba5382ddd9c943cb9ae7dc9ad17340d788e35ec92",
+    "database": {
+      "Version": 2,
+      "NextUpdate": "2026-10-26T07:10:41.872962061Z",
+      "UpdatedAt": "2026-10-25T07:10:41.872962161Z",
+      "DownloadedAt": "2026-10-25T11:10:44.882527248Z",
+      "sha256": "05a1fa5372e54059b6a7c1fc41afb812fafd9bd56a8e0ab6aa20d7f3f154ff31"
+    },
+    "node": "v24.22.1",
+    "platform": "linux",
+    "arch": "x64",
+    "osPackages": 14,
+    "libraryPackages": 16,
+    "assets": 7,
+    "containerCasesPassed": 4,
+    "findingCounts": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 23,
+      "LOW": 8,
+      "UNKNOWN": 0
+    },
+    "findingsUnchangedFromInitialTriage": true
+  },
+  "web": {
+    "run": 40187595333,
+    "artifactId": 12597120863,
+    "artifactName": "security-baseline-117842780fa4391b9643e750b367e3ac8ceeb926",
+    "requiredRoutes": 7,
+    "visitedPaths": 15,
+    "enabledPassiveRules": 60,
+    "passivePending": 0,
+    "alerts": [
+      {
+        "id": "10027",
+        "risk": 0,
+        "instances": 6
+      },
+      {
+        "id": "10112",
+        "risk": 0,
+        "instances": 2
+      }
+    ],
+    "npmAdvisories": 0,
+    "lockfileSBOMComponents": 128,
+    "lockfileCoverageVerified": true
+  },
+  "browser": {
+    "run": 40187595208,
+    "job": 121151579906,
+    "status": "passed",
+    "passed": 423,
+    "skipped": 1,
+    "failed": 0,
+    "completedAt": "2026-10-25T11:46:29Z"
+  },
+  "rawSha256": {
+    "image/os-packages.txt": "134f5ea93986819cd02b6956a6da2bc346754a806e391259c377ac3ba3260736",
+    "image/runtime-components.json": "f5ff4322f7fab7c6a6b6ce592a24e2d6166de863b6f6a1f719c7e5bbcff3393c",
+    "image/runtime-signature.json": "f254d93956d0a05e1ca3ea4b8a207988d59a6d97e661b404db67e28087cb0731",
+    "image/image-id.txt": "5e03e590aeab910c4736d94eae4ca766fb82246e734deaa2009865ffcc45b847",
+    "image/revision.txt": "87665afa441e2e151a95ae7abf38a4ef597be7078eae65127ad1867b78839dc2",
+    "image/advisories/image-config.json": "74bdd4a5c40b48c61f121a51a74e49ddb4cfe76e19d6c8c7e006a68e82695f85",
+    "image/advisories/image-rootfs.json": "81dc15ea3eeee70c7eee81bd3ac39575dfba0ae626f0aaaa643cd8a67d3dfe18",
+    "image/advisories/database.json": "739987fb6599b8d5a288848d34fcb32c8df2b49d4519ef2d789491a75b46d086",
+    "image/advisories/report.json": "e0719470b3c4ecadbf83174375eb2be55672ccd49f1d1960a0201fe4c8d1e1c4",
+    "image/advisories/summary.json": "7499a52b2826a071aa4b9b84c7fa4bd61118e37a08f50202aa1f2a6f28b9fee1",
+    "web/scan-summary.json": "3c9a30005307fbde7208bbc37c6bf8ec79fd2fd5acbccbd1b7f248fd37728ced",
+    "web/scan-coverage.json": "45554d06fe5972d7e875adb0908a750901dd49f514406abf9a332389d0c80961",
+    "web/headers.json": "a5251ba3a1152b5787e571288406bf7421785baa8da2079bd19d09dfa1ff522e",
+    "web/zap.json": "cb82398d36757d5bd8b1e320b5ac147f830676c323a817d720acb92804811ff7",
+    "web/npm-audit.json": "34745814f2ac0abaed68daf0bf875e6c6c73492e625cd0bd40f00181a8817e70",
+    "web/npm-sbom.json": "a4f674e25d12533d0c3737e9a448a59fcc0d4b5c225aa0391a19c0ad1f6f8ebb"
+  },
+  "limitations": [
+    "This evidence covers the specified source and identical PR merge tree, not later commits or the final release merge.",
+    "Image freshness rules were replayed at report creation time; this is not a new scan.",
+    "The exported image archive and advisory database bytes were deleted by CI; their digests are retained CI records, not independently rehashed bytes.",
+    "Publisher signature cryptographic verification is the passing CI step; this review checks the retained reference/issuer/subject.",
+    "Passive loopback mock scans and fake-provider tests do not certify live providers, human playing strength or coaching truth.",
+    "npm SBOM equality covers locked package versions, not embedded/native/build-tool/model provenance or advisory completeness.",
+    "No release, tag, registry push or publication is approved by this record."
+  ]
+}

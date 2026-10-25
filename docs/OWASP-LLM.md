@@ -54,6 +54,23 @@ The [published 2026 repository list](https://github.com/GenAI-Security-Project/G
 
 The expanded [hidden-context category](https://github.com/GenAI-Security-Project/GenAI-LLM-Top10/blob/main/2026/final/LLM08_HiddenContextExposure.md) includes operational context beyond a system prompt. Here, source-visible policies/tool schemas confer no secret authority; validation and consent remain outside the model. Selected private user/source context is still private data sent under the declared purpose and can be repeated. This mapping does not certify every 2026 recommendation or change the planned baseline.
 
+## Draft candidate follow-up — 2026-10-25
+
+The [`0.1.0-rc.1` review](releases/0.1.0-rc.1.md) covers source
+`002fd92dd33e009f86cf8b79008180888a392e0f`, with main `6788661` integrated.
+LLM03 includes both full Qwen
+download revisions and [replayable LFS/source evidence](security/2026-10-25-browser-models.json),
+matching the existing byte/hash pins. Training/quantization provenance and mutable
+cloud/Ollama/Chrome identities remain open. The candidate's version metadata adds
+no new data flow, provider authority or output-verification guarantee. LLM09 and
+the owner's experimental-prose choice keep the limits recorded above. Reviewed
+dependency/Action and fixed SVG/CSS changes do not add model authority, prompt
+inputs or output claims. Actual source-specific unit/CodeQL/image/passive evidence
+is [retained](releases/0.1.0-rc.1-evidence.json); full browser and later final-head
+checks remain pending. The separate approved component evidence-gap exception
+requires review by 2026-11-01 and a remediation plan by 2026-11-24. It neither
+verifies LLM03 nor turns arbitrary prose into checked claims.
+
 ## Verification and release use
 
 The initial review adds four gateway/real-SDK credential-separation tests, with every provider fetch intercepted. Follow-ups add private-rejection and operation-limit regressions, including production SDKs over real loopback HTTP. Existing suites supply deterministic adversarial cases for all ten categories. Actual checks/counts are recorded in [DONE](DONE.md); no live-provider success, injection-resistance rate or quality grade is inferred from mock tests.

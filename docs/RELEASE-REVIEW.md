@@ -3,14 +3,19 @@
 Prepared on 2026-10-25 for TODO 11.6. **The release gate remains open.**
 This packet collects evidence and decisions for a local single-user release;
 it does not approve a release, accept risks or assign a published version.
-The package value `0.1.0` is still the unreleased development baseline.
+At this packet's initial preparation, `0.1.0` was the unpublished development
+baseline. The [draft `0.1.0-rc.1` candidate](releases/0.1.0-rc.1.md) now prepares
+version/changelog metadata on main. Its original prerequisites are integrated;
+final-head checks, final merged source and release approval remain pending.
 
 ## Source and prerequisites
 
-The preparation starts at `209e458ec8283ae86ea86a3600632a1de663298c`.
-At this follow-up, `origin/main` is `8c82d3c` (through PR #122). The remaining
-prerequisites must merge through passing CI before selecting the release
-candidate and running its final checks:
+The initial preparation started at `209e458ec8283ae86ea86a3600632a1de663298c`.
+The owner has now integrated current main `678866198a19bf89416ddfaf3b1fc31f94d5f819`
+into PR #133, producing candidate `002fd92dd33e009f86cf8b79008180888a392e0f`.
+The following original prerequisites are merged. The
+[candidate review](releases/0.1.0-rc.1.md) separates current evidence, earlier
+feature results, this later review update and remaining final-head checks.
 
 | PR | Result supplied | State at follow-up |
 | --- | --- | --- |
@@ -19,8 +24,11 @@ candidate and running its final checks:
 | [120](https://github.com/gregoryyy/kibitz/pull/120) | Local image, private volume and persistence checks | Merged |
 | [121](https://github.com/gregoryyy/kibitz/pull/121) | Supported Luna Chat Completions tool mode | Merged |
 | [122](https://github.com/gregoryyy/kibitz/pull/122) | User/provider/native-Ollama guides | Merged |
-| [123](https://github.com/gregoryyy/kibitz/pull/123) | Local fonts and trusted stylesheet hashes | Open |
-| [124](https://github.com/gregoryyy/kibitz/pull/124) | Minimal runtime and exact-image advisory verification | Open |
+| [123](https://github.com/gregoryyy/kibitz/pull/123) | Local fonts and trusted stylesheet hashes | Merged |
+| [124](https://github.com/gregoryyy/kibitz/pull/124) | Minimal runtime and exact-image advisory verification | Merged |
+| [125](https://github.com/gregoryyy/kibitz/pull/125) | Compiled/package evidence and experimental coaching scope | Merged |
+| [132](https://github.com/gregoryyy/kibitz/pull/132) | Pinned browser-model source revisions | Merged |
+| [130](https://github.com/gregoryyy/kibitz/pull/130) | Matched CodeQL actions and integrated Chessground CSP compatibility | Merged |
 
 The tested scope is [local, single-user operation](DEPLOYMENT.md), either native
 Node or the loopback-published container. It includes cookie-separated private
@@ -47,17 +55,44 @@ not evidence that arbitrary generated chess explanations are correct.
 Implementation and exact sanitized identities are in
 [DONE](DONE.md), [web evidence](security/2026-10-25-web-assets.json) and
 [image evidence](security/2026-10-25-image-advisories.json).
-Current prerequisite CI is rerunning after main reconciliation. These historical
-results must not be relabeled as tests of a future release revision.
+These historical feature results must not be relabeled as candidate checks.
+Current source-002fd92 evidence is retained in the
+[structured record](releases/0.1.0-rc.1-evidence.json) and
+[raw report archive](releases/evidence/0.1.0-rc.1/002fd92/README.md): 699 unit
+passes/one skip, passing CodeQL/secret/audit, actual image and passive scans.
+The full browser run passes with 423 passes/one skip, completing at 11:46 UTC.
+Later documentation and
+integration commits require final-head checks; earlier green results do not
+replace them.
 
 ## Required dispositions
 
-Owner disposition is **pending** for every deviation below. Acceptance would
-record a deployment-specific exception, not turn an unsatisfied ASVS requirement
-into a verification. The full notes and evidence remain in the
-[versioned assessment](asvs-l1.json).
+Owner disposition was **approved on 2026-10-25** for local `0.1.0-rc.1`, with
+the owner responsible for follow-up. The owner answered “Approve proposed
+exceptions” for [PR #133](https://github.com/gregoryyy/kibitz/pull/133).
+The [candidate decision table](releases/0.1.0-rc.1.md#owner-dispositions-approved--2026-10-25)
+records scope, mitigations and deadlines. These are deployment-specific
+exceptions; all ten ASVS deviations and both open requirements remain
+unsatisfied in the [versioned assessment](asvs-l1.json).
 
-| ASVS requirement(s) | Unresolved condition | Decision/evidence needed |
+Local-behavior exceptions and actual endpoint TLS inventory are reviewed by
+**2026-11-01**. Component/build/tool/model review is due **2026-11-01**, with a
+remediation plan by **2026-11-24**. Re-review before another release or any
+deployment/provider/runtime-scope change. No high finding or overdue waiver is
+approved; no merging, tagging or publication is authorized by these exceptions.
+The table below retains the technical conditions and required follow-up.
+
+**Owner direction on 2026-10-25 adds a final-release condition:** the twelve
+ASVS items may retain their temporary approval in PR #133, but must be fixed
+and verified before the first final (non-prerelease) release. They are tracked
+individually under **TODO 11.4.2.1–11.4.2.12** in [TODO.md](TODO.md).
+The [assessment](asvs-l1.json) links each unsatisfied control to its specific
+remediation item. The maintainer owns follow-up; current statuses remain ten
+deviations and two open. No checkbox or RC approval establishes remediation.
+The original review dates and component-plan/finding deadlines remain in force;
+the final-release gate cannot postpone an earlier deadline.
+
+| ASVS requirement(s) | Unresolved condition | Remediation/evidence needed before final release |
 | --- | --- | --- |
 | 3.3.1, 3.4.1 | Local HTTP grouping cookies have no Secure flag or secure prefix; no HSTS | Confirm supported transport and cookie/data compatibility; assess TLS separately before network use |
 | 7.2.1, 7.4.1, 8.2.1 | Grouping tokens are not authenticated identities, revocable sessions or account permissions | Explicitly retain local trusted-client scope or implement/review a different deployment |
@@ -71,15 +106,18 @@ into a verification. The full notes and evidence remain in the
 The 31 runtime package findings retain individual first-reported dates and
 [review/remediation targets](security/2026-10-25-image-advisories.json): medium
 review by 2026-11-01/remediation by 2026-11-24; low review by
-2026-11-24/remediation by 2027-01-23. Their current disposition is pending, with
-no blanket reachability exclusion, suppression or risk acceptance. Apply the
+2026-11-24/remediation by 2027-01-23. The owner approved their scoped retention
+for this RC, including exposure uncertainties and these original deadlines.
+There is no blanket reachability exclusion or suppression. Apply the
 [maintenance policy](MAINTENANCE.md), including its overdue/release rule.
 CodeQL 20/21 are intentional operator capture writes; 23 reflects supported
-local HTTP cookies. Their documented contexts still need release disposition.
+local HTTP cookies. Those documented local contexts have the same approved RC
+disposition; the raw alerts remain open.
 The [initial runtime exposure review](security/2026-10-25-runtime-triage.md)
 checks all 25 distinct CVEs against vendor records and the supplied configuration.
 It records CPU/function/service prerequisites, the resolver configuration concern
-and native-linkage/range gaps. All raw findings and owner dispositions remain open.
+and native-linkage/range gaps. All raw findings remain open; owner exceptions do
+not establish that their code paths are unreachable or fixed.
 The [compiled-component/package evidence](COMPONENT-PROVENANCE.md) additionally
 records verified registry signatures and exact upstream source candidates, while
 keeping the binary compilation link unverified. Initial Linux Node/asset capture
@@ -125,6 +163,7 @@ closed by this packet:
   the promised general guarantee. The owner's candidate scope retains experimental
   prose with this gap documented; broader deterministic verification needs its
   own plan and is not claimed complete.
-- **11.6:** prerequisites, actual candidate checks and the dispositions above are
-  outstanding. Only a passing, approved release PR and explicit publication
+- **11.6:** original prerequisites and owner dispositions are recorded; current
+  source-002fd92 checks pass, while final-head/source evidence remains outstanding.
+  Only a passing, approved release PR and explicit publication
   authorization can lead to a tag/assets; this preparation does neither.
