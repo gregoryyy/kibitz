@@ -7,6 +7,10 @@ byte-for-byte so their original SHA-256 values remain useful after CI expiry.
 They contain synthetic mock-staging and public component evidence, not operator
 configuration or live provider responses.
 
+The raw ZAP JSON contains four upstream trailing spaces. This directory's
+`.gitattributes` exempts only `web/zap.json` from whitespace checking so its
+original report digest is preserved; authored documentation remains checked.
+
 - `image/`: artifact **12596571229**, named
   `container-metadata-117842780fa4391b9643e750b367e3ac8ceeb926`, from
   [image run 40187595328](https://github.com/gregoryyy/kibitz/actions/runs/40187595328).

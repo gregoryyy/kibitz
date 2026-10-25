@@ -1,0 +1,2 @@
+# Preserve the upstream report's exact bytes, including four trailing spaces.
+web/zap.json -whitespace
