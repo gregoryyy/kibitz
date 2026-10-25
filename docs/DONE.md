@@ -29,6 +29,62 @@ TODO item: 0.15.
 - Insights and deviations explain why an artifact and a TODO are connected. Keeping them as addressable nodes preserves that rationale during traversal, including partial implementation and open limitations.
 - A source location and an explicit relation type distinguish a reference from a completion claim. The graph should preserve those distinctions even when its endpoint files exist and all structural checks pass.
 
+## 2026-10-25 — Track ASVS fixes required before final release
+
+TODO items: 11.4.2.1–11.4.2.12 (all open); release gate 11.6 remains open.
+
+### Implementation notes
+
+- Added one actionable remediation TODO for each of PR #133's ten ASVS deviations and two open requirements, with control IDs, implementation/verification criteria and maintainer ownership. Linked every unsatisfied assessment record to its exact TODO and regenerated the readable checklist without changing any technical status.
+- Recorded the owner's direction that these exceptions may be approved for the local RC, but all twelve conditions must be fixed and verified before the first final release. Updated the candidate review, release packet, ASVS guide and release procedure; RC acceptance or a renewed exception cannot close a remediation item. Existing review dates and component-plan/finding deadlines remain unchanged.
+- The session/permission tasks remain within local single-user operation; hosted accounts stay deferred. The plan includes cookie/data migration, hostname/HSTS effects, actual endpoint TLS evidence, process-level checkout isolation and authenticated client-data cleanup rather than treating documentation or a passing scan as their implementation.
+- Validation: Node 24.22.1 lint/JSDoc/ASVS checks and all eight existing ASVS regression groups pass. Independent checks confirm twelve unique open control-to-TODO mappings, all 70 statuses unchanged, 372 local Markdown file links resolving and all sixteen retained raw hashes unchanged; whitespace checks pass.
+
+### Deviations
+
+- This change records the requested work and release gate; it does not implement the twelve fixes. All twelve TODOs remain unchecked, and ASVS counts remain 28 verified/30 not-applicable/ten deviation/two open. It does not authorize a merge, final release, paid call or model download.
+
+### Insights
+
+- A temporary RC exception needs a specific remediation target and an explicit final-release boundary. Individual control-to-TODO links make the remaining work reviewable without confusing accepted RC risk with a completed fix.
+
+## 2026-10-25 — Reconcile candidate evidence and approved exceptions
+
+TODO item: 11.6.2; the parent release gate remains open.
+
+### Implementation notes
+
+- Reconciled the candidate/release procedure and OWASP application/LLM reviews with the owner's main integration: source `002fd92`, main `6788661`, tested merge `11784278`; candidate and merge trees match exactly. Original prerequisites, paired CodeQL pins and Chessground CSP compatibility are integrated. Open PDF/assurance PRs remain outside this tested scope.
+- Recorded the owner's existing 2026-10-25 approval of local `0.1.0-rc.1` exceptions in the repository review and all twelve affected ASVS records, preserving 28 verified/30 not-applicable/ten deviation/two open. Endpoint/component review remains due 2026-11-01, component remediation plan 2026-11-24, and retained finding deadlines remain unchanged. No new risk acceptance, merging or publication is inferred.
+- Retained sixteen raw public CI report/inventory files byte-for-byte with a structured hash/source/job record. Independently checked config/source/rootfs, raw image gate, all fourteen OS/sixteen production-library versions, actual Linux/x64 Node 24.22.1, seven asset hashes against a fresh build, publisher identity fields, ZAP coverage/HTML policy and all 128 distinct locked package/version pairs against SBOM. The image still reports zero high/critical, 23 medium/eight low, matching original findings field-for-field; passive scan has zero high/medium/low and two informational types. The completed source-002fd92 unit job has 699 passes/one opt-in skip; CodeQL analysis 2021957484 has 126 rules/zero results, while default-branch mediums 20/21/23 remain open.
+- Reviewed the initial-base delta: dependency/Action updates, guarded fixed SVG transformation and trusted CSS. Updated the Chessground changelog and ASVS output evidence. Source-002fd92 full Playwright passes with 423 passes/one skip at 11:46 UTC; later final-head results retain their separate identities. Local lint/JSDoc/ASVS/build, eight ASVS regression groups, 519 local file links and all sixteen raw hashes pass. No operator configuration, paid call or weight download was used.
+
+### Deviations
+
+- The exported image archive and advisory database were deleted by CI; retained digests are CI records and cannot be independently rehashed. Publisher cryptographic verification is the actual CI step; retained identity fields were checked offline. SBOM equality does not establish broader embedded/build/model coverage. Final-head CI, broader follow-up and explicit release approval remain open; TODO 11.6 is unticked.
+
+### Insights
+
+- A passing job and a retained evidence packet establish different facts. Preserving the raw reports and binding each result to source/merge identities makes review reproducible without resetting findings or asking the owner to approve the same exceptions again.
+
+## 2026-10-25 — Prepare the first local candidate draft
+
+TODO item: 11.6 candidate preparation; the release gate remains open.
+
+### Implementation notes
+
+- Prepared `0.1.0-rc.1` with npm's no-tag/no-script version command, aligning the package and both lockfile roots while retaining `private: true`. The functional base is `be90b0f`; prerequisite PRs remain open, so this is a stacked draft rather than finalized merged-source or release approval.
+- Moved the current feature/security/compatibility notes into a dated unpublished candidate section and left a new Unreleased section. Added a candidate review covering actual deployment/platform evidence, unchanged data/cache/model formats, individual pending gates and the owner's experimental-prose scope. No tag, asset or registry image was published.
+- Rechecked official OWASP application/LLM references and the ASVS 5.0.0 source checksum. Updated A03/LLM03 for fixed Qwen source revisions and ASVS component evidence at the functional base, keeping counts at 28 scoped verifications, 30 justified absences, ten deviations and two open. Current main `8c82d3c` has three open medium CodeQL alerts (20/21/23), with no open high; no alert disposition changed.
+- Node 24.22.1 lint/JSDoc/ASVS and fresh build pass; the complete settled-build unit/server suite passes with 698 passes and one opt-in live skip. Independent manifest/lock comparison confirms only the three version fields changed, and application/server/scripts, Docker/Compose and workflows have no diff from the functional base. All 534 local Markdown link targets resolve and whitespace checks pass. Full candidate browser/security/image CI is still required; no live provider call or weight download is used.
+
+### Deviations
+
+- Candidate metadata can be prepared before prerequisite merges, but source/version finalization, retargeting to main and actual candidate verification remain required by the release procedure. Earlier feature tests/scans retain their own identities. TODO 11.6 is not ticked; component/deployment/finding dispositions and explicit release approval remain pending.
+
+### Insights
+
+- A concrete unpublished candidate makes the version, compatibility effects and remaining decisions reviewable while keeping the final merged-source evidence and publication decision distinct.
 ## 2026-10-25 — Preserve board style policy after Chessground upgrade
 
 TODO item: 11.5.3.
@@ -43,6 +99,26 @@ TODO item: 11.5.3.
 ### Deviations and insights
 
 - Keep this compatibility fix separate from the PDF and CodeQL PRs. Container/whole-suite CI must verify the resulting source; prior green evidence for 10.1.1 does not cover 10.4.2. No CSP relaxation, violation filtering, test retry or provider call is introduced.
+
+## 2026-10-25 — Rebuild PDFs by modification date
+
+TODO item: 0.12.1.
+
+### Implementation notes
+
+- Both `just pdf FILE` and `just pdfs [PATHS]` now skip nonempty PDFs whose modification date is at least as new as the Markdown, print stylesheet, Mermaid include and justfile. Missing/empty PDFs or a newer build input trigger rendering. No content hashes or PDF scans are needed for current output; legacy `.pdfstamps/` files are ignored and remain Git-ignored.
+- Preserved filenames with spaces, normal rendering/error behavior and bulk exclusions for root/nested `AGENTS.md`, `CLAUDE.md` and `.github/` templates. Individual agent documents can still be explicitly rendered with `just pdf FILE`.
+- Reproduced the old behavior with the actual aggregate recipe and local renderer stubs: a matching content stamp incorrectly skipped a source newer than its PDF. The corrected aggregate rebuilds it, then skips the next run. Missing/empty output, equal timestamps, updated CSS and instruction/template exclusions also pass.
+- Integrated compatibility fix #135 after the first actual container run exposed the separate Chessground 10.4.2 style-policy regression from #129. The PR targets main and its new CI tests the combined source; the PDF implementation itself does not change app behavior.
+- A dependency-free Node test exercises the Bash timestamp guard with controlled source/rendering/output dates, including spaces and absent inputs. The test runs with the normal unit suite; local lint/JSDoc/ASVS, `just --list`, Bash syntax and whitespace checks pass. A real pandoc/Chrome smoke run renders a valid PDF, and its second bulk run skips it without changing the PDF modification date.
+
+### Deviations
+
+- Modification dates now decide freshness, as requested; touching a source rebuilds it even if its bytes are unchanged. Embedded image timestamps are not tracked: delete the affected PDF after changing only an image, as documented. Tool-version changes are not automatically detected.
+
+### Insights
+
+- A content stamp can override a newer source timestamp. Using the same date guard for single and bulk rendering gives both commands predictable make-style freshness.
 
 ## 2026-10-25 — Keep CodeQL action updates together
 

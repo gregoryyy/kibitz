@@ -3,11 +3,15 @@
 TODO 12.1 establishes a version policy and a user-facing
 [changelog](../CHANGELOG.md). Kibitz follows
 [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
-The package and both root entries in `site/package-lock.json` currently agree on
-`0.1.0`. This is a development baseline; there are no release tags at the time
-this policy is introduced. This documentation does not publish a release.
+The package and both root entries in `site/package-lock.json` agree on the
+proposed `0.1.0-rc.1` candidate. The earlier `0.1.0` value was an unpublished
+development baseline; no release tag exists at this draft's preparation.
+The [candidate review](releases/0.1.0-rc.1.md) records the merged original
+prerequisites, retained current-source evidence and approved local exceptions.
+Final source verification and release approval remain open. Preparation and
+integration do not authorize publication.
 The [dated local release review packet](RELEASE-REVIEW.md) collects prerequisite
-evidence and outstanding dispositions; it is not release approval.
+evidence, approved scoped exceptions and outstanding follow-up; it is not release approval.
 
 The compatibility scope is the documented CLI/configuration behavior, gateway
 and optional library HTTP contracts, versioned data exports and persisted data
@@ -55,6 +59,14 @@ Prepare a release in its own branch and PR:
    owner disposition of deviations. An open high finding blocks release. Retain
    artifacts before their thirty-day expiry; a prior feature's green check is
    not release-commit evidence.
+   For the first final (non-prerelease) release, require every ASVS remediation
+   item **TODO 11.4.2.1–11.4.2.12** to be implemented and verified, with the
+   corresponding assessment updated from its current deviation/open status.
+   The temporary exceptions accepted for PR #133's local RC do not authorize
+   carrying these conditions into the final release. Check both the TODOs and
+   the cited verification; approval or another exception does not count as a fix.
+   Existing review/remediation dates still apply, and a planned release cannot
+   extend them. This ASVS gate does not silently change other findings' deadlines.
 5. Review third-party maintenance deadlines, licences/notices, required source
    availability, packaged components, platform support and documentation. Confirm
    the release's actual deployment/security scope. Confirm the merged container

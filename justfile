@@ -4,7 +4,7 @@
 #   just test          unit tests (AI gateway + page modules)
 #   just check         lint and type-check
 #   just flipbook      render docs/flipbook/, a happy path through the app in screenshots
-#   just pdfs          a PDF next to every Markdown document (just pdf FILE for one)
+#   just pdfs          update missing/outdated Markdown PDFs (just pdf FILE for one)
 #   just eval          the tutor eval set against the coach, with a report in docs/eval/
 #   just retrieval-eval   position/text/pawns benchmarks; dense/hybrid explicitly call an embedding provider
 # Port and bind address can be overridden: KIBITZ_PORT=9000 just serve
@@ -95,13 +95,12 @@ assure-query node: install
 # (HTML → A4 PDF), typography from utils/pdf/style.css. Documents with ```mermaid blocks get
 # utils/pdf/mermaid.html, which draws the diagrams (pandoc downloads Mermaid once per build).
 # Needs `brew install pandoc` and Google Chrome (CHROME=/path/to/chrome to use another).
-# Incremental: .pdfstamps/ records a hash of (source + build inputs) and of the PDF produced, so an
-# unchanged file is skipped; images are not hashed: after editing only an image, delete the PDF.
+# Incremental by modification date: skip nonempty PDFs at least as new as the Markdown, stylesheet,
+# Mermaid include and justfile. After editing only an image, delete its document's PDF to rebuild.
 
 chrome   := env_var_or_default("CHROME", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 css      := justfile_directory() / "utils/pdf/style.css"
 mermaid  := justfile_directory() / "utils/pdf/mermaid.html"
-stampdir := justfile_directory() / ".pdfstamps"
 
 # The PDF keeps the source's full name (foo.md.pdf), so .gitignore can tell generated PDFs from others.
 # PDF next to a Markdown file, e.g. docs/ARCH.md → docs/ARCH.md.pdf
@@ -113,22 +112,8 @@ pdf file:
     dir="$(cd "$(dirname "$src")" && pwd)"
     base="$(basename "$src")"
     out="$dir/$base.pdf"
-    # Rebuild only outdated PDFs. The content stamp is a hash of (source + build inputs) and of the
-    # PDF that build produced: it survives the mtime scrambling of git checkout and pull, and both
-    # halves matter, since git can replace the PDF under an unchanged source. Without a stamp (a
-    # fresh clone), a PDF newer than its source and the build inputs is adopted as current.
-    mkdir -p "{{stampdir}}"
-    hash="$(cat "$src" "{{css}}" "{{mermaid}}" | shasum -a 256 | cut -d' ' -f1)"
-    stamp="{{stampdir}}/$(printf '%s' "$out" | shasum -a 256 | cut -c1-16).sha"
-    if [ -f "$out" ]; then
-        outhash="$(shasum -a 256 "$out" | cut -d' ' -f1)"
-        if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$hash $outhash" ]; then
-            echo "up to date: $out"; exit 0
-        fi
-        if [ ! -f "$stamp" ] && [ "$out" -nt "$src" ] && [ "$out" -nt "{{css}}" ] && [ "$out" -nt "{{mermaid}}" ]; then
-            printf '%s %s\n' "$hash" "$outhash" > "$stamp"
-            echo "up to date: $out"; exit 0
-        fi
+    if bash "{{justfile_directory()}}/utils/pdf/is-current.sh" "$out" "$src" "{{css}}" "{{mermaid}}" "{{justfile()}}"; then
+        echo "up to date: $out"; exit 0
     fi
     tmp="$(mktemp -d)"
     trap 'rm -rf "$tmp"' EXIT
@@ -155,12 +140,11 @@ pdf file:
     if [ -z "$done" ]; then kill -9 "$pid" 2>/dev/null || true; echo "ERROR: Chrome timed out after 60 s" >&2; cat "$tmp/chrome.log" >&2; exit 1; fi
     if [ ! -s "$tmp/out.pdf" ]; then echo "ERROR: Chrome produced no PDF" >&2; cat "$tmp/chrome.log" >&2; exit 1; fi
     mv "$tmp/out.pdf" "$out"
-    printf '%s %s\n' "$hash" "$(shasum -a 256 "$out" | cut -d' ' -f1)" > "$stamp"
     echo "wrote $out"
 
 # Default: every Markdown file in the repo (tracked or new, not ignored), except AGENTS.md,
 # CLAUDE.md (agent instructions) and .github/ (templates).
-# PDF for every Markdown file under PATHS, e.g. `just pdfs docs`
+# Update missing/outdated PDFs under PATHS by modification date, e.g. `just pdfs docs`
 pdfs *PATHS:
     #!/usr/bin/env bash
     set -uo pipefail

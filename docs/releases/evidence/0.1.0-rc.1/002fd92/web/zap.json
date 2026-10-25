@@ -1,0 +1,221 @@
+{
+	"@programName": "ZAP",
+	"@version": "2.17.0",
+	"@generated": "Sun, 25 Oct 2026 11:09:06",
+	"created": "2026-10-25T11:09:06.123485196Z",
+	"insights":[
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.code.2xx",
+			"description": "Percentage of responses with status code 2xx",
+			"statistic": "86"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.code.4xx",
+			"description": "Percentage of responses with status code 4xx",
+			"statistic": "13"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.ctype.application/json",
+			"description": "Percentage of endpoints with content type application/json",
+			"statistic": "36"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.ctype.application/manifest+json",
+			"description": "Percentage of endpoints with content type application/manifest+json",
+			"statistic": "9"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.ctype.image/svg+xml",
+			"description": "Percentage of endpoints with content type image/svg+xml",
+			"statistic": "9"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.ctype.text/html",
+			"description": "Percentage of endpoints with content type text/html",
+			"statistic": "18"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.ctype.text/javascript",
+			"description": "Percentage of endpoints with content type text/javascript",
+			"statistic": "9"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.ctype.text/plain",
+			"description": "Percentage of endpoints with content type text/plain",
+			"statistic": "18"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.method.GET",
+			"description": "Percentage of endpoints with method GET",
+			"statistic": "100"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://127.0.0.1:44609",
+			"key": "insight.endpoint.total",
+			"description": "Count of total endpoints",
+			"statistic": "11"
+		}
+	],
+	"site":[ 
+		{
+			"@name": "http://127.0.0.1:44609",
+			"@host": "127.0.0.1",
+			"@port": "44609",
+			"@ssl": "false",
+			"alerts": [ 
+				{
+					"pluginid": "10027",
+					"alertRef": "10027",
+					"alert": "Information Disclosure - Suspicious Comments",
+					"name": "Information Disclosure - Suspicious Comments",
+					"riskcode": "0",
+					"confidence": "2",
+					"riskdesc": "Informational (Medium)",
+					"desc": "<p>The response appears to contain suspicious comments which may help an attacker.</p>",
+					"instances":[ 
+						{
+							"id": "4",
+							"uri": "http://127.0.0.1:44609/",
+							"nodeName": "http:\/\/127.0.0.1:44609\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "/**\n * Select the largest classif",
+							"otherinfo": "The following pattern was used: \\bSELECT\\b and was detected in likely comment: \"/**\n * Select the largest classified win-probability drops, then return them in game order.\n * @param {number} [limit=5] Maximum\", see evidence field for the suspicious comment/snippet."
+						},
+						{
+							"id": "5",
+							"uri": "http://127.0.0.1:44609/",
+							"nodeName": "http:\/\/127.0.0.1:44609\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "// e.g. the user took back while the",
+							"otherinfo": "The following pattern was used: \\bUSER\\b and was detected 5 times, the first in likely comment: \"// e.g. the user took back while the reply was scheduled\", see evidence field for the suspicious comment/snippet."
+						},
+						{
+							"id": "8",
+							"uri": "http://127.0.0.1:44609/",
+							"nodeName": "http:\/\/127.0.0.1:44609\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "f it in English) -> where",
+							"otherinfo": "The following pattern was used: \\bWHERE\\b and was detected 5 times, the first in likely comment: \"// ?debug: text shown without a translation (all of it in English) -> where\", see evidence field for the suspicious comment/snippet."
+						},
+						{
+							"id": "6",
+							"uri": "http://127.0.0.1:44609/",
+							"nodeName": "http:\/\/127.0.0.1:44609\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "g moves: centipawns from the best",
+							"otherinfo": "The following pattern was used: \\bFROM\\b and was detected 14 times, the first in likely comment: \"// interesting moves: centipawns from the best\", see evidence field for the suspicious comment/snippet."
+						},
+						{
+							"id": "3",
+							"uri": "http://127.0.0.1:44609/",
+							"nodeName": "http:\/\/127.0.0.1:44609\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "nd aria-label added later (a MutationObserver",
+							"otherinfo": "The following pattern was used: \\bLATER\\b and was detected 5 times, the first in likely comment: \"// then every text node and title, placeholder and aria-label added later (a MutationObserver), so\", see evidence field for the suspicious comment/snippet."
+						},
+						{
+							"id": "7",
+							"uri": "http://127.0.0.1:44609/",
+							"nodeName": "http:\/\/127.0.0.1:44609\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "on top of the game (TODO 4.3, 4.5) -->",
+							"otherinfo": "The following pattern was used: \\bTODO\\b and was detected 30 times, the first in likely comment: \"<!-- A line from an answer, or moves the player tries, on top of the game (TODO 4.3, 4.5) -->\", see evidence field for the suspicious comment/snippet."
+						}
+					],
+					"count": "6",
+					"systemic": false,
+					"solution": "<p>Remove all comments that return information that may help an attacker and fix any underlying problems they refer to.</p>",
+					"otherinfo": "<p>The following pattern was used: \\bSELECT\\b and was detected in likely comment: \"/**</p><p> * Select the largest classified win-probability drops, then return them in game order.</p><p> * @param {number} [limit=5] Maximum\", see evidence field for the suspicious comment/snippet.</p>",
+					"reference": "",
+					"cweid": "615",
+					"wascid": "13",
+					"sourceid": "12"
+				},
+				{
+					"pluginid": "10112",
+					"alertRef": "10112",
+					"alert": "Session Management Response Identified",
+					"name": "Session Management Response Identified",
+					"riskcode": "0",
+					"confidence": "2",
+					"riskdesc": "Informational (Medium)",
+					"desc": "<p>The given response has been identified as containing a session management token. The 'Other Info' field contains a set of header tokens that can be used in the Header Based Session Management Method. If the request is in a context which has a Session Management Method set to \"Auto-Detect\" then this rule will change the session management to use the tokens identified.</p>",
+					"instances":[ 
+						{
+							"id": "1",
+							"uri": "http://127.0.0.1:44609/api/ai/status",
+							"nodeName": "http:\/\/127.0.0.1:44609\/api\/ai\/status",
+							"method": "GET",
+							"param": "kibitz_uid",
+							"attack": "",
+							"evidence": "kibitz_uid",
+							"otherinfo": "cookie:kibitz_uid"
+						},
+						{
+							"id": "2",
+							"uri": "http://127.0.0.1:44609/api/library/records",
+							"nodeName": "http:\/\/127.0.0.1:44609\/api\/library\/records",
+							"method": "GET",
+							"param": "kibitz_library",
+							"attack": "",
+							"evidence": "kibitz_library",
+							"otherinfo": "cookie:kibitz_library"
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "<p>This is an informational alert rather than a vulnerability and so there is nothing to fix.</p>",
+					"otherinfo": "<p>cookie:kibitz_uid</p>",
+					"reference": "<p>https://www.zaproxy.org/docs/desktop/addons/authentication-helper/session-mgmt-id/</p>",
+					"cweid": "-1",
+					"wascid": "-1",
+					"sourceid": "5"
+				}
+			]
+		}
+	],
+	"sequences":[
+	]
+
+}
