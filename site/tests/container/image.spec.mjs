@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { test, expect, open, move } from '../e2e/fixtures.mjs';
 import { openContainerApp } from './startup.mjs';
+import { tlsMaterial } from '../helpers/tls-material.mjs';
 
 const image = process.env.KIBITZ_CONTAINER_IMAGE || 'kibitz:container-test';
 const suffix = randomUUID().slice(0, 8), name = `kibitz-image-${suffix}`, volume = `kibitz-data-${suffix}`;
@@ -161,4 +162,53 @@ test('the previous packaging volume opens under the minimal runtime with the sam
     catch (error) { if (!/no such volume/i.test(String(error.stderr))) errors.push(error); }
   }
   if (errors.length) throw new AggregateError(errors, 'Runtime compatibility check or cleanup failed');
+});
+
+test('the packaged non-root server supports native HTTPS from read-only operator identity files', async ({ browser, playwright }, info) => {
+  const identity = tlsMaterial(), container = `kibitz-tls-${suffix}`, material = `kibitz-tls-material-${suffix}`;
+  const containers = new Set(), errors = []; let context, client;
+  try {
+    docker('volume', 'create', material);
+    // Test setup copies only synthetic bytes into a private, runtime-owned volume.
+    // No host path is writable from the initializer; the app runs as its usual UID.
+    docker('run', '--rm', '--pull=never', '--user', '0:0', '--network', 'none', '--read-only',
+      '--mount', `type=bind,src=${identity.dir},dst=/input,readonly`, '--mount', `type=volume,src=${material},dst=/tls`,
+      '--entrypoint', 'node', image, '-e', `const fs=require('node:fs');
+        for(const name of ['key.pem','cert.pem']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
+        fs.chmodSync('/tls',0o700);fs.chownSync('/tls',1000,1000);`);
+    containers.add(container);
+    docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
+      '--security-opt=no-new-privileges', '--publish', '127.0.0.1::8765', '--mount', `type=volume,src=${material},dst=/tls,readonly`,
+      '--health-interval', '2s', '--health-start-period', '0s',
+      '--env', 'KIBITZ_HEALTH_HTTPS=1', '--env', 'KIBITZ_HEALTH_CA=/tls/cert.pem',
+      '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image, 'scripts/serve.mjs', 'dist', '--api', '--env=',
+      '--library', ':memory:', '--host', '0.0.0.0', '--port', '8765', '--index', '_test.html',
+      '--tls-key', '/tls/key.pem', '--tls-cert', '/tls/cert.pem');
+    const url = publishedBase(container).replace('http:', 'https:');
+    client = await playwright.request.newContext({ ignoreHTTPSErrors: true });
+    await expect.poll(async () => { try { return (await client.get(url + '/manifest.webmanifest')).status(); } catch { return 0; } }, { timeout: 30_000 }).toBe(200);
+    expect(docker('exec', container, 'node', '-p', 'process.getuid()').trim()).toBe('1000');
+    expect(JSON.parse(docker('inspect', container))[0].Mounts.find(mount => mount.Destination === '/tls').RW).toBe(false);
+    for (const route of ['/api/ai/status', '/api/library/records']) {
+      const response = await client.get(url + route); expect(response.status()).toBe(200);
+      expect(response.headers()['set-cookie']).toContain('; Secure');
+    }
+    context = await browser.newContext({ ignoreHTTPSErrors: true }); const page = await context.newPage();
+    await page.route('**/*', route => new URL(route.request().url()).origin === url ? route.continue() : route.abort());
+    await open(page, url + '/?debug'); await expect(page.locator('#board cg-board')).toBeVisible();
+    for (const file of ['/tls/key.pem', '/key.pem', '/.git/config']) expect((await client.get(url + file)).status()).toBe(404);
+    await expect.poll(() => JSON.parse(docker('inspect', container))[0].State.Health.Status, { timeout: 15_000 }).toBe('healthy');
+    expect(docker('logs', container)).not.toContain('PRIVATE KEY');
+  } catch (error) {
+    errors.push(error);
+    try { await info.attach('tls-container-log', { body: docker('logs', container), contentType: 'text/plain' }); } catch {}
+  }
+  finally {
+    const disposed = await Promise.allSettled([context?.close(), client?.dispose()]);
+    for (const result of disposed) if (result.status === 'rejected') errors.push(result.reason);
+    for (const target of containers) { try { docker('rm', '--force', target); } catch (error) { errors.push(error); } }
+    try { docker('volume', 'rm', material); } catch (error) { errors.push(error); }
+    identity.close();
+  }
+  if (errors.length) throw new AggregateError(errors, 'Container TLS check or cleanup failed');
 });

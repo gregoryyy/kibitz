@@ -1,6 +1,7 @@
 // Local static server; parse5 selects inline HTML scripts for CSP hashes.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
 //                          [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]
+//                          [--tls-key FILE --tls-cert FILE]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); the gateway additionally needs the provider SDKs. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
@@ -11,10 +12,12 @@
 // <meta charset> (such as site/dist/index.html, the bare artifact body) is
 // decoded as Windows-1252 and every non-ASCII character comes out garbled.
 import http from 'http';
+import https from 'node:https';
 import fs from 'fs';
 import { parseArgs } from 'util';
 import { modelEnv, servableModel } from '../server/models.mjs';
 import { aiConfigEvent, logProvider, logRequest, serverErrorEvent } from '../server/logging.mjs';
+import { loadTlsOptions } from '../server/tls.mjs';
 
 async function main() {
 
@@ -31,9 +34,11 @@ async function main() {
       offline: { type: 'boolean', default: false },
       library: { type: 'string', default: '' },
       usage: { type: 'string', default: ':memory:' },
+      'tls-key': { type: 'string' },
+      'tls-cert': { type: 'string' },
     },
   });
-  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]'); process.exit(2); }
+  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--tls-key FILE --tls-cert FILE]'); process.exit(2); }
   const root = fs.realpathSync(positionals[0]);
   let modelsDir = '';
   if (opt.models) {
@@ -42,6 +47,7 @@ async function main() {
   }
   // Validate every public tree before creating a private database or any missing parents.
   const servedRoots = [root, ...(modelsDir ? [modelsDir] : [])];
+  const tlsOptions = loadTlsOptions({ key: opt['tls-key'], cert: opt['tls-cert'], servedRoots });
   // Keep missing runtime dependencies inside the bounded startup-error handler.
   const [{ BASE_HEADERS, isHiddenPath }, { servePublicFile }] = await Promise.all([
     import('../server/static.mjs'), import('../server/public-files.mjs'),
@@ -77,7 +83,7 @@ async function main() {
 
   const send = (res, code, msg) => { res.writeHead(code, { ...BASE_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' }); res.end(msg + '\n'); };
 
-  http.createServer(async (req, res) => {
+  const handle = async (req, res) => {
     logRequest(req, res);
     // API routers also parse the target. Reject malformed URLs before an async rejection
     // could reach Node's default stack printer with its raw `input` property.
@@ -95,13 +101,16 @@ async function main() {
       return servePublicFile(req, res, { root: modelsDir, relative: name, model: true });
     }
     return servePublicFile(req, res, { root, relative: rel.slice(1), offline: opt.offline });
-  }).on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
+  };
+  const server = tlsOptions ? https.createServer(tlsOptions, handle) : http.createServer(handle);
+  server.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
     console.error(serverErrorEvent(e));
     process.exit(1);
   }).listen(Number(opt.port), opt.host, function () {
     const port = this.address().port;
     const host = ['127.0.0.1', 'localhost', '::1'].includes(opt.host) ? (opt.host === '::1' ? '[::1]' : opt.host) : null;
-    console.log(host ? `Serving Kibitz at http://${host}:${port}/` : `Serving Kibitz on configured interface, port ${port}`);
+    const scheme = tlsOptions ? 'https' : 'http';
+    console.log(host ? `Serving Kibitz at ${scheme}://${host}:${port}/` : `Serving Kibitz on configured interface, port ${port} (${scheme})`);
     if (apiStatus) { console.log(apiStatus); console.log(opt.usage === ':memory:' ? 'AI usage: in memory; restart resets counters' : 'AI usage: private persistent counters'); }
     if (opt.offline) console.log('Offline: the page loads nothing from other hosts');
   });
