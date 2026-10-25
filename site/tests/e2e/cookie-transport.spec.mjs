@@ -10,6 +10,11 @@ for (const secure of [true, false]) test(`${secure ? 'HTTPS' : 'HTTP'} issuance 
     extraHTTPHeaders: { 'x-forwarded-proto': secure ? 'http' : 'https', forwarded: `proto=${secure ? 'http' : 'https'}` } });
   try {
     const base = servers[secure ? 'https' : 'http'], page = await context.newPage(); await page.goto(base);
+    const sample = await page.evaluate(async () => {
+      const response = await fetch('/api/ai/sample', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prompt: 'hi' }) });
+      return { status: response.status, body: await response.text() };
+    });
+    expect(sample.status).toBe(200); expect(sample.body).toContain('"done":true');
     const codes = await page.evaluate(async () => {
       const codes = [];
       for (const route of ['/api/ai/status', '/api/library/records']) { const res = await fetch(route); await res.json(); codes.push(res.status); }

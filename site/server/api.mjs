@@ -202,9 +202,15 @@ function checkHost(req) {
 function checkOrigin(req) {
   const origin = req.headers.origin;
   if (!origin) return;
-  let originHost;
-  try { originHost = new URL(origin).host; } catch { originHost = null; }
-  if (originHost !== req.headers.host) throw new GatewayError('forbidden', 'Cross-origin requests are not allowed', 403);
+  // Use the native socket, never forwarding headers supplied by a client. A matching
+  // host on another scheme (or a blob URL carrying an origin) is not this origin.
+  const scheme = req.socket.encrypted ? 'https:' : 'http:';
+  let matches = false;
+  try {
+    const parsed = new URL(origin);
+    matches = parsed.protocol === scheme && parsed.origin === new URL(`${scheme}//${req.headers.host}`).origin;
+  } catch { /* Invalid Origin/Host is forbidden. */ }
+  if (!matches) throw new GatewayError('forbidden', 'Cross-origin requests are not allowed', 403);
 }
 
 function readJson(req) {
