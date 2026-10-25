@@ -11,6 +11,7 @@ The selected deployment is a [local single-user app](DEPLOYMENT.md). **Settings 
 | Semantic index build | Only the source/language-filtered passages selected for that index | The separately configured embedding provider, after its embedding permission and a Build click. |
 | Semantic query | The written query | The same embedding provider, after permission and an explicit search. |
 | Rules, Stockfish, lessons, keyword search and ordinary library browsing | No model request | Browser/local assets; no model-provider permission required. |
+| Reading → Explore locally | Selected position and trial moves | Stockfish in the browser after the click; no external navigation or model-provider request. |
 | In-browser model | Coach context processed on this device | Explicit loading consent applies. Default wllama weights come from the local server; the optional Chrome backend requires a Load click per session and Chrome manages its own model download/storage. [Runtime and erasure limits](OFFLINE.md#optional-chrome-built-in-coach). |
 | Mock provider | Test/development requests | The local deterministic mock; no external model service. |
 
@@ -19,6 +20,25 @@ Coach data follows live-help policy. Imported/user text still enters prompts thr
 OpenAI/Mistral-compatible endpoints and the allowlisted Ollama endpoint can be operator-configured. The provider name alone does not identify every possible host. Ask the operator about the actual destination, account and retention settings before granting permission. The page exposes no keys/private endpoint URLs. This notice describes application transfers, without provider-retention or regulatory-compliance guarantees.
 
 The page bundles its original fonts locally and permits only same-origin font/style assets, in normal and offline serving. It sends no Google Fonts requests. [Font provenance and CSS policy](WEB-ASSETS.md) describe the pinned assets and retained licences. The local-model selector restricts model-provider routing; it does not change a configured Ollama endpoint or itself enable offline server mode.
+
+## Explore a private position locally
+
+In **Reading**, choose **Explore locally** to open the selected position on the
+existing Stockfish scratch board. Try legal moves there, then choose **Back to
+the game** to return to the score. The original game is preserved. During live
+play this requires Full engine help; otherwise finish the game or use the
+normal **Analyse** workflow, which preserves a return path to the game.
+
+The position travels to the browser's Stockfish worker in memory. This action
+opens no external page and puts no FEN in an href, navigation URL, query string,
+referrer or browser history. Engine startup failure has no external-site fallback.
+The previous position-bearing Lichess analysis link is removed. It does not call
+a coach/embedding provider or write the position to the clipboard. Public source
+links for books/puzzles remain separate explicit navigation.
+
+Saved games and caches retain their existing [data controls](DATA.md); local
+analysis is not an erasure operation. If you deliberately export data to another
+tool/site, its own storage, URLs and retention belong to that separate workflow.
 
 ## Choices and revocation
 

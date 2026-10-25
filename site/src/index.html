@@ -769,7 +769,8 @@ a.ext { color: var(--accent); font-size: 14px; }
     </div>
 
     <div class="pane" data-pane="reading" hidden>
-      <div class="row"><h2 class="push-right">Reading for this position</h2><a class="ext" id="lichessLink" href="https://lichess.org/analysis" target="_blank" rel="noopener">Open on Lichess ↗</a></div>
+      <div class="row"><h2 class="push-right">Reading for this position</h2><button class="btn small" id="readingExplore" type="button" aria-describedby="readingExploreHint">Explore locally</button></div>
+      <p class="hint" id="readingExploreHint">Explore with Stockfish in this page. The game stays as it is.</p>
       <div id="themeChips" class="chips"></div>
       <div id="bookList" class="lib-list"></div>
       <h3>Seen before in your library</h3>
@@ -4342,7 +4343,19 @@ function userBooks() { return [...Lib.books.values()].map(b => ({ ...b, user: tr
 const ecoWhy = why => (/^[A-E]\d\d /.test(why || '') ? '' : null);
 function renderReading() {
   if (paneHidden('reading')) return; // runs on every move otherwise; openTab('reading') renders it
-  const fen = nodeFen(); const i = S.cursor; const op = openingAt(i);
+  const fen = nodeFen(); const i = S.cursor; const op = openingAt(i); const gen = S.gen;
+  // Hand the selected position to the existing local scratch board. Keep FEN
+  // out of navigation/history/referrers and recheck retained actions on use.
+  $('#readingExplore').disabled = !whatIfAllowed();
+  $('#readingExploreHint').textContent = whatIfAllowed()
+    ? 'Explore with Stockfish in this page. The game stays as it is.'
+    : 'Choose Full engine help or finish the game to explore here.';
+  $('#readingExplore').onclick = () => {
+    if (S.gen !== gen || S.cursor !== i || nodeFen() !== fen || paneHidden('reading') || !whatIfAllowed()) return;
+    const line = playLine(Chess, fen, []); if (!line) return;
+    openScratch(line, { i: 0, free: true, title: 'What if…' });
+    $('#scratchClose').focus();
+  };
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
   const a = anaOf(fen);
   if (a?.best && showEngine()) K.moveMotifs(Chess, fen, a.best).forEach(m => feats.push({ ...m, weight: 2 }));
@@ -4375,7 +4388,6 @@ function renderReading() {
       el('button', { class: 'btn small', onclick: () => openGame(g, r.game.moment) }, 'Open'),
       el('div', {}, `${r.game.title} · ${r.game.white} – ${r.game.black}, ${r.game.event} ${r.game.date}`), el('q', {}, r.game.about)));
   }
-  $('#lichessLink').href = 'https://lichess.org/analysis/standard/' + fen.replace(/ /g, '_');
 }
 async function studyPlan() {
   if (!COACH.sample) return;

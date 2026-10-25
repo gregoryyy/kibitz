@@ -1286,7 +1286,9 @@ export default {
 
   // --- Reading tab -------------------------------------------------------------------------------
   'Reading for this position': 'Lektüre zu dieser Stellung',
-  'Open on Lichess ↗': 'Auf Lichess öffnen ↗',
+  'Explore locally': 'Hier analysieren',
+  'Explore with Stockfish in this page. The game stays as it is.': 'Untersuche die Stellung mit Stockfish auf dieser Seite. Die Partie bleibt erhalten.',
+  'Choose Full engine help or finish the game to explore here.': 'Wähle die volle Enginehilfe oder beende die Partie, um die Stellung hier zu untersuchen.',
   'Seen before in your library': 'Schon einmal in deiner Bibliothek',
   'Classic games on these themes': 'Klassische Partien zu diesen Themen',
   'Ask the coach for a study plan': 'Den Coach um einen Lernplan bitten',

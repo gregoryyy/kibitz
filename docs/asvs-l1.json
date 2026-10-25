@@ -882,11 +882,13 @@
       "topic": "Sensitive URL content",
       "status": "deviation",
       "method": "scope-review",
-      "note": "AI keys/cookies/prompts travel in headers/bodies. Explicit external Lichess analysis navigation places the selected FEN in its path and browser history; a private chess position can be sensitive. This is a documented privacy deviation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "note": "AI keys/cookies/prompts travel in headers/bodies. The former external Lichess link placed the selected private FEN in its URL/history. Experimental Reading now hands the position to an in-page Stockfish scratch board with live-help and stale-action guards. Local browser URL/history/referrer/request, engine-failure and German keyboard checks pass, and the preceding built page fails the new regression. Keep this disposition open until source-specific CI and assessment are complete. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/src/index.html",
         "docs/PRIVACY.md",
-        "docs/releases/0.1.0-rc.1.md"
+        "docs/releases/0.1.0-rc.1.md",
+        "site/tests/e2e/private-position-analysis.spec.mjs",
+        "docs/GUIDE.md"
       ],
       "followUp": "TODO 11.4.2.10"
     },

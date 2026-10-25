@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Private position analysis without navigation URLs (experimental)
+
+TODO item: 11.4.2.10 / ASVS 14.2.1. Source-specific CI and the final disposition remain pending; this entry does not close the release gate or client-data lifecycle.
+
+### Implementation notes
+
+- Replace Reading's FEN-bearing external analysis href with Explore locally. Hand the selected position to the existing chess.js-validated Stockfish scratch board inside the page, preserving the original score and Back to the game control. No popup, navigation, URL/history/referrer FEN, clipboard write or coach/embedding call accompanies the action. Engine failure has no external fallback.
+- Reuse live-help policy and guard again when activating: disable in restricted live play, require the visible Reading pane and captured game generation/cursor/FEN, and reject retained actions after game/position replacement or pane closure. Focus the scratch return control for keyboard use and add German wording/hints, including the restricted-play explanation.
+- Four new browser cases pass: private-position URLs/requests/referrers/history and unchanged score with a legal scratch move; restricted/closed/stale actions; engine failure diagnostics without transfer; German phone keyboard/focus/layout and zero translation gaps. The actual preceding built page fails the new privacy regression by exposing the exact synthetic FEN in its Lichess href. All 16 combined private-position/game-analysis/mode/Reading browser checks pass. Fresh build and lint/JSDoc checks pass; the complete mock-only unit suite passes 815 tests with one opt-in live skip and ambient cloud credentials removed.
+- Document the local replacement workflow and distinguish explicit user exports, public source links, saved data and authenticated client cleanup. No new dependency, provider request, model download or deployment identity/trust change.
+
+### Deviations
+
+- The external position deep link is removed in favour of local exploration. Separately exported data and third-party URL/retention choices belong to their own workflow. This change neither erases saved records/caches nor satisfies authenticated client-data lifecycle (11.4.2.11). Existing native/platform/TLS release conditions remain separate.
+
+### Insights
+
+- An explicit external link can still disclose private board data through its URL/history. Reusing the in-page symbolic solver keeps the useful analysis handoff local and makes engine failure independent of external navigation. Retained UI actions need the same position/generation and help checks as currently visible controls.
+
 ## 2026-10-25 — Native checkout isolation (experimental)
 
 TODO items: 11.4.2.9 and 11.4.2.9.1 / ASVS 13.4.1. The reviewed source and independent macOS/Linux/image evidence technically verify this control for the owner-selected final modes; this does not grant final-release approval.

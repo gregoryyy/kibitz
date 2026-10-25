@@ -31,6 +31,14 @@ The strength value is a configured opponent setting. Human strength calibration 
 
 Select **Analyse**, or open **Game → Load a position or PGN to analyse**, paste a FEN or PGN and load it. **Library → Classics** provides sourced example games. Step through the move list to inspect positions and the evaluation graph. Moving from a past position creates a scratch variation; the original game score remains available. Leaving a running game asks for confirmation and offers a return path.
 
+**Reading → Explore locally** opens that position on a Stockfish scratch board
+inside the page. Try legal moves, then choose **Back to the game** to recover
+the original score. The action keeps the position out of external navigation,
+URLs and browser history. During live play, choose Full engine help or use the
+normal Analyse/pause workflow first. A failed engine does not send the position
+to an external analysis site. [Private analysis and data handling](PRIVACY.md#explore-a-private-position-locally).
+
+
 Choose **Current position** above the composer for board questions, or **General chess** for a discussion without the board context. Quick question chips use the quick model; typed questions use the chat model. **Settings → Coach → How the coach works** controls whether comments are requested manually or after moves. Automatic modes can make more provider calls; start with **Only when asked** when controlling cost matters.
 
 Coaching prose is experimental. For a concrete comparison, ask: “Compare this candidate with the engine's best move and say when evidence is missing.” An allowed tool round runs Stockfish in the browser and returns bounded results to the coach. Expand the answer's evidence/source cards to see what was checked. A continuation should agree with captured engine evidence; recognized legal moves outside that evidence remain unverified, and red underlines identify failed token checks. A matching move or citation does not certify every sentence, strategic claim or explanation. [Design and evidence limits](AI-DESIGN.md) explain this boundary.
