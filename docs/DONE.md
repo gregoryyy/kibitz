@@ -98,6 +98,26 @@ TODO item: 11.5.3.
 
 - Keep this compatibility fix separate from the PDF and CodeQL PRs. Container/whole-suite CI must verify the resulting source; prior green evidence for 10.1.1 does not cover 10.4.2. No CSP relaxation, violation filtering, test retry or provider call is introduced.
 
+## 2026-10-25 — Rebuild PDFs by modification date
+
+TODO item: 0.12.1.
+
+### Implementation notes
+
+- Both `just pdf FILE` and `just pdfs [PATHS]` now skip nonempty PDFs whose modification date is at least as new as the Markdown, print stylesheet, Mermaid include and justfile. Missing/empty PDFs or a newer build input trigger rendering. No content hashes or PDF scans are needed for current output; legacy `.pdfstamps/` files are ignored and remain Git-ignored.
+- Preserved filenames with spaces, normal rendering/error behavior and bulk exclusions for root/nested `AGENTS.md`, `CLAUDE.md` and `.github/` templates. Individual agent documents can still be explicitly rendered with `just pdf FILE`.
+- Reproduced the old behavior with the actual aggregate recipe and local renderer stubs: a matching content stamp incorrectly skipped a source newer than its PDF. The corrected aggregate rebuilds it, then skips the next run. Missing/empty output, equal timestamps, updated CSS and instruction/template exclusions also pass.
+- Integrated compatibility fix #135 after the first actual container run exposed the separate Chessground 10.4.2 style-policy regression from #129. The PR targets main and its new CI tests the combined source; the PDF implementation itself does not change app behavior.
+- A dependency-free Node test exercises the Bash timestamp guard with controlled source/rendering/output dates, including spaces and absent inputs. The test runs with the normal unit suite; local lint/JSDoc/ASVS, `just --list`, Bash syntax and whitespace checks pass. A real pandoc/Chrome smoke run renders a valid PDF, and its second bulk run skips it without changing the PDF modification date.
+
+### Deviations
+
+- Modification dates now decide freshness, as requested; touching a source rebuilds it even if its bytes are unchanged. Embedded image timestamps are not tracked: delete the affected PDF after changing only an image, as documented. Tool-version changes are not automatically detected.
+
+### Insights
+
+- A content stamp can override a newer source timestamp. Using the same date guard for single and bulk rendering gives both commands predictable make-style freshness.
+
 ## 2026-10-25 — Keep CodeQL action updates together
 
 TODO item: 11.5.2; repair PR #130.

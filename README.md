@@ -51,9 +51,15 @@ just test              # unit tests (builds first)
 just check             # ESLint and the type check (tsc --checkJs)
 just e2e               # Playwright end-to-end tests (starts its own server with the mock AI provider)
 just build             # build only; `just build-eco` also rebuilds the opening table
-just pdfs              # a PDF next to every Markdown document (needs pandoc and Chrome); `just pdf FILE` for one
+just pdfs              # update missing/outdated Markdown PDFs by modification date (pandoc + Chrome); `just pdf FILE` for one
 just                   # list all recipes
 ```
+
+PDFs rebuild only when missing, empty or older than their Markdown source, print
+stylesheet, Mermaid include or `justfile`. Equal timestamps count as current;
+legacy content stamps are ignored. After changing only an embedded image, delete
+that document's PDF to rebuild it. Bulk rendering excludes agent instructions
+(`AGENTS.md`, `CLAUDE.md`) and `.github/` templates.
 
 The server binds to `127.0.0.1` only. Change the port or address with `KIBITZ_PORT` and `KIBITZ_HOST`, e.g. `KIBITZ_PORT=9000 just serve`.
 
