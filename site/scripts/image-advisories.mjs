@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { command } from './security-scan.mjs';
+import { readBoundedFile } from './image-inventory.mjs';
 
 export const SCANNER_IMAGE = 'ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c';
 export const DB_REPOSITORY = 'ghcr.io/aquasecurity/trivy-db:2';
@@ -29,7 +30,7 @@ export function archiveConfig(archive) {
   if (!Array.isArray(manifests) || manifests.length !== 1 || !/^(?:blobs\/sha256\/)?[a-f0-9]{64}(?:\.json)?$/.test(manifests[0]?.Config || '')) throw Error('Unexpected image archive config');
   const bytes = read(manifests[0].Config), id = sha(bytes);
   if (path.basename(manifests[0].Config).replace(/\.json$/, '') !== id.slice(7)) throw Error('Image archive config digest mismatch');
-  return { id, config: JSON.parse(bytes.toString('utf8')) };
+  return { id, bytes, config: JSON.parse(bytes.toString('utf8')) };
 }
 
 function debianVersion(pkg) {
@@ -100,8 +101,7 @@ export function scannerArgs({ archive, output, name, uid, gid }) {
 }
 
 function json(file) {
-  if (fs.statSync(file).size > 32 * 1024 * 1024) throw Error('Advisory report size exceeded');
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
+  return JSON.parse(readBoundedFile(file, 32 * 1024 * 1024).toString('utf8'));
 }
 async function digest(file) {
   const hash = createHash('sha256');
@@ -113,7 +113,7 @@ export async function run(args = process.argv.slice(2)) {
   if (args.length || process.platform !== 'linux') throw Error('Run the fixed image check in Linux container CI');
   const metadata = path.join(site, 'tests/out/container-metadata'), output = path.join(metadata, 'advisories');
   fs.mkdirSync(output, { recursive: true, mode: 0o700 });
-  for (const name of ['report.json', 'database.json', 'summary.json', 'cache']) fs.rmSync(path.join(output, name), { recursive: true, force: true });
+  for (const name of ['report.json', 'database.json', 'summary.json', 'image-config.json', 'image-rootfs.json', 'cache']) fs.rmSync(path.join(output, name), { recursive: true, force: true });
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-advisories-'));
   fs.mkdirSync(path.join(temp, 'docker-config'));
   const env = { PATH: process.env.PATH, DOCKER_CONFIG: path.join(temp, 'docker-config') };
@@ -141,6 +141,8 @@ export async function run(args = process.argv.slice(2)) {
     if (JSON.stringify(extracted.config?.rootfs?.diff_ids) !== JSON.stringify(diffIds)
         || extracted.config?.config?.Labels?.['org.opencontainers.image.revision'] !== revision) throw Error('Exported image identity mismatch');
     summary.configId = extracted.id;
+    fs.writeFileSync(path.join(output, 'image-config.json'), extracted.bytes);
+    fs.writeFileSync(path.join(output, 'image-rootfs.json'), JSON.stringify({ imageId, revision, diffIds }, null, 2) + '\n');
     started = true;
     summary.stage = 'scanner';
     const status = await command('docker', scannerArgs({ archive, output, name, uid: process.getuid(), gid: process.getgid() }), { env, timeout: 600_000 });

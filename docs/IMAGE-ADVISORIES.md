@@ -91,7 +91,8 @@ selection and is not a complete reachability analysis.
 
 ## Retained evidence and limits
 
-The existing container artifact retains image/source IDs, OS inventory and the
+The existing container artifact retains image/source IDs, independently derived
+archive config/rootfs metadata, OS inventory and the
 advisory raw report, database metadata/digest and summary for thirty days on
 success or failure. The summary records scan completion separately from policy
 success, plus actual Node version and raw report/archive digests. Database bytes,

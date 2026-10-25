@@ -3,6 +3,24 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Check and read the opened object; bound actual bytes if it grows after fstat.
+export function readBoundedFile(file, maxBytes, io = fs) {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > 64 * 1024 * 1024) throw Error('Invalid evidence capacity');
+  const fd = io.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0) | (fs.constants.O_NONBLOCK ?? 0));
+  try {
+    const entry = io.fstatSync(fd);
+    if (!entry.isFile() || entry.size > maxBytes) throw Error('Invalid evidence file');
+    const chunks = [], block = Buffer.allocUnsafe(64 * 1024); let total = 0;
+    while (true) {
+      const count = io.readSync(fd, block, 0, Math.min(block.length, maxBytes + 1 - total), null);
+      if (!count) break;
+      total += count; if (total > maxBytes) throw Error('Evidence capacity exceeded');
+      chunks.push(Buffer.from(block.subarray(0, count)));
+    }
+    return Buffer.concat(chunks, total);
+  } finally { io.closeSync(fd); }
+}
+
 export function parseDpkgStatus(text) {
   if (typeof text !== 'string' || text.length > 16 * 1024 * 1024) throw Error('Invalid Debian inventory');
   const packages = [];
@@ -26,15 +44,13 @@ export function parseDpkgStatus(text) {
 export function readDpkgInventory(root = '/var/lib/dpkg') {
   const records = [], status = path.join(root, 'status'), directory = path.join(root, 'status.d');
   const read = file => {
-    const entry = fs.lstatSync(file);
-    if (!entry.isFile() || entry.size > 16 * 1024 * 1024) throw Error('Invalid Debian inventory file');
-    records.push(...parseDpkgStatus(fs.readFileSync(file, 'utf8')));
+    records.push(...parseDpkgStatus(readBoundedFile(file, 16 * 1024 * 1024).toString('utf8')));
   };
-  if (fs.existsSync(status)) read(status);
-  if (fs.existsSync(directory)) {
-    const names = fs.readdirSync(directory); if (names.length > 10_000) throw Error('Debian inventory capacity exceeded');
-    for (const name of names) read(path.join(directory, name));
-  }
+  try { read(status); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  let names = [];
+  try { names = fs.readdirSync(directory); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (names.length > 10_000) throw Error('Debian inventory capacity exceeded');
+  for (const name of names) read(path.join(directory, name));
   const packages = new Map();
   for (const { name, version } of records) {
     if (packages.has(name) && packages.get(name) !== version) throw Error('Conflicting Debian package versions');
