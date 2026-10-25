@@ -1,8 +1,15 @@
 # DONE
 
+Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, the TODO items covered, and then:
+- **Implementation notes:** what was built, and where.
+- **Deviations:** what differs from the plan, and why.
+- **Insights:** what we learned that matters for later work.
+
+---
+
 ## 2026-10-25 — Native checkout isolation (experimental)
 
-TODO item: 11.4.2.9.1 under 11.4.2.9 / ASVS 13.4.1. The parent control remains a deviation while full platform/deployment verification is outstanding; this entry does not grant final-release approval.
+TODO items: 11.4.2.9 and 11.4.2.9.1 / ASVS 13.4.1. The reviewed source and independent macOS/Linux/image evidence technically verify this control for the owner-selected final modes; this does not grant final-release approval.
 
 ### Implementation notes
 
@@ -13,23 +20,18 @@ TODO item: 11.4.2.9.1 under 11.4.2.9 / ASVS 13.4.1. The parent control remains a
 - Retain strict container context/exclusion, UID 1000, read-only root/identities and private volumes. Produce the source-free image marker only during its isolated build, verify its metadata-free ancestry at final startup, and preserve the actual packaged TLS regression. No nested native sandbox is required inside that existing execution boundary.
 - Actual Linux image CI passes its four non-TLS cases and finds the initializer still mounting the synthetic fixture's former parent rather than its new TLS child directory. Mount the generated key's actual parent read-only; keep the explicit four-file copy, UID/permission checks and TLS assertions. This changes the test setup, not deployed data paths. Corrected-source Linux unit/audit, dedicated macOS, passive/security/secrets and CodeQL gates pass before this fixture adjustment; image CI is rerun against the final source.
 - Add actual OS/SQLite/symlink/read-only-state/proof checks and listener-process probes that open descriptors without reading/logging Git contents. Exercise TLS, sessions, private storage, HTTP hidden paths and live policy replacement/deletion. Native macOS CI supplements Linux unit/browser/image checks; Linux installs its system bubblewrap prerequisite in the disposable runner. Local macOS TLS/session/permission/termination regressions pass (39 groups before the new CLI cases). The new browser fixture uses a browser-only loopback resolver and exact-CA native sign-in rather than requiring a host resolver/trust change.
-- The final complete mock-only unit suite passes: 815 tests, one opt-in live skip, with ambient cloud credentials removed. All 16 affected browser cases pass. The actual previous CLI at 97ec53f fails the new browser regression by reporting original Git metadata readable; no Git contents are read/logged. Fresh lint/JSDoc checks pass, including a diagnostic-injection regression that discards arbitrary child fields/paths. Record the owner's answer that no dedicated public domain is available; leave public certificate trust open. No production identities, certificates, trust changes, provider calls, model downloads or dependency lockfile changes occur.
+- The final complete mock-only unit suite passes: 815 tests, one opt-in live skip, with ambient cloud credentials removed. All 16 affected browser cases pass. The actual previous CLI at 97ec53f fails the new browser regression by reporting original Git metadata readable; the listener probe never reads/logs their contents. Fresh lint/JSDoc checks pass, including a diagnostic-injection regression that discards arbitrary child fields/paths. Record the owner's answer that no dedicated public domain is available; leave public certificate trust open. No production identities, certificates, trust changes, provider calls, model downloads or dependency lockfile changes occur.
+
+- Pin reviewed source 5c83b328103dc65057affde9b333f22d7afdafde. Actual Linux image run 40230610251 / job 121281310717 passes all five cases; Linux full unit/build/check/audit and dedicated macOS jobs 121281453825 / 121281453639 pass, as do both CodeQL gates (zero open PR alerts), passive security and secrets. Tick both TODO items and update only ASVS 13.4.1 to verified: 39 verified, 26 not applicable, three deviations, two open. Keep original RC dispositions/evidence and all remaining deadlines/gates. Full application browser CI is still live and assessment-head CI runs independently.
 
 ### Deviations
 
-- The owner explicitly selects macOS and Linux for the native final release (2026-10-25). Windows is outside that scope and refuses unsupported isolation. Keep the overall control open until Linux/macOS and packaged verification passes. Explicit HTTP development and legacy-origin recovery remain outside final scope. OS/bootstrap/runtime/directory writers stay trusted; do not count an altered runtime, deliberate metadata hard link or extra mount as a supported deployment. The filesystem policy is separate from network restrictions and hosted authentication.
+- The owner explicitly selects macOS and Linux for the native final release (2026-10-25). Windows is outside that scope and refuses unsupported isolation. Source-pinned macOS/Linux and packaged verification passes for the selected final modes. Explicit HTTP development and legacy-origin recovery remain outside final scope. OS/bootstrap/runtime/directory writers stay trusted; do not count an altered runtime, deliberate metadata hard link or extra mount as a supported deployment. The filesystem policy is separate from network restrictions and hosted authentication.
 
 ### Insights
 
 - Moving runtime files or hiding dot paths from HTTP does not stop a same-user process opening the original checkout. Node permissions also are not a malicious-code boundary, so verification must exercise the real OS restriction, including native SQLite. Isolation must preserve revocation semantics: a read-only file bind can silently retain an obsolete permission policy after the operator replaces its pathname.
 
-
-Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, the TODO items covered, and then:
-- **Implementation notes:** what was built, and where.
-- **Deviations:** what differs from the plan, and why.
-- **Insights:** what we learned that matters for later work.
-
----
 
 ## 2026-10-25 — Encrypted provider, embedding and model-provisioning connections (experimental)
 

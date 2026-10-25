@@ -118,4 +118,4 @@ The Claude artifact adapter remains an existing host-managed integration. The fu
 
 A future hosted proposal must explicitly revisit this decision, threat model, authentication, tenant isolation, provider-key ownership, retention/deletion, persistent budgets, HTTPS and ASVS level before it can claim support.
 
-The experimental [native filesystem boundary](NATIVE-ISOLATION.md) now isolates the final-mode application process before storage/listening. Native platform coverage and ASVS 13.4.1 remain open under TODO 11.4.2.9; hiding metadata over HTTP alone is insufficient.
+The experimental [native filesystem boundary](NATIVE-ISOLATION.md) now isolates the final-mode application process before storage/listening. Source-pinned macOS/Linux and image evidence addresses ASVS 13.4.1 / TODO 11.4.2.9 for the owner-selected final modes. The bootstrap/operator retains Git access; HTTP hiding is a separate check. The final-release gate remains open.

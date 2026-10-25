@@ -23,11 +23,11 @@ flowchart LR
 | milestone | 13 |
 | todo | 230 |
 | done | 135 |
-| insight | 307 |
+| insight | 302 |
 | deviation | 221 |
 | reflection | 2 |
 
-4261 typed edges; 482 scanned text inputs; 356 unresolved references.
+4254 typed edges; 482 scanned text inputs; 355 unresolved references.
 
 ## TODO → DONE index
 
@@ -248,8 +248,8 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 | 11.4.2.7: **ASVS 12.2.1 — encrypted connectivity:** require TLS for the final browser/gateway deployment and external HTTP service connections, rejecting insecure fallback and unsupported plaintext endpoint overrides. Test actual native/container boundaries and failure behavior; update deployment/provider instructions. | done | 3 | [docs/TODO.md:276](../../docs/TODO.md) |
 | 11.4.2.7.1: Add native Node HTTPS with operator-supplied PEM identities, bounded private-file checks, refusal of invalid TLS configuration without HTTP fallback, real CLI/browser tests and a packaged-image TLS case. This prerequisite does not close cookie migration, final transport enforcement, external endpoint policy or the parent ASVS control | done | 1 | [docs/TODO.md:278](../../docs/TODO.md) |
 | 11.4.2.8: **ASVS 12.2.2 — public certificate trust:** inventory externally facing services and verify publicly trusted certificates, hostname checks and renewal/expiry handling. Test invalid/untrusted/expired certificates without a trust bypass; private test certificates are not release endpoint evidence. | open | 1 | [docs/TODO.md:279](../../docs/TODO.md) |
-| 11.4.2.9: **ASVS 13.4.1 — checkout isolation:** ensure source-control metadata is unavailable both over HTTP and to the application process in every supported final execution mode, including native operation. Stage or isolate native runtime files outside readable checkout metadata; test process-level and HTTP access while preserving packaged exclusion. | open | 2 | [docs/TODO.md:281](../../docs/TODO.md) |
-| 11.4.2.9.1: Add and verify native Linux/macOS filesystem restrictions, actual-process/SQLite/HTTP denial and unchanged private data/permissions; retain source-free image exclusion. Keep the parent open for remaining platform/deployment verification | open | 1 | [docs/TODO.md:282](../../docs/TODO.md) |
+| 11.4.2.9: **ASVS 13.4.1 — checkout isolation:** ensure source-control metadata is unavailable both over HTTP and to the application process in every supported final execution mode, including native operation. Stage or isolate native runtime files outside readable checkout metadata; test process-level and HTTP access while preserving packaged exclusion. | done | 2 | [docs/TODO.md:281](../../docs/TODO.md) |
+| 11.4.2.9.1: Add and verify native Linux/macOS filesystem restrictions, actual-process/SQLite/HTTP denial and unchanged private data/permissions; retain source-free image exclusion. Source-pinned Linux/macOS/image evidence covers the owner-selected final modes | done | 1 | [docs/TODO.md:282](../../docs/TODO.md) |
 | 11.4.2.10: **ASVS 14.2.1 — private positions in URLs:** replace the position-bearing external navigation path with a handoff that keeps sensitive FEN/private data out of URLs, query strings and browser history. Verify outbound navigation, referrers and error/log paths; document the replacement analysis workflow. | open | 1 | [docs/TODO.md:283](../../docs/TODO.md) |
 | 11.4.2.11: **ASVS 14.3.1 — authenticated client-data lifecycle:** clear authenticated data from DOM, memory and browser storage when the client/session terminates, including offline termination. Coordinate session revocation, caches and in-flight results; test logout, expiry, owner changes and recovery, with explicit migration/backup handling for existing saved collections. | open | 2 | [docs/TODO.md:284](../../docs/TODO.md) |
 | 11.4.2.12: **ASVS 15.2.1 — component remediation evidence:** complete the component/build/tool/model inventory and advisory-age evidence, resolve coverage/provenance gaps, and remediate any component beyond the documented timeframes. Retain exact source/licence/version/scan evidence and independently review final runtime/build assets. Component review remains due 2026-11-01 and the remediation plan 2026-11-24; closure is required before final release even if those dates are later. | open | 1 | [docs/TODO.md:285](../../docs/TODO.md) |
@@ -270,7 +270,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 
 | Entry | TODO references | Insights | Deviations | Combined |
 | --- | --- | ---: | ---: | ---: |
-| [2026-10-25 — Native checkout isolation (experimental)](../DONE.md#2026-10-25--native-checkout-isolation-experimental) | 11.4.2.9, 11.4.2.9.1 | 6 | 1 | 0 |
+| [2026-10-25 — Native checkout isolation (experimental)](../DONE.md#2026-10-25--native-checkout-isolation-experimental) | 11.4.2.9, 11.4.2.9.1 | 1 | 1 | 0 |
 | [2026-10-25 — Encrypted provider, embedding and model-provisioning connections (experimental)](../DONE.md#2026-10-25--encrypted-provider-embedding-and-model-provisioning-connections-experimental) | 11.4.2.7 | 1 | 1 | 0 |
 | [2026-10-25 — Partial TLS transport inventory and reproducible probe (experimental)](../DONE.md#2026-10-25--partial-tls-transport-inventory-and-reproducible-probe-experimental) | 11.4.2.6, 11.4.2.6.1 | 1 | 1 | 0 |
 | [2026-10-25 — Explicit local operator function permissions (experimental)](../DONE.md#2026-10-25--explicit-local-operator-function-permissions-experimental) | 11.4.2.11, 11.4.2.5 | 1 | 1 | 0 |

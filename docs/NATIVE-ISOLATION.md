@@ -1,11 +1,11 @@
 # Native filesystem isolation (experimental)
 
-TODO **11.4.2.9.1** adds OS restrictions to the native final-mode listener.
-The parent **11.4.2.9 / ASVS 13.4.1 remains open**: independent Linux/macOS
-and image CI verification is outstanding. The owner selected **macOS and Linux** as the native final-release platforms on 2026-10-25.
-This work does not grant final-release clearance or change the selected native
-Node HTTPS target. Public certificate trust remains separately open; the owner
-has no dedicated public domain available.
+TODO **11.4.2.9 / 11.4.2.9.1** and ASVS **13.4.1** are technically verified
+at `5c83b328103dc65057affde9b333f22d7afdafde` for the owner-selected native
+**macOS and Linux** platforms and the source-free image. The owner confirmed
+this native scope on 2026-10-25. This does not grant final-release clearance
+or change the selected native Node HTTPS target. Public certificate trust
+remains open; the owner has no dedicated public domain available.
 
 The existing [HTTPS command](TLS.md#start-with-an-existing-certificate-and-private-key),
 `just serve` and offline recipes retain their arguments and private data paths.
@@ -138,3 +138,14 @@ read-only identities/runtime, malformed proof, live atomic permission updates,
 HTTP hidden paths, real TLS/session/engine/mock-coach use and packaged exclusion.
 Native macOS and Linux/image CI results must be retained in the experimental PR;
 fixture identities are never actual deployment/public-trust evidence.
+
+Reviewed-source evidence: [Linux unit/build/check/audit](https://github.com/gregoryyy/kibitz/actions/runs/40230610253/job/121281453825),
+[dedicated macOS isolation](https://github.com/gregoryyy/kibitz/actions/runs/40230610253/job/121281453639),
+[actual image/browser/persistence](https://github.com/gregoryyy/kibitz/actions/runs/40230610251/job/121281310717)
+and [CodeQL analysis](https://github.com/gregoryyy/kibitz/actions/runs/40230610379/job/121281311041)
+pass, with zero open PR CodeQL alerts. The image passes all five cases after
+correcting only its synthetic identity-directory mount. Local final mock-only
+unit coverage is 815 passes/one opt-in live skip; all 16 affected browser cases
+pass and the actual previous server fails the process-metadata regression.
+Full application browser CI and subsequent assessment-head CI are separate
+checks; their live status is recorded in experimental PR #150.

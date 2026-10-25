@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "61ea2781b2676fcced160baf5f86e03eea8ceaf0",
+  "revision": "5c83b328103dc65057affde9b333f22d7afdafde",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -860,18 +860,20 @@
     {
       "id": "v5.0.0-13.4.1",
       "topic": "Source-control metadata",
-      "status": "deviation",
-      "method": "scope-review",
-      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. The original native checkout execution allowed the app user to read Git metadata. Experimental native OS isolation now covers the owner-selected macOS/Linux scope: local macOS process/SQLite/TLS/data checks pass, while independent Linux and packaged source verification is pending. Keep the overall requirement a deviation until that verification and assessment are complete. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "The owner-selected native macOS/Linux final application runs under OS filesystem restrictions before SDK loading, private storage or listening. Direct descriptor probes fail closed if original worktree/common/alternate metadata or an existing proof canary is readable. Actual-process, native SQLite, symlink, immutable runtime/configuration, private state and live policy replacement tests pass. Source-pinned Linux full unit/audit, dedicated macOS and actual image/browser persistence CI pass at the recorded revision; the image retains source-free context/copies and native TLS with UID 1000/read-only root. HTTP metadata denial remains independently exercised. The trusted local bootstrap/operator can still use Git outside the application. Explicit development/recovery modes and deliberate extra metadata mounts/altered runtime are outside final scope; Windows is outside the owner-selected native release scope. This technically remediates the original RC deviation for these modes without extending any other deadline or clearing the release gate.",
       "evidence": [
-        "site/server/static.mjs",
-        "site/server/static.test.mjs",
-        "site/tests/container/image.spec.mjs",
-        "docs/CONTAINER.md",
-        "docs/releases/0.1.0-rc.1.md",
         "site/scripts/native-runtime.mjs",
+        "site/scripts/native-sandbox.mjs",
+        "site/scripts/serve.mjs",
+        "site/server/deployment.mjs",
         "site/server/deployment.test.mjs",
-        "docs/NATIVE-ISOLATION.md"
+        "site/tests/unit/native-isolation.test.mjs",
+        "site/tests/e2e/native-isolation.spec.mjs",
+        "site/tests/container/image.spec.mjs",
+        "docs/NATIVE-ISOLATION.md",
+        "docs/CONTAINER.md"
       ],
       "followUp": "TODO 11.4.2.9"
     },

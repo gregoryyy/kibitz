@@ -4,12 +4,12 @@ Generated offline from typed, confidence-weighted links. These are recorded devi
 
 | Rule | Count |
 | --- | ---: |
-| implements_unassessed | 211 |
+| implements_unassessed | 213 |
 | missing_done_reference | 22 |
 | possible_deviation_impact | 6 |
 | recorded_deviation | 221 |
-| unresolved_reference | 3006 |
-| verifies_unassessed | 211 |
+| unresolved_reference | 3005 |
+| verifies_unassessed | 213 |
 
 Confidence threshold: 0.8; dependency depth: 2; per-deviation impact limit: 100; truncated contexts: 0.
 
