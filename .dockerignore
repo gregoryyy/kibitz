@@ -1,0 +1,31 @@
+# Deny by default: no checkout metadata, operator config/data, models or local builds.
+**
+!LICENSE
+!THIRD_PARTY_NOTICES.md
+!site/
+!site/package.json
+!site/package-lock.json
+!site/src/
+!site/src/**
+!site/server/
+!site/server/**
+!site/scripts/
+!site/scripts/**
+!site/data/
+!site/data/**
+# Defense in depth inside the allowed source directories.
+**/.env*
+**/.git
+**/.git/**
+**/.kibitz-data
+**/.kibitz-data/**
+**/node_modules
+**/node_modules/**
+**/*.test.mjs
+**/tests
+**/tests/**
+site/server/fixtures
+site/server/fixtures/**
+**/*.log
+**/__pycache__
+**/__pycache__/**

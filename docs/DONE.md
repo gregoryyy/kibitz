@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Local container package prepared for image verification
+
+TODO item: 12.2 in progress. The actual Linux image/browser/restart run is still required; the item remains unchecked.
+
+### Implementation notes
+
+- Added a multi-stage Dockerfile pinned to the independently hashed official Node 24 Bookworm-slim manifest. Build and production dependency stages use the existing npm lockfile with install scripts disabled; the non-root runtime includes the built client/WASM, production dependencies, shared modules and licence notices. Default mock AI and explicit empty env-file selection avoid incidental real inference. No image is published.
+- Added a deny-by-default build context and a Compose recipe with explicit loopback publishing, Docker init, read-only root, tmpfs, dropped capabilities and no new privileges. A mode-0700 named volume holds usage/library SQLite outside the static tree. The static-manifest health check uses no provider or grouping cookie. Docker 28+ is documented for the selected loopback mapping behavior.
+- Added an explicit read-token Linux container workflow: Compose validation with `/dev/null` env selection, a synthetic excluded env-file sentinel, actual image build, browser install and three actual container tests. Cases cover UID/private-file/dev-dependency/metadata/header boundaries, real Stockfish and mock coaching, and library/usage persistence plus independent cookie scopes across restart. Cleanup is limited to uniquely named test resources and reports real failures. Image identity/revision and Debian component inventory are retained for thirty days, failure traces for seven days.
+- Local preparation passes lint/JSDoc/ASVS, build and complete unit/server tests (667 passes, one opt-in live skip); all three container test definitions load, 45 local links resolve and diff whitespace is clean. No Docker execution is claimed locally: the daemon availability probe was unavailable earlier. Actual image verification will run in the draft PR before completion. No operator environment file, private data, real provider or model download is used.
+
+### Deviations
+
+- Packaging has no image registry login/push, tag/release publication, hosted authentication, TLS/HSTS or model weights. Other architectures and image advisory coverage need separate evidence. A package inventory alone is not vulnerability clearance or release approval.
+- The online page still follows its existing Google Fonts privacy behavior and the asset findings in 11.5.1 remain open. Checkout Git-metadata access remains an ASVS deviation until a separately evidenced packaged scope can be recorded; no global compliance claim is made.
+
+### Insights
+
+- Container bind and host publish addresses serve different boundaries: the bridge needs a reachable container interface while the supplied host mapping remains loopback.
+- A named private volume and browser cookie scope must both survive a restart to preserve the intended local collection. Functional persistence, file permissions and independent-client isolation need actual image tests, not Dockerfile assertions alone.
+
 ## 2026-10-25 — Semantic versioning policy and unreleased changelog
 
 TODO item: 12.1. Packaging, remaining guides and the actual release gate remain separate.

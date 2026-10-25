@@ -262,7 +262,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 ## 12. Release and operations *(added)*
 
 - [x] 12.1 Semantic versioning and a [changelog](../CHANGELOG.md): documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; [release procedure](RELEASING.md). Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published
-- [ ] 12.2 Packaging: Docker image for the Node server and static client
+- [ ] 12.2 Packaging: [local Docker image and Compose recipe](CONTAINER.md), pinned Node 24, non-root runtime, private named volume and excluded operator/checkout files; actual Linux image/browser/restart verification pending
 - [x] 12.3 Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; [operator checks and retention](OPERATIONS.md), fake-SDK and real-CLI regressions
 - [ ] 12.4 Docs: user guide, provider setup, self-hosting with Ollama
   - [x] 12.4.1 Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation remains open
