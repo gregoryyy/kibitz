@@ -21,6 +21,8 @@ The optional library's anonymous HttpOnly cookie separates browser collections, 
 
 The existing `--host` option can change the listener for deliberate development/packaging use. Binding to a LAN/public address does not add accounts, transport security or authorization. A public/shared service is outside this deployment decision. A local machine's users, browser profiles and anonymous cookie scopes are not a hosted tenant-security boundary.
 
+Default HTTP/AI logs use fixed categories and omit raw URLs, cookies, prompts and provider messages. See [local monitoring and retention](OPERATIONS.md) for status checks, error events and private log files.
+
 ## Consequences for the plan
 
 - TODO 10.2 hosted authentication is deferred. Passkeys/OAuth, account sessions, tenant isolation, account-based budgets and encrypted per-user provider keys are prerequisites for any later hosted service.

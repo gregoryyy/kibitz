@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-24 — Private runtime logs and local operator monitoring
+
+TODO items: 12.3 and 11.2.3; finding [#98](https://github.com/gregoryyy/kibitz/issues/98).
+
+### Implementation notes
+
+- Added `server/logging.mjs` to construct JSON events exclusively from fixed vocabularies, numeric status/timing and booleans. Access events classify routes without retaining URLs, library IDs, IPs, cookies or bodies, and record completed/disconnected responses once. Unknown values cannot become arbitrary fields.
+- Replaced provider/model/raw SDK error logging with bounded action/provider/code/status events for streaming, structured, connection-test and embedding requests. A late stream failure remains observable even when HTTP status is 200; accepted provider attribution survives settings changes. Configuration logs omit model IDs/reasons. Page-facing bounded provider reasons retain their existing behavior and are explicitly unsuitable for logging.
+- Startup/listener diagnostics omit paths, arbitrary hostnames, models and exception prose/stacks, while retaining fixed hints/system codes and compatible readiness lines. Loopback reports its actual port. Malformed URLs are rejected before API routing can reject asynchronously with Node's raw URL input in a default stack.
+- Added [operator monitoring and retention](OPERATIONS.md): no-inference liveness checks, error-event inspection, private redirected files and operator-owned rotation. Linked deployment/README guidance and updated threat/OWASP finding dispositions. The runtime neither stores logs nor introduces hosted dashboards or automatic paid probes.
+- Validation: lint/JSDoc/build, 597 unit/server passes with one optional live skip, and fourteen focused Playwright passes (two logging CLI, three existing private-path CLI and nine browser privacy cases). Both new CLI cases also fail against the prior `8efbf90` server, reflecting a synthetic private path in logs. Six new unit/server cases cover fake SDK status 400/401/429/500 failures on all four AI routes, post-output failure, in-flight configuration changes, disconnects and hostile code/status fields. Only synthetic markers/fake SDKs are used; no live provider/model requests.
+
+### Deviations
+
+- Monitoring targets the selected local single-user deployment: operator status/event inspection, without an external service or user-identifying audit trail. No verbose payload mode was added. Runtime/OS warnings and operator capture utilities have separate output; static-file race/error paths remain under #99.
+- Historical main-branch CodeQL alert 18 is not dismissed by a feature PR. It requires post-merge scan evidence; broader LLM/ASVS/scanner/release gates remain open.
+
+### Insights
+
+- Removing recognized keys from SDK prose does not remove personal data reflected by a provider. Closed-vocabulary fields avoid depending on an incomplete secret detector.
+- A streamed HTTP 200 can carry a failed answer. Monitoring needs the bounded AI error event as well as the access status, while a cancelled request can be described without recording who made it.
+
 ## 2026-10-24 — Refresh the flipbook with current study flows and fresh coaching
 
 TODO items: 12.4.1; broader 12.4 user/provider/Ollama documentation remains open.
