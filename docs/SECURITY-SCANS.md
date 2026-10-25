@@ -41,6 +41,19 @@ operator configuration or Docker socket. The versioned official
 `-silent` disables add-on updates, preserving the image's rule set. The pinned
 [baseline implementation](https://github.com/zaproxy/zaproxy/blob/v2.17.0/docker/zap-baseline.py)
 documents that behavior; upgrading requires review of the image and rule changes.
+The image's built-in UID 1000 retains access to its own home/browser-helper cache.
+Its primary group matches the runner and the report directory is mode 0770; a
+group-writable umask allows CI to collect and remove generated evidence without
+running the scanner as root or making the directory world-writable.
+
+The hook replaces the pinned launcher's initial wildcard listener with loopback,
+checking its expected argument structure before starting ZAP. The pinned network
+add-on takes the first host option, so appending an override is insufficient.
+The API allowlist checks both peer address and Host header: it permits only the
+loopback address and the Python client's exact virtual API name `zap`.
+Five Python regression tests exercise replacement, option preservation, source
+drift rejection, read-only seeding and the actual URL-method coverage interface
+and API-address rejection without needing ZAP on the host. No rule options are rewritten.
 
 The [baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) uses passive
 analysis rather than an active attack scan. Its
@@ -52,7 +65,10 @@ missing seeds, empty rule evidence, pending passive work, malformed/wrong-versio
 reports and reports for another origin. Scanner exit errors and missing reports
 cannot reuse stale prior output. High-risk alerts fail even if ZAP's default
 disposition calls them WARN. Lower findings remain in reports for explicit review;
-none is silently ignored, accepted or manually dismissed by this workflow.
+none is accepted or manually dismissed by this workflow. No application-specific
+rule/path exclusions or progress suppressions are added. The official baseline's
+built-in internal/example-rule exclusions remain; the separate high-risk check
+uses the full raw JSON report, including informational entries.
 
 Artifacts under ignored `site/tests/out/security/` include startup logs, `scan-summary.json`,
 `headers.json`, `scan-coverage.json`, `zap.json`, `zap.html`, `npm-audit.json` and
@@ -62,12 +78,30 @@ the lockfile inventory. Archive the exact run and release commit in the release
 PR before artifacts expire. Treat scanner HTML as a report to inspect, not content
 to embed in the application.
 
-The local preflight found zero npm advisories and 128 SBOM components. The
-headers-only real-CLI check passed all seven routes. The initial actual ZAP run
-must still be verified in CI before TODO 11.5 is marked complete. The local Docker
-availability probe stalled and was stopped; no Docker daemon was started or
-operator service scanned. These facts must not be reported as a successful local
-ZAP baseline.
+The actual [2026-10-25 CI baseline](https://github.com/gregoryyy/kibitz/actions/runs/40151516551)
+passed at source `45ff4b9`, scanning merge `45df8e87bef8c2cf1ef6437d1d91007d579c7182`
+with Node 24.21.0. All seven required routes were present among sixteen URLs /
+fifteen distinct paths; sixty passive rules were enabled and the remaining queue
+was zero. The startup log confirms a `127.0.0.1` listener. npm audit found zero
+advisories and the SBOM has 128 components. The independently rechecked raw report
+has zero high findings, two medium types and three informational types.
+[Evidence metadata and raw-report digest](security/2026-10-25-baseline.json) retain
+the exact run/source/image/lock identities without committing ephemeral cookies
+or response bodies. Initial startup failures remain recorded in DONE and their
+CI artifacts; they are not counted as successful scans.
+
+| Finding | Disposition |
+| --- | --- |
+| Medium 10055-6, authored `style-src unsafe-inline` on two HTML pages | Real current policy allowance; remediation remains TODO 11.5.1 |
+| Medium 90003, missing SRI on the Google Fonts stylesheet | External stylesheet dependency; remediation remains TODO 11.5.1 |
+| Informational 90011-2, header `utf-8` versus wrapper meta `utf8` | Track canonical spelling under 11.5.1; report remains visible |
+| Informational 10027, six source-comment instances | Reviewed public authored comments, including words SELECT/USER; no operator payload was staged |
+| Informational 10112, two cookie response instances | Expected opaque usage/library groups; session-management deviations remain documented in ASVS |
+
+This completes the automation/evidence milestone, not remediation of every
+finding or release approval. The local headers-only preflight passed; the local
+Docker availability probe stalled and was stopped. Actual ZAP evidence comes
+from Linux CI, not a claimed local scan or an operator service.
 
 The checked-in policy tests deliberately fail weakened headers, high alerts,
 unknown reports, missing coverage and child-process deadlines. Existing browser

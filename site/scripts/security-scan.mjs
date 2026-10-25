@@ -1,6 +1,6 @@
 // Dedicated mock-only staging. No target option, operator .env, live provider or model load.
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, copyFileSync, rmSync, realpathSync } from 'node:fs';
+import { mkdirSync, chmodSync, readFileSync, writeFileSync, copyFileSync, rmSync, realpathSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID } from 'node:crypto';
@@ -125,7 +125,7 @@ async function startStaging() {
 
 export async function run(args = process.argv.slice(2)) {
   if (args.length > 1 || args.some(arg => arg !== '--headers-only')) throw new Error('Usage: node scripts/security-scan.mjs [--headers-only]');
-  const output = resolve(site, 'tests/out/security'); mkdirSync(output, { recursive: true });
+  const output = resolve(site, 'tests/out/security'); mkdirSync(output, { recursive: true }); chmodSync(output, 0o770);
   // Stale reports must never stand in for a failed scanner execution.
   for (const name of ['zap.json', 'zap.html', 'zap.out', 'zap-home', 'scan-coverage.json', 'scan-summary.json', 'headers.json']) rmSync(resolve(output, name), { force: true, recursive: true });
   const headers = [];
@@ -154,9 +154,12 @@ export async function run(args = process.argv.slice(2)) {
       copyFileSync(resolve(root, '.github/zap/hooks.py'), resolve(output, 'hooks.py'));
       containerStarted = true;
       const code = await command('docker', ['run', '--rm', '--name', container, '--network', 'host',
-        '--user', `${process.getuid()}:${process.getgid()}`, '--workdir', '/zap/wrk', '-v', `${output}:/zap/wrk:rw`, ZAP_IMAGE,
+        // The pinned image's zap UID owns its browser-helper cache. Shared primary
+        // group and umask keep only the synthetic report tree writable by CI too.
+        '--user', `1000:${process.getgid()}`, '--workdir', '/zap/wrk', '-v', `${output}:/zap/wrk:rw`, ZAP_IMAGE,
+        'bash', '-c', 'umask 0002; exec "$@"', 'kibitz-zap',
         'zap-baseline.py', '-t', staging.base + '/', '-m', '1', '-T', '5', '--autooff',
-        '--hook', '/zap/wrk/hooks.py', '-z', '-silent -dir /zap/wrk/zap-home -host 127.0.0.1 -config api.addrs.addr.name=127.0.0.1 -config api.addrs.addr.regex=false',
+        '--hook', '/zap/wrk/hooks.py', '-z', '-silent -dir /zap/wrk/zap-home',
         '-J', 'zap.json', '-r', 'zap.html']);
       containerStarted = false; // docker run --rm has exited and removed this container.
       if (code !== 0 && code !== 2) throw new Error(`ZAP baseline failed with exit ${code}`);
@@ -180,6 +183,10 @@ export async function run(args = process.argv.slice(2)) {
   }
 }
 
-if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
+const isMain = () => {
+  try { return !!process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); }
+  catch { return false; } // stdin and REPL imports need no filesystem argv entry.
+};
+if (isMain()) {
   run().catch(() => { console.error('Security scan failed; inspect the workflow and retained reports.'); process.exitCode = 1; });
 }

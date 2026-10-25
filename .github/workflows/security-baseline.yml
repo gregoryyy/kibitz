@@ -32,6 +32,8 @@ jobs:
           cache-dependency-path: site/package-lock.json
       - run: npm ci
       - run: npm run build
+      - name: Pinned launcher loopback policy
+        run: python3 ../.github/zap/test_hooks.py
       - name: Lockfile inventory and npm advisories
         run: |
           mkdir -p tests/out/security
