@@ -4,7 +4,7 @@ Kibitz combines a chess engine with a language model: Stockfish calculates local
 
 ## Start on your own machine
 
-Install Node 24 or newer and run these commands from the repository root:
+Install Node 24.22.1 LTS or a newer maintained, security-patched release and run these commands from the repository root:
 
 ```sh
 npm --prefix site ci

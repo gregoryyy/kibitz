@@ -49,6 +49,12 @@ unreleased until a release PR names and verifies a specific version/commit.
   board geometry. Original fonts and their licences now ship locally in normal
   and offline pages, removing the external font stylesheet and its metadata
   requests. The public offline bundle grows by about 790 KB of font data.
+- Package the local container on a publisher-verified minimal Node runtime,
+  removing unused shell/npm/OS tools while preserving private volume ownership.
+  CI checks the tested image against a fresh advisory database and rejects any
+  high/critical result. Medium/low findings remain visible for review.
+- Require Node 24.22.1 or newer for native operation; keep the runtime patched
+  as later security releases become available.
 
 ### Compatibility and current limits
 

@@ -35,6 +35,15 @@ jobs:
         run: docker compose --env-file /dev/null -f ../compose.yaml config --quiet
       - name: Synthetic context-exclusion sentinel
         run: node -e "require('node:fs').writeFileSync('server/.env.container-test','SYNTHETIC_CONTAINER_PRIVATE_MARKER',{mode:0o600})"
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.1.4
+      - name: Verify the pinned runtime publisher signature
+        run: |
+          mkdir -p tests/out/container-metadata
+          cosign verify gcr.io/distroless/nodejs24-debian13:nonroot@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8 --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com > tests/out/container-metadata/runtime-signature.json
+      - name: Build previous packaging for storage compatibility
+        run: docker build --file tests/fixtures/previous-runtime.Dockerfile --build-arg "VCS_REF=$GITHUB_SHA" --tag kibitz:previous-runtime ..
       - name: Build local image from allowed source context
         run: docker build --build-arg "VCS_REF=$GITHUB_SHA" --tag kibitz:container-test ..
       - name: Record image identity and OS component inventory
@@ -42,10 +51,12 @@ jobs:
           mkdir -p tests/out/container-metadata
           docker image inspect --format '{{.Id}}' kibitz:container-test > tests/out/container-metadata/image-id.txt
           docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' kibitz:container-test > tests/out/container-metadata/revision.txt
-          docker run --rm --pull=never --entrypoint dpkg-query kibitz:container-test -W > tests/out/container-metadata/os-packages.txt
+          docker run --rm --pull=never --network=none --read-only --entrypoint node kibitz:container-test scripts/image-inventory.mjs > tests/out/container-metadata/os-packages.txt
       - run: npx playwright install --with-deps chromium
       - name: Actual image, browser and restart checks
         run: npx playwright test --config playwright.container.config.mjs
+      - name: Exact image advisory evidence with a fresh database
+        run: node scripts/image-advisories.mjs
       - name: Preserve traces on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -58,6 +69,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: container-metadata-${{ github.sha }}
-          path: site/tests/out/container-metadata/
+          path: |
+            site/tests/out/container-metadata/*.txt
+            site/tests/out/container-metadata/runtime-signature.json
+            site/tests/out/container-metadata/advisories/*.json
           if-no-files-found: warn
           retention-days: 30

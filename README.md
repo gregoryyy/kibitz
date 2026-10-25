@@ -14,7 +14,7 @@ The [local Docker package](docs/CONTAINER.md) provides a mock-default recipe wit
 
 ## Prerequisites
 
-- **Node.js 24 LTS or newer** with npm (`.nvmrc` pins 24; tested with Node 25).
+- **Node.js 24.22.1 LTS** with npm, or a newer maintained security-patched release (`.nvmrc` pins the CI runtime).
 - **Google Chrome**, for the end-to-end tests (Playwright drives the installed browser).
 - **[just](https://github.com/casey/just)** (`brew install just`) is optional; every recipe has a plain npm equivalent below.
 - A recent desktop or mobile browser with WebAssembly support. Older browsers fall back to the slower asm.js engine.

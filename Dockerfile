@@ -11,6 +11,7 @@ COPY site/server ./server
 COPY site/scripts ./scripts
 COPY site/data ./data
 RUN npm run build
+RUN mkdir /runtime-data && chown 1000:1000 /runtime-data && chmod 700 /runtime-data
 
 FROM base AS production-dependencies
 ENV NODE_ENV=production
@@ -18,7 +19,8 @@ WORKDIR /app/site
 COPY site/package.json site/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
-FROM base AS runtime
+# Runtime needs Node and shared libraries, without build-stage npm, shells or OS tools.
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8 AS runtime
 ARG VCS_REF=development
 LABEL org.opencontainers.image.title="Kibitz" \
       org.opencontainers.image.description="Local single-user neurosymbolic chess coach" \
@@ -26,6 +28,7 @@ LABEL org.opencontainers.image.title="Kibitz" \
       org.opencontainers.image.licenses="GPL-3.0-or-later" \
       org.opencontainers.image.revision=$VCS_REF
 ENV NODE_ENV=production AI_PROVIDER=mock
+ENV PATH=/nodejs/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 WORKDIR /app/site
 COPY --from=production-dependencies /app/site/node_modules ./node_modules
 COPY --from=production-dependencies /app/site/package.json /app/site/package-lock.json ./
@@ -33,13 +36,14 @@ COPY --from=build /app/site/dist ./dist
 # Shared pure browser modules are also imported by the server, outside the public tree.
 COPY --from=build /app/site/src ./src
 COPY --from=build /app/site/server ./server
-COPY --from=build /app/site/scripts/serve.mjs ./scripts/serve.mjs
+COPY --from=build /app/site/scripts/serve.mjs /app/site/scripts/image-inventory.mjs ./scripts/
 COPY --from=build /app/LICENSE /app/THIRD_PARTY_NOTICES.md /app/
-RUN mkdir /data && chown node:node /data && chmod 700 /data
-USER node
+COPY --from=build --chown=1000:1000 --chmod=0700 /runtime-data /data
+USER 1000:1000
 EXPOSE 8765
 VOLUME ["/data"]
 # Static-only health check: no cookie, inference, provider credential or usage charge.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:8765/manifest.webmanifest',{signal:AbortSignal.timeout(4000)}).then(async r=>{await r.arrayBuffer();process.exit(r.status===200?0:1)}).catch(()=>process.exit(1))"]
-CMD ["node", "scripts/serve.mjs", "dist", "--api", "--env=", "--host", "0.0.0.0", "--port", "8765", "--index", "_test.html", "--usage", "/data/usage.sqlite", "--library", "/data/library.sqlite"]
+  CMD ["/nodejs/bin/node", "-e", "fetch('http://127.0.0.1:8765/manifest.webmanifest',{signal:AbortSignal.timeout(4000)}).then(async r=>{await r.arrayBuffer();process.exit(r.status===200?0:1)}).catch(()=>process.exit(1))"]
+ENTRYPOINT ["/nodejs/bin/node"]
+CMD ["scripts/serve.mjs", "dist", "--api", "--env=", "--host", "0.0.0.0", "--port", "8765", "--index", "_test.html", "--usage", "/data/usage.sqlite", "--library", "/data/library.sqlite"]

@@ -38,6 +38,10 @@ The parser and decoder stay in server-side `node_modules/`; their licence files 
 
 Development tools (Playwright, ESLint, TypeScript and their dependencies) are not shipped; their licences are in `site/node_modules/`.
 
+Container CI additionally runs the official [Trivy](https://github.com/aquasecurity/trivy) 0.76.1 scanner (Apache-2.0), pinned by manifest digest. It is a separate build/review tool, not part of the distributed app image. Its public advisory database is refreshed and its timestamp/digest recorded for each image check; [coverage and limits](docs/IMAGE-ADVISORIES.md) distinguish it from a complete release review.
+
+The candidate runtime uses [Google Distroless Node.js 24 on Debian 13](https://github.com/GoogleContainerTools/distroless/tree/main/nodejs), pinned by manifest digest. Distroless tooling is Apache-2.0; Node and Debian components retain their own upstream licences/notices in the base image. CI verifies the publisher with [Cosign](https://github.com/sigstore/cosign) 3.1.4 (Apache-2.0), installed by a pinned [cosign-installer](https://github.com/sigstore/cosign-installer) action (Apache-2.0). These verification tools are not distributed in the app image.
+
 ## chess.js licence
 
 ```
