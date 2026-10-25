@@ -128,5 +128,6 @@ commit after all required merges.
 The separate [packaged-image advisory check](IMAGE-ADVISORIES.md) targets the exact
 CI-built/tested container archive with a pinned scanner, fresh recorded database,
 OS/production-package coverage and high/critical gate. It retains all raw findings;
-its actual Linux verification is pending. This complements npm/ZAP evidence rather
+its actual Linux verification passes with no high/critical runtime findings and
+31 retained medium/low package findings for triage. This complements npm/ZAP evidence rather
 than extending either scanner's coverage to opaque WASM/model internals.

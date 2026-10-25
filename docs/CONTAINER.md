@@ -3,14 +3,16 @@
 TODO 12.2 packages the Node gateway, optional private library and built browser app.
 It preserves the [local single-user scope](DEPLOYMENT.md). The image is built from
 this checkout; no registry publication or release is performed by the workflow.
-The actual [Linux image/browser run](https://github.com/gregoryyy/kibitz/actions/runs/40156389739)
-passes all three cases at source `f9ce54a`. [Evidence metadata](security/2026-10-25-container.json)
-records the exact built image and scanned source identities.
+The actual [minimal-runtime Linux run](https://github.com/gregoryyy/kibitz/actions/runs/40166278799)
+passes four image/browser/restart/previous-packaging compatibility cases at source
+`92ccc07`, alongside publisher-signature and raw advisory verification.
+[Current evidence](security/2026-10-25-image-advisories.json) records exact identities.
+The [earlier packaging evidence](security/2026-10-25-container.json) remains historical.
 
 The [image advisory check](IMAGE-ADVISORIES.md) adds a pinned scanner and fresh
 database to the same CI-built image, retaining raw findings and failing on
-high/critical results or incomplete package evidence. Actual verification of this
-new check is pending; inventories alone still do not provide advisory clearance.
+high/critical results or incomplete package evidence. Actual verification has zero
+high/critical runtime findings; 23 medium and eight low remain for triage.
 
 Use Docker Engine 28 or newer and the Compose plugin. The explicit loopback mapping
 follows [Docker's port-publishing behavior](https://docs.docker.com/engine/network/port-publishing/).
@@ -31,7 +33,7 @@ operator `.env`; the app's default command also uses `--env=`. Real provider set
 requires explicit runtime configuration and the app's separate sharing permission.
 The original fonts are [bundled locally](WEB-ASSETS.md); normal and offline pages use the same strict font/style policy.
 
-The candidate minimal runtime uses explicit UID/GID `1000:1000`, preserving the previous named user's file ownership, with a read-only root
+The minimal runtime uses explicit UID/GID `1000:1000`, preserving the previous named user's file ownership, with a read-only root
 filesystem, `/tmp` tmpfs, dropped capabilities, no new privileges and Docker init.
 The static health check reads only the public manifest: it tests serving, rather
 than provider/model readiness, and creates no usage cookie or inference request.
@@ -94,8 +96,10 @@ optional built-in model remains browser-managed. Packaging starts no model downl
 The [Dockerfile](../Dockerfile) uses the official
 [Node 24 image](https://github.com/nodejs/docker-node/blob/main/README.md), pinned to
 manifest `sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205`.
-Separate build and production-dependency stages use the existing lockfile with
-install scripts disabled. The runtime includes the app's declared production
+Separate build and production-dependency stages use that image and the existing
+lockfile with install scripts disabled. The runtime uses the publisher-verified
+Distroless Node 24/Debian 13 manifest recorded in [image advisory evidence](IMAGE-ADVISORIES.md).
+It includes the app's declared production
 dependencies, built WASM/client assets and licence notices. It omits development
 dependencies, build scripts, tests and checkout metadata. Shared pure source
 modules remain outside the public tree because the server imports them.
@@ -104,14 +108,17 @@ private data, Git metadata, local builds and downloaded models.
 
 The [read-token container workflow](../.github/workflows/container.yml) builds a
 local image, validates Compose without an env file, installs a test browser and
-runs three actual image cases: process/filesystem boundaries, real Stockfish/mock
-coach UI, and private volume/cookie isolation across restart. A synthetic private
+runs four actual image cases: process/filesystem boundaries, real Stockfish/mock
+coach UI, private volume/cookie isolation across restart, and reopening a volume
+from the previous packaging recipe. Both recipes use the current app/schema;
+the fourth case checks packaging compatibility. A synthetic private
 file in the allowed server source tree tests the env exclusion. It records image
 ID/source revision and the Debian package inventory for thirty days; failure
 traces last seven days. It never logs into a registry, pushes an image or uses
 provider credentials. Run the explicit tests after building the named test image:
 
 ```sh
+docker build --file site/tests/fixtures/previous-runtime.Dockerfile --tag kibitz:previous-runtime .
 docker build --tag kibitz:container-test .
 cd site
 npx playwright test --config playwright.container.config.mjs
@@ -121,7 +128,8 @@ Ordinary unit/e2e commands do not start Docker. The local Docker daemon was
 unavailable during preparation; actual image verification ran in Linux CI.
 Compose validation, context exclusion, UID/permissions, packaged engine/coach,
 cookie isolation, private data/usage restart and static health all pass there.
-The retained inventory has 88 OS package entries. The first restart test used an
+The current retained inventory covers fourteen OS package versions; the earlier
+Bookworm packaging had 88 entries. The first restart test used an
 old ephemeral host port; the corrected test re-reads Docker's mapping while
 keeping its cookie contexts and persistence assertions. The supplied Compose
 recipe uses a fixed host port.
@@ -129,5 +137,5 @@ Other architectures and image vulnerability/advisory coverage require their own
 evidence. The metadata inventory is not an advisory clearance or release approval.
 Local HTTP, cookie prefixes/HSTS, account/session limits and other
 [ASVS deviations](ASVS.md) remain. Excluding Git in a packaged process does not
-change a native checkout's process access. The CSS/font findings in 11.5.1 and
-LLM identity/prose limits also remain open.
+change a native checkout's process access. The CSS/font findings were addressed
+in [11.5.1](WEB-ASSETS.md); component coverage and LLM identity/prose limits remain open.

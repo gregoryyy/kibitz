@@ -30,7 +30,7 @@ archive/cache. Explicit configuration/ignore-file selection avoids ambient polic
 telemetry/version checks and dependency-identification API calls are disabled.
 The scanner still downloads its public advisory database.
 
-## Initial findings and minimal runtime candidate
+## Initial findings and minimal runtime
 
 The first actual [Linux run](https://github.com/gregoryyy/kibitz/actions/runs/40160064985)
 completed scanning but failed verification. Its raw report contains 244 package
@@ -48,7 +48,7 @@ ordered rootfs layers against daemon inspection and raw scanner metadata, and
 reconstructs complete Debian versions. It retains both identities and the archive
 digest. These corrections preserve exact coverage and the high/critical gate.
 
-The candidate runtime is the official
+The runtime is the official
 `gcr.io/distroless/nodejs24-debian13:nonroot@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8`.
 It retains Node/shared libraries while removing unnecessary shell, npm/corepack
 and OS utility packages from the distributed runtime. Build stages retain the
@@ -60,9 +60,9 @@ documented issuer and publisher identity before building.
 Explicit UID/GID 1000 and private data modes preserve previous volume ownership.
 A fourth actual container case creates a library and usage record under the
 frozen previous packaging recipe, then opens the same volume/cookie scope under
-the candidate and checks independent-client isolation. Both images use the current
+the minimal runtime and checks independent-client isolation. Both images use the current
 app/data schema: this is packaging compatibility, not a historical schema-migration
-guarantee. Actual candidate execution/signature/advisory results remain pending.
+guarantee. The actual execution, signature and advisory results are recorded below.
 
 ## Database and failure policy
 
@@ -108,8 +108,26 @@ inside a distributed WASM. Those provenance/coverage questions and owner
 dispositions remain in ASVS 15.2.1 and TODO 11.3/11.6. A clean report is neither a
 zero-vulnerability guarantee nor release approval.
 
-Actual Linux execution must be recorded before this subtask is marked complete.
-Local parser/policy tests and source inspection do not claim an executed image
-scan; the local Docker daemon was previously unavailable. Release verification
+The final actual [Linux run](https://github.com/gregoryyy/kibitz/actions/runs/40166278799)
+passes at source `92ccc07`, scanned merge `da379a15`. Independent artifact review
+recomputes the archive config digest, compares source/rootfs identities and exact
+package versions, verifies report digest and re-runs the raw gate. The publisher
+signature names the exact pinned runtime manifest. All four image/browser/restart/
+cross-packaging cases pass. Node is 24.22.1; fourteen OS and sixteen library versions
+are covered. There are **zero high/critical findings**, with 23 medium and eight low
+retained. [Sanitized evidence and triage targets](security/2026-10-25-image-advisories.json)
+record source/image/config/report/archive/DB/signature identities and each lower
+finding. Exposure triage is pending, without owner risk acceptance. Medium review
+targets are 2026-11-01 and remediation targets 2026-11-24; low targets are
+2026-11-24/2027-01-23, following the project's first-reported policy.
+
+The candidate's two CodeQL file-read races are corrected using no-follow open,
+descriptor validation and actual bounded reads. Real filesystem replacement,
+symlink, growth and close tests pass; latest PR instances 25/26 are fixed with no
+dismissal. Source CI passes lint/unit/audit, CodeQL, secret and passive-baseline
+checks; the full browser job remains pending at evidence recording.
+
+This completes the image-evidence/remediation subtask. No local Docker success is
+claimed: actual image execution came from Linux CI. Release verification
 must be repeated at the actual merged candidate, with review of retained findings,
 maintenance age, OWASP/LLM/ASVS controls and the remaining documented deviations.

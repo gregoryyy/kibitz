@@ -7,9 +7,9 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
-## 2026-10-25 — Exact-image advisory evidence (actual verification pending)
+## 2026-10-25 — Verified image advisories and minimal runtime
 
-TODO item: 11.6.1 remains open until actual Linux execution and raw report review. The parent release gate and ASVS component/advisory requirement remain open.
+TODO item: 11.6.1 complete. The parent release gate, lower-finding dispositions and broader ASVS component/advisory requirement remain open.
 
 ### Implementation notes
 
@@ -25,11 +25,14 @@ TODO item: 11.6.1 remains open until actual Linux execution and raw report revie
 - Candidate run `40165570438` passes publisher verification, both builds, all four actual image/browser/restart/cross-packaging cases and the strict raw advisory gate at source `922bdd9`/merge `3f9fe8f`. Independently inspected report: Node 24.22.1, fourteen OS package versions and sixteen library versions, no high/critical findings; 23 medium and eight low remain retained for triage. This is package-scope evidence, not full release clearance.
 - The separate CodeQL check reports two new high file-system races in inventory/report readers (alerts 25/26). Replaced path-stat-then-read with a shared no-follow/nonblocking open, descriptor type/size check and bounded descriptor reads; actual bytes remain capped if the file grows. Added real filesystem replacement/symlink/growth/close regressions. No alert is dismissed or excluded. Retain small independently derived image-config/rootfs evidence so archive identity can be rechecked without uploading the archive. Final source CodeQL and image rerun remain pending.
 - Descriptor correction validation passes lint/JSDoc/ASVS and the complete unit/server suite on Node 24.22.1 (690 passes, one opt-in live skip), including all sixteen advisory/inventory regression groups. No app/UI behavior or scanner rule/severity/status is changed.
+- Final actual Linux run `40166278799` passes at source `92ccc07`, scanned merge `da379a15`: publisher signature, both image builds, four real container/browser/restart/cross-packaging cases and the strict advisory gate. Independent artifact review recomputes the archive config/report digests and checks source/rootfs identities, fourteen OS package versions, sixteen library versions and fresh database metadata. Node is 24.22.1; zero high/critical, 23 medium and eight low findings. Sanitized evidence retains every lower finding with review/remediation targets; exposure triage and owner acceptance remain pending.
+- CodeQL passes on the corrected source. Both PR alert instances (25/26) are fixed without dismissal or exclusion; unit/audit, secret and passive-baseline checks also pass. The complete browser job remains pending at evidence recording. ASVS remains 28 scoped verifications, 30 justified absences, ten deviations and two open; no release-clearance claim follows from the image result.
+- Final evidence/document validation passes lint/JSDoc/ASVS and all seven checklist regressions; 322 local link targets resolve and diff whitespace is clean. The subsequent evidence prose does not change the implementation scanned at `92ccc07`.
 
 ### Deviations
 
 - This is detected-package advisory evidence, not a complete inventory/advisory claim for embedded Node/C++/WASM internals, Actions, browser/font parsers or model identities. ASVS 15.2.1, owner review of lower findings/deadlines and the actual release gate remain separate. The database freshness window is an input policy, not a remediation SLA or vulnerability guarantee.
-- Trivy is an Apache-2.0 CI tool in a separate image; no application dependency or distributed runtime scanner is added. Actual findings may require further remediation before this PR can pass.
+- Trivy is an Apache-2.0 CI tool in a separate image; no application dependency or distributed runtime scanner is added. Actual execution comes from Linux CI, with no local Docker success claimed. Medium/low findings remain visible rather than being suppressed or implicitly accepted.
 
 ### Insights
 
