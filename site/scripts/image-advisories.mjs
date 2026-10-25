@@ -14,11 +14,37 @@ const MAX_DB_AGE = 24 * 60 * 60_000, MAX_SCAN_AGE = 30 * 60_000, CLOCK_SKEW = 5 
 const severity = new Set(['UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
 const timestamp = value => typeof value === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(value) ? Date.parse(value) : NaN;
 const fresh = (value, now, age) => Number.isFinite(timestamp(value)) && timestamp(value) <= now + CLOCK_SKEW && timestamp(value) >= now - age;
+const sha = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+// Last reviewed Node 24 security floor: 2026-10-21. This is not a future advisory guarantee.
+export function patchedNode(version) {
+  const match = /^v24\.(\d+)\.(\d+)$/.exec(version || '');
+  return !!match && (Number(match[1]) > 22 || (Number(match[1]) === 22 && Number(match[2]) >= 1));
+}
+
+// Docker archive config digests and modern daemon image/index IDs are different identities.
+// Read only fixed/validated members to stdout; never extract an archive into the filesystem.
+export function archiveConfig(archive) {
+  const read = member => execFileSync('tar', ['-xOf', archive, member], { timeout: 30_000, maxBuffer: 2_000_000 });
+  const manifests = JSON.parse(read('manifest.json').toString('utf8'));
+  if (!Array.isArray(manifests) || manifests.length !== 1 || !/^(?:blobs\/sha256\/)?[a-f0-9]{64}(?:\.json)?$/.test(manifests[0]?.Config || '')) throw Error('Unexpected image archive config');
+  const bytes = read(manifests[0].Config), id = sha(bytes);
+  if (path.basename(manifests[0].Config).replace(/\.json$/, '') !== id.slice(7)) throw Error('Image archive config digest mismatch');
+  return { id, config: JSON.parse(bytes.toString('utf8')) };
+}
+
+function debianVersion(pkg) {
+  if (pkg.Epoch !== undefined && (!Number.isSafeInteger(pkg.Epoch) || pkg.Epoch < 0)) return null;
+  if (pkg.Release !== undefined && (typeof pkg.Release !== 'string' || !pkg.Release)) return null;
+  return `${pkg.Epoch ? pkg.Epoch + ':' : ''}${pkg.Version}${pkg.Release ? '-' + pkg.Release : ''}`;
+}
 
 /** Validate raw unfiltered evidence independently of Trivy's exit code. */
-export function checkImageReport(report, db, { imageId, revision, dependencies, osPackages, now = Date.now() }) {
+export function checkImageReport(report, db, { imageId, configId, diffIds, revision, dependencies, osPackages, now = Date.now() }) {
   const errors = [], findings = [];
-  if (!/^sha256:[a-f0-9]{64}$/.test(imageId || '') || report?.Metadata?.ImageID !== imageId) errors.push('Image identity mismatch');
+  if (!/^sha256:[a-f0-9]{64}$/.test(imageId || '') || !/^sha256:[a-f0-9]{64}$/.test(configId || '')
+      || report?.Metadata?.ImageID !== configId) errors.push('Image config identity mismatch');
+  if (!Array.isArray(diffIds) || !diffIds.length || diffIds.some(id => !/^sha256:[a-f0-9]{64}$/.test(id))
+      || JSON.stringify(report?.Metadata?.DiffIDs) !== JSON.stringify(diffIds)) errors.push('Image layer identity mismatch');
   if (!/^[a-f0-9]{40}$/.test(revision || '') || report?.Metadata?.ImageConfig?.config?.Labels?.['org.opencontainers.image.revision'] !== revision) errors.push('Image source mismatch');
   if (report?.SchemaVersion !== 2 || report?.ArtifactType !== 'container_image' || report?.Trivy?.Version !== '0.76.1') errors.push('Unsupported scanner report');
   if (!fresh(report?.CreatedAt, now, MAX_SCAN_AGE)) errors.push('Missing or stale scan timestamp');
@@ -26,7 +52,7 @@ export function checkImageReport(report, db, { imageId, revision, dependencies, 
       || !Number.isFinite(timestamp(db?.NextUpdate)) || timestamp(db?.NextUpdate) < now - CLOCK_SKEW
       || timestamp(db?.NextUpdate) <= timestamp(db?.UpdatedAt) || timestamp(db?.NextUpdate) > now + 48 * 60 * 60_000) errors.push('Missing, stale or invalid advisory database');
   const system = report?.Metadata?.OS;
-  if (system?.Family !== 'debian' || !/^12(?:\.\d+)?$/.test(system?.Name || '')
+  if (system?.Family !== 'debian' || !/^13(?:\.\d+)?$/.test(system?.Name || '')
       || (system?.EOSL !== undefined && system.EOSL !== false)) errors.push('Unsupported or end-of-life image OS');
   const results = report?.Results;
   if (!Array.isArray(results) || !results.length || results.length > 10_000) return { errors: [...errors, 'Missing package scan results'], findings, osPackages: 0, libraryPackages: 0 };
@@ -38,7 +64,11 @@ export function checkImageReport(report, db, { imageId, revision, dependencies, 
     if (result.Packages !== undefined && !Array.isArray(result.Packages)) errors.push('Malformed package inventory');
     for (const pkg of Array.isArray(result.Packages) ? result.Packages : []) {
       if (typeof pkg?.Name !== 'string' || !pkg.Name || typeof pkg.Version !== 'string' || !pkg.Version) { errors.push('Malformed package inventory'); continue; }
-      if (result.Class === 'os-pkgs' && result.Type === 'debian') systemPackages.add(`${pkg.Name.replace(/:[a-z0-9]+$/, '')}@${pkg.Version}`);
+      if (result.Class === 'os-pkgs' && result.Type === 'debian') {
+        const version = debianVersion(pkg);
+        if (version === null) errors.push('Malformed Debian package version');
+        else systemPackages.add(`${pkg.Name.replace(/:[a-z0-9]+$/, '')}@${version}`);
+      }
       if (result.Class === 'lang-pkgs' && ['npm', 'node-pkg'].includes(result.Type)) libraryPackages.add(`${pkg.Name}@${pkg.Version}`);
     }
     if (result.Vulnerabilities !== undefined && !Array.isArray(result.Vulnerabilities)) errors.push('Malformed vulnerability list');
@@ -103,10 +133,14 @@ export async function run(args = process.argv.slice(2)) {
     summary.imageId = imageId; summary.revision = revision;
     summary.node = docker('run', '--rm', '--pull=never', '--network=none', '--read-only', '--cap-drop=ALL',
       '--security-opt=no-new-privileges', '--entrypoint', 'node', imageId, '--version');
-    if (!/^v24\.\d+\.\d+$/.test(summary.node)) throw Error('Unexpected packaged Node version');
+    if (!patchedNode(summary.node)) throw Error('Unreviewed packaged Node version');
     summary.stage = 'image-export';
     const archive = path.join(temp, 'image.tar');
     docker('image', 'save', '--output', archive, imageId);
+    const extracted = archiveConfig(archive), diffIds = JSON.parse(docker('image', 'inspect', '--format', '{{json .RootFS.Layers}}', imageId));
+    if (JSON.stringify(extracted.config?.rootfs?.diff_ids) !== JSON.stringify(diffIds)
+        || extracted.config?.config?.Labels?.['org.opencontainers.image.revision'] !== revision) throw Error('Exported image identity mismatch');
+    summary.configId = extracted.id;
     started = true;
     summary.stage = 'scanner';
     const status = await command('docker', scannerArgs({ archive, output, name, uid: process.getuid(), gid: process.getgid() }), { env, timeout: 600_000 });
@@ -120,7 +154,7 @@ export async function run(args = process.argv.slice(2)) {
       if (!pkg || !version || extra.length) throw Error('Malformed OS inventory');
       return `${pkg.replace(/:[a-z0-9]+$/, '')}@${version}`;
     });
-    Object.assign(summary, checkImageReport(report, db, { imageId, revision, dependencies, osPackages }),
+    Object.assign(summary, checkImageReport(report, db, { imageId, configId: extracted.id, diffIds, revision, dependencies, osPackages }),
       { complete: true, reportSha256: await digest(path.join(output, 'report.json')), archiveSha256: await digest(archive) });
     summary.passed = !summary.errors.length;
     summary.stage = 'evaluated';

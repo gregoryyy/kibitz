@@ -1,16 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { checkImageReport, scannerArgs, SCANNER_IMAGE, DB_REPOSITORY } from '../../scripts/image-advisories.mjs';
+import { spawnSync, execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { createHash } from 'node:crypto';
+import { archiveConfig, patchedNode, checkImageReport, scannerArgs, SCANNER_IMAGE, DB_REPOSITORY } from '../../scripts/image-advisories.mjs';
 
 const now = Date.parse('2026-10-25T12:00:00Z'), imageId = 'sha256:' + 'a'.repeat(64), revision = 'b'.repeat(40);
-const options = { now, imageId, revision, dependencies: { 'chess.js': '1.4.0', parse5: '8.0.1' }, osPackages: ['libc6@2.36-9', 'zlib1g@1:1.2.13'] };
+const configId = 'sha256:' + 'c'.repeat(64), diffIds = ['sha256:' + 'd'.repeat(64)];
+const options = { now, imageId, configId, diffIds, revision, dependencies: { 'chess.js': '1.4.0', parse5: '8.0.1' }, osPackages: ['libc6@2.36-9', 'zlib1g@1:1.2.13'] };
 const report = () => ({ SchemaVersion: 2, ArtifactType: 'container_image', Trivy: { Version: '0.76.1' }, CreatedAt: '2026-10-25T11:58:00Z',
-  Metadata: { ImageID: imageId, OS: { Family: 'debian', Name: '12.12' }, ImageConfig: { config: { Labels: { 'org.opencontainers.image.revision': revision } } } },
-  Results: [{ Target: 'debian', Class: 'os-pkgs', Type: 'debian', Packages: [{ Name: 'libc6', Version: '2.36-9' }, { Name: 'zlib1g', Version: '1:1.2.13' }] },
+  Metadata: { ImageID: configId, DiffIDs: diffIds, OS: { Family: 'debian', Name: '13.2' }, ImageConfig: { config: { Labels: { 'org.opencontainers.image.revision': revision } } } },
+  Results: [{ Target: 'debian', Class: 'os-pkgs', Type: 'debian', Packages: [{ Name: 'libc6', Version: '2.36', Release: '9' }, { Name: 'zlib1g', Version: '1.2.13', Epoch: 1 }] },
     { Target: 'installed modules', Class: 'lang-pkgs', Type: 'node-pkg', Packages: [{ Name: 'chess.js', Version: '1.4.0' }, { Name: 'parse5', Version: '8.0.1' }] }] });
 const database = () => ({ Version: 2, UpdatedAt: '2026-10-25T06:00:00Z', DownloadedAt: '2026-10-25T11:57:00Z', NextUpdate: '2026-10-25T12:05:00Z' });
 const finding = (Severity = 'MEDIUM') => ({ VulnerabilityID: 'CVE-2026-12345', PkgName: 'libc6', InstalledVersion: '2.36-9', Severity, Status: 'affected' });
+
+test('packaged Node meets the reviewed security floor and major line independently of package-scanner detection', () => {
+  for (const version of ['v24.22.1', 'v24.22.2', 'v24.23.0']) assert.equal(patchedNode(version), true, version);
+  for (const version of ['', 'v24.21.0', 'v24.22.0', 'v25.6.1', 'v26.12.1', '24.22.1', 'v24.22.1-custom']) assert.equal(patchedNode(version), false, version);
+});
 
 test('raw image report ties exact source/image/scanner and complete OS/production package inventories to a fresh DB', () => {
   assert.deepEqual(checkImageReport(report(), database(), options), { errors: [], findings: [], osPackages: 2, libraryPackages: 2 });
@@ -23,10 +33,37 @@ test('missing, malformed, wrong-source/image/scanner/OS or stale reports fail ra
     { ...report(), Trivy: { Version: 'weekly' } }, { ...report(), CreatedAt: '2026-10-24T12:00:00Z' }, { ...report(), CreatedAt: '2026-10-26T12:00:00Z' }]) {
     assert.ok(checkImageReport(data, database(), options).errors.length);
   }
-  for (const mutate of [data => { data.Metadata.ImageID = 'sha256:' + 'c'.repeat(64); }, data => { data.Metadata.ImageConfig.config.Labels = {}; },
+  for (const mutate of [data => { data.Metadata.ImageID = imageId; }, data => { data.Metadata.DiffIDs = []; }, data => { data.Metadata.ImageConfig.config.Labels = {}; },
     data => { data.Metadata.OS.Family = 'unknown'; }, data => { data.Metadata.OS.EOSL = true; }, data => { data.Results = [null]; }]) {
     const data = report(); mutate(data); assert.ok(checkImageReport(data, database(), options).errors.length);
   }
+});
+
+test('Debian epochs and releases remain exact, and malformed version fields fail coverage', () => {
+  const data = report(); data.Results[0].Packages[1].Release = '1';
+  assert.ok(checkImageReport(data, database(), options).errors.includes('Incomplete OS package coverage'));
+  data.Results[0].Packages[1].Epoch = '1';
+  assert.ok(checkImageReport(data, database(), options).errors.includes('Malformed Debian package version'));
+});
+
+test('archive config digest is independently derived even when daemon and config identities differ', () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-archive-config-'));
+  try {
+    const config = Buffer.from(JSON.stringify({ rootfs: { diff_ids: diffIds }, config: { Labels: { 'org.opencontainers.image.revision': revision } } }));
+    const digest = createHash('sha256').update(config).digest('hex'), member = digest + '.json', archive = path.join(temp, 'image.tar');
+    fs.writeFileSync(path.join(temp, member), config);
+    const write = manifests => {
+      fs.writeFileSync(path.join(temp, 'manifest.json'), JSON.stringify(manifests));
+      execFileSync('tar', ['-cf', archive, '-C', temp, 'manifest.json', member]);
+    };
+    write([{ Config: member }]);
+    assert.equal(archiveConfig(archive).id, 'sha256:' + digest);
+    assert.deepEqual(archiveConfig(archive).config.rootfs.diff_ids, diffIds);
+    fs.writeFileSync(path.join(temp, member), Buffer.from('changed'));
+    write([{ Config: member }]); assert.throws(() => archiveConfig(archive), /digest mismatch/);
+    write([{ Config: '../../private.json' }]); assert.throws(() => archiveConfig(archive), /Unexpected/);
+    write([{ Config: member }, { Config: member }]); assert.throws(() => archiveConfig(archive), /Unexpected/);
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 
 test('a fresh download cannot disguise a stale, expired, future, missing or wrong-schema vulnerability DB', () => {

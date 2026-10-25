@@ -30,6 +30,40 @@ archive/cache. Explicit configuration/ignore-file selection avoids ambient polic
 telemetry/version checks and dependency-identification API calls are disabled.
 The scanner still downloads its public advisory database.
 
+## Initial findings and minimal runtime candidate
+
+The first actual [Linux run](https://github.com/gregoryyy/kibitz/actions/runs/40160064985)
+completed scanning but failed verification. Its raw report contains 244 package
+findings: 61 high, one critical, 96 medium, 84 low and two unknown. They remain
+retained, without a claim that every source-package advisory is reachable through
+the app. The runtime actually reports Node 24.22.1; the earlier 24.21.0 staging
+version described the CI host, not that packaged binary. CI now pins 24.22.1 rather
+than a major-only selector, following the [Node security release](https://nodejs.org/en/blog/release/v24.22.1).
+
+Actual evidence also exposed two validator assumptions: Trivy's `ImageID` is the
+archive's config digest, while the modern Docker daemon can report an image/index
+digest; Debian inventory reports split epoch, version and release. The corrected
+check independently hashes the archive config member, checks its source and
+ordered rootfs layers against daemon inspection and raw scanner metadata, and
+reconstructs complete Debian versions. It retains both identities and the archive
+digest. These corrections preserve exact coverage and the high/critical gate.
+
+The candidate runtime is the official
+`gcr.io/distroless/nodejs24-debian13:nonroot@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8`.
+It retains Node/shared libraries while removing unnecessary shell, npm/corepack
+and OS utility packages from the distributed runtime. Build stages retain the
+original pinned Node/npm image. [Distroless documents](https://github.com/GoogleContainerTools/distroless)
+its minimal contents, vector entrypoints and publisher signature policy. CI uses
+pinned Cosign 3.1.4/installer commit to verify that exact manifest against Google's
+documented issuer and publisher identity before building.
+
+Explicit UID/GID 1000 and private data modes preserve previous volume ownership.
+A fourth actual container case creates a library and usage record under the
+frozen previous packaging recipe, then opens the same volume/cookie scope under
+the candidate and checks independent-client isolation. Both images use the current
+app/data schema: this is packaging compatibility, not a historical schema-migration
+guarantee. Actual candidate execution/signature/advisory results remain pending.
+
 ## Database and failure policy
 
 Each run starts with an empty cache and selects the official
@@ -41,9 +75,9 @@ older than 24 hours, a download/scan older than 30 minutes or a clock more than
 five minutes ahead fails verification. The 24-hour freshness bound is this
 project's scan-input policy, separate from the maintenance remediation clock.
 
-The raw JSON must identify the exact image/source/scanner, supported Debian 12
+The raw JSON must identify the exact image/source/scanner, supported Debian 13
 OS and current scan time. Package coverage must include every version in the
-separately captured dpkg inventory and every declared production npm dependency.
+separately captured Debian inventory (read by Node from dpkg status/status.d without a package-manager executable) and every declared production npm dependency.
 Wrong/missing inventories or malformed reports fail, rather than become empty
 clean results. An explicitly end-of-life OS fails too.
 
@@ -64,7 +98,8 @@ success, plus actual Node version and raw report/archive digests. Database bytes
 Docker archive, daemon credentials and operator data are not uploaded. Failed
 operations remain incomplete and cannot be treated as successful scans.
 
-The tool inventories detected packages; it cannot prove that every embedded C/C++
+The tool inventories detected runtime packages; build-stage images and CI tools
+have separate advisory scope. It cannot prove that every embedded C/C++
 or WASM component, Node binary dependency, GitHub Action, font parser, browser,
 cloud/Ollama/Chrome model or undocumented upstream fork has advisory coverage.
 Checking installed npm versions does not establish the exact llama.cpp revision

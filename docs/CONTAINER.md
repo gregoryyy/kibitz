@@ -31,7 +31,7 @@ operator `.env`; the app's default command also uses `--env=`. Real provider set
 requires explicit runtime configuration and the app's separate sharing permission.
 The original fonts are [bundled locally](WEB-ASSETS.md); normal and offline pages use the same strict font/style policy.
 
-The configuration runs as the image's `node` user (UID 1000), with a read-only root
+The candidate minimal runtime uses explicit UID/GID `1000:1000`, preserving the previous named user's file ownership, with a read-only root
 filesystem, `/tmp` tmpfs, dropped capabilities, no new privileges and Docker init.
 The static health check reads only the public manifest: it tests serving, rather
 than provider/model readiness, and creates no usage cookie or inference request.

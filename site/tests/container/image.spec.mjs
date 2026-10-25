@@ -6,8 +6,8 @@ const image = process.env.KIBITZ_CONTAINER_IMAGE || 'kibitz:container-test';
 const suffix = randomUUID().slice(0, 8), name = `kibitz-image-${suffix}`, volume = `kibitz-data-${suffix}`;
 const docker = (...args) => execFileSync('docker', args, { encoding: 'utf8', timeout: 60_000, maxBuffer: 2_000_000 });
 let base;
-function publishedBase() {
-  const address = docker('port', name, '8765/tcp').trim();
+function publishedBase(container = name) {
+  const address = docker('port', container, '8765/tcp').trim();
   expect(address).toMatch(/^127\.0\.0\.1:\d+$/);
   return 'http://' + address;
 }
@@ -48,13 +48,14 @@ test('image runs without root or development/private checkout files and keeps da
       git:fs.existsSync('/app/.git'),serverGit:fs.existsSync('/app/site/.git'),
       privateSentinel:fs.existsSync('/app/site/server/.env.container-test'),
       eslint:fs.existsSync('/app/site/node_modules/eslint'),
+      shell:fs.existsSync('/bin/sh'),npm:fs.existsSync('/usr/local/lib/node_modules/npm'),
       dataMode:fs.statSync('/data').mode&0o777,
       usageMode:fs.statSync('/data/usage.sqlite').mode&0o777,
       libraryMode:fs.statSync('/data/library.sqlite').mode&0o777}));`;
   expect(JSON.parse(docker('exec', name, 'node', '-e', code))).toEqual({ uid: 1000, git: false, serverGit: false,
-    privateSentinel: false, eslint: false, dataMode: 0o700, usageMode: 0o600, libraryMode: 0o600 });
+    privateSentinel: false, eslint: false, shell: false, npm: false, dataMode: 0o700, usageMode: 0o600, libraryMode: 0o600 });
   const info = JSON.parse(docker('inspect', name))[0];
-  expect(info.Config.User).toBe('node'); expect(info.HostConfig.ReadonlyRootfs).toBe(true);
+  expect(info.Config.User).toBe('1000:1000'); expect(info.HostConfig.ReadonlyRootfs).toBe(true);
   expect(info.HostConfig.CapDrop).toContain('ALL');
   expect(info.Config.Labels['org.opencontainers.image.revision']).toBe(process.env.GITHUB_SHA || 'development');
   expect(info.Config.Env.some(value => /^(ANTHROPIC|OPENAI|MISTRAL)_API_KEY=/.test(value))).toBe(false);
@@ -109,4 +110,50 @@ test('private volume retains library and usage across restart while another cook
     expect(after.usage.requests).toBe(before.usage.requests + 1);
     await expect.poll(() => JSON.parse(docker('inspect', name))[0].State.Health.Status, { timeout: 45_000 }).toBe('healthy');
   } finally { await owner.dispose(); await other.dispose(); }
+});
+
+test('the previous packaging volume opens under the minimal runtime with the same owner, usage and isolation', async ({ playwright }) => {
+  const previous = `kibitz-previous-${suffix}`, upgraded = `kibitz-upgraded-${suffix}`, data = `kibitz-upgrade-data-${suffix}`;
+  const owner = await playwright.request.newContext(), other = await playwright.request.newContext();
+  const errors = [], containers = new Set();
+  const start = (container, runtime) => {
+    containers.add(container);
+    docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
+      '--security-opt=no-new-privileges', '--tmpfs', '/tmp:mode=1777', '--publish', '127.0.0.1::8765',
+      '--mount', `type=volume,src=${data},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', runtime);
+    return publishedBase(container);
+  };
+  const ready = async url => expect.poll(async () => {
+    try { return (await owner.get(url + '/api/library/status')).status(); } catch { return 0; }
+  }, { timeout: 30_000 }).toBe(200);
+  try {
+    docker('volume', 'create', data);
+    const old = start(previous, 'kibitz:previous-runtime'); await ready(old);
+    const initial = await (await owner.get(old + '/api/library/records')).json();
+    const record = { id: 'runtime-upgrade-study', kind: 'study', pgn: '1. d4 d5 *' };
+    const saved = await owner.post(old + '/api/library/records', { data: { scope: initial.scope, revision: initial.revision,
+      changes: [{ collection: 'games', id: record.id, record }] } }); expect(saved.status()).toBe(200);
+    const before = await (await owner.get(old + '/api/ai/status')).json();
+    const answer = await owner.post(old + '/api/ai/sample', { data: { prompt: 'Synthetic runtime compatibility check' } });
+    expect(answer.status()).toBe(200); expect(await answer.text()).toContain('"done":true');
+    docker('rm', '--force', previous);
+    containers.delete(previous);
+    const next = start(upgraded, image); await ready(next);
+    const restored = await (await owner.get(next + '/api/library/records')).json();
+    expect(restored.scope).toBe(initial.scope); expect(restored.games).toEqual([record]);
+    expect((await (await other.get(next + '/api/library/records')).json()).games).toEqual([]);
+    const after = await (await owner.get(next + '/api/ai/status')).json();
+    expect(after.user.requests).toBe(before.user.requests + 1); expect(after.usage.requests).toBe(before.usage.requests + 1);
+  } catch (error) { errors.push(error); }
+  finally {
+    const disposed = await Promise.allSettled([owner.dispose(), other.dispose()]);
+    for (const result of disposed) if (result.status === 'rejected') errors.push(result.reason);
+    for (const container of containers) {
+      try { docker('rm', '--force', container); }
+      catch (error) { if (!/No such container/i.test(String(error.stderr))) errors.push(error); }
+    }
+    try { docker('volume', 'rm', data); }
+    catch (error) { if (!/no such volume/i.test(String(error.stderr))) errors.push(error); }
+  }
+  if (errors.length) throw new AggregateError(errors, 'Runtime compatibility check or cleanup failed');
 });
