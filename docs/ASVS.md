@@ -59,7 +59,8 @@ The review leaves these findings visible:
   API credentials, cookies and prompt bodies are not put there, but a private chess
   position can still be sensitive. See [privacy guidance](PRIVACY.md).
 - Component update timeframes are documented in [MAINTENANCE.md](MAINTENANCE.md).
-  Automated evidence now includes lockfile and image OS inventories; complete
+  Automated evidence includes lockfile/image inventories and
+  [actual Node components, browser asset hashes and bounded package/Action provenance](COMPONENT-PROVENANCE.md); complete
   advisory/age verification against those timeframes remains in release review
   TODO 11.6. A zero npm audit result alone cannot establish it.
 

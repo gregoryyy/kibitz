@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { test, expect, open, move } from '../e2e/fixtures.mjs';
+import { openContainerApp } from './startup.mjs';
 
 const image = process.env.KIBITZ_CONTAINER_IMAGE || 'kibitz:container-test';
 const suffix = randomUUID().slice(0, 8), name = `kibitz-image-${suffix}`, volume = `kibitz-data-${suffix}`;
@@ -70,9 +71,13 @@ test('image runs without root or development/private checkout files and keeps da
   expect((await request.get(base + '/icon.svg')).headers()['content-type']).toBe('image/svg+xml; charset=utf-8');
 });
 
-test('packaged Stockfish plays and packaged library/mock coach work in the real browser', async ({ page }) => {
+test('packaged Stockfish plays and packaged library/mock coach work in the real browser', async ({ page }, info) => {
   await page.route('https://**/*', route => route.abort()); // No fonts, providers or model downloads.
-  await open(page, base + '/?debug');
+  if (await openContainerApp(page, base + '/?debug', open)) {
+    await info.attach('initial-network-change-recovery', { body: JSON.stringify({
+      reason: 'local module loads aborted with ERR_NETWORK_CHANGED', navigations: 2,
+    }), contentType: 'application/json' });
+  }
   await move(page, 'e2', 'e4'); await expect(page.locator('#moves button')).toHaveCount(2);
   await page.locator('[data-tab="library"]').click();
   await page.locator('#libList .game').filter({ hasText: 'Opera' }).getByRole('button', { name: 'Open' }).click();

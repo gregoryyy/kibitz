@@ -7,6 +7,32 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Local release review preparation
+
+TODO item: 11.6 preparation; the release gate remains open.
+
+### Implementation notes
+
+- Added a dated review packet binding the source/prerequisite PRs to the actual OWASP application/LLM, ASVS, web-baseline, exact-image and test evidence. Separate implementation-source evidence from the future release candidate and its required full checks.
+- Listed each of the ten ASVS deviations and both open requirements with the concrete decision or missing evidence. Retained the 31 runtime finding targets and the three current-main CodeQL medium contexts; the API reports no open main highs at `42761c3`. No finding is suppressed, dismissed or accepted on the owner's behalf.
+- Recorded the external inputs for human calibration, recorded-provider/German trials, mutable model identities and unrestricted chess-claim verification. Updated release/maintenance guidance to reflect completed packaging/guides while retaining the actual gate.
+- Checked official Debian records for all 25 distinct runtime CVEs behind the 31 package findings. Added a conservative exposure review covering actual amd64 identity, container restrictions, narrow function/service prerequisites, resolver configuration and unverified native call chains/ranges. No vendor classification is treated as a fix or owner exception; original deadlines and raw findings remain intact.
+- Added a fixed public-asset/Node-component capture to container CI, with explicit artifact retention. The exact command passes a native macOS smoke check for seven assets and 29 component/ABI entries, and fails on a missing asset; actual Linux inventory remains pending. Verified four npm registry signatures for the two pinned WASM packages against current advertised keys, matching lock integrities and rejecting a modified signed payload. Retained replayable public material and exact source candidates, explicitly without compilation attestation or mutable-model identity claims.
+- Independently resolved all six direct Action pins against official tags, dereferencing CodeQL's annotated tag. A paginated query finds no matching GitHub-reviewed/non-withdrawn advisories for those exact wrapper versions; it does not clear bundled dependencies, downloaded tools, runner runtimes, unreviewed reports or malware. The dated record preserves that scope, with no pin/token/setting/alert change.
+- Actual capture run `40168845693` at source `0936467` records Linux/x64 Node 24.22.1, 29 component/ABI entries and seven asset sizes/hashes matching the previously tested build. Both attempts fail the browser case after Chromium aborts initial modules with `ERR_NETWORK_CHANGED` (27/40 trace errors); the other three cases pass, and advisory scanning does not run. Added one container-only navigation recovery for that exact same-origin script failure. HTTP/page/other-network failures, repeated interruption and missing/violated CSP evidence still fail; six policy groups cover the boundaries. Corrected actual CI remains pending, with no timeout/assertion relaxation or app behavior change.
+- Recorded the owner's first-candidate choice to keep experimental free-form coaching with the verification limitation visible in README, user guide and LLM/release review. TODO 11.3.9 remains open; no claim of exhaustive chess-prose verification or disposition of other security requirements follows.
+- Corrected actual run `40169822979` passes at source `5764f74`, merge `07079b6`: publisher signature, both builds, all four browser/private-file/restart/compatibility cases and the strict image gate. Independent artifact review rechecks config/rootfs/source and report identity, fresh DB/raw gate, exact fourteen OS/sixteen library versions and all seven asset hashes/sizes. The map has 29 Node component/ABI entries; raw findings match the prior 23 medium/eight low exactly, retaining original deadlines and pending dispositions. Source CI passes unit/audit, CodeQL, secrets and passive checks; full Playwright remains running at this recording. ASVS stays 28 scoped verifications, 30 justified absences, ten deviations and two open.
+- Final documentation/evidence validation passes lint/JSDoc/ASVS plus all fourteen checker/recovery regression groups. All 472 local link targets resolve and diff whitespace is clean. Application/server/Docker/package sources are unchanged between `92ccc07` and `5764f74`; the new image evidence is attached to its actual source rather than relabeled as a release candidate. Integrated the user's merges through #122 without file changes.
+- Lint/JSDoc/ASVS and build pass; the complete settled-build unit/server suite passes (697 passes, one opt-in live skip), including the six recovery policy groups and eight checker groups. All 118 local link targets resolve and diff whitespace is clean. Supplemental coverage checks reconcile all 25 advisory rows with the 31 unchanged pending raw findings. Offline replay verifies all retained registry signatures and rejects altered payloads; the container workflow parses and retains the new JSON explicitly. Application runtime is unchanged; corrected Linux verification remains pending. The parent's full unit/browser/image results are not relabeled as release-candidate evidence. No paid/provider call, model download, operator configuration inspection, version bump, tag or publication.
+
+### Deviations
+
+- Prerequisites #118–#122 are merged; #123/#124 remain open at recording. Full browser CI is still running. This review preparation leaves the release candidate, TODO 11.6 approval and broader unsatisfied requirements separate; it does not establish ASVS compliance or authorize publishing.
+
+### Insights
+
+- A reviewable release decision needs exact evidence and individual unresolved conditions together. A passing feature check cannot supply an owner's risk disposition or evidence about a later merged revision.
+
 ## 2026-10-25 — Verified image advisories and minimal runtime
 
 TODO item: 11.6.1 complete. The parent release gate, lower-finding dispositions and broader ASVS component/advisory requirement remain open.

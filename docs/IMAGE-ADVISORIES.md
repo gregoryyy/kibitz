@@ -131,3 +131,9 @@ This completes the image-evidence/remediation subtask. No local Docker success i
 claimed: actual image execution came from Linux CI. Release verification
 must be repeated at the actual merged candidate, with review of retained findings,
 maintenance age, OWASP/LLM/ASVS controls and the remaining documented deviations.
+
+The [compiled-component follow-up](COMPONENT-PROVENANCE.md) adds actual Node
+component/ABI versions and seven browser JS/WASM byte identities. Its successful
+Linux run at source `5764f74` retains the same 31 medium/low findings and original
+targets, with four passing cases and independently rechecked image/package data.
+It does not extend package advisories into complete native/WASM coverage.

@@ -6,6 +6,12 @@ The project repository also [publishes a 2026 list](https://github.com/GenAI-Sec
 
 ## Evidence by category
 
+For the first release candidate, the owner chose on 2026-10-25 to retain
+experimental free-form coaching and document its verification limits. LLM09 /
+TODO 11.3.9 remains open: this product-scope decision does not establish that
+every chess claim is checked. The [release packet](RELEASE-REVIEW.md) records it
+separately from other outstanding control/finding dispositions.
+
 “Reviewed controls” means the named deterministic application boundaries have evidence within this deployment. It does not mean the risk is eliminated. A model is always an untrusted source of text and action requests.
 
 | 2025 category / TODO | Application controls and test evidence | Disposition and limits |
