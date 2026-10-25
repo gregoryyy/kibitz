@@ -253,7 +253,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 11.3.10 LLM10 Unbounded consumption: shared/per-cookie rates, persistent soft thresholds and independent per-operation time/body/result bounds tested; usage thresholds are not hard spending or concurrency reservations
     - [x] 11.3.10.1 Bound runtime chat/embedding SDK operations to a total deadline (default 60 seconds, maximum 15 minutes), 8 MiB body/embedding-result caps and a smaller 128 KiB decoded coaching cap; stalled/overflow/abort, actual loopback/CLI/browser, accounting/private-diagnostic and connection-test disconnect regressions. SDK retries disabled; format/tool/server-side fallbacks remain separately bounded calls
   - [x] 11.3.11 Review all ten categories against code/tests, add four-adapter credential-context tests and a 2026 numbering crosswalk, and reproduce unresolved misinformation/stream-deadline limits without live calls
-- [ ] 11.4 OWASP ASVS: pick a level (L1 for a local app, L2 if hosted with accounts), keep a verification checklist, automate checks where possible
+- [x] 11.4 OWASP ASVS review: selected stable 5.0.0 L1 for the local single-user app; [70 individually assessed requirements](ASVS.md), pinned offline coverage/evidence/document checks in CI. Review completion is not compliance or release approval; HTTP findings, deployment deviations and incomplete inventory remain explicit
+  - [ ] 11.4.1 HTTP hardening from the L1 review: compare the AI gateway Origin's native scheme as well as host, preserve direct local clients, reject forwarded-header spoofing, and declare UTF-8 on SVG responses; actual-server/browser regressions
 - [ ] 11.5 Automated scans: Dependabot, CodeQL, secret scanning, OWASP ZAP baseline against staging, CSP check
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings
 

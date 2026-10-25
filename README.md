@@ -19,7 +19,7 @@ The page loads ES modules and Web Workers, so it must be served over HTTP. Openi
 
 The supported target is a **local single-user app**, served on loopback by default. Cloud AI remains optional; Ollama and the in-browser model offer local inference. [Deployment decision](docs/DEPLOYMENT.md) records the scope and implications for accounts, keys and security.
 
-The [threat model](docs/THREAT-MODEL.md) maps data flows, local trust assumptions, tested controls and remaining security verification work. The [OWASP Top 10 checklist](docs/OWASP-TOP10.md) records the code/evidence review and tracked findings; release verification remains open.
+The [threat model](docs/THREAT-MODEL.md) maps data flows, local trust assumptions, tested controls and remaining security verification work. The [OWASP Top 10 checklist](docs/OWASP-TOP10.md), [LLM review](docs/OWASP-LLM.md) and [ASVS L1 assessment](docs/ASVS.md) record evidence, limits and tracked findings; release verification remains open.
 
 The [flipbook](docs/flipbook/README.md) follows the Opera Game into source search, opening repertoires, lessons and local practice, including German phone views.
 
