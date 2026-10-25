@@ -1,0 +1,110 @@
+{
+  "scope": "tested-image-compiled-components-and-browser-assets",
+  "date": "2026-10-25T06:41:01.674Z",
+  "sourceRevision": "5764f74d9effb38c15c8894d7b8ca798a526df6a",
+  "scannedMergeRevision": "07079b6f71d44ea5e623bb2bb0c46f3f4920ccb3",
+  "run": "https://github.com/gregoryyy/kibitz/actions/runs/40169822979",
+  "imageId": "sha256:439179c91db87d2f876198cc19ac041737854f8438b3ce9e38bf4078ec2f4cb1",
+  "imageConfigId": "sha256:e4363d1c85dea0e227b42cac0f7516fd2cbef08e3f6227b6e72f0415799de8de",
+  "runtimeInventorySha256": "f5ff4322f7fab7c6a6b6ce592a24e2d6166de863b6f6a1f719c7e5bbcff3393c",
+  "reportSha256": "58468ad882629b54364000535b93e494663a05acd2a7180b4694e448b1264f64",
+  "archiveSha256": "e87d81f941559153f12bc1f9897fe308ebe5dcd119b5d67049460cd390207114",
+  "publisherSignatureSha256": "f254d93956d0a05e1ca3ea4b8a207988d59a6d97e661b404db67e28087cb0731",
+  "scanner": "ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c",
+  "database": {
+    "Version": 2,
+    "NextUpdate": "2026-10-26T01:20:33.190871941Z",
+    "UpdatedAt": "2026-10-25T01:20:33.190884269Z",
+    "DownloadedAt": "2026-10-25T06:41:15.689071327Z",
+    "sha256": "3f7cd3138dfc143a2ab8ed36702dadc981e068f3801f5aac6eae6ff9477457fd"
+  },
+  "osPackages": 14,
+  "libraryPackages": 16,
+  "containerCasesPassed": 4,
+  "findingCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 23,
+    "LOW": 8,
+    "UNKNOWN": 0
+  },
+  "priorFindingIdentityUnchanged": true,
+  "ownerDispositions": "pending; original targets retained",
+  "verificationPassed": true,
+  "node": "v24.22.1",
+  "platform": "linux",
+  "arch": "x64",
+  "components": {
+    "node": "24.22.1",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.9",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "137",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.9",
+    "simdjson": "4.6.11",
+    "simdutf": "6.4.0",
+    "sqlite": "3.53.4",
+    "tz": "2026e",
+    "undici": "7.30.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "13.6.233.17-node.58",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "assets": [
+    {
+      "name": "sf.js",
+      "bytes": 28230,
+      "sha256": "ccb130d7ff29408531c47d859a49f91d59d4f482d05a53eb1a3231a4f624c91a"
+    },
+    {
+      "name": "sf.wasm",
+      "bytes": 1845971,
+      "sha256": "ee4f115bdb2d32cadf96cada104a05b5ec257d7ad6f57582190b49bc71f096de"
+    },
+    {
+      "name": "sf-asm.js",
+      "bytes": 3155627,
+      "sha256": "c07dad9a00a89f4b1dcba3971d58d8078715556eac0212368e4aab510e1e27c9"
+    },
+    {
+      "name": "sf-mt.js",
+      "bytes": 33426,
+      "sha256": "dac939ff529668e0168b2f615145ec18b029b753deb6963fd7319d788f964333"
+    },
+    {
+      "name": "sf-mt.wasm",
+      "bytes": 1697617,
+      "sha256": "ddf06cdaf0b8e35c11b40530e44db96c2a99c9029c8d621dd9fca97e4872770c"
+    },
+    {
+      "name": "wllama.js",
+      "bytes": 382633,
+      "sha256": "e5506753e41a59c11f61f2c52422045be9fc76e32a7e47f037aaad5df4ec723e"
+    },
+    {
+      "name": "wllama.wasm",
+      "bytes": 8763949,
+      "sha256": "551f13439366eff11e057b1b91fe46a7fdac29d56d67372d4c5f19a549dfe70c"
+    }
+  ],
+  "limitations": [
+    "Versions include ABI markers and empty optional entries; this is not a full binary SBOM or compilation attestation.",
+    "The original failed run and retry at 0936467 are retained; corrected run passes but does not prove initial network changes cannot recur.",
+    "Package/raw advisory and broader component review retain their separate coverage limits; no release approval."
+  ]
+}

@@ -22,13 +22,24 @@ operator paths, private storage, model weights or provider responses. The explic
 JSON artifact joins the existing thirty-day inventory retention. Initial actual
 Linux capture succeeds at `0936467`, but that run's browser check fails twice on
 module loads aborted by Chromium with `ERR_NETWORK_CHANGED`; its advisory scan
-does not run. Corrected full workflow verification remains pending. The local
+does not run. The [corrected actual run](https://github.com/gregoryyy/kibitz/actions/runs/40169822979)
+passes all four container cases and the advisory gate at source `5764f74`, merge
+`07079b6`. [Retained component evidence](security/2026-10-25-compiled-components.json)
+records exact image/config/report/inventory/DB identities and the captured map.
+Independent review rechecks config/rootfs/source, the raw advisory gate and exact
+package coverage, and compares all seven asset hashes/sizes with the tested local
+build. The 23 medium/eight low findings are identical to the prior report; their
+original targets and pending dispositions remain unchanged. The local
 command smoke test used macOS Node and is not packaged-runtime evidence.
 
 This version map is not a complete binary SBOM, proof of static/dynamic linkage,
 compiler/source attestation or advisory scan of every embedded component. A shared
 OS library and Node's version of a similarly named component can differ. The byte
 hashes identify shipped assets without proving which source produced them.
+The actual map includes 29 version/ABI entries, including empty optional entries.
+For example, Node reports OpenSSL `3.5.9` and zlib `1.3.2.1-motley-285e94b`, while
+the OS inventory separately records `libssl3t64` `3.5.7-1~deb13u3` and `zlib1g`
+`1:1.3.dfsg+really1.3.1-1+b1`. Neither version list establishes native linkage.
 
 ## Pinned npm metadata
 

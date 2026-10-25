@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "92ccc071859f81c6839867428f3c35b8574367ac",
+  "revision": "5764f74d9effb38c15c8894d7b8ca798a526df6a",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -834,14 +834,19 @@
       "topic": "Component remediation evidence",
       "status": "open",
       "method": "documentation-review",
-      "note": "Dated evidence includes the npm SBOM/audit, fourteen OS and sixteen library versions in the actual minimal runtime, a fresh hashed advisory DB, verified base publisher signature and no high/critical runtime findings. Twenty-three medium/eight low findings remain for triage. Full dated advisory/age verification for build stages, Actions, Node/WASM internals and models is still incomplete; this is not release-wide CVE clearance.",
+      "note": "Dated evidence includes npm/image inventories, a fresh hashed advisory DB, verified base publisher, actual Node component/ABI versions and seven distributed engine/runtime asset hashes. Registry signatures and Action wrapper pins/queries are reviewed with scope limits. Runtime findings remain 23 medium/eight low for disposition. Build-stage, embedded/native advisory-age coverage, binary compilation linkage, downloaded Action tools and model provenance remain incomplete; this is not release-wide clearance.",
       "evidence": [
         "docs/MAINTENANCE.md",
         "docs/SECURITY-SCANS.md",
         "docs/CONTAINER.md",
         "site/src/fonts/manifest.json",
         "docs/IMAGE-ADVISORIES.md",
-        "docs/security/2026-10-25-image-advisories.json"
+        "docs/security/2026-10-25-image-advisories.json",
+        "docs/COMPONENT-PROVENANCE.md",
+        "docs/security/2026-10-25-compiled-components.json",
+        "docs/security/2026-10-25-package-provenance.json",
+        "docs/security/2026-10-25-action-advisories.json",
+        "docs/security/2026-10-25-runtime-triage.md"
       ],
       "followUp": "TODO 11.6"
     },

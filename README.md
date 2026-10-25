@@ -74,6 +74,8 @@ The [LLM and symbolic design overview](docs/AI-DESIGN.md) maps the mechanisms ac
 
 The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library, opening explorer, repertoire builder and reading suggestions.
 
+Coaching prose is experimental. Kibitz checks recognized moves, selected board claims and captured engine evidence; these checks do not verify every explanation or strategic claim. Expand an answer's evidence cards and check important continuations with Stockfish. The [user guide](docs/GUIDE.md#analyse-and-ask-the-coach) explains the current limits.
+
 The **Openings** tab explores recorded continuations from the classics and your saved/imported games. It shows counts and results for the selected collection, with sample games at each move. Try a continuation on the scratch board and step back to explore another branch. During play it follows the help setting and needs Full engine help.
 
 The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. **Review due moves** recalls saved choices on an independent board; [practice scheduling](docs/PRACTICE.md) describes intervals and limits.

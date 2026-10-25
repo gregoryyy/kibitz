@@ -84,13 +84,23 @@ The [compiled-component/package evidence](COMPONENT-PROVENANCE.md) additionally
 records verified registry signatures and exact upstream source candidates, while
 keeping the binary compilation link unverified. Initial Linux Node/asset capture
 passed, while its browser check failed twice on network-change-aborted modules.
-Corrected full workflow verification remains pending; native smoke output is not
-substituted for that evidence.
+The [corrected run](https://github.com/gregoryyy/kibitz/actions/runs/40169822979)
+passes all four actual cases and the advisory gate at source `5764f74`, merge
+`07079b6`; independent review verifies the captured component/image/package/asset
+identities. Native smoke output is not substituted for that evidence. Full source
+CI passes unit/audit, CodeQL, secret and passive checks; Playwright is still running
+at this recording.
 All six direct Action pins also match independently resolved official version
 tags, with a dated, bounded advisory query. Bundled/downloaded tool dependencies
 and hosted runner/platform changes remain separate gaps.
 
 ## Candidate work and external inputs
+
+**Owner direction, 2026-10-25:** retain experimental free-form coaching for the
+first release candidate and document the open verification limitation. Restricted
+fully checked output is not required for that candidate. TODO 11.3.9 remains
+unmet, with no claim that general prose is verified; README and the user guide
+state the boundary. This decision does not dispose of other security requirements.
 
 Before approval, select a version and exact merged source, update the changelog
 and package/lock metadata using [the release procedure](RELEASING.md), then run
@@ -112,8 +122,9 @@ closed by this packet:
   provenance require model-specific review; labels alone cannot pin them.
 - **11.3.9:** arbitrary chess prose is not exhaustively verified. Recognized
   lines/pieces/motifs, regex cue counts and zero detected problems cannot establish
-  the promised general guarantee. Changing that requirement needs an explicit
-  scope decision; implementing broader deterministic checks needs its own plan.
+  the promised general guarantee. The owner's candidate scope retains experimental
+  prose with this gap documented; broader deterministic verification needs its
+  own plan and is not claimed complete.
 - **11.6:** prerequisites, actual candidate checks and the dispositions above are
   outstanding. Only a passing, approved release PR and explicit publication
   authorization can lead to a tag/assets; this preparation does neither.
