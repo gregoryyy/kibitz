@@ -104,11 +104,10 @@ export function assertMetadataUnavailable(metadata) {
     for (const file of [root, path.join(root, 'HEAD'), path.join(root, 'config'), path.join(root, 'packed-refs'), path.join(root, 'objects'), path.join(root, 'refs')]) {
       let fd;
       try {
-        const entry = fs.statSync(file);
-        if (entry.isDirectory()) { fs.readdirSync(file); fail(); }
-        if (entry.isFile()) {
-          fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NONBLOCK || 0)); fail();
-        }
+        // A readable descriptor already disproves isolation. Probe the open
+        // directly, rather than checking a pathname then reopening a replacement.
+        fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NONBLOCK || 0) | (fs.constants.O_NOFOLLOW || 0));
+        fail();
       } catch (error) {
         if (!['ENOENT', 'ENOTDIR', 'EACCES', 'EPERM'].includes(error.code)) throw error;
       } finally { if (fd !== undefined) fs.closeSync(fd); }
