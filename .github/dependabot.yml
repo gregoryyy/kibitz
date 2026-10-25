@@ -13,6 +13,11 @@ updates:
       default-days: 7
   - package-ecosystem: github-actions
     directory: /
+    # CodeQL steps share configuration and cannot run at different versions.
+    groups:
+      codeql:
+        patterns:
+          - github/codeql-action/*
     schedule:
       interval: weekly
       day: monday
