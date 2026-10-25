@@ -73,7 +73,10 @@ backend-only option permitting HTTP to exact loopback hosts `127.0.0.1`, `::1`
 and `localhost`. It never permits a LAN/remote plaintext host or a provider
 redirect, cannot combine with native TLS, and cannot be enabled by request
 bodies or an environment flag. Direct module callers must opt in explicitly;
-normal evaluators/recorders use the secure default. HTTPS endpoints in dev mode
+normal evaluators/recorders use the secure default. Unavailable providers are
+refused before SDK construction, including with an injected client. The recorder
+also checks its own actual destination and refuses unavailable/forged configs,
+so a missing synthetic key cannot fall back to an ambient SDK credential. HTTPS endpoints in dev mode
 still require the same reviewed TLS runtime and certificate checks. Synthetic
 HTTP development is outside the supported final app. Keep its identities and
 private databases separate as in the [migration guide](COOKIE-MIGRATION.md).

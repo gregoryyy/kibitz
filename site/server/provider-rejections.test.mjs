@@ -18,7 +18,7 @@ for (const name of ['anthropic', 'openai', 'mistral', 'ollama']) test(`${name}: 
     const opts = { apiKey: key, baseURL: 'https://fixture.invalid/v1', fetch: fetcher, maxRetries: 0, logger: { debug() {}, info() {}, warn() {}, error() {} } };
     return provider === 'anthropic' ? new Anthropic(opts) : new OpenAI(opts);
   };
-  const config = loadConfig({ AI_PROVIDER: name, ANTHROPIC_API_KEY: key, OPENAI_API_KEY: key, MISTRAL_API_KEY: key, OLLAMA_MODEL: 'fixture-model', AI_RATE_LIMIT_PER_MINUTE: '1000', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1000' });
+  const config = loadConfig({ AI_PROVIDER: name, ANTHROPIC_API_KEY: key, OPENAI_API_KEY: key, MISTRAL_API_KEY: key, OLLAMA_MODEL: 'fixture-model', OLLAMA_BASE_URL: 'https://localhost:11434', AI_RATE_LIMIT_PER_MINUTE: '1000', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1000' });
   const embeddingConfig = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mistral', MISTRAL_API_KEY: key });
   const api = createApi({ allowInsecureHttp: true, config, provider: createProvider(config, { client: client(name) }), embeddingConfig,
     embedder: createEmbedder(embeddingConfig, { client: client('mistral') }), log: { info: line => logs.push(line), error: line => logs.push(line) } });

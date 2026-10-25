@@ -5,7 +5,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { loadConfig, loadEmbeddingConfig, publicStatus } from './ai.mjs';
+import { createProvider, loadConfig, loadEmbeddingConfig, publicStatus } from './ai.mjs';
 import { secureFetch, transportUrl, TransportError } from './secure-fetch.mjs';
 import { tlsMaterial } from '../tests/helpers/tls-material.mjs';
 import { wire } from '../tests/fixtures/ai-wire.mjs';
@@ -19,7 +19,7 @@ test('default provider and embedding configs refuse every plaintext/credential-b
     const P = provider.toUpperCase(), base = { AI_PROVIDER: provider, [`${P}_API_KEY`]: 'synthetic', [`${P}_MODEL`]: 'fixture', OLLAMA_ALLOWED_HOSTS: '127.0.0.1,localhost,elsewhere.invalid' };
     for (const url of ['http://127.0.0.1:11434', 'http://elsewhere.invalid', 'https://user:PRIVATE_SENTINEL@localhost', 'https://localhost/?key=PRIVATE_SENTINEL', 'file:///PRIVATE_SENTINEL']) {
       const config = loadConfig({ ...base, [`${P}_BASE_URL`]: url });
-      assert.equal(config.available, false); assert.doesNotMatch(JSON.stringify(publicStatus(config)), /PRIVATE_SENTINEL|elsewhere\.invalid/);
+      assert.equal(config.available, false); assert.throws(() => createProvider(config, { client: {} }), { code: 'unavailable' }); assert.doesNotMatch(JSON.stringify(publicStatus(config)), /PRIVATE_SENTINEL|elsewhere\.invalid/);
       if (provider !== 'anthropic') assert.equal(loadEmbeddingConfig({ ...base, [`${P}_BASE_URL`]: url, EMBEDDING_PROVIDER: provider, EMBEDDING_MODEL: 'fixture' }).available, false);
     }
     assert.equal(loadConfig({ ...base, [`${P}_BASE_URL`]: 'https://localhost:11434' }).available, true);

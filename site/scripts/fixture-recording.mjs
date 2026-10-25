@@ -1,3 +1,4 @@
+import { transportUrl } from '../server/secure-fetch.mjs';
 // Operator-only capture: HTTP bytes are test data, never code or filenames.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -41,6 +42,8 @@ export function checkSecrets(text, secrets) {
 export async function recordFixture(cfg, label, { fetcher = fetch, secrets = [], timeoutMs = Math.min(cfg.timeoutMs, 300_000), maxBytes = 1_048_576 } = {}) {
   fixtureName(cfg.provider, label);
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 300_000 || !Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > 1_048_576) fail('invalid_limits');
+  if (!cfg.available) fail('provider_unavailable');
+  try { transportUrl(cfg.baseURL); } catch { fail('invalid_transport'); }
   secrets = [...secrets, ...(cfg.provider === 'ollama' ? [] : [cfg.apiKey])];
   checkSecrets(JSON.stringify({ model: cfg.model }), secrets);
   const controller = new AbortController();
@@ -54,6 +57,7 @@ export async function recordFixture(cfg, label, { fetcher = fetch, secrets = [],
     try {
       controller.signal.throwIfAborted();
       if (++attempts > 1) fail('extra_request');
+      transportUrl(url); // A direct recorder caller cannot bypass the SDK transport boundary.
       const res = await fetcher(url, { ...init, signal: controller.signal, redirect: 'error' });
       const contentType = res.headers.get('content-type') || '';
       if (res.status !== 200 || contentType.split(';')[0].trim().toLowerCase() !== 'text/event-stream' || !res.body) {

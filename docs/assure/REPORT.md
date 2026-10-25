@@ -27,7 +27,7 @@ flowchart LR
 | deviation | 220 |
 | reflection | 2 |
 
-4210 typed edges; 474 scanned text inputs; 349 unresolved references.
+4211 typed edges; 474 scanned text inputs; 349 unresolved references.
 
 ## TODO → DONE index
 

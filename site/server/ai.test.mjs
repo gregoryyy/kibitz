@@ -164,7 +164,7 @@ test('mistral: uses max_tokens and keeps only text parts of array content', asyn
 
 test('openai-compatible: content_filter raises refused', async () => {
   const client = fakeOpenAI([chunk('', 'content_filter')]);
-  await assert.rejects(drain(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }), { client }).chat(msgs)), { code: 'refused' });
+  await assert.rejects(drain(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'https://localhost:11434' }), { client }).chat(msgs)), { code: 'refused' });
 });
 
 test('mock provider streams a canned reply', async () => {
@@ -233,7 +233,7 @@ test('openai-compatible: system message first, usage from the last chunk; Mistra
   const mistral = fakeOpenAI([chunk('x', 'stop'), usageChunk]);
   await complete(createProvider(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }), { client: mistral }), msgs);
   assert.equal('stream_options' in mistral.calls[0].params, false);
-  const quiet = await complete(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }), { client: fakeOpenAI([chunk('x', 'stop')]) }), msgs);
+  const quiet = await complete(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'https://localhost:11434' }), { client: fakeOpenAI([chunk('x', 'stop')]) }), msgs);
   assert.deepEqual(quiet.usage, { input: 0, output: 0 }, 'no usage reported: zeros');
 });
 

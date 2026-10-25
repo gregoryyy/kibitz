@@ -187,6 +187,7 @@ export function validateTools(names) {
 //   tools: from validateTools; the model may call them instead of (or after) writing text.
 // complete() below collects a whole reply. `client` can be injected for tests.
 export function createProvider(cfg, /** @type {{ client?: any }} */ { client } = {}) {
+  if (cfg.available === false) throw new GatewayError('unavailable', cfg.reason || 'No permitted provider configured', 503);
   if (['anthropic', 'openai', 'mistral', 'ollama'].includes(cfg.provider)) return {
     async *chat(messages, /** @type {ChatOptions} */ opts = {}) {
       const operation = providerOperation(cfg.timeoutMs, opts.signal, { allowInsecureLoopback: cfg.allowInsecureLoopback });
