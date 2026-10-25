@@ -115,3 +115,14 @@ test('offline CLI rejects document drift and bad arguments without rewriting; ex
     assert.match(result.stdout, /not compliance/);
   } finally { rmSync(temp, { recursive: true, force: true }); }
 });
+
+test('stdin and eval imports do not run the CLI or resolve a non-file entrypoint', () => {
+  const script = new URL('../../scripts/check-asvs.mjs', import.meta.url).href;
+  const input = `await import(${JSON.stringify(script)}); console.log('imported');`;
+  for (const args of [['--input-type=module', '-'], ['--input-type=module', '--eval', input]]) {
+    const result = spawnSync(process.execPath, args, { input, encoding: 'utf8', env: {} });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, 'imported\n');
+    assert.equal(result.stderr, '');
+  }
+});
