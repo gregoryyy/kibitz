@@ -39,8 +39,14 @@ export function translator(dict = {}) {
   }
   templates.sort((a, b) => b.literal - a.literal); // the most specific template first
   const fill = (v, vars, raw = {}) => v.replace(/\{(\w+)(?:\|([^}]*))?\}/g, (m, n, phrase) => {
-    if (!(n in vars)) return m;
-    if (phrase) { const hit = lookup(phrase.replace('*', raw[n]), 1); if (hit !== null) return hit; }
+    if (!Object.hasOwn(vars, n)) return m;
+    if (phrase) {
+      // Every star is a phrase slot. The callback inserts literal text, so '$&', '$`'
+      // and "$'" in a value cannot act as String.replace replacement instructions.
+      const value = String(Object.hasOwn(raw, n) ? raw[n] : vars[n]);
+      const hit = lookup(phrase.replaceAll('*', () => value), 1);
+      if (hit !== null) return hit;
+    }
     return String(vars[n]);
   });
 

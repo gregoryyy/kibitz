@@ -41,6 +41,17 @@ test('isText: words count; moves, move lists and FENs don\'t', () => {
   for (const s of ['Nf3', 'exd5+', 'O-O-O', '1. e4 c5 2. Nf3 d6 3. d4 cxd4', START, '+0.30', '  ']) assert.ok(!isText(s), s);
 });
 
+test('phrase slots replace every star with literal values, including dollar instructions and stars', () => {
+  for (const value of ['$&', '$`', "$'", '$$', '$1', '$<name>', 'a*b', '<img src=x onerror=alert(1)>']) {
+    const t = translator({ 'takes {p}': 'nimmt {p|the *}', [`@the ${value}`]: `LITERAL ${value}`,
+      'compare {p}': 'vergleicht {p|* with *}', [`@${value} with ${value}`]: 'BOTH SLOTS' });
+    assert.equal(t.find(`takes ${value}`), `nimmt LITERAL ${value}`, value);
+    assert.equal(t.find(`compare ${value}`), 'vergleicht BOTH SLOTS', value);
+    assert.equal(t.t('takes {p}', { p: value }), `nimmt LITERAL ${value}`, 'explicit variables use the same phrase lookup');
+  }
+  assert.equal(translator({ x: '{constructor}' }).t('x', {}), '{constructor}', 'inherited object names are not supplied variables');
+});
+
 test('German move letters become SAN, only in moves', () => {
   assert.equal(germanSanToSan('Sf3 und Dxd5+, dann Lb5 Txe1 Kg1 e8=D, e8T'), 'Nf3 und Qxd5+, dann Bb5 Rxe1 Kg1 e8=Q, e8=R');
   assert.equal(germanSanToSan('Der Springer zieht. Spiel Sbd2!'), 'Der Springer zieht. Spiel Nbd2!');
