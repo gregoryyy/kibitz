@@ -261,7 +261,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 
 ## 12. Release and operations *(added)*
 
-- [ ] 12.1 Semantic versioning and a changelog
+- [x] 12.1 Semantic versioning and a [changelog](../CHANGELOG.md): documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; [release procedure](RELEASING.md). Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published
 - [ ] 12.2 Packaging: Docker image for the Node server and static client
 - [x] 12.3 Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; [operator checks and retention](OPERATIONS.md), fake-SDK and real-CLI regressions
 - [ ] 12.4 Docs: user guide, provider setup, self-hosting with Ollama

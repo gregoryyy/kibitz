@@ -8,6 +8,8 @@ One of the main motivations for Kibitz is to experiment with combining large lan
 
 The app lives in [`site/`](site/): page source, build scripts, opening data, the local server with its AI gateway, and tests. Design notes are in [site/README.md](site/README.md). Where the project is heading is in [TODO.md](docs/TODO.md), longer-term ideas are in [ROAD.md](docs/ROAD.md), progress is logged in [DONE.md](docs/DONE.md), and the working rules for coding agents and contributors are in [AGENTS.md](AGENTS.md).
 
+[Changelog](CHANGELOG.md) records notable changes. The [version policy](docs/RELEASING.md) follows Semantic Versioning; the current `0.1.0` package is an unreleased development baseline.
+
 ## Prerequisites
 
 - **Node.js 24 LTS or newer** with npm (`.nvmrc` pins 24; tested with Node 25).
