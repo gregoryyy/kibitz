@@ -3,7 +3,7 @@
 //                           usage: the server's requests, tokens, cost estimate and budget today (usage.mjs);
 //                           user: the same for this user, with the per-user budgets for paid models;
 //                           paid: whether the current provider is a paid (cloud) one
-// Users are told apart by the kibitz_uid cookie (random, HttpOnly), set on the first API request.
+// Users are grouped by a protected opaque cookie on HTTPS; HTTP development uses a separate namespace.
 //   POST /api/ai/config  {provider?, localOnly?} -> status; switches among the providers .env sets up
 //   POST /api/ai/test    {} -> {ok, provider, model, ms, usage}: a tiny request to check the connection
 //   POST bodies may name a "task" (quick | chat | review) to pick that task's model.
@@ -14,7 +14,7 @@
 //   GET  /api/ai/embeddings -> safe destination/configuration and opaque cookie scope
 //   POST /api/ai/embeddings {texts, fingerprint, scope} -> {vectors, metadata, usage, user}
 //                           explicit bounded batches; no server text/vector storage
-import crypto from 'crypto';
+import { CookieError, identityCookie } from './cookies.mjs';
 import net from 'net';
 import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
@@ -40,7 +40,7 @@ export function createApi({
   users = userLedger({ tokensPerDay: config.userTokensPerDay, costPerDay: config.userCostPerDay, prices: parsePrices(config.prices) }),
   allow = usageAccounting(config).allow,
   countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); },
-  embeddingConfig = undefined, embedder = undefined,
+  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false,
 }) {
   const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
@@ -54,7 +54,8 @@ export function createApi({
     if (!pathname.startsWith('/api/')) return false;
     try {
       checkHost(req);
-      const uid = userOf(req, res);
+      checkOrigin(req);
+      const uid = identityCookie(req, res, 'usage', { allowInsecureHttp, create: true });
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
       if (pathname === '/api/ai/embeddings' && req.method === 'POST') {
         checkPost(req);
@@ -70,7 +71,7 @@ export function createApi({
       if (pathname === '/api/ai/structured' && req.method === 'POST') return await structured(req, res, uid);
       throw new GatewayError('not_found', 'Not found', 404);
     } catch (e) {
-      const g = toGatewayError(e);
+      const g = e instanceof CookieError ? new GatewayError(e.code, e.message, e.code === 'forbidden' ? 403 : 400) : toGatewayError(e);
       if (!res.headersSent) json(res, g.status, { error: { code: g.code, message: g.message } });
       else res.end();
     }
@@ -174,19 +175,6 @@ export function createApi({
       throw g;
     }
   }
-}
-
-// The user, from the kibitz_uid cookie; a new random one is issued when it's missing or malformed.
-// It only tells users apart for counting and budgets (no accounts yet, TODO 10.1): HttpOnly, so page
-// scripts can't read it, and SameSite=Strict, so other sites' requests don't carry it.
-// Match the library's native-TLS behavior; forwarded scheme headers are not trusted.
-const UID_RE = /^[A-Za-z0-9_-]{22}$/;
-function userOf(req, res) {
-  const m = /(?:^|;\s*)kibitz_uid=([^;]*)/.exec(req.headers.cookie || '');
-  if (m && UID_RE.test(m[1])) return m[1];
-  const uid = crypto.randomBytes(16).toString('base64url');
-  res.setHeader('Set-Cookie', `kibitz_uid=${uid}; Path=/api/; HttpOnly; SameSite=Strict; Max-Age=31536000${req.socket.encrypted ? '; Secure' : ''}`);
-  return uid;
 }
 
 // DNS-rebinding guard: a rebinding attack reaches us under an attacker-controlled host name,

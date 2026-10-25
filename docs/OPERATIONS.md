@@ -49,7 +49,7 @@ from the repository root, after `just build`:
 umask 077
 mkdir -p .kibitz-data
 chmod 700 .kibitz-data
-node site/scripts/serve.mjs site/dist --api --env .env --index _test.html \
+node site/scripts/serve.mjs site/dist --api --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --index _test.html \
   --usage .kibitz-data/usage.sqlite > .kibitz-data/runtime.log 2>&1
 ```
 
@@ -61,11 +61,12 @@ URLs or cookies when preserving this policy.
 
 ## Checking the local server
 
-For a no-inference liveness check, use:
+For a no-inference liveness check with the operator-supplied public issuer CA
+certificate at `.kibitz-data/tls/ca.pem`, use:
 
 ```sh
-curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8765/
-curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8765/api/ai/status
+curl --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error --output /dev/null https://127.0.0.1:8765/
+curl --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error --output /dev/null https://127.0.0.1:8765/api/ai/status
 ```
 
 The first checks static serving; the second checks the enabled gateway handler.

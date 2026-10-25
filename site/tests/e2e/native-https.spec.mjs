@@ -35,7 +35,7 @@ test('native HTTPS serves the real board, engine, mock coach and private library
   });
   expect(saved.status).toBe(200); expect(saved.snapshot.games[0].id).toBe('tls-study');
   const cookies = await context.cookies(server.base + '/api/library/records');
-  for (const name of ['kibitz_uid', 'kibitz_library']) expect(cookies.find(cookie => cookie.name === name)).toMatchObject({ secure: true, httpOnly: true, sameSite: 'Strict' });
+  for (const name of ['__Secure-kibitz_uid', '__Secure-kibitz_library']) expect(cookies.find(cookie => cookie.name === name)).toMatchObject({ secure: true, httpOnly: true, sameSite: 'Strict' });
   expect((await page.request.get(server.base + '/')).headers()['content-security-policy']).toContain("style-src-attr 'none'");
   for (const file of ['/key.pem', '/cert.pem']) expect((await page.request.get(server.base + file)).status()).toBe(404);
   expect(external).toEqual([]); expect(server.output()).not.toContain(identity.dir);

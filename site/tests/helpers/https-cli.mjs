@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const script = fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
-export function httpsCli({ root, key, cert, extra = [] }) {
-  const child = spawn(process.execPath, [script, root, '--api', '--env=', '--library', ':memory:', '--index', '_test.html',
+const defaultScript = fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
+export function httpsCli({ root, key, cert, extra = [], library = ':memory:', usage = ':memory:', script = defaultScript }) {
+  const child = spawn(process.execPath, [script, root, '--api', '--env=', '--library', library, '--usage', usage, '--index', '_test.html',
     '--port', '0', '--tls-key', key, '--tls-cert', cert, ...extra], {
     env: { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', AI_LOCAL_ONLY: '1',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', BROWSER_MODEL_URL: '', BROWSER_RUNTIME: 'wllama' },

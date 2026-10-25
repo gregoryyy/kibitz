@@ -1,11 +1,11 @@
 // Same-origin, cookie-scoped persistence. No provider calls or automatic browser-library upload.
 import crypto from 'node:crypto';
+import { identityCookie } from './cookies.mjs';
 import net from 'node:net';
 import { Chess } from 'chess.js';
 import { compileLibraryGame } from '../src/library/library.js';
 import { LIBRARY_LIMITS } from './library-store.mjs';
 
-const COOKIE = 'kibitz_library', TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const HEADERS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', Vary: 'Cookie' };
 const ERRORS = {
   forbidden: [403, 'Cross-origin library access is not allowed.'],
@@ -28,10 +28,6 @@ const ERRORS = {
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 const json = (res, status, body) => { res.writeHead(status, HEADERS); res.end(JSON.stringify(body)); return true; };
 const scopeOf = token => crypto.createHash('sha256').update('kibitz-library-v1\0' + token).digest('hex');
-const tokenOf = req => {
-  const found = /(?:^|;\s*)kibitz_library=([^;]*)/.exec(req.headers.cookie || '');
-  return found && TOKEN.test(found[1]) ? found[1] : null;
-};
 function checkOrigin(req) {
   let host;
   try { host = new URL(`http://${req.headers.host}`).hostname.replace(/^\[|\]$/g, ''); } catch { fail('forbidden'); }
@@ -78,18 +74,18 @@ export async function validateLibraryChanges(changes) {
 /**
  * Mount before the AI gateway, which otherwise handles all /api/ paths.
  * Status offers storage without creating a session; explicitly loading records creates one.
- * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges}} [options]
+ * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean}} [options]
  */
-export function createLibraryApi({ store = null, validate = validateLibraryChanges } = {}) {
+export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false } = {}) {
   let windowAt = Date.now(), writes = 0;
   return async (req, res) => {
     const { pathname } = new URL(req.url, 'http://x');
     if (pathname !== '/api/library' && !pathname.startsWith('/api/library/')) return false;
     try {
       checkOrigin(req);
+      let token = identityCookie(req, res, 'library', { allowInsecureHttp });
       if (pathname === '/api/library/status') {
         if (req.method !== 'GET') fail('method');
-        const token = tokenOf(req);
         return json(res, 200, { available: !!store, scope: store && token ? scopeOf(token) : null });
       }
       if (!['/api/library/records', '/api/library/erase'].includes(pathname)) fail('not_found');
@@ -97,12 +93,8 @@ export function createLibraryApi({ store = null, validate = validateLibraryChang
       const erasing = pathname === '/api/library/erase';
       if (erasing && req.method !== 'POST') fail('method');
       if (!store) fail('unavailable');
-      let token = tokenOf(req);
       if (req.method === 'GET') {
-        if (!token) {
-          token = crypto.randomBytes(32).toString('base64url');
-          res.setHeader('Set-Cookie', `${COOKIE}=${token}; Path=/api/library/; HttpOnly; SameSite=Strict; Max-Age=31536000${req.socket.encrypted ? '; Secure' : ''}`);
-        }
+        if (!token) token = identityCookie(req, res, 'library', { allowInsecureHttp, create: true });
         return json(res, 200, store.read(scopeOf(token)));
       }
       if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) fail('content_type');

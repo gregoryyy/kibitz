@@ -10,7 +10,7 @@ async function gateway(t, options = {}) {
   const client = { async post(path, { body, signal }) { seen.push(body); signals.push(signal); return options.response ? options.response(body, signal) : { model: 'actual-v1', data: body.input.map((_, index) => ({ index, embedding: [1, index + 1] })), usage: { prompt_tokens: 12 } }; } };
   const embeddingConfig = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai', EMBEDDING_MODEL: 'vectors', EMBEDDING_REVISION: 'v1', OPENAI_API_KEY: 'server-secret', OPENAI_BASE_URL: 'https://private.invalid/v1', ...options.embeddingEnv });
   const config = loadConfig({ AI_PROVIDER: 'mock', AI_RATE_LIMIT_PER_MINUTE: '1000', ...options.env });
-  const api = createApi({ config, embeddingConfig, embedder: createEmbedder(embeddingConfig, { client }) });
+  const api = createApi({ allowInsecureHttp: true, config, embeddingConfig, embedder: createEmbedder(embeddingConfig, { client }) });
   const server = http.createServer(async (req, res) => { await api(req, res); });
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   t.after(() => { server.closeAllConnections(); return new Promise(r => server.close(r)); });
@@ -35,9 +35,9 @@ test('embedding endpoint exposes only safe metadata and counts the embedding pro
   assert.equal(response.data.metadata.providerModel, 'actual-v1'); assert.equal(response.data.metadata.dimensions, 2);
   assert.equal(response.data.user.paid.tokens, 12);
   assert.deepEqual(g.seen[0], { model: 'vectors', input: ['one', 'two'], encoding_format: 'float' });
-  const other = await g.request('embeddings', undefined, { cookie: 'kibitz_uid=abcdefghijklmnopqrstuv' });
+  const other = await g.request('embeddings', undefined, { cookie: 'kibitz_dev_uid=abcdefghijklmnopqrstuv' });
   assert.notEqual(other.data.scope, d.scope);
-  assert.equal((await g.request('embeddings', { texts: ['mine'], fingerprint: d.fingerprint, scope: d.scope }, { cookie: 'kibitz_uid=abcdefghijklmnopqrstuv' })).status, 409); assert.equal(g.seen.length, 1);
+  assert.equal((await g.request('embeddings', { texts: ['mine'], fingerprint: d.fingerprint, scope: d.scope }, { cookie: 'kibitz_dev_uid=abcdefghijklmnopqrstuv' })).status, 409); assert.equal(g.seen.length, 1);
 });
 
 test('source identifiers cannot select another owner and malformed, cross-origin or oversized requests never reach a provider', async t => {

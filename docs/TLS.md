@@ -2,9 +2,10 @@
 
 The owner selected native Node HTTPS with operator-supplied certificates on
 2026-10-25. This completes the listener prerequisite **TODO 11.4.2.7.1**.
-The twelve [ASVS remediation items](TODO.md) remain open: HTTPS support alone
-does not supply cookie migration, authentication, HSTS, final endpoint inventory
-or public-certificate evidence, and does not close the final-release gate.
+[Protected cookies and migration](COOKIE-MIGRATION.md) implement **11.4.2.1**.
+The remaining eleven ASVS fixes include authentication, HSTS, external endpoint
+transport policy, actual TLS inventory and public-certificate evidence. This
+does not close the final-release gate.
 
 ## Start with an existing certificate and private key
 
@@ -59,20 +60,19 @@ change access to localStorage, IndexedDB and service-worker caches. Before
 changing the URL, export browser data and the selected server library and keep
 an appropriate browser-profile/private-SQLite backup as described in
 [data lifecycle](DATA.md) and [container operation](CONTAINER.md).
-This listener feature performs no browser-origin, cookie or database migration.
+[Cookie migration and rollback](COOKIE-MIGRATION.md) preserve the exact legacy
+identity tokens, private-library ownership and usage counters on HTTPS. Back up
+the browser profile as well as databases before upgrading; ordinary JSON browser
+exports omit HttpOnly cookies. The remaining operator-session and permission
+requirements are **11.4.2.3–11.4.2.5**. These grouping cookies are not authentication.
 
-New grouping cookies issued on the real TLS socket have Secure; forwarding
-headers cannot select that flag. Existing valid cookies retain their token and
-are not automatically reissued with a new name/flag. Secure prefixes and a
-data-preserving migration are still **TODO 11.4.2.1**, and issued/revocable
-operator sessions remain **11.4.2.3–11.4.2.5**. These cookies are not authentication.
-
-With neither TLS option supplied, the existing HTTP RC/development behavior
-remains. Supplying even one option explicitly selects TLS validation; a partial,
-empty or invalid pair never silently chooses HTTP. Default/final-deployment
-enforcement and external-service transport policy remain **11.4.2.7**.
-The owner requires all twelve ASVS conditions fixed and verified before the
-first final release; the RC's HTTP exception is not final-release acceptance.
+The standard serve recipes and container command require the TLS pair. A
+cookie-bearing CLI without TLS refuses startup before private storage creation;
+API constructors also refuse plaintext by default. Pure static serving can use
+HTTP. Controlled development/test tools explicitly select **`--http-dev`**, using
+separate development identities that cannot migrate production cookies. Combining
+that flag with TLS options is refused. External-service transport enforcement
+remains **11.4.2.7**; a native HTTPS listener does not close that parent item.
 
 ## Container use and verification
 
@@ -80,18 +80,21 @@ The packaged CLI accepts the same options. Mount both regular files outside
 `/app/site/dist` and any model root, read-only, and ensure the non-root runtime
 UID/GID `1000:1000` can read the private key with owner-only permissions. Do not
 copy identities into the image/build context. Keep loopback-only port publishing.
-The current HTTP Compose recipe remains an RC recipe; it does not enable TLS
-by loading a host `.env` or infer an operator's certificate locations.
+The default image command uses `/tls/key.pem` and `/tls/cert.pem` and sets
+`KIBITZ_HEALTH_HTTPS=1`. Compose mounts
+`${KIBITZ_TLS_DIRECTORY:-./.kibitz-data/tls}` read-only at `/tls`; supply the files
+before launch. Its explicit public `/tls/ca.pem` health trust file must contain
+the intended issuer certificate. No host `.env` is loaded implicitly.
 
-When overriding the container command for HTTPS, also set
-`KIBITZ_HEALTH_HTTPS=1`. If the issuer is outside Node's default trust store, set
+If the issuer is outside Node's default trust store, set
 `KIBITZ_HEALTH_CA` to a read-only mounted **public CA certificate** file trusted
 for this probe; this setting does not change provider or browser trust. The
 fixed probe uses `https://127.0.0.1:8765/manifest.webmanifest` and normal
 chain/hostname validation with a four-second total deadline, no redirects and
 no private key, cookie, provider request or model load. The certificate must
-therefore include `127.0.0.1` in its subject alternative names. Without the TLS
-flag the existing HTTP probe remains; invalid trust settings fail the probe.
+therefore include `127.0.0.1` in its subject alternative names. Explicit
+development image tests select `--http-dev` and
+`KIBITZ_HEALTH_HTTPS=0` together; invalid trust settings fail the probe.
 A running TLS listener does not make an HTTP health check succeed.
 The explicit image test mounts synthetic identities
 read-only, runs the app as UID 1000 and checks an HTTPS health probe; its fixture
@@ -103,7 +106,7 @@ Reproduce native checks after a build:
 cd site
 npm run check
 node --test server/tls.test.mjs
-npx playwright test tests/e2e/native-https.spec.mjs tests/e2e/cookie-transport.spec.mjs
+npx playwright test tests/e2e/native-https.spec.mjs tests/e2e/cookie-transport.spec.mjs tests/e2e/secure-cookie-migration.spec.mjs
 ```
 
 The tests generate short-lived identities in temporary private directories.

@@ -34,7 +34,7 @@ function serve(opt) {
   const env = mock
     ? { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', AI_LOCAL_ONLY: '' }
     : { ...process.env, ...(PROVIDERS.includes(opt.ai) ? { AI_PROVIDER: opt.ai } : {}) }; // .env doesn't override what's set here
-  const args = ['scripts/serve.mjs', 'dist', '--api', `--env=${mock ? '' : opt.env}`, '--index', '_test.html', '--port', opt.port, '--host', '127.0.0.1'];
+  const args = ['scripts/serve.mjs', 'dist', '--api', '--http-dev', `--env=${mock ? '' : opt.env}`, '--index', '_test.html', '--port', opt.port, '--host', '127.0.0.1'];
   const server = spawn(process.execPath, args, { cwd: site, env, stdio: ['ignore', 'pipe', 'inherit'] });
   const ready = new Promise((resolve, reject) => {
     let text = '', started = false;

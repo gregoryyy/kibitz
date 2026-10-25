@@ -1,7 +1,7 @@
 // Local static server; parse5 selects inline HTML scripts for CSP hashes.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
 //                          [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]
-//                          [--tls-key FILE --tls-cert FILE]
+//                          [--tls-key FILE --tls-cert FILE | --http-dev]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); the gateway additionally needs the provider SDKs. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
@@ -36,9 +36,10 @@ async function main() {
       usage: { type: 'string', default: ':memory:' },
       'tls-key': { type: 'string' },
       'tls-cert': { type: 'string' },
+      'http-dev': { type: 'boolean', default: false },
     },
   });
-  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--tls-key FILE --tls-cert FILE]'); process.exit(2); }
+  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--tls-key FILE --tls-cert FILE | --http-dev]'); process.exit(2); }
   const root = fs.realpathSync(positionals[0]);
   let modelsDir = '';
   if (opt.models) {
@@ -48,6 +49,9 @@ async function main() {
   // Validate every public tree before creating a private database or any missing parents.
   const servedRoots = [root, ...(modelsDir ? [modelsDir] : [])];
   const tlsOptions = loadTlsOptions({ key: opt['tls-key'], cert: opt['tls-cert'], servedRoots });
+  if ((!tlsOptions && (opt.api || opt.library) && !opt['http-dev']) || (tlsOptions && opt['http-dev'])) {
+    throw Object.assign(new Error('TLS required'), { code: 'ERR_KIBITZ_HTTPS_REQUIRED' });
+  }
   // Keep missing runtime dependencies inside the bounded startup-error handler.
   const [{ BASE_HEADERS, isHiddenPath }, { servePublicFile }] = await Promise.all([
     import('../server/static.mjs'), import('../server/public-files.mjs'),
@@ -57,7 +61,7 @@ async function main() {
     const { openPrivateLibrary } = await import('../server/library-files.mjs');
     const { createLibraryApi } = await import('../server/library-api.mjs');
     libraryStore = openPrivateLibrary(opt.library, servedRoots);
-    library = createLibraryApi({ store: libraryStore });
+    library = createLibraryApi({ store: libraryStore, allowInsecureHttp: opt['http-dev'] });
     process.once('exit', () => libraryStore.close());
   }
 
@@ -76,7 +80,7 @@ async function main() {
     const { usageAccounting } = await import('../server/usage.mjs');
     const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
     process.once('exit', () => usageStore.close());
-    api = createApi({ config, ...usageAccounting(config, { store: usageStore }) });
+    api = createApi({ config, allowInsecureHttp: opt['http-dev'], ...usageAccounting(config, { store: usageStore }) });
     console.log(aiConfigEvent(config));
     apiStatus = config.available ? `AI coach: ${logProvider(config.provider)} (configured)` : 'AI coach off: check Settings or server configuration';
   }

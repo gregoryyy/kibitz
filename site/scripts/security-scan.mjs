@@ -98,7 +98,7 @@ export function command(file, args, { timeout = 600_000, env = process.env, cwd 
 
 async function startStaging() {
   const child = spawn(process.execPath, [resolve(site, 'scripts/serve.mjs'), resolve(site, 'dist'),
-    '--api', '--env=', '--library', ':memory:', '--index', '_test.html', '--port', '0'], {
+    '--api', '--http-dev', '--env=', '--library', ':memory:', '--index', '_test.html', '--port', '0'], {
     cwd: site, stdio: ['ignore', 'pipe', 'pipe'],
     // Do not inherit provider keys, NODE_OPTIONS, endpoint overrides or operator model settings.
     env: { PATH: process.env.PATH, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock',

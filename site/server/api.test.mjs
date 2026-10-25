@@ -24,7 +24,7 @@ let server, port;
 const quiet = { error() {} };
 before(async () => {
   const config = { ...loadConfig({ AI_PROVIDER: 'mock' }), ratePerMinute: 1000 };
-  const api = createApi({ config, provider, log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, provider, log: quiet });
   server = http.createServer(async (req, res) => { if (!(await api(req, res))) { res.writeHead(404); res.end(); } });
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   port = server.address().port;
@@ -117,7 +117,7 @@ test('unknown API paths are 404', async () => {
 
 test('rate limit returns 429 with rate_limited', async () => {
   const config = { ...loadConfig({ AI_PROVIDER: 'mock' }), ratePerMinute: 1 };
-  const api = createApi({ config, provider, log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, provider, log: quiet });
   const s = http.createServer((req, res) => api(req, res));
   await new Promise(r => s.listen(0, '127.0.0.1', r));
   const p = s.address().port;
@@ -131,7 +131,7 @@ test('rate limit returns 429 with rate_limited', async () => {
 
 test('unavailable provider returns 503 with the reason', async () => {
   const config = loadConfig({ AI_PROVIDER: 'anthropic' });
-  const api = createApi({ config, log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, log: quiet });
   const s = http.createServer((req, res) => api(req, res));
   await new Promise(r => s.listen(0, '127.0.0.1', r));
   const r = await fetch(`http://127.0.0.1:${s.address().port}/api/ai/sample`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"prompt":"hi"}' });
@@ -142,7 +142,7 @@ test('unavailable provider returns 503 with the reason', async () => {
 
 test('structured: a named format returns validated JSON; unknown formats are refused', async () => {
   const config = { ...loadConfig({ AI_PROVIDER: 'mock' }), ratePerMinute: 1000 };
-  const api = createApi({ config, provider: createProvider(config), log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, provider: createProvider(config), log: quiet });
   const s = http.createServer((req, res) => api(req, res));
   await new Promise(r => s.listen(0, '127.0.0.1', r));
   const send = body => fetch(`http://127.0.0.1:${s.address().port}/api/ai/structured`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -170,7 +170,7 @@ test('the request\'s task picks the model; an unknown task is refused', async ()
 test('usage is counted per request and the daily budget is enforced', async () => {
   const config = { ...loadConfig({ AI_PROVIDER: 'mock' }), ratePerMinute: 1000 };
   const ledger = usageLedger({ tokensPerDay: 20 });
-  const api = createApi({ config, provider, log: quiet, ledger });
+  const api = createApi({ allowInsecureHttp: true, config, provider, log: quiet, ledger });
   const s = http.createServer((req, res) => api(req, res));
   await new Promise(r => s.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${s.address().port}/api/ai`;
@@ -188,7 +188,7 @@ test('settings: switch provider, local-only mode, connection test; all same-orig
   const made = [];
   const config = loadConfig({ AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', OLLAMA_MODEL: 'llama' });
   const fakeProvider = name => ({ async *chat() { yield 'OK'; return { truncated: false, usage: { input: 5, output: 1 } }; }, name });
-  const api = createApi({ config, provider: fakeProvider('anthropic'), makeProvider: c => { made.push(c.provider); return fakeProvider(c.provider); }, log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, provider: fakeProvider('anthropic'), makeProvider: c => { made.push(c.provider); return fakeProvider(c.provider); }, log: quiet });
   const s = http.createServer((req, res) => api(req, res));
   await new Promise(r => s.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${s.address().port}/api/ai`;
@@ -214,25 +214,25 @@ test('settings: switch provider, local-only mode, connection test; all same-orig
 // A server for one test, with its own config and ledgers; send() posts a sample request with the cookie jar.
 async function serverWith({ provider: name = 'mock', env = {}, ...opts } = {}) {
   const config = { ...loadConfig({ AI_PROVIDER: 'mock', ...env }), provider: name, ratePerMinute: 1000 };
-  const api = createApi({ config, provider, log: quiet, ...opts });
+  const api = createApi({ allowInsecureHttp: true, config, provider, log: quiet, ...opts });
   const s = http.createServer((req, res) => api(req, res));
   await new Promise(r => s.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${s.address().port}/api/ai`;
   const send = (cookie = '') => fetch(base + '/sample', { method: 'POST', headers: { 'content-type': 'application/json', cookie, 'x-kibitz-consent': `v1:${name}:coach` }, body: '{"prompt":"hi"}' });
   return { s, base, send };
 }
-const uidOf = r => /kibitz_uid=([^;]+)/.exec(r.headers.get('set-cookie') || '')?.[1];
+const uidOf = r => /kibitz_dev_uid=([^;]+)/.exec(r.headers.get('set-cookie') || '')?.[1];
 
 test('a user gets a random HttpOnly cookie on the first API request, and keeps it', async () => {
   const { s, base, send } = await serverWith();
   const r = await fetch(base + '/status');
   const cookie = r.headers.get('set-cookie');
-  assert.match(cookie, /^kibitz_uid=[A-Za-z0-9_-]{22}; Path=\/api\/; HttpOnly; SameSite=Strict; Max-Age=\d+$/);
+  assert.match(cookie, /^kibitz_dev_uid=[A-Za-z0-9_-]{22}; Path=\/api\/; HttpOnly; SameSite=Strict; Max-Age=\d+$/);
   const uid = uidOf(r);
-  const again = await send(`kibitz_uid=${uid}`);
+  const again = await send(`kibitz_dev_uid=${uid}`);
   assert.equal(again.headers.get('set-cookie'), null);
   await again.text();
-  assert.notEqual(uidOf(await fetch(base + '/status', { headers: { cookie: 'kibitz_uid=../../etc' } })), undefined); // malformed: a new one
+  assert.notEqual(uidOf(await fetch(base + '/status', { headers: { cookie: 'kibitz_dev_uid=../../etc' } })), undefined); // malformed: a new one
   s.close();
 });
 
@@ -240,7 +240,7 @@ test('usage, cost and budgets are counted per user; the budgets apply to paid mo
   const env = { AI_PRICES: 'mock=1000/2000', AI_TOKEN_BUDGET_PER_USER_PER_DAY: '20' };
   const { s, base, send } = await serverWith({ provider: 'anthropic', env });
   const first = await send();
-  const alice = `kibitz_uid=${uidOf(first)}`;
+  const alice = `kibitz_dev_uid=${uidOf(first)}`;
   const done = (await first.text()).trim().split('\n').map(l => JSON.parse(l)).at(-1);
   assert.deepEqual(done.usage, { input: 12, output: 3, cost: 0.018 }); // 12 * $1000/M + 3 * $2000/M
   assert.deepEqual([done.user.input, done.user.output, done.user.cost, done.user.paid.tokens, done.user.left.tokens], [12, 3, 0.018, 15, 5]);
@@ -257,7 +257,7 @@ test('usage, cost and budgets are counted per user; the budgets apply to paid mo
   s.close();
   // The same budget with a local model: counted, not limited.
   const local = await serverWith({ provider: 'mock', env });
-  const r1 = await local.send(); const c = `kibitz_uid=${uidOf(r1)}`; await r1.text();
+  const r1 = await local.send(); const c = `kibitz_dev_uid=${uidOf(r1)}`; await r1.text();
   for (let k = 0; k < 3; k++) { const r = await local.send(c); assert.equal(r.status, 200); await r.text(); }
   const lst = await (await fetch(local.base + '/status', { headers: { cookie: c } })).json();
   assert.deepEqual([lst.paid, lst.user.requests, lst.user.paid.tokens], [false, 4, 0]);
@@ -266,7 +266,7 @@ test('usage, cost and budgets are counted per user; the budgets apply to paid mo
 
 test('a cost budget per user stops paid requests once it is spent', async () => {
   const { s, send } = await serverWith({ provider: 'openai', env: { AI_PRICES: 'mock=1000/2000', AI_COST_BUDGET_PER_USER_PER_DAY: '0.03' } });
-  const r = await send(); const c = `kibitz_uid=${uidOf(r)}`; await r.text(); // $0.018
+  const r = await send(); const c = `kibitz_dev_uid=${uidOf(r)}`; await r.text(); // $0.018
   await (await send(c)).text(); // $0.036
   const over = await send(c);
   assert.equal(over.status, 429);
@@ -288,7 +288,7 @@ test('sample with tools: the tool calls come in the done line; unknown tools are
 
 test('cookie-scoped rates reject one browser while another can use the shared server allowance', async () => {
   const config = loadConfig({ AI_PROVIDER: 'mock', AI_RATE_LIMIT_PER_MINUTE: '10', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1' });
-  const api = createApi({ config, provider, log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, provider, log: quiet });
   const s = http.createServer((req, res) => api(req, res)); await new Promise(r => s.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${s.address().port}/api/ai`;
   const send = cookie => fetch(base + '/sample', { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: '{"prompt":"hi"}' });
@@ -306,7 +306,7 @@ test('a held paid request is counted as paid even after switching to a local pro
   const held = new Promise(resolve => finish = resolve), ready = new Promise(resolve => started = resolve);
   const fake = { async *chat() { started(); await held; yield 'OK'; return { usage: { input: 20, output: 1 } }; } };
   const config = { ...loadConfig({ AI_PROVIDER: 'mock' }), provider: 'anthropic' };
-  const api = createApi({ config, provider: fake, makeProvider: () => fake, log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, provider: fake, makeProvider: () => fake, log: quiet });
   const s = http.createServer((req, res) => api(req, res)); await new Promise(r => s.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${s.address().port}/api/ai`;
   try {
@@ -322,7 +322,7 @@ test('a held paid request is counted as paid even after switching to a local pro
 test('provider changes while a request body arrives cannot reuse consent for the previous route', async () => {
   const config = loadConfig({ AI_PROVIDER: 'mock', ANTHROPIC_API_KEY: 'fake-test-key' });
   let calls = 0; const fake = { async *chat() { calls++; yield 'unexpected'; return { usage: {} }; } };
-  const api = createApi({ config, provider: fake, makeProvider: () => fake, log: quiet });
+  const api = createApi({ allowInsecureHttp: true, config, provider: fake, makeProvider: () => fake, log: quiet });
   const s = http.createServer((req, res) => api(req, res)); await new Promise(r => s.listen(0, '127.0.0.1', r));
   const port = s.address().port, body = '{"prompt":"hi"}'; let partial;
   try {

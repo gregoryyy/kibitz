@@ -86,3 +86,12 @@ its cited tests and automated scans, record results and unresolved requirements
 in the release PR, and obtain explicit owner disposition of deviations. For a
 standard upgrade, review the official version and complete ID diff before updating
 the checker baseline and source hash together; never silently refresh a live URL.
+
+## Cookie remediation after the RC baseline
+
+[TODO 11.4.2.1](TODO.md) implements protected HTTPS names, exact-token migration,
+profile rollback and explicit development-only HTTP namespaces. The current
+3.3.1 source/test assessment is updated in the checklist; historical RC reports
+and their raw findings retain their original revision/status. This is not a
+dismissal of default-branch CodeQL alerts. The other eleven tracked ASVS fixes
+and the final-release gate remain open.

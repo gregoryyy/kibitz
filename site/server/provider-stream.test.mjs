@@ -112,7 +112,7 @@ test('disconnecting an actual gateway connection test closes upstream work and l
     res.writeHead(200, { 'content-type': 'text/event-stream' }); res.write(partial('openai')); enter();
   });
   const logs = [], cfg = config('openai', upstream, 5000);
-  const api = createApi({ config: cfg, embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }), log: { info: line => logs.push(line), error: line => logs.push(line) } });
+  const api = createApi({ allowInsecureHttp: true, config: cfg, embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }), log: { info: line => logs.push(line), error: line => logs.push(line) } });
   const gateway = await serve(t, (req, res) => api(req, res));
   const ctl = new AbortController();
   const request = fetch(gateway + '/api/ai/test', { method: 'POST', headers: { 'content-type': 'application/json', 'x-kibitz-consent': 'v1:openai:coach' }, body: '{}', signal: ctl.signal });

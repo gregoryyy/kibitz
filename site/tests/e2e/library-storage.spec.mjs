@@ -19,7 +19,7 @@ async function seed(page, games = [LOCAL], books = []) {
 test('server storage is explicit, keeps the browser library separate, persists through reload and uses a scoped cache', async ({ page }) => {
   await seed(page); const posts = postCounter(page); await open(page); await library(page);
   const before = await S(page), local = await stored(page); await expect(cards(page)).toContainText('Browser private');
-  expect((await page.context().cookies()).some(c => c.name === 'kibitz_library')).toBe(false); expect(posts).toHaveLength(0);
+  expect((await page.context().cookies()).some(c => c.name === 'kibitz_dev_library')).toBe(false); expect(posts).toHaveLength(0);
   await connect(page); await expect(cards(page)).toHaveCount(0); expect(posts).toHaveLength(0); expect(await stored(page)).toBe(local);
   await submit(page); await added(page); await expect(cards(page)).toHaveCount(1); expect(posts).toHaveLength(1);
   const server = await snapshot(page); expect(server.games[0].pgn).toBe(PGN); expect(await stored(page)).toBe(local); expect(await S(page)).toEqual(before);

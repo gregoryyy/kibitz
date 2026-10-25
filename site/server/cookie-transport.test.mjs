@@ -16,13 +16,13 @@ const request = (url, headers = {}, ca = undefined) => new Promise((resolve, rej
 
 test('new usage and library cookies use Secure on a real TLS socket, preserving their separate scopes', async t => {
   const servers = await cookieServers(); t.after(servers.close);
-  for (const [route, name, scope] of [['ai/status', 'kibitz_uid', '/api/'], ['library/records', 'kibitz_library', '/api/library/']]) {
+  for (const [route, name, scope] of [['ai/status', '__Secure-kibitz_uid', '/api/'], ['library/records', '__Secure-kibitz_library', '/api/library/']]) {
     const r = await request(servers.https + '/api/' + route, { 'x-forwarded-proto': 'http', forwarded: 'proto=http' }, servers.ca);
     assert.equal(r.status, 200); assert.ok(r.cookie.startsWith(name + '=')); assert.ok(r.cookie.includes(`Path=${scope};`));
     for (const flag of ['HttpOnly', 'SameSite=Strict', 'Secure']) assert.ok(r.cookie.split('; ').includes(flag), flag);
     const repeated = await request(servers.https + '/api/' + route, { cookie: r.cookie.split(';')[0] }, servers.ca);
     assert.equal(repeated.cookie, undefined);
-    if (name === 'kibitz_uid') assert.equal(repeated.data.user.requests, 0); else assert.equal(repeated.data.scope, r.data.scope);
+    if (name === '__Secure-kibitz_uid') assert.equal(repeated.data.user.requests, 0); else assert.equal(repeated.data.scope, r.data.scope);
   }
 });
 

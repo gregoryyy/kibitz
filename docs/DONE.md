@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Protected cookies with identity-preserving migration
+
+TODO item: 11.4.2.1 / ASVS 3.3.1. The other eleven ASVS remediations and final-release gate remain open.
+
+### Implementation notes
+
+- Added a shared native-socket cookie policy. HTTPS issues `__Secure-kibitz_uid` and `__Secure-kibitz_library` with Secure/HttpOnly/SameSite=Strict, separate existing API paths, no Domain and unchanged token lengths. Valid legacy IDs migrate verbatim and old canonical cookies expire; a valid protected ID takes precedence. Duplicate/malformed secure identities are rejected without replacing/deleting cookies or selecting a different owner. Status can upgrade an existing library identity without creating a new one.
+- Required TLS for cookie-bearing CLI operation before database creation; API constructors independently refuse plaintext by default. Controlled HTTP development requires explicit permission and separate `kibitz_dev_*` names, ignoring both production namespaces. TLS and HTTP-development flags cannot be combined. Updated standard native recipes and default image/Compose command to require supplied identities, with read-only mounts and verified HTTPS health; mock fixtures, passive staging and operator eval/flipbook tools select the development exception explicitly.
+- Added policy, actual native-TLS persistence/startup and browser migration/ambiguity regressions. Existing library/usage tests retain their isolation assertions under the explicit development namespace. The synthetic migration keeps owner keys, revision and schema version 1, verifies new writes/counters across restart and legacy-profile recovery, and never uploads browser-local data. The two new browser cases fail on the actual prior HTTPS CLI and pass on the fix. Full checks and PR CI retain their own source identities/results.
+- Validation: fresh build and lint/JSDoc/ASVS checks pass; full unit/server suite has 715 passes/one opt-in live skip. The focused browser runs pass 17 and 30 cases (45 distinct cases, with both new migration cases run in each); all seven dedicated mock staging routes pass header checks without ZAP/Docker. All 499 local file links in the changed Markdown resolve and whitespace checks pass. Actual full browser/image/ZAP/CodeQL CI remains source-specific and is reported in the PR.
+- Replayed rollback against actual baseline `26ccec25801f4e6840882625a1f940302f17a2b5`: restored pre-upgrade cookies plus unchanged current SQLite files expose both pre/post-upgrade records, revision 2, and user/server request counts of 2. Documented consistent private profile/database backups, browser-origin boundaries, unsupported path ambiguity and the need to preserve post-upgrade writes. No operator data/certificate, trust-store modification, paid inference or weight download was used.
+
+### Deviations
+
+- The explicit HTTP development exception is retained with isolated names and synthetic/mock test use; it cannot adopt a production identity. The operator tools remain development clients and retain paid-call approval requirements. Browser JSON exports do not back up cookies or move browser storage across origins. Rollback uses a saved full profile and the tested HTTPS baseline, not a cookie-secret API or a database downgrade. No new dependency is added.
+- This is the cookie-protection fix, not authenticated sessions, HSTS, external-provider TLS inventory, public trust or release approval. Historical RC raw findings are unchanged. The remaining eleven ASVS fix TODOs stay open with their existing dates; CodeQL default-branch alerts are not manually dismissed.
+
+### Insights
+
+- The cookie name can change without re-keying either private store because ownership and accounting depend on the opaque value. Keeping the value makes recovery verifiable against the previous implementation; rejecting ambiguous identities prevents a convenience fallback from silently presenting an empty collection as lost data.
+
 ## 2026-10-25 — Native HTTPS listener prerequisite
 
 TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open.

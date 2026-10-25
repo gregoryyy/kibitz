@@ -13,9 +13,12 @@ pending source, checks and decisions.
 
 ### Added
 
-- Optional native HTTPS listener using operator-supplied certificates and private
+- Native HTTPS listener using operator-supplied certificates and private
   keys, with validated files and no HTTP fallback on invalid TLS configuration.
-  Cookie migration and the remaining final-release ASVS fixes are still pending.
+  Standard API launches require TLS; controlled HTTP development is explicit.
+- Protected Secure-prefixed API cookies, preserving existing library ownership
+  and usage counters with tested migration/profile rollback and separate HTTP
+  development identities. The remaining eleven ASVS fixes stay open.
 
 ## [0.1.0-rc.1] — prepared 2026-10-25, unpublished draft
 

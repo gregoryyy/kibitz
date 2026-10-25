@@ -14,7 +14,7 @@ async function freePort() {
   await new Promise(resolve => probe.close(resolve)); return port;
 }
 async function start(root, database, ai) {
-  const port = await freePort(), args = [script, root, '--port', String(port), '--library', database, ...(ai ? ['--api', '--env='] : [])];
+  const port = await freePort(), args = [script, root, '--port', String(port), '--http-dev', '--library', database, ...(ai ? ['--api', '--env='] : [])];
   const child = spawn(process.execPath, args, { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'mock', AI_LOCAL_ONLY: '', EMBEDDING_PROVIDER: 'mock', ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '' } });
   let output = '', errors = '';
   await new Promise((resolve, reject) => {

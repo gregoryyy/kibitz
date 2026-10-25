@@ -19,11 +19,13 @@ The standard serve recipes retain daily AI usage and per-browser minute allowanc
 The CLI also supports [native HTTPS](../docs/TLS.md) with `--tls-key FILE` and
 `--tls-cert FILE`. Operator identities stay outside public trees; invalid TLS
 inputs fail before private storage opens. This supplies the listener prerequisite
-for the final-release ASVS fixes, without migrating existing cookie identities.
+for the final-release ASVS fixes. [Protected-cookie migration](../docs/COOKIE-MIGRATION.md)
+preserves exact existing identities and documents rollback. Cookie-bearing HTTP
+requires explicit `--http-dev` and separate development cookies.
 
 ```bash
 npm install
-npm run serve            # builds dist/ and serves it with the AI gateway at http://127.0.0.1:8765/
+npm run serve            # builds dist/ and serves it with the AI gateway at https://127.0.0.1:8765/
 npm test                 # AI gateway tests, then feature detection + retrieval checks (Node)
 npm run test:e2e         # Playwright end-to-end tests in the installed Chrome (own server, mock AI provider)
 npm run eval:retrieval   # offline labelled position-retrieval benchmark; no provider or build needed
@@ -85,7 +87,8 @@ Browser-only storage remains the default, and a hosted artifact keeps its accoun
 
 ```sh
 npm run build
-node scripts/serve.mjs dist --index _test.html --api --env ../.env --library ../.kibitz-data/library.sqlite
+node scripts/serve.mjs dist --index _test.html --api --env ../.env --library ../.kibitz-data/library.sqlite \
+  --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem
 ```
 
 Then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Library and usage databases must be private regular files outside both the static and any separate `--models` directory, including through symlinks. An explicit model directory must already exist; startup checks it before creating databases. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.

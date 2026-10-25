@@ -20,7 +20,7 @@ for (const name of ['anthropic', 'openai', 'mistral', 'ollama']) test(`${name}: 
   };
   const config = loadConfig({ AI_PROVIDER: name, ANTHROPIC_API_KEY: key, OPENAI_API_KEY: key, MISTRAL_API_KEY: key, OLLAMA_MODEL: 'fixture-model', AI_RATE_LIMIT_PER_MINUTE: '1000', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1000' });
   const embeddingConfig = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mistral', MISTRAL_API_KEY: key });
-  const api = createApi({ config, provider: createProvider(config, { client: client(name) }), embeddingConfig,
+  const api = createApi({ allowInsecureHttp: true, config, provider: createProvider(config, { client: client(name) }), embeddingConfig,
     embedder: createEmbedder(embeddingConfig, { client: client('mistral') }), log: { info: line => logs.push(line), error: line => logs.push(line) } });
   const server = http.createServer((req, res) => api(req, res)); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   t.after(() => { server.closeAllConnections(); return new Promise(resolve => server.close(resolve)); });

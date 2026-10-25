@@ -27,7 +27,7 @@ export async function cookieServers() {
     const urls = {};
     for (const encrypted of [false, true]) {
       const store = createLibraryStore(); stores.push(store);
-      const library = createLibraryApi({ store }), api = createApi({ config: loadConfig({ AI_PROVIDER: 'mock' }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }) });
+      const library = createLibraryApi({ store, allowInsecureHttp: !encrypted }), api = createApi({ allowInsecureHttp: !encrypted, config: loadConfig({ AI_PROVIDER: 'mock' }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }) });
       const handle = async (req, res) => {
         if (await library(req, res) || await api(req, res)) return;
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end('<!doctype html><title>Cookie transport fixture</title>');

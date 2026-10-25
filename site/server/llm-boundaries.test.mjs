@@ -19,7 +19,7 @@ for (const name of ['anthropic', 'openai', 'mistral', 'ollama']) test(`${name}: 
   const options = { apiKey: config.apiKey, baseURL: 'https://fixture.invalid/v1', fetch: fetcher, maxRetries: 0,
     logger: { debug() {}, info() {}, warn() {}, error() {} } };
   const client = name === 'anthropic' ? new Anthropic(options) : new OpenAI(options);
-  const api = createApi({ config, provider: createProvider(config, { client }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }),
+  const api = createApi({ allowInsecureHttp: true, config, provider: createProvider(config, { client }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }),
     log: { info: line => logs.push(line), error: line => logs.push(line) } });
   const server = http.createServer((req, res) => api(req, res));
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

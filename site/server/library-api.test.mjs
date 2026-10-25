@@ -5,7 +5,7 @@ import { createLibraryApi } from './library-api.mjs';
 import { createLibraryStore } from './library-store.mjs';
 const game = id => ({ collection: 'games', id, record: { id, kind: 'study', pgn: '1. e4 *' } });
 async function withApi(run, { store = createLibraryStore(), validate } = {}) {
-  const api = createLibraryApi({ store, ...(validate ? { validate } : {}) });
+  const api = createLibraryApi({ allowInsecureHttp: true, store, ...(validate ? { validate } : {}) });
   const server = http.createServer(async (req, res) => { if (!await api(req, res)) { res.writeHead(404); res.end('{}'); } });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const port = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
@@ -45,7 +45,7 @@ test('explicit cookie-scoped erasure requires confirmation and a current revisio
 test('status offers storage without creating a session; explicit reads issue private cookies and no-store scoped snapshots', () => withApi(async request => {
   const status = await request('/api/library/status'); assert.deepEqual(status.data, { available: true, scope: null }); assert.equal(status.headers['set-cookie'], undefined);
   const response = await request(), cookie = response.headers['set-cookie'][0];
-  assert.match(cookie, /^kibitz_library=[A-Za-z0-9_-]{43}; Path=\/api\/library\/; HttpOnly; SameSite=Strict;/);
+  assert.match(cookie, /^kibitz_dev_library=[A-Za-z0-9_-]{43}; Path=\/api\/library\/; HttpOnly; SameSite=Strict;/);
   assert.match(response.data.scope, /^[a-f0-9]{64}$/); assert.ok(!response.text.includes(cookie.split(';')[0].split('=')[1]));
   assert.equal(response.headers['cache-control'], 'no-store'); assert.equal(response.headers.vary, 'Cookie'); assert.equal(response.headers['x-content-type-options'], 'nosniff');
   const repeated = await request(undefined, { headers: { cookie: cookie.split(';')[0] } });
@@ -67,7 +67,7 @@ test('stale revisions and missing/changed sessions cannot overwrite records or s
   const owner = await session(request); assert.equal((await save(request, owner, [game('first')])).status, 200);
   const conflict = await save(request, owner, [game('second')]); assert.equal(conflict.status, 409); assert.equal(conflict.data.error.code, 'conflict');
   assert.equal((await request(undefined, { method: 'POST', body: { scope: owner.scope, revision: 1, changes: [game('second')] } })).status, 401);
-  const invalidCookie = await save(request, { ...owner, cookie: 'kibitz_library=short' }, [game('second')]); assert.equal(invalidCookie.status, 401);
+  const invalidCookie = await save(request, { ...owner, cookie: 'kibitz_dev_library=short' }, [game('second')]); assert.equal(invalidCookie.status, 401);
   const fresh = await request(undefined, { headers: { cookie: owner.cookie } }); assert.deepEqual(fresh.data.games.map(g => g.id), ['first']);
 }));
 

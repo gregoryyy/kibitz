@@ -11,7 +11,7 @@ const script = fileURLToPath(new URL('../scripts/serve.mjs', import.meta.url));
 async function start(root, database, extra = {}) {
   const probe = net.createServer(); await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve));
   const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
-  const child = spawn(process.execPath, [script, root, '--port', String(port), '--api', '--env=', '--usage', database], {
+  const child = spawn(process.execPath, [script, root, '--port', String(port), '--api', '--http-dev', '--env=', '--usage', database], {
     stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'mock', AI_LOCAL_ONLY: '', EMBEDDING_PROVIDER: 'mock',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', AI_RATE_LIMIT_PER_MINUTE: '10', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1', AI_TOKEN_BUDGET_PER_DAY: '0', ...extra },
   });

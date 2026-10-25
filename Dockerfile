@@ -27,7 +27,7 @@ LABEL org.opencontainers.image.title="Kibitz" \
       org.opencontainers.image.source="https://github.com/gregoryyy/kibitz" \
       org.opencontainers.image.licenses="GPL-3.0-or-later" \
       org.opencontainers.image.revision=$VCS_REF
-ENV NODE_ENV=production AI_PROVIDER=mock
+ENV NODE_ENV=production AI_PROVIDER=mock KIBITZ_HEALTH_HTTPS=1
 ENV PATH=/nodejs/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 WORKDIR /app/site
 COPY --from=production-dependencies /app/site/node_modules ./node_modules
@@ -46,4 +46,4 @@ VOLUME ["/data"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD ["/nodejs/bin/node", "scripts/healthcheck.mjs"]
 ENTRYPOINT ["/nodejs/bin/node"]
-CMD ["scripts/serve.mjs", "dist", "--api", "--env=", "--host", "0.0.0.0", "--port", "8765", "--index", "_test.html", "--usage", "/data/usage.sqlite", "--library", "/data/library.sqlite"]
+CMD ["scripts/serve.mjs", "dist", "--api", "--tls-key", "/tls/key.pem", "--tls-cert", "/tls/cert.pem", "--env=", "--host", "0.0.0.0", "--port", "8765", "--index", "_test.html", "--usage", "/data/usage.sqlite", "--library", "/data/library.sqlite"]

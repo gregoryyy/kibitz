@@ -11,7 +11,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:eco": "node scripts/build.mjs --eco",
-    "serve": "npm run build && node scripts/serve.mjs dist --api --env ../.env --usage ../.kibitz-data/usage.sqlite --index _test.html --port 8765",
+    "serve": "npm run build && node scripts/serve.mjs dist --api --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem --env ../.env --usage ../.kibitz-data/usage.sqlite --index _test.html --port 8765",
+    "serve:dev": "npm run build && node scripts/serve.mjs dist --api --http-dev --env= --usage ../.kibitz-data/dev-usage.sqlite --index _test.html --port 8765",
     "test": "node --test \"server/**/*.test.mjs\" \"tests/unit/*.test.mjs\"",
     "test:e2e": "npm run build && playwright test",
     "lint": "eslint .",

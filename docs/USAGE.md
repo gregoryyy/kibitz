@@ -53,3 +53,9 @@ New directories use mode 0700 and files 0600. Paths inside either served root (s
 Only current-day counters are consulted. The next successful accounting write prunes older-day rows; a stopped/unused server can retain its previous day until used again. Expired minute timestamps are removed when the corresponding scope next receives an accepted request; they remain bounded by its minute allowance. SQLite free pages, WAL files and backups can retain older bytes. No forensic-erasure guarantee is made.
 
 Browser/game-library export and erasure deliberately leave these operational counters in place. Their purpose and retention are separate from saved chess material. The operator can inspect the private database with SQLite tools. To erase/reset it deliberately, stop **every** server using it, remove the usage database and its `-wal`/`-shm` sidecars, then restart; this resets all local budgets and rates. Do not remove the separate library database unless its chess data should also be erased. Backups need the operator's own retention/deletion policy.
+
+[Protected-cookie migration](COOKIE-MIGRATION.md) preserves the exact usage ID,
+so existing hashes, current-day counters and rate admissions survive the rename.
+Explicit HTTP development uses `kibitz_dev_uid`, separate from production
+identities; use a separate development database too. These cookies are still
+local grouping rather than authenticated operator sessions.

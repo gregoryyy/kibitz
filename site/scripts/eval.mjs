@@ -62,7 +62,7 @@ export async function runPosition(page, pos) {
 
 function serve({ ai, model, port, envFile }) {
   const env = { ...process.env };
-  const args = ['scripts/serve.mjs', 'dist', '--api', '--index', '_test.html', '--port', String(port), '--host', '127.0.0.1'];
+  const args = ['scripts/serve.mjs', 'dist', '--api', '--http-dev', '--index', '_test.html', '--port', String(port), '--host', '127.0.0.1'];
   if (ai === 'mock') Object.assign(env, { AI_PROVIDER: 'mock', ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', AI_LOCAL_ONLY: '' }), args.push('--env=');
   else if (ai === 'browser') Object.assign(env, { AI_PROVIDER: 'browser', AI_LOCAL_ONLY: '1' }), args.push('--env=', '--models', 'models', ...(model ? ['--model', model] : []));
   else { if (ai !== 'env') env.AI_PROVIDER = ai; args.push(`--env=${envFile}`); }

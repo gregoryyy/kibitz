@@ -6,13 +6,14 @@ This deployment can still use a cloud AI provider chosen by the operator. “Loc
 
 ## Supported operation
 
-Build and run from the repository:
+Supply trusted operator certificates as described in [TLS setup](TLS.md), then build and run from the repository:
 
 ```sh
 just serve
 # Optional private, persistent library:
 cd site
-node scripts/serve.mjs dist --api --library ../.kibitz-data/library.sqlite
+node scripts/serve.mjs dist --api --env ../.env --library ../.kibitz-data/library.sqlite \
+  --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem
 ```
 
 The server reads operator-supplied keys from the root `.env`; keys remain outside browser storage, exports, logs and prompts. Server-env key management satisfies TODO 2.9's supported local path. An encrypted store for separate account-owned keys belongs to a future hosted deployment.
@@ -23,15 +24,17 @@ The owner selected native Node HTTPS with operator-supplied certificates for the
 final local-app transport. `serve.mjs --tls-key FILE --tls-cert FILE` now starts
 that listener; [TLS setup and data-transition limits](TLS.md) describe private
 identity files, normal browser trust and the remaining ASVS work. Both options
-are required; an invalid pair exits without an HTTP fallback. HTTP remains the
-RC/development default when neither option is supplied.
+are required; an invalid pair exits without an HTTP fallback. Cookie-bearing
+operation without TLS is refused before private database creation. Controlled
+HTTP development requires `--http-dev` and uses separate development cookies.
 
-Both APIs issue new cookies with `Secure` on the actual TLS socket. Forwarding
-headers do not control the flag. Existing valid cookies retain their identity
-without being reissued; preserve private-library/profile backups before changing
-origin, and do not clear an ownership cookie as a migration strategy. Cookie
-prefix/migration work remains TODO 11.4.2.1. These flags preserve local grouping
-and do not establish authenticated accounts or a trusted reverse-proxy deployment.
+Both APIs use `__Secure-` cookie names, Secure/HttpOnly/SameSite=Strict and their
+existing separate API paths on the actual TLS socket. Forwarding headers do not
+control this policy. [Migration and rollback](COOKIE-MIGRATION.md) retain exact
+legacy tokens, library owner keys and usage counters, without changing SQLite
+schemas. Preserve profile/private-database backups before changing origin.
+This closes cookie remediation 11.4.2.1, while authentication, revocation,
+permissions and the other final-release requirements remain open.
 
 The existing `--host` option can change the listener for deliberate development/packaging use. Binding to a LAN/public address does not add accounts, transport security or authorization. A public/shared service is outside this deployment decision. A local machine's users, browser profiles and anonymous cookie scopes are not a hosted tenant-security boundary.
 

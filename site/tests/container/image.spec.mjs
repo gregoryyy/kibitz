@@ -17,7 +17,9 @@ test.beforeAll(async () => {
   docker('volume', 'create', volume);
   docker('run', '-d', '--pull=never', '--name', name, '--init', '--read-only', '--cap-drop=ALL',
     '--security-opt=no-new-privileges', '--tmpfs', '/tmp:mode=1777', '--publish', '127.0.0.1::8765',
-    '--mount', `type=volume,src=${volume},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image);
+    '--mount', `type=volume,src=${volume},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', '--env', 'KIBITZ_HEALTH_HTTPS=0', image,
+    'scripts/serve.mjs', 'dist', '--api', '--http-dev', '--env=', '--host', '0.0.0.0', '--port', '8765',
+    '--index', '_test.html', '--usage', '/data/usage.sqlite', '--library', '/data/library.sqlite');
   base = publishedBase();
   await expect.poll(async () => {
     try { return (await fetch(base + '/manifest.webmanifest', { signal: AbortSignal.timeout(2000) })).status; }
@@ -126,7 +128,10 @@ test('the previous packaging volume opens under the minimal runtime with the sam
     containers.add(container);
     docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
       '--security-opt=no-new-privileges', '--tmpfs', '/tmp:mode=1777', '--publish', '127.0.0.1::8765',
-      '--mount', `type=volume,src=${data},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', runtime);
+      '--mount', `type=volume,src=${data},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1',
+      '--env', 'KIBITZ_HEALTH_HTTPS=0', runtime, ...(runtime === 'kibitz:previous-runtime' ? ['node'] : []),
+      'scripts/serve.mjs', 'dist', '--api', '--http-dev', '--env=', '--host', '0.0.0.0', '--port', '8765',
+      '--index', '_test.html', '--usage', '/data/usage.sqlite', '--library', '/data/library.sqlite');
     return publishedBase(container);
   };
   const ready = async url => expect.poll(async () => {
@@ -179,11 +184,10 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     containers.add(container);
     docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
       '--security-opt=no-new-privileges', '--publish', '127.0.0.1::8765', '--mount', `type=volume,src=${material},dst=/tls,readonly`,
+      '--tmpfs', '/data:mode=0700,uid=1000,gid=1000',
       '--health-interval', '2s', '--health-start-period', '0s',
       '--env', 'KIBITZ_HEALTH_HTTPS=1', '--env', 'KIBITZ_HEALTH_CA=/tls/cert.pem',
-      '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image, 'scripts/serve.mjs', 'dist', '--api', '--env=',
-      '--library', ':memory:', '--host', '0.0.0.0', '--port', '8765', '--index', '_test.html',
-      '--tls-key', '/tls/key.pem', '--tls-cert', '/tls/cert.pem');
+      '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image);
     const url = publishedBase(container).replace('http:', 'https:');
     client = await playwright.request.newContext({ ignoreHTTPSErrors: true });
     await expect.poll(async () => { try { return (await client.get(url + '/manifest.webmanifest')).status(); } catch { return 0; } }, { timeout: 30_000 }).toBe(200);
@@ -191,6 +195,7 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     expect(JSON.parse(docker('inspect', container))[0].Mounts.find(mount => mount.Destination === '/tls').RW).toBe(false);
     for (const route of ['/api/ai/status', '/api/library/records']) {
       const response = await client.get(url + route); expect(response.status()).toBe(200);
+      expect(response.headers()['set-cookie']).toMatch(/^__Secure-kibitz_(uid|library)=/);
       expect(response.headers()['set-cookie']).toContain('; Secure');
     }
     context = await browser.newContext({ ignoreHTTPSErrors: true }); const page = await context.newPage();

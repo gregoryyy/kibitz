@@ -13,7 +13,7 @@ const markers = ['PATH_PRIVATE', 'QUERY_PRIVATE', 'PROMPT_PRIVATE', 'COOKIE_PRIV
 async function launch(root) {
   const probe = net.createServer(); await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve));
   const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
-  const child = spawn(process.execPath, [script, root, '--api', '--env=', '--port', String(port)], {
+  const child = spawn(process.execPath, [script, root, '--api', '--http-dev', '--env=', '--port', String(port)], {
     stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'openai', OPENAI_API_KEY: 'sk-synthetic-secret', OPENAI_MODEL: 'MODEL_PRIVATE\nFORGED_EVENT', AI_LOCAL_ONLY: '', EMBEDDING_PROVIDER: 'mock' },
   });
   let output = '', errors = '';
@@ -35,7 +35,7 @@ test('HTTP paths, queries, controls, cookies and prompt text stay out of default
   try {
     expect(server.started).toBe(true);
     await page.goto(server.base); await expect(page.locator('p')).toHaveText('ready');
-    const headers = { cookie: 'kibitz_uid=abcdefghijklmnopqrstuv; personal=COOKIE_PRIVATE', 'content-type': 'application/json' };
+    const headers = { cookie: 'kibitz_dev_uid=abcdefghijklmnopqrstuv; personal=COOKIE_PRIVATE', 'content-type': 'application/json' };
     const paths = ['/PATH_PRIVATE%0a%1b%5b31mFORGED_EVENT?note=QUERY_PRIVATE&key=sk-synthetic-secret', '/api/library/PATH_PRIVATE?note=QUERY_PRIVATE', '/models/PATH_PRIVATE?note=QUERY_PRIVATE', '/%zz?note=QUERY_PRIVATE'];
     for (const url of paths) { const response = await fetch(server.base + url, { headers }); await response.text(); }
     for (const marker of markers) expect(server.output() + server.errors()).not.toContain(marker);
