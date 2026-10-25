@@ -82,7 +82,17 @@ deployment/provider/runtime-scope change. No high finding or overdue waiver is
 approved; no merging, tagging or publication is authorized by these exceptions.
 The table below retains the technical conditions and required follow-up.
 
-| ASVS requirement(s) | Unresolved condition | Decision/evidence needed |
+**Owner direction on 2026-10-25 adds a final-release condition:** the twelve
+ASVS items may retain their temporary approval in PR #133, but must be fixed
+and verified before the first final (non-prerelease) release. They are tracked
+individually under **TODO 11.4.2.1–11.4.2.12** in [TODO.md](TODO.md).
+The [assessment](asvs-l1.json) links each unsatisfied control to its specific
+remediation item. The maintainer owns follow-up; current statuses remain ten
+deviations and two open. No checkbox or RC approval establishes remediation.
+The original review dates and component-plan/finding deadlines remain in force;
+the final-release gate cannot postpone an earlier deadline.
+
+| ASVS requirement(s) | Unresolved condition | Remediation/evidence needed before final release |
 | --- | --- | --- |
 | 3.3.1, 3.4.1 | Local HTTP grouping cookies have no Secure flag or secure prefix; no HSTS | Confirm supported transport and cookie/data compatibility; assess TLS separately before network use |
 | 7.2.1, 7.4.1, 8.2.1 | Grouping tokens are not authenticated identities, revocable sessions or account permissions | Explicitly retain local trusted-client scope or implement/review a different deployment |

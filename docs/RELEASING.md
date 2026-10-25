@@ -59,6 +59,14 @@ Prepare a release in its own branch and PR:
    owner disposition of deviations. An open high finding blocks release. Retain
    artifacts before their thirty-day expiry; a prior feature's green check is
    not release-commit evidence.
+   For the first final (non-prerelease) release, require every ASVS remediation
+   item **TODO 11.4.2.1–11.4.2.12** to be implemented and verified, with the
+   corresponding assessment updated from its current deviation/open status.
+   The temporary exceptions accepted for PR #133's local RC do not authorize
+   carrying these conditions into the final release. Check both the TODOs and
+   the cited verification; approval or another exception does not count as a fix.
+   Existing review/remediation dates still apply, and a planned release cannot
+   extend them. This ASVS gate does not silently change other findings' deadlines.
 5. Review third-party maintenance deadlines, licences/notices, required source
    availability, packaged components, platform support and documentation. Confirm
    the release's actual deployment/security scope. Confirm the merged container

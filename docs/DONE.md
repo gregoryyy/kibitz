@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Track ASVS fixes required before final release
+
+TODO items: 11.4.2.1–11.4.2.12 (all open); release gate 11.6 remains open.
+
+### Implementation notes
+
+- Added one actionable remediation TODO for each of PR #133's ten ASVS deviations and two open requirements, with control IDs, implementation/verification criteria and maintainer ownership. Linked every unsatisfied assessment record to its exact TODO and regenerated the readable checklist without changing any technical status.
+- Recorded the owner's direction that these exceptions may be approved for the local RC, but all twelve conditions must be fixed and verified before the first final release. Updated the candidate review, release packet, ASVS guide and release procedure; RC acceptance or a renewed exception cannot close a remediation item. Existing review dates and component-plan/finding deadlines remain unchanged.
+- The session/permission tasks remain within local single-user operation; hosted accounts stay deferred. The plan includes cookie/data migration, hostname/HSTS effects, actual endpoint TLS evidence, process-level checkout isolation and authenticated client-data cleanup rather than treating documentation or a passing scan as their implementation.
+- Validation: Node 24.22.1 lint/JSDoc/ASVS checks and all eight existing ASVS regression groups pass. Independent checks confirm twelve unique open control-to-TODO mappings, all 70 statuses unchanged, 372 local Markdown file links resolving and all sixteen retained raw hashes unchanged; whitespace checks pass.
+
+### Deviations
+
+- This change records the requested work and release gate; it does not implement the twelve fixes. All twelve TODOs remain unchecked, and ASVS counts remain 28 verified/30 not-applicable/ten deviation/two open. It does not authorize a merge, final release, paid call or model download.
+
+### Insights
+
+- A temporary RC exception needs a specific remediation target and an explicit final-release boundary. Individual control-to-TODO links make the remaining work reviewable without confusing accepted RC risk with a completed fix.
+
 ## 2026-10-25 — Reconcile candidate evidence and approved exceptions
 
 TODO item: 11.6.2; the parent release gate remains open.

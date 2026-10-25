@@ -194,7 +194,7 @@
       "topic": "Cookie transport and names",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Local HTTP omits Secure; native TLS adds it, but neither grouping-cookie name has a secure prefix. HttpOnly and SameSite=Strict do not satisfy this whole requirement. Renaming library cookies needs a data migration decision. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "Local HTTP omits Secure; native TLS adds it, but neither grouping-cookie name has a secure prefix. HttpOnly and SameSite=Strict do not satisfy this whole requirement. Renaming library cookies needs a data migration decision. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
@@ -202,20 +202,20 @@
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.1"
     },
     {
       "id": "v5.0.0-3.4.1",
       "topic": "HSTS",
       "status": "deviation",
       "method": "scope-review",
-      "note": "The local server intentionally has no HSTS policy and supports HTTP. A one-year localhost-wide policy would affect other apps and ports. Reassess transport and deployment before enabling it. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "The local server intentionally has no HSTS policy and supports HTTP. A one-year localhost-wide policy would affect other apps and ports. Reassess transport and deployment before enabling it. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/static.mjs",
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.2"
     },
     {
       "id": "v5.0.0-3.4.2",
@@ -494,14 +494,14 @@
       "topic": "Backend grouping verification",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Backend code validates cookie syntax and uses opaque values as storage keys, but has no issued-session registry or authenticated principal. A local client can choose another syntactically valid usage group; server-wide admission remains separate. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "Backend code validates cookie syntax and uses opaque values as storage keys, but has no issued-session registry or authenticated principal. A local client can choose another syntactically valid usage group; server-wide admission remains separate. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.3"
     },
     {
       "id": "v5.0.0-7.2.2",
@@ -543,14 +543,14 @@
       "topic": "Backend token invalidation",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Cookie Max-Age/browser clearing does not revoke a copied token at the backend. There is no authenticated logout or server token-expiry registry; private-library erasure removes data rather than establishing session revocation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "Cookie Max-Age/browser clearing does not revoke a copied token at the backend. There is no authenticated logout or server token-expiry registry; private-library erasure removes data rather than establishing session revocation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.4"
     },
     {
       "id": "v5.0.0-7.4.2",
@@ -580,14 +580,14 @@
       "topic": "Function permissions",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Functions are available to trusted local clients and browser consent attestations; there are no authenticated principals or explicit account permissions. Browser Origin/consent controls cannot authorize an untrusted direct client. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "Functions are available to trusted local clients and browser consent attestations; there are no authenticated principals or explicit account permissions. Browser Origin/consent controls cannot authorize an untrusted direct client. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/api.mjs",
         "docs/DEPLOYMENT.md",
         "docs/THREAT-MODEL.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.5"
     },
     {
       "id": "v5.0.0-8.2.2",
@@ -753,49 +753,49 @@
       "topic": "Deployed TLS versions",
       "status": "open",
       "method": "scope-review",
-      "note": "Node TLS fixtures exercise the current default stack, but no release deployment or external-service TLS-version inventory was verified. Confirm minimum/preferred TLS versions for the packaged deployment rather than infer certification from a successful request. Owner approved a temporary evidence-gap exception for local 0.1.0-rc.1 on 2026-10-25, with endpoint/TLS review due 2026-11-01; this requirement stays open.",
+      "note": "Node TLS fixtures exercise the current default stack, but no release deployment or external-service TLS-version inventory was verified. Confirm minimum/preferred TLS versions for the packaged deployment rather than infer certification from a successful request. Owner approved a temporary evidence-gap exception for local 0.1.0-rc.1 on 2026-10-25, with endpoint/TLS review due 2026-11-01; this requirement stays open. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/scripts/serve.mjs",
         "site/server/cookie-transport.test.mjs",
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.6"
     },
     {
       "id": "v5.0.0-12.2.1",
       "topic": "HTTP transport encryption",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Selected local operation permits HTTP for browser/server and loopback Ollama; cloud defaults use HTTPS but operator base-URL overrides can permit HTTP. No operator configuration or live provider transport was inspected. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "Selected local operation permits HTTP for browser/server and loopback Ollama; cloud defaults use HTTPS but operator base-URL overrides can permit HTTP. No operator configuration or live provider transport was inspected. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/scripts/serve.mjs",
         "site/server/ai.mjs",
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.7"
     },
     {
       "id": "v5.0.0-12.2.2",
       "topic": "Public TLS trust",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Local HTTP needs no certificate and local TLS tests use a private test certificate. Node validates HTTPS peers by default, but no deployed public-service certificate inventory was verified. This does not establish public trust for every operator endpoint. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "Local HTTP needs no certificate and local TLS tests use a private test certificate. Node validates HTTPS peers by default, but no deployed public-service certificate inventory was verified. This does not establish public trust for every operator endpoint. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/ai.mjs",
         "site/server/cookie-transport.test.mjs",
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.8"
     },
     {
       "id": "v5.0.0-13.4.1",
       "topic": "Source-control metadata",
       "status": "deviation",
       "method": "scope-review",
-      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. Native checkout execution still lets the app user read Git metadata, so the overall local-deployment requirement remains a deviation under the owner-approved local RC scope. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. Native checkout execution still lets the app user read Git metadata, so the overall local-deployment requirement remains a deviation under the owner-approved local RC scope. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/static.mjs",
         "site/server/static.test.mjs",
@@ -803,34 +803,34 @@
         "docs/CONTAINER.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.9"
     },
     {
       "id": "v5.0.0-14.2.1",
       "topic": "Sensitive URL content",
       "status": "deviation",
       "method": "scope-review",
-      "note": "AI keys/cookies/prompts travel in headers/bodies. Explicit external Lichess analysis navigation places the selected FEN in its path and browser history; a private chess position can be sensitive. This is a documented privacy deviation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "AI keys/cookies/prompts travel in headers/bodies. Explicit external Lichess analysis navigation places the selected FEN in its path and browser history; a private chess position can be sensitive. This is a documented privacy deviation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/src/index.html",
         "docs/PRIVACY.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.10"
     },
     {
       "id": "v5.0.0-14.3.1",
       "topic": "Client-data lifecycle",
       "status": "deviation",
       "method": "scope-review",
-      "note": "There are no authenticated sessions to terminate. Local history/preferences/library intentionally persist until explicit deletion; closing the page or expiring a grouping cookie does not clear all browser data. Privacy erasure controls are not an authenticated-session lifecycle. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
+      "note": "There are no authenticated sessions to terminate. Local history/preferences/library intentionally persist until explicit deletion; closing the page or expiring a grouping cookie does not clear all browser data. Privacy erasure controls are not an authenticated-session lifecycle. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/src/platform/data.js",
         "docs/PRIVACY.md",
         "docs/DEPLOYMENT.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.11"
     },
     {
       "id": "v5.0.0-15.1.1",
@@ -847,7 +847,7 @@
       "topic": "Component remediation evidence",
       "status": "open",
       "method": "documentation-review",
-      "note": "Dated evidence includes npm/image inventories, a fresh hashed advisory DB, verified base publisher, actual Node component/ABI versions and seven distributed engine/runtime asset hashes. Registry signatures, Action wrapper pins/queries and both fixed Qwen GGUF source revisions/LFS pointers are reviewed with scope limits. Runtime findings remain 23 medium/eight low under the scoped RC exception, with original deadlines. Build-stage, embedded/native advisory-age coverage, binary compilation linkage, downloaded Action tools and model provenance remain incomplete; this is not release-wide clearance. Owner approved a temporary local 0.1.0-rc.1 evidence-gap exception on 2026-10-25: component/build/tool/model review due 2026-11-01 and remediation plan due 2026-11-24; this requirement stays open.",
+      "note": "Dated evidence includes npm/image inventories, a fresh hashed advisory DB, verified base publisher, actual Node component/ABI versions and seven distributed engine/runtime asset hashes. Registry signatures, Action wrapper pins/queries and both fixed Qwen GGUF source revisions/LFS pointers are reviewed with scope limits. Runtime findings remain 23 medium/eight low under the scoped RC exception, with original deadlines. Build-stage, embedded/native advisory-age coverage, binary compilation linkage, downloaded Action tools and model provenance remain incomplete; this is not release-wide clearance. Owner approved a temporary local 0.1.0-rc.1 evidence-gap exception on 2026-10-25: component/build/tool/model review due 2026-11-01 and remediation plan due 2026-11-24; this requirement stays open. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "docs/MAINTENANCE.md",
         "docs/SECURITY-SCANS.md",
@@ -862,7 +862,7 @@
         "docs/security/2026-10-25-runtime-triage.md",
         "docs/security/2026-10-25-browser-models.json"
       ],
-      "followUp": "TODO 11.6"
+      "followUp": "TODO 11.4.2.12"
     },
     {
       "id": "v5.0.0-15.3.1",
