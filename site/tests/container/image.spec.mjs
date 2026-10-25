@@ -6,18 +6,29 @@ const image = process.env.KIBITZ_CONTAINER_IMAGE || 'kibitz:container-test';
 const suffix = randomUUID().slice(0, 8), name = `kibitz-image-${suffix}`, volume = `kibitz-data-${suffix}`;
 const docker = (...args) => execFileSync('docker', args, { encoding: 'utf8', timeout: 60_000, maxBuffer: 2_000_000 });
 let base;
+function publishedBase() {
+  const address = docker('port', name, '8765/tcp').trim();
+  expect(address).toMatch(/^127\.0\.0\.1:\d+$/);
+  return 'http://' + address;
+}
 test.beforeAll(async () => {
   docker('volume', 'create', volume);
   docker('run', '-d', '--pull=never', '--name', name, '--init', '--read-only', '--cap-drop=ALL',
     '--security-opt=no-new-privileges', '--tmpfs', '/tmp:mode=1777', '--publish', '127.0.0.1::8765',
     '--mount', `type=volume,src=${volume},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image);
-  const address = docker('port', name, '8765/tcp').trim();
-  expect(address).toMatch(/^127\.0\.0\.1:\d+$/);
-  base = 'http://' + address;
+  base = publishedBase();
   await expect.poll(async () => {
     try { return (await fetch(base + '/manifest.webmanifest', { signal: AbortSignal.timeout(2000) })).status; }
     catch { return 0; }
   }, { timeout: 30_000 }).toBe(200);
+});
+test.afterEach(async ({ request }, info) => {
+  if (info.status === info.expectedStatus) return;
+  try {
+    const state = JSON.parse(docker('inspect', name))[0];
+    await info.attach('container-state', { body: JSON.stringify({ state: state.State, ports: state.NetworkSettings.Ports }), contentType: 'application/json' });
+    await info.attach('container-log', { body: docker('logs', name), contentType: 'text/plain' });
+  } catch { /* Preserve the original failure when startup did not create a container. */ }
 });
 test.afterAll(() => {
   const errors = [];
@@ -84,6 +95,9 @@ test('private volume retains library and usage across restart while another cook
     const independent = await (await other.get(base + '/api/library/records')).json();
     expect(independent.scope).not.toBe(initial.scope); expect(independent.games).toEqual([]);
     docker('restart', '--time', '10', name);
+    // Docker may allocate a new host port when the original request used port 0.
+    // Browser cookies remain scoped to the same host, independently of its port.
+    base = publishedBase();
     await expect.poll(async () => {
       try { return (await owner.get(base + '/api/library/status')).status(); } catch { return 0; }
     }, { timeout: 30_000 }).toBe(200);
