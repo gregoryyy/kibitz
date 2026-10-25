@@ -8,19 +8,19 @@ The package value `0.1.0` is still the unreleased development baseline.
 ## Source and prerequisites
 
 The preparation starts at `209e458ec8283ae86ea86a3600632a1de663298c`.
-At this review, `origin/main` is `42761c3` (through PR #117). These prerequisite
-PRs are open and must merge through passing CI before selecting the release
+At this follow-up, `origin/main` is `8c82d3c` (through PR #122). The remaining
+prerequisites must merge through passing CI before selecting the release
 candidate and running its final checks:
 
-| PR | Result supplied |
-| --- | --- |
-| [118](https://github.com/gregoryyy/kibitz/pull/118) | Automated dependency/secret/code/passive scans and retained evidence |
-| [119](https://github.com/gregoryyy/kibitz/pull/119) | Version policy and Unreleased changelog |
-| [120](https://github.com/gregoryyy/kibitz/pull/120) | Local image, private volume and persistence checks |
-| [121](https://github.com/gregoryyy/kibitz/pull/121) | Supported Luna Chat Completions tool mode |
-| [122](https://github.com/gregoryyy/kibitz/pull/122) | User/provider/native-Ollama guides |
-| [123](https://github.com/gregoryyy/kibitz/pull/123) | Local fonts and trusted stylesheet hashes |
-| [124](https://github.com/gregoryyy/kibitz/pull/124) | Minimal runtime and exact-image advisory verification |
+| PR | Result supplied | State at follow-up |
+| --- | --- | --- |
+| [118](https://github.com/gregoryyy/kibitz/pull/118) | Automated dependency/secret/code/passive scans and retained evidence | Merged |
+| [119](https://github.com/gregoryyy/kibitz/pull/119) | Version policy and Unreleased changelog | Merged |
+| [120](https://github.com/gregoryyy/kibitz/pull/120) | Local image, private volume and persistence checks | Merged |
+| [121](https://github.com/gregoryyy/kibitz/pull/121) | Supported Luna Chat Completions tool mode | Merged |
+| [122](https://github.com/gregoryyy/kibitz/pull/122) | User/provider/native-Ollama guides | Merged |
+| [123](https://github.com/gregoryyy/kibitz/pull/123) | Local fonts and trusted stylesheet hashes | Open |
+| [124](https://github.com/gregoryyy/kibitz/pull/124) | Minimal runtime and exact-image advisory verification | Open |
 
 The tested scope is [local, single-user operation](DEPLOYMENT.md), either native
 Node or the loopback-published container. It includes cookie-separated private
@@ -42,7 +42,7 @@ not evidence that arbitrary generated chess explanations are correct.
 | [Passive web baseline](WEB-ASSETS.md) | [Run 40158959465](https://github.com/gregoryyy/kibitz/actions/runs/40158959465), source `00e7d16`, merge `9c8d6843`: zero high/medium, two informational types | Seven required routes, sixty enabled passive rules; comments and grouping-cookie information retained |
 | [Exact packaged-image scan](IMAGE-ADVISORIES.md) | [Run 40166278799](https://github.com/gregoryyy/kibitz/actions/runs/40166278799), source `92ccc07`, merge `da379a15`: zero high/critical, 23 medium/eight low | Fresh hashed DB, fourteen OS/sixteen library versions, independently verified image/config/rootfs/source identities |
 | Actual container tests in that run | Four pass: boundaries, Stockfish/mock UI, restart isolation and previous-packaging volume compatibility | Both packaging recipes use the current app/schema; not historical schema-migration evidence |
-| CodeQL | At the current main snapshot, no open high alerts; medium alerts 20/21/23 remain. PR #124 races 25/26 are fixed without dismissal | Passing PR check does not remove retained medium findings or replace a release-commit scan |
+| CodeQL | At reviewed main `42761c3`, no open high alerts; medium alerts 20/21/23 remain. PR #124 races 25/26 are fixed without dismissal | Passing PR check does not remove retained medium findings or replace a release-commit scan |
 
 Implementation and exact sanitized identities are in
 [DONE](DONE.md), [web evidence](security/2026-10-25-web-assets.json) and
@@ -82,8 +82,13 @@ It records CPU/function/service prerequisites, the resolver configuration concer
 and native-linkage/range gaps. All raw findings and owner dispositions remain open.
 The [compiled-component/package evidence](COMPONENT-PROVENANCE.md) additionally
 records verified registry signatures and exact upstream source candidates, while
-keeping the binary compilation link unverified. New packaged Node/asset capture
-is pending actual Linux artifact review; native smoke output is not substituted.
+keeping the binary compilation link unverified. Initial Linux Node/asset capture
+passed, while its browser check failed twice on network-change-aborted modules.
+Corrected full workflow verification remains pending; native smoke output is not
+substituted for that evidence.
+All six direct Action pins also match independently resolved official version
+tags, with a dated, bounded advisory query. Bundled/downloaded tool dependencies
+and hosted runner/platform changes remain separate gaps.
 
 ## Candidate work and external inputs
 

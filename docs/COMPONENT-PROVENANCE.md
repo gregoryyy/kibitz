@@ -19,8 +19,10 @@ the separate inventory to its image.
 Capture starts a network-disabled, read-only container and reads fixed public
 asset names. It records neither environment variables nor diagnostic reports,
 operator paths, private storage, model weights or provider responses. The explicit
-JSON artifact joins the existing thirty-day inventory retention. Actual Linux
-capture remains pending until its run/artifact is reviewed; the successful local
+JSON artifact joins the existing thirty-day inventory retention. Initial actual
+Linux capture succeeds at `0936467`, but that run's browser check fails twice on
+module loads aborted by Chromium with `ERR_NETWORK_CHANGED`; its advisory scan
+does not run. Corrected full workflow verification remains pending. The local
 command smoke test used macOS Node and is not packaged-runtime evidence.
 
 This version map is not a complete binary SBOM, proof of static/dynamic linkage,
@@ -60,6 +62,16 @@ The npm-reported commit is unsigned registry metadata; the registry signature
 verified above covers only the package identity/integrity payload.
 
 ## Release follow-up
+
+The [dated Action record](security/2026-10-25-action-advisories.json) independently
+resolves all six direct wrapper pins to their official version tags, including
+CodeQL's annotated tag. A paginated
+[official advisory API query](https://docs.github.com/en/rest/security-advisories/global-advisories#list-global-security-advisories)
+returns no matching reviewed, non-withdrawn advisories for those six exact
+versions. It excludes unreviewed reports/malware and does not establish complete
+coverage, review wrapper code, or inventory bundled dependencies, downloaded tools,
+runner runtimes or hosted-platform changes. No pin, token, repository setting or
+alert disposition was changed by this read-only review.
 
 Review actual Linux version/hash output against the image and package pins before
 using it. Check vendor advisories for those component versions and assess bundled
