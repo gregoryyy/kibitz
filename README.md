@@ -8,7 +8,7 @@ One of the main motivations for Kibitz is to experiment with combining large lan
 
 The app lives in [`site/`](site/): page source, build scripts, opening data, the local server with its AI gateway, and tests. Design notes are in [site/README.md](site/README.md). Where the project is heading is in [TODO.md](docs/TODO.md), longer-term ideas are in [ROAD.md](docs/ROAD.md), progress is logged in [DONE.md](docs/DONE.md), and the working rules for coding agents and contributors are in [AGENTS.md](AGENTS.md).
 
-[Changelog](CHANGELOG.md) records notable changes. The [version policy](docs/RELEASING.md) follows Semantic Versioning; the current `0.1.0` package is an unreleased development baseline.
+[Changelog](CHANGELOG.md) records notable changes. The [version policy](docs/RELEASING.md) follows Semantic Versioning; this branch prepares the unpublished draft candidate [`0.1.0-rc.1`](docs/releases/0.1.0-rc.1.md), with release checks and approval still pending.
 
 The [local Docker package](docs/CONTAINER.md) provides a mock-default recipe with private persistent storage and explicit loopback publishing, verified with real image/browser/restart tests in Linux CI.
 
@@ -47,9 +47,15 @@ just test              # unit tests (builds first)
 just check             # ESLint and the type check (tsc --checkJs)
 just e2e               # Playwright end-to-end tests (starts its own server with the mock AI provider)
 just build             # build only; `just build-eco` also rebuilds the opening table
-just pdfs              # a PDF next to every Markdown document (needs pandoc and Chrome); `just pdf FILE` for one
+just pdfs              # update missing/outdated Markdown PDFs by modification date (pandoc + Chrome); `just pdf FILE` for one
 just                   # list all recipes
 ```
+
+PDFs rebuild only when missing, empty or older than their Markdown source, print
+stylesheet, Mermaid include or `justfile`. Equal timestamps count as current;
+legacy content stamps are ignored. After changing only an embedded image, delete
+that document's PDF to rebuild it. Bulk rendering excludes agent instructions
+(`AGENTS.md`, `CLAUDE.md`) and `.github/` templates.
 
 The server binds to `127.0.0.1` only. Change the port or address with `KIBITZ_PORT` and `KIBITZ_HOST`, e.g. `KIBITZ_PORT=9000 just serve`.
 
