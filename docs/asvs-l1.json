@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "e544aa6dd907d8beee6ce81bba7145bf24981bd6",
+  "revision": "dc3dc1413e27dfc821b1e8169928972f7dd1fec7",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -194,7 +194,7 @@
       "topic": "Cookie transport and names",
       "status": "verified",
       "method": "code-and-test",
-      "note": "Native TLS sends a __Host- session cookie with Secure/HttpOnly/SameSite=Strict/Path=/ and protected __Secure- collection locators at their canonical API paths, without Domain. Locators are adopted only with operator proof and do not authorize access. Migration preserves usage/library hashes, records, revisions and counters without rewriting their version-one schemas; the separate session registry is private. Explicit HTTP development remains a separate synthetic namespace outside final deployment. Backend termination, function permissions, endpoint trust/inventory and client cleanup retain their own gates.",
+      "note": "Native TLS sends a __Host- session cookie with Secure/HttpOnly/SameSite=Strict/Path=/ and protected __Secure- collection locators at their canonical API paths, without Domain. Locators are adopted only with operator proof and do not authorize access. Migration preserves usage/library hashes, records, revisions and counters without rewriting their version-one schemas; the separate session registry is private. Explicit HTTP development remains a separate synthetic namespace outside final deployment. Backend termination is assessed separately; function permissions, endpoint trust/inventory and complete client cleanup retain their own gates.",
       "evidence": [
         "site/server/cookies.mjs",
         "site/server/api.mjs",
@@ -514,7 +514,7 @@
       "topic": "Backend-issued session verification",
       "status": "verified",
       "method": "code-and-test",
-      "note": "All supported HTTPS gateway/library functions resolve identity through the backend-issued token registry bound to the private local operator ID and credential epoch. Only a SHA-256 token verifier is stored; unknown, invented, duplicate, expired and different-operator tokens fail. Raw grouping locators never grant access; migration/recovery requires fresh operator proof and transactional ownership bindings. Native CLI/browser and actual default Linux image checks exercise this boundary. Explicit synthetic HTTP development and legacy-origin recovery remain outside final deployment; hosted accounts, logout/revocation, function permissions and authenticated client cleanup retain their own scope/TODOs.",
+      "note": "All supported HTTPS gateway/library functions resolve identity through the backend-issued token registry bound to the private local operator ID and credential epoch. Only a SHA-256 token verifier is stored; unknown, invented, duplicate, expired and different-operator tokens fail. Raw grouping locators never grant access; migration/recovery requires fresh operator proof and transactional ownership bindings. Native CLI/browser and actual default Linux image checks exercise this boundary. Explicit synthetic HTTP development and legacy-origin recovery remain outside final deployment; hosted accounts, function permissions and authenticated client cleanup retain their own scope/TODOs. Backend termination is assessed separately under 7.4.1.",
       "evidence": [
         "site/server/operator.mjs",
         "site/server/sessions.mjs",
@@ -573,15 +573,19 @@
     {
       "id": "v5.0.0-7.4.1",
       "topic": "Backend token invalidation",
-      "status": "deviation",
-      "method": "scope-review",
-      "note": "The backend now rejects expired sessions and replaced reauthentication tokens, but no authenticated logout/revocation endpoint or complete concurrent/in-flight termination policy exists. Private-library erasure is not session termination. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Native TLS logout deletes the presented operator/credential-bound backend session before acknowledgement, expires its host cookie and rejects copied-token replay across restart. Absolute persisted expiry is checked independently of browser cookies. Request guards recheck asynchronous work; short registry transactions serialize protected output/private mutation boundaries against revocation, without locks across awaited provider work. Active responses close on local termination, expiry or a bounded cross-process registry poll; uncancellable late provider output and paused private writes are denied. Actual CLI/second-process, browser and default Linux image tests verify these boundaries. Already emitted bytes, committed actions and provider-accepted work cannot be recalled; completed accepted usage can still be accounted for. Protected locators remain proof-authorized recovery inputs; complete authenticated client/offline cleanup remains TODO 11.4.2.11.",
       "evidence": [
+        "site/server/sessions.mjs",
+        "site/server/session-api.mjs",
+        "site/server/session-guard.mjs",
         "site/server/api.mjs",
         "site/server/library-api.mjs",
-        "docs/DEPLOYMENT.md",
-        "docs/releases/0.1.0-rc.1.md",
-        "docs/SESSIONS.md"
+        "site/server/session-termination.test.mjs",
+        "site/tests/e2e/session-termination.spec.mjs",
+        "site/tests/container/image.spec.mjs",
+        "docs/SESSION-TERMINATION.md"
       ],
       "followUp": "TODO 11.4.2.4"
     },
@@ -590,7 +594,7 @@
       "topic": "Account disablement",
       "status": "not-applicable",
       "method": "scope-review",
-      "note": "There is no hosted account registry or account disable/delete workflow. The private installation operator and credential epoch are verified at the backend; library erasure remains a separate data action. General logout/revocation remains 7.4.1 / TODO 11.4.2.4.",
+      "note": "There is no hosted account registry or account disable/delete workflow. The private installation operator and credential epoch are verified at the backend; library erasure remains a separate data action. General backend logout/revocation is assessed under 7.4.1; this absence is specific to account disable/delete workflows.",
       "evidence": [
         "docs/SESSIONS.md",
         "docs/DEPLOYMENT.md"

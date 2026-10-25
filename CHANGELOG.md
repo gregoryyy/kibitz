@@ -22,15 +22,15 @@ pending source, checks and decisions.
 - Experimental backend-issued local operator sessions for HTTPS gateway/library access,
   private explicit setup, English/German sign-in and proof-authorized migration
   preserving existing collections/counters. Native/container APIs require the
-  operator file and separate private session registry. Logout/revocation, explicit
-  permissions and client cleanup retain their final-release TODOs.
+  operator file and separate private session registry. Explicit function
+  permissions and complete client cleanup retain their final-release TODOs.
 
 - Native HTTPS listener using operator-supplied certificates and private
   keys, with validated files and no HTTP fallback on invalid TLS configuration.
   Standard API launches require TLS; controlled HTTP development is explicit.
 - Protected Secure-prefixed API cookies, preserving existing library ownership
   and usage counters with tested migration/profile rollback and separate HTTP
-  development identities. The remaining eleven ASVS fixes stay open.
+  development identities. Remaining ASVS fixes keep their own final-release gates.
 
 ## [0.1.0-rc.1] — prepared 2026-10-25, unpublished draft
 

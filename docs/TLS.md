@@ -5,7 +5,8 @@ The owner selected native Node HTTPS with operator-supplied certificates on
 [Protected cookies and migration](COOKIE-MIGRATION.md) implement **11.4.2.1**.
 The isolated-host HSTS policy implements **11.4.2.2**.
 Backend-issued [operator sessions](SESSIONS.md) address **11.4.2.3**.
-The remaining nine ASVS fixes include session termination, external endpoint
+[Backend session termination](SESSION-TERMINATION.md) addresses **11.4.2.4**.
+The remaining eight ASVS fixes include function permissions, external endpoint
 transport policy, actual TLS inventory and public-certificate evidence. This
 does not close the final-release gate.
 

@@ -54,10 +54,11 @@ The review leaves these findings visible:
   applicability: 6.1.1, 6.3.1, 6.3.2 and 7.2.4 are now verified instead of absent.
   The matrix also updates the password-scope reasons: this app accepts a generated
   256-bit installation machine key, without human account-password workflows.
-  The reviewed source has **35 verified, 26 not applicable, seven deviations and
-  two open controls**. Logout/revocation, explicit function permissions and
-  authenticated client/offline cleanup remain unsatisfied. Backend absolute expiry
-  and reauthentication rotation do not close that remaining lifecycle work.
+  The reviewed source has **36 verified, 26 not applicable, six deviations and
+  two open controls**. [Backend logout/termination](SESSION-TERMINATION.md) now
+  addresses 7.4.1 with copied-token/restart and in-flight/cross-process evidence.
+  Explicit function permissions and complete authenticated client/offline cleanup
+  remain unsatisfied. Backend termination does not claim client-data erasure.
 
 - Static serving denies Git paths; the [tested package](CONTAINER.md) also excludes
   checkout metadata from the app process. The native Node process in a checkout

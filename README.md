@@ -83,6 +83,11 @@ npm run serve          # builds, then serves dist/ with the AI gateway on port 8
 - Edit files in `site/src/`. `dist/` is regenerated on every build and isn't committed.
 - Plain static servers (e.g. `python3 -m http.server`) work for the engine features, but they have no AI gateway, and they send no charset. Open `/_test.html` with them, not `/`: `index.html` has no `<meta charset>`, so the browser decodes it as Windows-1252 and every `≈`, `…` and `·` comes out garbled.
 
+Experimental [operator sign-in](docs/SESSIONS.md) and
+[backend logout](docs/SESSION-TERMINATION.md) protect local gateway/library access.
+Logout preserves collections for fresh-key recovery; complete authenticated client
+cleanup and explicit function permissions remain final-release TODOs.
+
 ## AI coach
 
 The [LLM and symbolic design overview](docs/AI-DESIGN.md) maps the mechanisms across the features. [ARCH.md](docs/ARCH.md) gives the implementation details.
@@ -169,8 +174,3 @@ just e2e               # or, in site/: npm run test:e2e
 ## Licence
 
 Kibitz is GPL-3.0-or-later ([LICENSE](LICENSE)), as Stockfish and chessground require. The third-party components and their licences are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); chess.js is BSD-2-Clause, and the opening names come from [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) (CC0).
-
-Experimental [operator sign-in](docs/SESSIONS.md) and
-[backend logout](docs/SESSION-TERMINATION.md) protect local gateway/library access.
-Logout preserves collections for fresh-key recovery; complete authenticated client
-cleanup and explicit function permissions remain final-release TODOs.
