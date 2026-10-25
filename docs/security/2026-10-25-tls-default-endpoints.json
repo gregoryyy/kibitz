@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "observedAt": "2026-10-25T18:07:58.433Z",
+  "client": {
+    "node": "v24.22.1",
+    "openssl": "3.5.9",
+    "minVersion": "TLSv1.2",
+    "maxVersion": "TLSv1.3",
+    "trust": "node-default",
+    "caSha256": null,
+    "extraCaConfigured": false,
+    "nodeOptionsConfigured": false,
+    "certificateValidation": "required",
+    "defaultCaCount": 118,
+    "defaultCaSetSha256": "64cb273fb54694b6c759dd562fe4d0e3a6e130ede4c33c61e5314c9eeebd90be"
+  },
+  "scope": "Direct TLS handshake only; no HTTP, redirects, SDK, browser, proxy, model or deployment verification.",
+  "endpoints": [
+    {
+      "name": "anthropic-default",
+      "origin": "https://api.anthropic.com",
+      "observations": [
+        {
+          "probe": "runtime-default",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "BF:92:EB:A5:7D:8C:E9:D8:9B:26:B2:74:3A:CC:F9:66:B3:F0:D7:B8:BC:11:85:37:DB:B0:75:4E:14:2A:33:71",
+          "validFrom": "Sep 21 18:15:27 2026 GMT",
+          "validTo": "Dec 20 19:15:03 2026 GMT"
+        },
+        {
+          "probe": "recommended",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "BF:92:EB:A5:7D:8C:E9:D8:9B:26:B2:74:3A:CC:F9:66:B3:F0:D7:B8:BC:11:85:37:DB:B0:75:4E:14:2A:33:71",
+          "validFrom": "Sep 21 18:15:27 2026 GMT",
+          "validTo": "Dec 20 19:15:03 2026 GMT"
+        },
+        {
+          "probe": "TLSv1.2",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.2",
+          "cipher": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+          "peerSha256": "BF:92:EB:A5:7D:8C:E9:D8:9B:26:B2:74:3A:CC:F9:66:B3:F0:D7:B8:BC:11:85:37:DB:B0:75:4E:14:2A:33:71",
+          "validFrom": "Sep 21 18:15:27 2026 GMT",
+          "validTo": "Dec 20 19:15:03 2026 GMT"
+        },
+        {
+          "probe": "TLSv1.3",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "BF:92:EB:A5:7D:8C:E9:D8:9B:26:B2:74:3A:CC:F9:66:B3:F0:D7:B8:BC:11:85:37:DB:B0:75:4E:14:2A:33:71",
+          "validFrom": "Sep 21 18:15:27 2026 GMT",
+          "validTo": "Dec 20 19:15:03 2026 GMT"
+        },
+        {
+          "probe": "TLSv1",
+          "outcome": "local_policy_refused"
+        },
+        {
+          "probe": "TLSv1.1",
+          "outcome": "local_policy_refused"
+        }
+      ]
+    },
+    {
+      "name": "openai-default",
+      "origin": "https://api.openai.com",
+      "observations": [
+        {
+          "probe": "runtime-default",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "FA:BF:4D:A3:AB:CC:69:2E:52:4D:F4:00:36:2D:90:CC:63:81:25:AD:CA:67:CC:2E:66:19:CC:87:C1:30:1C:58",
+          "validFrom": "Sep  5 02:28:35 2026 GMT",
+          "validTo": "Dec  4 03:28:32 2026 GMT"
+        },
+        {
+          "probe": "recommended",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "FA:BF:4D:A3:AB:CC:69:2E:52:4D:F4:00:36:2D:90:CC:63:81:25:AD:CA:67:CC:2E:66:19:CC:87:C1:30:1C:58",
+          "validFrom": "Sep  5 02:28:35 2026 GMT",
+          "validTo": "Dec  4 03:28:32 2026 GMT"
+        },
+        {
+          "probe": "TLSv1.2",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.2",
+          "cipher": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+          "peerSha256": "FA:BF:4D:A3:AB:CC:69:2E:52:4D:F4:00:36:2D:90:CC:63:81:25:AD:CA:67:CC:2E:66:19:CC:87:C1:30:1C:58",
+          "validFrom": "Sep  5 02:28:35 2026 GMT",
+          "validTo": "Dec  4 03:28:32 2026 GMT"
+        },
+        {
+          "probe": "TLSv1.3",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "FA:BF:4D:A3:AB:CC:69:2E:52:4D:F4:00:36:2D:90:CC:63:81:25:AD:CA:67:CC:2E:66:19:CC:87:C1:30:1C:58",
+          "validFrom": "Sep  5 02:28:35 2026 GMT",
+          "validTo": "Dec  4 03:28:32 2026 GMT"
+        },
+        {
+          "probe": "TLSv1",
+          "outcome": "local_policy_refused"
+        },
+        {
+          "probe": "TLSv1.1",
+          "outcome": "local_policy_refused"
+        }
+      ]
+    },
+    {
+      "name": "mistral-default",
+      "origin": "https://api.mistral.ai",
+      "observations": [
+        {
+          "probe": "runtime-default",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "89:DA:3B:FC:0D:02:68:DC:26:A3:A6:89:66:F1:03:77:E1:69:AC:0F:74:90:08:28:69:54:BD:68:37:87:4C:58",
+          "validFrom": "Oct 21 03:26:13 2026 GMT",
+          "validTo": "Jan 19 04:26:12 2027 GMT"
+        },
+        {
+          "probe": "recommended",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "89:DA:3B:FC:0D:02:68:DC:26:A3:A6:89:66:F1:03:77:E1:69:AC:0F:74:90:08:28:69:54:BD:68:37:87:4C:58",
+          "validFrom": "Oct 21 03:26:13 2026 GMT",
+          "validTo": "Jan 19 04:26:12 2027 GMT"
+        },
+        {
+          "probe": "TLSv1.2",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.2",
+          "cipher": "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+          "peerSha256": "89:DA:3B:FC:0D:02:68:DC:26:A3:A6:89:66:F1:03:77:E1:69:AC:0F:74:90:08:28:69:54:BD:68:37:87:4C:58",
+          "validFrom": "Oct 21 03:26:13 2026 GMT",
+          "validTo": "Jan 19 04:26:12 2027 GMT"
+        },
+        {
+          "probe": "TLSv1.3",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_256_GCM_SHA384",
+          "peerSha256": "89:DA:3B:FC:0D:02:68:DC:26:A3:A6:89:66:F1:03:77:E1:69:AC:0F:74:90:08:28:69:54:BD:68:37:87:4C:58",
+          "validFrom": "Oct 21 03:26:13 2026 GMT",
+          "validTo": "Jan 19 04:26:12 2027 GMT"
+        },
+        {
+          "probe": "TLSv1",
+          "outcome": "local_policy_refused"
+        },
+        {
+          "probe": "TLSv1.1",
+          "outcome": "local_policy_refused"
+        }
+      ]
+    },
+    {
+      "name": "model-source",
+      "origin": "https://huggingface.co",
+      "observations": [
+        {
+          "probe": "runtime-default",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_128_GCM_SHA256",
+          "peerSha256": "0E:CA:45:4B:46:A3:61:7C:D2:E8:C2:34:DC:B9:E9:E2:15:C7:1C:3E:16:14:24:CA:E5:05:C8:76:25:0C:38:F1",
+          "validFrom": "Aug 14 00:00:00 2026 GMT",
+          "validTo": "Feb 27 23:59:59 2027 GMT"
+        },
+        {
+          "probe": "recommended",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_128_GCM_SHA256",
+          "peerSha256": "0E:CA:45:4B:46:A3:61:7C:D2:E8:C2:34:DC:B9:E9:E2:15:C7:1C:3E:16:14:24:CA:E5:05:C8:76:25:0C:38:F1",
+          "validFrom": "Aug 14 00:00:00 2026 GMT",
+          "validTo": "Feb 27 23:59:59 2027 GMT"
+        },
+        {
+          "probe": "TLSv1.2",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.2",
+          "cipher": "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+          "peerSha256": "0E:CA:45:4B:46:A3:61:7C:D2:E8:C2:34:DC:B9:E9:E2:15:C7:1C:3E:16:14:24:CA:E5:05:C8:76:25:0C:38:F1",
+          "validFrom": "Aug 14 00:00:00 2026 GMT",
+          "validTo": "Feb 27 23:59:59 2027 GMT"
+        },
+        {
+          "probe": "TLSv1.3",
+          "outcome": "negotiated",
+          "protocol": "TLSv1.3",
+          "cipher": "TLS_AES_128_GCM_SHA256",
+          "peerSha256": "0E:CA:45:4B:46:A3:61:7C:D2:E8:C2:34:DC:B9:E9:E2:15:C7:1C:3E:16:14:24:CA:E5:05:C8:76:25:0C:38:F1",
+          "validFrom": "Aug 14 00:00:00 2026 GMT",
+          "validTo": "Feb 27 23:59:59 2027 GMT"
+        },
+        {
+          "probe": "TLSv1",
+          "outcome": "local_policy_refused"
+        },
+        {
+          "probe": "TLSv1.1",
+          "outcome": "local_policy_refused"
+        }
+      ]
+    }
+  ]
+}

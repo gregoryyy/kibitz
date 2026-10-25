@@ -4,8 +4,10 @@ TODO 11.4 uses **OWASP ASVS 5.0.0, Level 1**, for the confirmed
 [local single-user deployment](DEPLOYMENT.md). This is a source-and-test review,
 not an independent assessment, certificate, hosted-account review or release approval.
 It covers application code at the revision recorded in [asvs-l1.json](asvs-l1.json).
-It does not inspect an operator's environment, attest provider infrastructure or
-make live provider calls. Reassess this scope before exposing the server to a network.
+The technical assessment does not attest provider infrastructure or make live
+inference calls. A separate [TLS inventory](TLS-INVENTORY.md) now
+retains dated credential-free public-host handshakes; it does not close the
+actual deployment/SDK/browser transport controls. Reassess this scope before exposing the server to a network.
 
 The [readable checklist](ASVS-L1.md) contains all **70 L1 requirements** from the
 [official versioned CSV](https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.csv).

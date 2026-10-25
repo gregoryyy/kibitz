@@ -7,7 +7,8 @@ The isolated-host HSTS policy implements **11.4.2.2**.
 Backend-issued [operator sessions](SESSIONS.md) address **11.4.2.3**.
 [Backend session termination](SESSION-TERMINATION.md) addresses **11.4.2.4**.
 [Explicit function grants](PERMISSIONS.md) address **11.4.2.5**.
-The remaining seven ASVS fixes include external endpoint
+The [transport inventory](TLS-INVENTORY.md) records partial direct public-host evidence;
+its parent TODO 11.4.2.6 remains open. The remaining seven ASVS fixes include external endpoint
 transport policy, actual TLS inventory and public-certificate evidence. This
 does not close the final-release gate.
 
@@ -66,6 +67,56 @@ needs explicit local resolution; it does not automatically resolve like
 ignores HSTS for `*.localhost`, so that namespace cannot supply this browser
 policy. Use a name dedicated to this app; another app on another port of the
 same hostname would share the browser's host-wide HSTS state.
+
+## Optional local development certificate
+
+For experimental local testing, [mkcert](https://github.com/FiloSottile/mkcert)
+creates a local CA and a matching X.509 TLS identity. If “SSH tools” means
+`ssh-keygen`, its [SSH certificates](https://man.openbsd.org/ssh-keygen#CERTIFICATES)
+use a different format; they cannot be supplied as the HTTPS certificate.
+The mkcert project explicitly scopes its tool to development. A locally trusted
+CA does **not** satisfy the current ASVS 12.2.2 public-certificate requirement;
+that final-release gate remains unresolved.
+
+The following commands are for the operator to run from the repository root,
+with mkcert already installed. `mkcert -install` creates/trusts a local CA in the
+supported local trust stores; it may request OS authentication. The application
+and inventory probe never execute that command or modify browser/system trust.
+These are initial setup commands: use them only when the named identity files
+are absent, rather than overwriting an existing deployed pair.
+
+```sh
+umask 077
+mkdir -p .kibitz-data/tls
+chmod 700 .kibitz-data/tls
+mkcert -install
+mkcert -cert-file .kibitz-data/tls/cert.pem \
+  -key-file .kibitz-data/tls/key.pem kibitz.test 127.0.0.1
+chmod 600 .kibitz-data/tls/key.pem
+cp "$(mkcert -CAROOT)/rootCA.pem" .kibitz-data/tls/ca.pem
+```
+
+Only `rootCA.pem` is the public trust certificate. Keep `rootCA-key.pem` in
+mkcert's private CA directory: do not copy it into this project, the image or a
+container mount. Keep the server key private and outside served directories.
+Add the loopback hosts mapping described above and restart the browser if its
+trust store requires it. The app still needs its separately initialized
+[operator identity](SESSIONS.md) and [permission policy](PERMISSIONS.md).
+
+After starting native HTTPS, inspect the real endpoint without disabling trust:
+
+```sh
+node site/scripts/tls-inventory.mjs \
+  --endpoint local-app=https://kibitz.test:8765 \
+  --ca .kibitz-data/tls/ca.pem > local-tls-observations.json
+```
+
+This command is available with the [experimental inventory](TLS-INVENTORY.md).
+It checks direct Node TLS, not browser trust or public-CA eligibility. The
+explicit CA affects this probe only; it does not broaden trust for provider
+connections. For Docker, mount the public `ca.pem` with the identity as described
+below and give the application UID access only to the server key, never the CA
+signing key.
 
 ## Isolated application HSTS
 

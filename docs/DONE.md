@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Partial TLS transport inventory and reproducible probe (experimental)
+
+TODO item: 11.4.2.6.1, a prerequisite under 11.4.2.6 / ASVS 12.1.1. The parent, encrypted-connectivity and public-trust controls remain open.
+
+### Implementation notes
+
+- Inventory native/browser/container/health, cloud coaching and embeddings, Ollama, same-origin WASM/weights, explicit model provisioning and redirects, browser-managed provisioning and external-navigation/maintainer boundaries. Record source, runtime settings and each missing verification rather than counting fixtures as deployment evidence.
+- Add a dependency-free import-safe CLI with all-input validation, explicit credential-free named origins, bounded public trust-bundle reads, at most six parallel sockets, total DNS/handshake deadlines and required peer verification. Record runtime defaults separately from an explicit 1.2–1.3 probe, forced modern/legacy attempts, peer fingerprints/validity and a default trust-set fingerprint. Never send HTTP/application bytes, inference, cookies or downloads; record HTTP without contacting it. Use fixed errors and distinguish client refusal, peer alerts and generic failure. Exit success denotes report generation, not a security pass.
+- Retain actual 2026-10-25 Node 24.22.1/OpenSSL 3.5.9 direct handshakes at Anthropic/OpenAI/Mistral defaults and Hugging Face: default and reviewed policy negotiate 1.3, forced 1.2/1.3 work, and local policy refuses legacy attempts. The configured cloud endpoints have no custom base overrides; configured Ollama remains HTTP. Standard operator TLS/identity files are absent. No configuration secrets were retained, trust stores changed or inference performed.
+- Tests cover strict/normalized URL rejection without secret echoes, zero plaintext connections, trusted 1.3 preference/forced 1.2, untrusted identities, TLS 1.2-only peers with an explicit peer-version alert, stalled deadlines/socket cleanup and fixed CLI failure diagnostics. Fresh build and lint/type/ASVS checks pass. Full mock-only unit suite: 768 passes, one opt-in live skip. All five new groups pass with temporary loopback TLS servers. The UI is unchanged; full browser/image/security CI will run on the experimental PR. Document operator-run mkcert development setup, matching DNS/IP SANs, public CA probe input and the unresolved public-trust boundary; no certificate/key generation or trust installation was performed.
+
+### Deviations
+
+- This completes only the bounded evidence-collection prerequisite. Actual operator/browser/image/SDK/fetch/redirect transport evidence, configuration enforcement, public trust and renewal remain required. Legacy client refusal cannot establish remote downgrade refusal. All ASVS statuses/counts, RC decisions and original deadlines remain unchanged. No page/UI change or live model call.
+
+### Insights
+
+- Negotiation, trust acceptance, client policy and server downgrade refusal are separate observations. A successful public-origin handshake is useful retained evidence but cannot certify an SDK path, a redirected model transfer or a private local installation.
+
 ## 2026-10-25 — Explicit local operator function permissions (experimental)
 
 TODO item: 11.4.2.5 / ASVS 8.2.1. Hosted accounts stay deferred and complete authenticated client-data cleanup remains 11.4.2.11.
