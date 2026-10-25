@@ -33,6 +33,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run check:asvs
+      - run: npm run check:assure
       - run: npm run build
       - run: npm test
       - run: npm audit --audit-level=high

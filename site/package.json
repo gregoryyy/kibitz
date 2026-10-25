@@ -16,8 +16,10 @@
     "test:e2e": "npm run build && playwright test",
     "lint": "eslint .",
     "typecheck": "tsc -p .",
-    "check": "npm run lint && npm run typecheck && npm run check:asvs",
+    "check": "npm run lint && npm run typecheck && npm run check:asvs && npm run check:assure",
     "check:asvs": "node scripts/check-asvs.mjs",
+    "assure": "node ../utils/assure.mjs",
+    "check:assure": "node ../utils/assure.mjs check",
     "security:scan": "node scripts/security-scan.mjs",
     "test:live": "node --test server/live.test.mjs",
     "eval:retrieval": "node ../utils/retrieval-eval.mjs"
