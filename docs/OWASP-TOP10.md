@@ -62,14 +62,22 @@ Before each release, record the exact release commit, supported deployment, actu
 
 ## Draft candidate follow-up — 2026-10-25
 
-The [`0.1.0-rc.1` review](releases/0.1.0-rc.1.md) uses functional base
-`be90b0f939cc2ab54554e06a2a585ebfcbbddb58` and prepares package-version metadata
-without changing application controls. A03 now records the two fixed Qwen source
-revisions, with existing hash checks, replayable LFS pointers and actual-CLI
-regressions. Other category mappings retain their documented scope and limits;
-full candidate checks and merged-source verification remain open.
+The [`0.1.0-rc.1` review](releases/0.1.0-rc.1.md) now covers source
+`002fd92dd33e009f86cf8b79008180888a392e0f`, with main `6788661` integrated.
+A03 retains both fixed Qwen source revisions, hash checks and replayable LFS
+pointers. The reviewed delta from initial base `be90b0f` adds dependency/Action
+updates and a reproducible Chessground SVG adaptation: one fixed inline style
+moves into trusted CSS, the build rejects unexpected upstream bytes and
+`style-src-attr 'none'` remains. A02/A03/A08 evidence includes the adaptation,
+notices and regressions; storage, provider consent, untrusted text and tool
+authority remain unchanged. The [raw candidate evidence](releases/0.1.0-rc.1-evidence.json)
+records actual source-specific unit/CodeQL/image/passive results and their limits;
+full browser and later final-head checks remain open.
 
-The current default-branch CodeQL API at main `8c82d3c` reports three open medium
+The current default-branch CodeQL API at main `6788661` reports three open medium
 alerts (20/21/23) and no open high on 2026-10-25. This does not dispose of those
-findings or stand in for a candidate scan. The owner-selected experimental prose
-scope does not accept ASVS deviations, component findings or model-provenance gaps.
+findings or stand in for a candidate scan. The separate
+[owner exceptions](releases/0.1.0-rc.1.md#owner-dispositions-approved--2026-10-25)
+approve scoped retention for this local RC, with original deadlines and technical
+statuses unchanged. The experimental-prose choice alone does not grant those
+exceptions, close provenance gaps or approve release/publication.

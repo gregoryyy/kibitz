@@ -8,20 +8,22 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "be90b0f939cc2ab54554e06a2a585ebfcbbddb58",
+  "revision": "002fd92dd33e009f86cf8b79008180888a392e0f",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
       "topic": "Output contexts",
       "status": "verified",
       "method": "code-and-test",
-      "note": "Untrusted prose uses text nodes; JSON responses are serialized, headers use fixed categories. Trusted authored build HTML has a separate parser/CSP boundary.",
+      "note": "Untrusted prose uses text nodes; JSON responses are serialized, headers use fixed categories. Trusted authored build HTML has a separate parser/CSP boundary. The Chessground 10.4.2 adaptation moves one fixed SVG style declaration into trusted CSS with exact-version/fragment build guards, preserving style-src-attr denial; no untrusted text is added.",
       "evidence": [
         "site/src/coach/chat.js",
         "site/server/api.mjs",
         "site/server/logging.mjs",
         "site/tests/e2e/literal-text.spec.mjs",
-        "site/tests/e2e/csp.spec.mjs"
+        "site/tests/e2e/csp.spec.mjs",
+        "site/scripts/build.mjs",
+        "site/tests/e2e/web-assets.spec.mjs"
       ]
     },
     {
@@ -192,12 +194,13 @@
       "topic": "Cookie transport and names",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Local HTTP omits Secure; native TLS adds it, but neither grouping-cookie name has a secure prefix. HttpOnly and SameSite=Strict do not satisfy this whole requirement. Renaming library cookies needs a data migration decision.",
+      "note": "Local HTTP omits Secure; native TLS adds it, but neither grouping-cookie name has a secure prefix. HttpOnly and SameSite=Strict do not satisfy this whole requirement. Renaming library cookies needs a data migration decision. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
         "site/server/cookie-transport.test.mjs",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -206,10 +209,11 @@
       "topic": "HSTS",
       "status": "deviation",
       "method": "scope-review",
-      "note": "The local server intentionally has no HSTS policy and supports HTTP. A one-year localhost-wide policy would affect other apps and ports. Reassess transport and deployment before enabling it.",
+      "note": "The local server intentionally has no HSTS policy and supports HTTP. A one-year localhost-wide policy would affect other apps and ports. Reassess transport and deployment before enabling it. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/server/static.mjs",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -490,11 +494,12 @@
       "topic": "Backend grouping verification",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Backend code validates cookie syntax and uses opaque values as storage keys, but has no issued-session registry or authenticated principal. A local client can choose another syntactically valid usage group; server-wide admission remains separate.",
+      "note": "Backend code validates cookie syntax and uses opaque values as storage keys, but has no issued-session registry or authenticated principal. A local client can choose another syntactically valid usage group; server-wide admission remains separate. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -538,11 +543,12 @@
       "topic": "Backend token invalidation",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Cookie Max-Age/browser clearing does not revoke a copied token at the backend. There is no authenticated logout or server token-expiry registry; private-library erasure removes data rather than establishing session revocation.",
+      "note": "Cookie Max-Age/browser clearing does not revoke a copied token at the backend. There is no authenticated logout or server token-expiry registry; private-library erasure removes data rather than establishing session revocation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -574,11 +580,12 @@
       "topic": "Function permissions",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Functions are available to trusted local clients and browser consent attestations; there are no authenticated principals or explicit account permissions. Browser Origin/consent controls cannot authorize an untrusted direct client.",
+      "note": "Functions are available to trusted local clients and browser consent attestations; there are no authenticated principals or explicit account permissions. Browser Origin/consent controls cannot authorize an untrusted direct client. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/server/api.mjs",
         "docs/DEPLOYMENT.md",
-        "docs/THREAT-MODEL.md"
+        "docs/THREAT-MODEL.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -746,11 +753,12 @@
       "topic": "Deployed TLS versions",
       "status": "open",
       "method": "scope-review",
-      "note": "Node TLS fixtures exercise the current default stack, but no release deployment or external-service TLS-version inventory was verified. Confirm minimum/preferred TLS versions for the packaged deployment rather than infer certification from a successful request.",
+      "note": "Node TLS fixtures exercise the current default stack, but no release deployment or external-service TLS-version inventory was verified. Confirm minimum/preferred TLS versions for the packaged deployment rather than infer certification from a successful request. Owner approved a temporary evidence-gap exception for local 0.1.0-rc.1 on 2026-10-25, with endpoint/TLS review due 2026-11-01; this requirement stays open.",
       "evidence": [
         "site/scripts/serve.mjs",
         "site/server/cookie-transport.test.mjs",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -759,11 +767,12 @@
       "topic": "HTTP transport encryption",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Selected local operation permits HTTP for browser/server and loopback Ollama; cloud defaults use HTTPS but operator base-URL overrides can permit HTTP. No operator configuration or live provider transport was inspected.",
+      "note": "Selected local operation permits HTTP for browser/server and loopback Ollama; cloud defaults use HTTPS but operator base-URL overrides can permit HTTP. No operator configuration or live provider transport was inspected. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/scripts/serve.mjs",
         "site/server/ai.mjs",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -772,11 +781,12 @@
       "topic": "Public TLS trust",
       "status": "deviation",
       "method": "scope-review",
-      "note": "Local HTTP needs no certificate and local TLS tests use a private test certificate. Node validates HTTPS peers by default, but no deployed public-service certificate inventory was verified. This does not establish public trust for every operator endpoint.",
+      "note": "Local HTTP needs no certificate and local TLS tests use a private test certificate. Node validates HTTPS peers by default, but no deployed public-service certificate inventory was verified. This does not establish public trust for every operator endpoint. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/server/ai.mjs",
         "site/server/cookie-transport.test.mjs",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -785,12 +795,13 @@
       "topic": "Source-control metadata",
       "status": "deviation",
       "method": "scope-review",
-      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. Native checkout execution still lets the app user read Git metadata, so the overall local-deployment requirement remains a deviation pending release scope/owner disposition.",
+      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. Native checkout execution still lets the app user read Git metadata, so the overall local-deployment requirement remains a deviation under the owner-approved local RC scope. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/server/static.mjs",
         "site/server/static.test.mjs",
         "site/tests/container/image.spec.mjs",
-        "docs/CONTAINER.md"
+        "docs/CONTAINER.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -799,10 +810,11 @@
       "topic": "Sensitive URL content",
       "status": "deviation",
       "method": "scope-review",
-      "note": "AI keys/cookies/prompts travel in headers/bodies. Explicit external Lichess analysis navigation places the selected FEN in its path and browser history; a private chess position can be sensitive. This is a documented privacy deviation.",
+      "note": "AI keys/cookies/prompts travel in headers/bodies. Explicit external Lichess analysis navigation places the selected FEN in its path and browser history; a private chess position can be sensitive. This is a documented privacy deviation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/src/index.html",
-        "docs/PRIVACY.md"
+        "docs/PRIVACY.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -811,11 +823,12 @@
       "topic": "Client-data lifecycle",
       "status": "deviation",
       "method": "scope-review",
-      "note": "There are no authenticated sessions to terminate. Local history/preferences/library intentionally persist until explicit deletion; closing the page or expiring a grouping cookie does not clear all browser data. Privacy erasure controls are not an authenticated-session lifecycle.",
+      "note": "There are no authenticated sessions to terminate. Local history/preferences/library intentionally persist until explicit deletion; closing the page or expiring a grouping cookie does not clear all browser data. Privacy erasure controls are not an authenticated-session lifecycle. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied.",
       "evidence": [
         "site/src/platform/data.js",
         "docs/PRIVACY.md",
-        "docs/DEPLOYMENT.md"
+        "docs/DEPLOYMENT.md",
+        "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.6"
     },
@@ -834,7 +847,7 @@
       "topic": "Component remediation evidence",
       "status": "open",
       "method": "documentation-review",
-      "note": "Dated evidence includes npm/image inventories, a fresh hashed advisory DB, verified base publisher, actual Node component/ABI versions and seven distributed engine/runtime asset hashes. Registry signatures, Action wrapper pins/queries and both fixed Qwen GGUF source revisions/LFS pointers are reviewed with scope limits. Runtime findings remain 23 medium/eight low for disposition. Build-stage, embedded/native advisory-age coverage, binary compilation linkage, downloaded Action tools and model provenance remain incomplete; this is not release-wide clearance.",
+      "note": "Dated evidence includes npm/image inventories, a fresh hashed advisory DB, verified base publisher, actual Node component/ABI versions and seven distributed engine/runtime asset hashes. Registry signatures, Action wrapper pins/queries and both fixed Qwen GGUF source revisions/LFS pointers are reviewed with scope limits. Runtime findings remain 23 medium/eight low under the scoped RC exception, with original deadlines. Build-stage, embedded/native advisory-age coverage, binary compilation linkage, downloaded Action tools and model provenance remain incomplete; this is not release-wide clearance. Owner approved a temporary local 0.1.0-rc.1 evidence-gap exception on 2026-10-25: component/build/tool/model review due 2026-11-01 and remediation plan due 2026-11-24; this requirement stays open.",
       "evidence": [
         "docs/MAINTENANCE.md",
         "docs/SECURITY-SCANS.md",

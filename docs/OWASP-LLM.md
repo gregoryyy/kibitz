@@ -56,14 +56,20 @@ The expanded [hidden-context category](https://github.com/GenAI-Security-Project
 
 ## Draft candidate follow-up — 2026-10-25
 
-The [`0.1.0-rc.1` review](releases/0.1.0-rc.1.md) uses functional base
-`be90b0f939cc2ab54554e06a2a585ebfcbbddb58`. LLM03 now includes both full Qwen
+The [`0.1.0-rc.1` review](releases/0.1.0-rc.1.md) covers source
+`002fd92dd33e009f86cf8b79008180888a392e0f`, with main `6788661` integrated.
+LLM03 includes both full Qwen
 download revisions and [replayable LFS/source evidence](security/2026-10-25-browser-models.json),
 matching the existing byte/hash pins. Training/quantization provenance and mutable
 cloud/Ollama/Chrome identities remain open. The candidate's version metadata adds
 no new data flow, provider authority or output-verification guarantee. LLM09 and
-the owner's experimental-prose choice keep the limits recorded above. Full
-candidate CI and merged-source checks remain pending in the draft review.
+the owner's experimental-prose choice keep the limits recorded above. Reviewed
+dependency/Action and fixed SVG/CSS changes do not add model authority, prompt
+inputs or output claims. Actual source-specific unit/CodeQL/image/passive evidence
+is [retained](releases/0.1.0-rc.1-evidence.json); full browser and later final-head
+checks remain pending. The separate approved component evidence-gap exception
+requires review by 2026-11-01 and a remediation plan by 2026-11-24. It neither
+verifies LLM03 nor turns arbitrary prose into checked claims.
 
 ## Verification and release use
 

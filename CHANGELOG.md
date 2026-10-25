@@ -45,6 +45,8 @@ Changes after the candidate scope will be recorded here.
   use fixed hints instead of reflecting provider-controlled diagnostics.
 - Serve static/model bytes through checked file descriptors, reject hidden and
   symlink paths, and derive CSP hashes from parsed authored HTML.
+- Preserve the board's strict CSS policy with Chessground 10.4.2 by moving its
+  fixed SVG color-scheme declaration into trusted CSS during the build.
 - Compare AI write Origins with native scheme/host, preserve direct local clients
   and declare UTF-8 for SVG. Native TLS grouping cookies receive Secure.
 

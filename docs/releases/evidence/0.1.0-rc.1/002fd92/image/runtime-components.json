@@ -1,0 +1,73 @@
+{
+  "node": "v24.22.1",
+  "platform": "linux",
+  "arch": "x64",
+  "components": {
+    "node": "24.22.1",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.9",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.3",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "137",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "3.5.9",
+    "simdjson": "4.6.11",
+    "simdutf": "6.4.0",
+    "sqlite": "3.53.4",
+    "tz": "2026e",
+    "undici": "7.30.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "13.6.233.17-node.58",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "zstd": "1.5.7"
+  },
+  "assets": [
+    {
+      "name": "sf.js",
+      "bytes": 28230,
+      "sha256": "ccb130d7ff29408531c47d859a49f91d59d4f482d05a53eb1a3231a4f624c91a"
+    },
+    {
+      "name": "sf.wasm",
+      "bytes": 1845971,
+      "sha256": "ee4f115bdb2d32cadf96cada104a05b5ec257d7ad6f57582190b49bc71f096de"
+    },
+    {
+      "name": "sf-asm.js",
+      "bytes": 3155627,
+      "sha256": "c07dad9a00a89f4b1dcba3971d58d8078715556eac0212368e4aab510e1e27c9"
+    },
+    {
+      "name": "sf-mt.js",
+      "bytes": 33426,
+      "sha256": "dac939ff529668e0168b2f615145ec18b029b753deb6963fd7319d788f964333"
+    },
+    {
+      "name": "sf-mt.wasm",
+      "bytes": 1697617,
+      "sha256": "ddf06cdaf0b8e35c11b40530e44db96c2a99c9029c8d621dd9fca97e4872770c"
+    },
+    {
+      "name": "wllama.js",
+      "bytes": 382633,
+      "sha256": "e5506753e41a59c11f61f2c52422045be9fc76e32a7e47f037aaad5df4ec723e"
+    },
+    {
+      "name": "wllama.wasm",
+      "bytes": 8763949,
+      "sha256": "551f13439366eff11e057b1b91fe46a7fdac29d56d67372d4c5f19a549dfe70c"
+    }
+  ]
+}

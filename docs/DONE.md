@@ -7,6 +7,25 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Reconcile candidate evidence and approved exceptions
+
+TODO item: 11.6.2; the parent release gate remains open.
+
+### Implementation notes
+
+- Reconciled the candidate/release procedure and OWASP application/LLM reviews with the owner's main integration: source `002fd92`, main `6788661`, tested merge `11784278`; candidate and merge trees match exactly. Original prerequisites, paired CodeQL pins and Chessground CSP compatibility are integrated. Open PDF/assurance PRs remain outside this tested scope.
+- Recorded the owner's existing 2026-10-25 approval of local `0.1.0-rc.1` exceptions in the repository review and all twelve affected ASVS records, preserving 28 verified/30 not-applicable/ten deviation/two open. Endpoint/component review remains due 2026-11-01, component remediation plan 2026-11-24, and retained finding deadlines remain unchanged. No new risk acceptance, merging or publication is inferred.
+- Retained sixteen raw public CI report/inventory files byte-for-byte with a structured hash/source/job record. Independently checked config/source/rootfs, raw image gate, all fourteen OS/sixteen production-library versions, actual Linux/x64 Node 24.22.1, seven asset hashes against a fresh build, publisher identity fields, ZAP coverage/HTML policy and all 128 distinct locked package/version pairs against SBOM. The image still reports zero high/critical, 23 medium/eight low, matching original findings field-for-field; passive scan has zero high/medium/low and two informational types. The completed source-002fd92 unit job has 699 passes/one opt-in skip; CodeQL analysis 2021957484 has 126 rules/zero results, while default-branch mediums 20/21/23 remain open.
+- Reviewed the initial-base delta: dependency/Action updates, guarded fixed SVG transformation and trusted CSS. Updated the Chessground changelog and ASVS output evidence. Source-002fd92 browser and later final-head results retain their separate identities; the evidence record identifies pending work rather than relabeling older green checks. Local validation results are recorded in PR #133. No operator configuration, paid call or weight download was used.
+
+### Deviations
+
+- The exported image archive and advisory database were deleted by CI; retained digests are CI records and cannot be independently rehashed. Publisher cryptographic verification is the actual CI step; retained identity fields were checked offline. SBOM equality does not establish broader embedded/build/model coverage. Final-head CI, broader follow-up and explicit release approval remain open; TODO 11.6 is unticked.
+
+### Insights
+
+- A passing job and a retained evidence packet establish different facts. Preserving the raw reports and binding each result to source/merge identities makes review reproducible without resetting findings or asking the owner to approve the same exceptions again.
+
 ## 2026-10-25 — Prepare the first local candidate draft
 
 TODO item: 11.6 candidate preparation; the release gate remains open.

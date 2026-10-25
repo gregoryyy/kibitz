@@ -263,6 +263,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 11.5.3 Preserve strict style CSP with Chessground 10.4.2: move its fixed SVG color-scheme declaration to trusted CSS, document the local build adaptation and reproduce the attribute/appearance failure in Playwright
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings. [Dated local review packet](RELEASE-REVIEW.md) records prerequisite evidence, individual ASVS deviations/open controls, retained advisory targets and required owner/candidate decisions; preparation does not close the gate
   - [x] 11.6.1 [Exact image advisory evidence and minimal runtime](IMAGE-ADVISORIES.md): pinned verified publisher/scanner, fresh hashed DB, independent config/rootfs and OS/production-library coverage, four actual container/compatibility cases and a strict high/critical gate. Actual raw report has zero high/critical; 23 medium/eight low findings retain triage targets. CodeQL races fixed without dismissal. Parent release approval and broader component/model reviews remain separate
+  - [x] 11.6.2 Reconcile the integrated draft candidate and existing owner-approved exceptions; retain sixteen raw scan/inventory files with source/merge identities, checksums and independently reviewed results in the [candidate evidence](releases/0.1.0-rc.1.md). All ASVS statuses, findings and original deadlines remain; final-head checks and the parent release decision stay open
 
 ## 12. Release and operations *(added)*
 
