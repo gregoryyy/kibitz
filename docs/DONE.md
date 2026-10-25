@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Complete paged lineage for high-degree assurance review
+
+TODO item: 0.16.5.
+
+### Implementation notes
+
+- Make stable lineage columns the default browser view, using the local Propeller assurance page as the design reference. Group documents/references, plan, PRs/progress/rationale and code/tests without drawing a dense all-edge layout. Every node reachable within the chosen depth and traversal filters remains available; only card rendering is paged, 40 per column. Search covers all pages, counts disclose scope, and First/Last plus direct page selection reach late neighbors. Compact labels retain their full literal text in the inspector.
+- Keep single-click inspection separate from the reviewed root, highlighted cards, column pages, scroll, history and URL. Double-click or the explicit walking button changes the root. Show whether an inspected element is within the reviewed path; place the inspector beside columns on wide screens and below on smaller screens. Independently scroll details and connections so exposing source controls cannot shift a relation between double-click events. Keep captured-source checks and stale-response protection.
+- Page the complete filtered direct connections of the reviewed root independently of the optional graph. Show direction/type counts, distinct neighbors, confidence and searchable evidence; parallel relation types remain separate. Expand each literal confidence/evidence record rather than filling the viewport with raw JSON. This list remains anchored during inspection, preserving double-click targets and review context. Keep the existing local graph as an optional 70-node view, report its count against the complete walk, and retain its guarded single/double tap behavior.
+- Validation: fresh app build, full mocked unit/server suite (737 passes, one opt-in live skip), four added high-degree/paging unit groups and all 14 focused browser cases. A 4,800-connection fixture checks late-node access, complete counts, at most 160 rendered cards plus 40 connection rows, filtering, confidence, page jumps, keyboard actions, stable inspection, double-click/Back and narrow screens. The high-degree regression fails against the previous browser at 70 nodes/69 relations instead of the expected 4,801 nodes/4,800 relations. Existing source, hostile-label, confinement and canvas regressions remain covered. Lint/JSDoc/ASVS and regenerated assurance integrity/freshness are checked with this change.
+
+### Deviations
+
+- Columns follow role-based lists rather than reproducing Propeller's all-edge SVG. Exact links are reviewed in the paged typed connection list; no visual left-to-right order implies causality. Completeness is scoped to the selected filters and depth, not an unlimited transitive closure. The retained graph is still loaded/indexed in memory; this change bounds rendered DOM, not dataset size. Global search still explicitly shows its first 100 matches and findings their first 40.
+- No dependency, confidence policy, inferred relationship or finding rule is added. The existing Cytoscape dependency remains for optional local graph mode.
+
+### Insights
+
+- A display cap must not become an evidence cap. High-degree review needs complete indexed results and independently paged rendering, so a connection's position in extraction order cannot determine whether it is reviewable. Stable roles and explicit typed relation records preserve readability without turning thousands of links into a hairball.
+
 ## 2026-10-25 — Inspect assurance elements without replacing the reviewed path
 
 TODO item: 0.16.4.

@@ -6,7 +6,7 @@ test('search, typed filters, object source, graph walking, history and deep link
   await page.goto('/'); await expect(page.locator('#status')).toContainText('offline snapshots');
   await page.selectOption('#level', '2'); await page.selectOption('#type', 'object'); await page.fill('#search', 'utils/assure.mjs markdownReferences');
   const result = page.locator('#results button').filter({ hasText: 'program%3AmarkdownReferences%3Afunction:0' }); await expect(result).toHaveCount(1); await result.dblclick();
-  await expect(page.locator('#selected-name')).toHaveText('markdownReferences'); await expect(page.locator('#graph canvas').first()).toBeVisible();
+  await expect(page.locator('#selected-name')).toHaveText('markdownReferences'); await page.selectOption('#view', 'graph'); await expect(page.locator('#graph canvas').first()).toBeVisible();
   await page.click('#source'); await expect(page.locator('#source-text')).toContainText('function markdownReferences(text)');
   const url = page.url(); await page.reload(); await expect(page.locator('#selected-name')).toHaveText('markdownReferences'); expect(page.url()).toBe(url);
   await page.selectOption('#level', ''); await page.selectOption('#type', ''); await page.fill('#search', 'pr:136');
@@ -24,7 +24,7 @@ test('documentation navigation, explicit truncation and source endpoint confinem
   await page.click('#source'); await expect(page.locator('#source-text')).toContainText('ESLint');
   await page.selectOption('#level', ''); await page.selectOption('#type', ''); await page.fill('#search', 'file:docs/DONE.md');
   await page.locator('#results button').filter({ hasText: 'artifact · file:docs/DONE.md' }).dblclick(); await page.selectOption('#depth', '3');
-  await expect(page.locator('#walk-count')).toContainText('70-node limit');
+  await page.selectOption('#view', 'graph'); await expect(page.locator('#walk-count')).toContainText('70-node limit');
   for (const path of ['/source?id=file:.env', '/source?id=../../.env', '/.env', '/docs/TODO.md', '/vendor/../../.env']) expect((await request.get(path)).status()).toBe(404);
   const response = await request.get('/'); expect(response.headers()['content-security-policy']).toContain("script-src 'self'");
   expect((await request.post('/data')).status()).toBe(403);

@@ -4,6 +4,7 @@ const section = 'pr_section:pr:136#what-and-why';
 async function openPath(page) {
   await page.goto('/#' + encodeURIComponent('pr:136'));
   await expect(page.locator('#status')).toContainText('offline snapshots');
+  await page.selectOption('#view', 'graph');
   await page.selectOption('#relation', 'has_description'); await page.selectOption('#direction', 'out');
   await expect(page.locator('#neighbors button').filter({ hasText: 'What and why' })).toHaveCount(1);
 }
