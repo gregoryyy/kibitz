@@ -33,3 +33,20 @@ Unit tests cover parsed CSS hash selection and separation, retained font/licence
 The actual isolated [ZAP rerun](https://github.com/gregoryyy/kibitz/actions/runs/40158959465) at source `00e7d16`, scanned merge `9c8d684`, passes. Independently inspected raw JSON has zero high or medium findings: the CSS, external-stylesheet SRI and charset types are absent. Two informational types remain (six authored source-comment instances and three grouping-cookie responses). All seven required routes appear in fifteen visited paths; sixty passive rules remain enabled, with no pending queue or custom suppressions. The startup log verifies the literal loopback listener. [Sanitized metadata and report digest](security/2026-10-25-web-assets.json) preserve identities without cookies or response bodies. npm audit remains zero with 128 SBOM components.
 
 This completes TODO 11.5.1. Earlier reports remain historical evidence, including their lower-severity findings. Release approval, local HTTP/account deviations, component-advisory gaps, mutable model identities and unrestricted chess-claim verification remain separate.
+
+## Chessground 10.4.2 compatibility follow-up
+
+The dependency update in PR #129 adds a fixed `style="color-scheme:light only"`
+to every SVG overlay. The strict `style-src-attr 'none'` policy correctly blocks
+those attributes; actual container runs for #130/#134 fail their CSP assertions.
+The local build adaptation in `site/scripts/build.mjs` removes that one fixed
+attribute declaration from the pinned bundle and keeps its appearance through
+`.cg-wrap cg-container > svg` in the trusted page stylesheet. It accepts only
+10.4.2 with exactly one expected declaration; an upgrade requires reviewing the
+adaptation. Other upstream bundle bytes and all CSP restrictions are retained.
+
+Playwright checks all four overlay layers, arrows, both board orientations and
+light/dark themes, including actual computed styles and absence of CSP events.
+The old build fails with blocked attributes and a `normal` computed scheme.
+The third-party notice identifies the local modification and its reproducible
+source. This compatibility fix does not close broader provenance/release gates.

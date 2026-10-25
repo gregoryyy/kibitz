@@ -15,7 +15,9 @@ the [application](OWASP-TOP10.md), [LLM](OWASP-LLM.md), [ASVS](ASVS.md) or
 | ZAP passive baseline | PR/main, weekly and manual Security baseline workflow | Pinned scanner, one-minute traditional spider, five-minute scanner startup/passive wait, ten-minute process bound; full reports retained, high findings or incomplete evidence fail |
 | Component inventory | Same security-baseline workflow | Lockfile CycloneDX SBOM, npm advisory report, exact commit/Node version/lock digest/scanner image, header and route evidence |
 
-[Dependabot configuration](../.github/dependabot.yml) uses the
+[Dependabot configuration](../.github/dependabot.yml) groups all CodeQL action
+steps into one version update: `init` and `analyze` share configuration and must
+use the same commit. A unit regression checks that invariant. The configuration uses the
 [official options](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference).
 Version updates need the configuration on the default branch; writing it on a PR
 does not prove the updater has run. Repository inspection on 2026-10-25 found

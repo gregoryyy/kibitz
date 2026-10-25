@@ -25,6 +25,34 @@ TODO item: 11.6 candidate preparation; the release gate remains open.
 ### Insights
 
 - A concrete unpublished candidate makes the version, compatibility effects and remaining decisions reviewable while keeping the final merged-source evidence and publication decision distinct.
+## 2026-10-25 — Preserve board style policy after Chessground upgrade
+
+TODO item: 11.5.3.
+
+### Implementation notes
+
+- Actual container runs `40176383203` (#134) and `40176438854` (#130) fail after the main-branch Chessground update (#129): each SVG overlay attempts a fixed inline color-scheme attribute, rejected by the existing strict CSP. This is separate from #130's corrected CodeQL version mismatch.
+- Adapt the pinned 10.4.2 bundle during the source build: remove the single known fixed declaration and express it in trusted CSS for Chessground's SVG overlays. Other upstream bytes are unchanged. Reject an unreviewed package version or missing/duplicate declaration so an upgrade cannot silently bypass this adaptation.
+- Update the shipped third-party notice from stale 10.1.1 to 10.4.2 and identify the local change and reproducible source. No installed package, lockfile or generated dist file is edited.
+- A real-browser regression fails before the fix with eight CSP events, four blocked style attributes and a `normal` computed scheme. The corrected SVG test covers all four layers, arrows, orientation changes and light/dark appearance. Existing hostile-style/attribute injection remains blocked. Local lint/JSDoc/ASVS, a fresh build, the full unit suite (697 passes, one opt-in live skip) and eleven focused browser cases pass, including a real Stockfish game through checkmate, saved review and illegal/out-of-turn move handling.
+
+### Deviations and insights
+
+- Keep this compatibility fix separate from the PDF and CodeQL PRs. Container/whole-suite CI must verify the resulting source; prior green evidence for 10.1.1 does not cover 10.4.2. No CSP relaxation, violation filtering, test retry or provider call is introduced.
+
+## 2026-10-25 — Keep CodeQL action updates together
+
+TODO item: 11.5.2; repair PR #130.
+
+### Implementation notes
+
+- The actual failed CodeQL run `40169734144` loaded configuration from `init` 4.38.2 into `analyze` 4.39.0 and rejected it. Update both to the same full commit, independently resolved from the official annotated 4.39.0 tag.
+- Group `github/codeql-action/*` in Dependabot so future updates arrive together. A unit regression checks immutable pins and their equality; it fails on the original PR's split versions. The corrected regression, local lint/JSDoc/ASVS and fresh build pass. The first full run had a 500 ms loopback SDK fixture timeout under load; all eleven focused stream cases then pass unchanged, and the full suite with two concurrent test files passes (698 passes, one opt-in live skip). Actual CI verification is recorded in the PR.
+- Merge current main into the existing PR branch without rewriting history, including the container startup recovery already reviewed in #125. The original PR also failed its packaged engine startup check; actual container CI must verify this integrated source. Subsequent actual run `40176438854` exposes the separate Chessground style regression from #129. Integrate compatibility fix #135 into this branch so its own main-targeted CI tests the corrected app; the CodeQL-only source `288e2ab` already passes actual CodeQL run `40176438860`.
+
+### Deviations and insights
+
+- This repairs the existing dependency PR rather than opening another overlapping action upgrade. PR #131's separate initialization bump becomes redundant once #130 merges. No check is suppressed and no application behavior is changed by the action update.
 
 ## 2026-10-25 — Pin browser-model source revisions
 
