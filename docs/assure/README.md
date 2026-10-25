@@ -36,7 +36,7 @@ current-checkout reference graph, not a history of file revisions.
 | `has_reflection` | DONE → combined reflection | A combined insight/deviation heading, kept without guessing categories |
 | `mentions` | File/item/note → file | A resolvable Markdown code-span reference |
 | `links_to` | File/item/note → file | A local Markdown hyperlink |
-| `imports` | File → file | Literal local JS import, export-from, import expression or require |
+| `imports` | File → file | Literal relative JS import, export-from, import expression or require |
 
 TODO status comes only from its checkbox. A DONE annotation can discuss work
 still open: for example, the release preparation entry references open TODO
@@ -48,7 +48,7 @@ The inventory includes only tracked/staged Git paths, including tests, data,
 documentation and configuration. Only regular Markdown, JS/MJS and HTML files
 are scanned; symlinks and submodules are inventoried without following them.
 JavaScript and inline HTML scripts are parsed with the existing ESLint and
-parse5 dependencies; source modules are never imported or executed. Package
+parse5 dependencies; analyzed application/test modules are never imported or executed. Package
 imports, dynamic nonliteral expressions and generated dist assets are outside
 the extracted dependency graph. Functions/classes, runtime call graphs, glob
 expansion and HTML/link-anchor validation are future scope.

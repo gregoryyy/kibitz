@@ -21,13 +21,13 @@ flowchart LR
 | --- | ---: |
 | artifact | 524 |
 | milestone | 13 |
-| todo | 205 |
-| done | 118 |
+| todo | 206 |
+| done | 119 |
 | insight | 285 |
 | deviation | 202 |
-| reflection | 0 |
+| reflection | 1 |
 
-3669 typed edges; 406 scanned text inputs; 285 unresolved references.
+3677 typed edges; 406 scanned text inputs; 294 unresolved references.
 
 ## TODO → DONE index
 
@@ -233,19 +233,21 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 | 11.4.1: HTTP hardening from the L1 review: compare the AI gateway Origin's native scheme as well as host, preserve direct local clients, ignore forwarded-header spoofing, and declare UTF-8 on SVG responses; native HTTP/TLS and actual-CLI/browser regressions, both old behaviors reproduced | done | 2 | [docs/TODO.md:261](../../docs/TODO.md) |
 | 11.5: Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP against isolated mock staging, CSP check and retained inventory/evidence; actual CI baseline covers seven required routes / sixty passive rules, zero highs, two medium and three informational finding types. Native GitHub feature settings are documented separately; no release/compliance claim | done | 1 | [docs/TODO.md:262](../../docs/TODO.md) |
 | 11.5.1: Web assets: trusted stylesheet hashes and blocked style attributes, original pinned local fonts/licences, canonical wrapper charset and preserved interface/offline behavior. Old-backend regression fails, thirty browser cases pass, and the actual unsuppressed raw baseline reports zero high/medium findings; informational source-comment/cookie findings remain recorded | done | 2 | [docs/TODO.md:263](../../docs/TODO.md) |
-| 11.6: Release gate: security checklist in the release PR; no open high-severity findings. Dated local review packet records prerequisite evidence, individual ASVS deviations/open controls, retained advisory targets and required owner/candidate decisions; preparation does not close the gate | open | 1 | [docs/TODO.md:264](../../docs/TODO.md) |
-| 11.6.1: Exact image advisory evidence and minimal runtime: pinned verified publisher/scanner, fresh hashed DB, independent config/rootfs and OS/production-library coverage, four actual container/compatibility cases and a strict high/critical gate. Actual raw report has zero high/critical; 23 medium/eight low findings retain triage targets. CodeQL races fixed without dismissal. Parent release approval and broader component/model reviews remain separate | done | 1 | [docs/TODO.md:265](../../docs/TODO.md) |
-| 12.1: Semantic versioning and a changelog: documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; release procedure. Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published | done | 1 | [docs/TODO.md:269](../../docs/TODO.md) |
-| 12.2: Packaging: local Docker image and Compose recipe, pinned Node 24, non-root runtime, private named volume and excluded operator/checkout files; four actual Linux image/browser/restart/previous-packaging cases pass, with publisher signature and image/source/package advisory evidence (11.6.1). No registry publication or release approval | done | 1 | [docs/TODO.md:270](../../docs/TODO.md) |
-| 12.3: Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; operator checks and retention, fake-SDK and real-CLI regressions | done | 1 | [docs/TODO.md:271](../../docs/TODO.md) |
-| 12.4: Docs: user guide, provider setup and native Ollama self-hosting, linked to existing privacy, offline, data, evidence and container instructions; primary-source console references checked, mock/local commands verified without real inference | done | 2 | [docs/TODO.md:272](../../docs/TODO.md) |
-| 12.4.1: Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation is complete in 12.4 | done | 1 | [docs/TODO.md:273](../../docs/TODO.md) |
+| 11.5.3: Preserve strict style CSP with Chessground 10.4.2: move its fixed SVG color-scheme declaration to trusted CSS, document the local build adaptation and reproduce the attribute/appearance failure in Playwright | done | 1 | [docs/TODO.md:264](../../docs/TODO.md) |
+| 11.6: Release gate: security checklist in the release PR; no open high-severity findings. Dated local review packet records prerequisite evidence, individual ASVS deviations/open controls, retained advisory targets and required owner/candidate decisions; preparation does not close the gate | open | 1 | [docs/TODO.md:265](../../docs/TODO.md) |
+| 11.6.1: Exact image advisory evidence and minimal runtime: pinned verified publisher/scanner, fresh hashed DB, independent config/rootfs and OS/production-library coverage, four actual container/compatibility cases and a strict high/critical gate. Actual raw report has zero high/critical; 23 medium/eight low findings retain triage targets. CodeQL races fixed without dismissal. Parent release approval and broader component/model reviews remain separate | done | 1 | [docs/TODO.md:266](../../docs/TODO.md) |
+| 12.1: Semantic versioning and a changelog: documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; release procedure. Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published | done | 1 | [docs/TODO.md:270](../../docs/TODO.md) |
+| 12.2: Packaging: local Docker image and Compose recipe, pinned Node 24, non-root runtime, private named volume and excluded operator/checkout files; four actual Linux image/browser/restart/previous-packaging cases pass, with publisher signature and image/source/package advisory evidence (11.6.1). No registry publication or release approval | done | 1 | [docs/TODO.md:271](../../docs/TODO.md) |
+| 12.3: Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; operator checks and retention, fake-SDK and real-CLI regressions | done | 1 | [docs/TODO.md:272](../../docs/TODO.md) |
+| 12.4: Docs: user guide, provider setup and native Ollama self-hosting, linked to existing privacy, offline, data, evidence and container instructions; primary-source console references checked, mock/local commands verified without real inference | done | 2 | [docs/TODO.md:273](../../docs/TODO.md) |
+| 12.4.1: Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation is complete in 12.4 | done | 1 | [docs/TODO.md:274](../../docs/TODO.md) |
 
 ## DONE → rationale and scope
 
 | Entry | TODO references | Insights | Deviations | Combined |
 | --- | --- | ---: | ---: | ---: |
 | [2026-10-25 — Typed file-level assurance lineage](../DONE.md#2026-10-25--typed-file-level-assurance-lineage) | 0.15 | 2 | 2 | 0 |
+| [2026-10-25 — Preserve board style policy after Chessground upgrade](../DONE.md#2026-10-25--preserve-board-style-policy-after-chessground-upgrade) | 11.5.3 | 0 | 0 | 1 |
 | [2026-10-25 — Pin browser-model source revisions](../DONE.md#2026-10-25--pin-browser-model-source-revisions) | 11.3.3.1 | 1 | 1 | 0 |
 | [2026-10-25 — Local release review preparation](../DONE.md#2026-10-25--local-release-review-preparation) | 11.6 | 1 | 1 | 0 |
 | [2026-10-25 — Verified image advisories and minimal runtime](../DONE.md#2026-10-25--verified-image-advisories-and-minimal-runtime) | 11.6.1 | 2 | 2 | 0 |
@@ -423,3 +425,38 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [THIRD_PARTY_NOTICES.md:14](../../THIRD_PARTY_NOTICES.md) | site/data/puzzles/ | directory |
 | [THIRD_PARTY_NOTICES.md:15](../../THIRD_PARTY_NOTICES.md) | wllama.js | missing |
 | [THIRD_PARTY_NOTICES.md:15](../../THIRD_PARTY_NOTICES.md) | wllama.wasm | missing |
+
+### Files without extracted relationships (39)
+
+The first thirty are listed; these files remain in the inventory. Extraction coverage is described in README.md.
+
+- [.github/zap/hooks.py](../../.github/zap/hooks.py)
+- [.github/zap/test_hooks.py](../../.github/zap/test_hooks.py)
+- [docs/eval/anthropic-claude-haiku-5-5.json](../../docs/eval/anthropic-claude-haiku-5-5.json)
+- [docs/eval/anthropic-claude-opus-5-5.json](../../docs/eval/anthropic-claude-opus-5-5.json)
+- [docs/eval/in-browser-qwen2.5-0.5b-instruct.json](../../docs/eval/in-browser-qwen2.5-0.5b-instruct.json)
+- [docs/eval/in-browser-qwen2.5-1.5b-instruct.json](../../docs/eval/in-browser-qwen2.5-1.5b-instruct.json)
+- [docs/primer/figs/fig01_flaw_to_fix.svg](../../docs/primer/figs/fig01_flaw_to_fix.svg)
+- [docs/primer/figs/fig02_tokenization.svg](../../docs/primer/figs/fig02_tokenization.svg)
+- [docs/primer/figs/fig03_embedding.svg](../../docs/primer/figs/fig03_embedding.svg)
+- [docs/primer/figs/fig04_transformer.svg](../../docs/primer/figs/fig04_transformer.svg)
+- [docs/primer/figs/fig05_attention_pattern.svg](../../docs/primer/figs/fig05_attention_pattern.svg)
+- [docs/primer/figs/fig06_embedding_shift.svg](../../docs/primer/figs/fig06_embedding_shift.svg)
+- [docs/primer/figs/fig07_context_window.svg](../../docs/primer/figs/fig07_context_window.svg)
+- [docs/primer/figs/fig08_loop.svg](../../docs/primer/figs/fig08_loop.svg)
+- [docs/primer/figs/fig15_where_things_run.svg](../../docs/primer/figs/fig15_where_things_run.svg)
+- [docs/security/2026-10-25-image-initial.json](../../docs/security/2026-10-25-image-initial.json)
+- [site/data/eco/a.tsv](../../site/data/eco/a.tsv)
+- [site/data/eco/b.tsv](../../site/data/eco/b.tsv)
+- [site/data/eco/c.tsv](../../site/data/eco/c.tsv)
+- [site/data/eco/d.tsv](../../site/data/eco/d.tsv)
+- [site/data/eco/e.tsv](../../site/data/eco/e.tsv)
+- [site/playwright.container.config.mjs](../../site/playwright.container.config.mjs)
+- [site/server/fixtures/anthropic-chat.json](../../site/server/fixtures/anthropic-chat.json)
+- [site/server/fixtures/anthropic-error-404.json](../../site/server/fixtures/anthropic-error-404.json)
+- [site/server/fixtures/anthropic-error-429.json](../../site/server/fixtures/anthropic-error-429.json)
+- [site/server/fixtures/anthropic-json.json](../../site/server/fixtures/anthropic-json.json)
+- [site/server/fixtures/mistral-chat.json](../../site/server/fixtures/mistral-chat.json)
+- [site/server/fixtures/ollama-json-fallback.json](../../site/server/fixtures/ollama-json-fallback.json)
+- [site/server/fixtures/ollama-json-unsupported.json](../../site/server/fixtures/ollama-json-unsupported.json)
+- [site/server/fixtures/openai-chat.json](../../site/server/fixtures/openai-chat.json)

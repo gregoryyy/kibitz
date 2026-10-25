@@ -19,7 +19,10 @@ function fixture(t, changes = {}) {
 }
 
 test('the complete lineage preserves open TODO status and typed, source-backed rationale paths', t => {
-  const { root, files } = fixture(t), graph = buildGraph(root, files);
+  const { root, files } = fixture(t, {
+    'docs/DONE.md': DONE + '\n- Keep `site/src/icon.svg`, `site/fonts/local.ttf` and `site/screens/test.png` linked.\n',
+    'site/src/icon.svg': '<svg/>', 'site/fonts/local.ttf': 'font fixture', 'site/screens/test.png': 'image fixture',
+  }), graph = buildGraph(root, files);
   const done = graph.nodes.find(n => n.type === 'done');
   assert.equal(graph.nodes.find(n => n.id === 'todo:0.2').status, 'open');
   for (const type of ['insight', 'deviation']) {
@@ -32,6 +35,10 @@ test('the complete lineage preserves open TODO status and typed, source-backed r
   assert.ok(graph.edges.some(e => e.type === 'references_todo' && e.from === done.id && e.to === 'todo:0.2'));
   assert.ok(graph.edges.some(e => e.type === 'part_of' && e.from === 'todo:0.1' && e.to === 'milestone:0'));
   assert.ok(graph.edges.some(e => e.type === 'imports' && e.from === 'file:site/src/a.js' && e.to === 'file:site/src/b.js'));
+  for (const file of ['site/src/icon.svg', 'site/fonts/local.ttf', 'site/screens/test.png']) {
+    assert.ok(graph.edges.some(e => e.type === 'mentions' && e.to === `file:${file}`));
+    assert.equal(graph.inputs.some(i => i.path === file), false, 'binary assets are referenced without reading them');
+  }
   assert.equal(validateGraph(graph), graph);
 });
 
