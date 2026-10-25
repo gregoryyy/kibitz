@@ -297,6 +297,12 @@ The default below is wllama. The optional `BROWSER_RUNTIME=chrome` / `just offli
 The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, data-flow diagram, asset/privilege boundaries, evidence and residual risks. The notes below are a brief overview rather than a release checklist.
 
 - **Keys stay on the server.** They are read from `.env` and used only by the gateway. They never appear in responses, logs or the page. The status endpoint names providers and models only.
+- **Local operator sessions.** Experimental backend issuance (`server/operator.mjs`,
+  `sessions.mjs`, `session-api.mjs`) verifies a private installation key before
+  issuing a 256-bit HttpOnly host cookie. A separate private registry hashes session
+  tokens and binds usage/library identifiers to the operator; raw grouping assertions
+  no longer authorize TLS APIs. [Setup and migration](SESSIONS.md) describe storage
+  and recovery; revocation, permissions and client cleanup keep their own TODOs.
 - **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Final Host checks accept the configured isolated `.test` hostname; explicit legacy/development modes retain localhost/IP checks. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
 - **Page hardening:**
   - a hash-based CSP: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`;

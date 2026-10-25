@@ -7,6 +7,26 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Backend-issued local operator sessions (experimental)
+
+TODO item: 11.4.2.3 / ASVS 7.2.1. Session termination, explicit function permissions and authenticated client cleanup retain their own final-release gates.
+
+### Implementation notes
+
+- Add explicit private operator setup without overwriting identities or printing keys, and require its bounded, private, regular JSON file plus a separate session database for TLS gateway/library serving. Missing/public/invalid setup stops before databases/listening. Standard native/container commands name the setup and registry; the image reads the operator file from its existing read-only identity mount.
+- Verify the key only at a bounded same-origin JSON endpoint. Issue a fresh random 256-bit `__Host-kibitz_session` cookie (Secure/HttpOnly/Strict/Path=/), store its SHA-256 verifier and operator/credential epoch/expiry privately, and resolve all HTTPS gateway/library claims through the registered backend session. Unknown, duplicate, expired, fabricated and other-operator sessions fail before provider/storage actions. Direct TLS API construction fails closed without an injected trusted resolver. Explicit synthetic HTTP development stays outside final scope.
+- Adopt exact legacy collection/usage IDs only after operator proof, retaining original schema hashes, records, revisions and counters. Transactional ownership bindings prevent cross-operator reassignment and partial adoption. Protected grouping cookies remain durable **locators**, usable only with fresh proof, to preserve collections after session-cookie expiry; changing them during an authenticated request cannot change backend claims. Expired sessions deny API access; retained bindings allow proof-authorized recovery across restart or credential rotation with the same operator ID. Bound the registry without evicting identities.
+- Add Settings/Your-data sign-in with German text, immediate key clearing, no browser key storage, bounded response reading and protection against overlapping status probes. Sign-in refreshes the mock gateway/library without running a connection test or granting provider sharing consent. Update native/container/operations/provider/data architecture and migration/recovery guidance; the registry contains private raw grouping locators and needs consistent backups with operator/profile/current databases.
+- Focused native TLS/store/setup/HSTS/migration tests verify backend lookup, defaults that deny TLS access, owner separation, forgery, duplicate tokens, expiry/rotation, transaction rollback, registry limits, private setup, preserved records/counters and restart. Fresh build/check pass. Full mock-only unit suite: 739 passes, one opt-in live skip. All 37 focused browser cases pass, covering the new form plus existing data/settings/privacy/CSP/literal-text and native TLS/cookie/HSTS flows. The actual pre-session HSTS source (`9e77ac4`) fails the new browser regression because unauthenticated gateway status returns 200 instead of 401. Actual Linux CI identity and the assessment update follow separately in this PR; they are not inferred from native results.
+
+### Deviations
+
+- Local single-user only; no hosted account system, production certificates, real provider calls, new dependency or model download. Operator filesystem ownership remains trusted. Logout/revocation/concurrent termination, permission policy, client-memory/offline cleanup and actual endpoint trust/inventory remain open. The registry retains expired recovery records and refuses new issuance at its bound rather than silently dropping collection ownership; lifecycle cleanup belongs to the next milestone.
+
+### Insights
+
+- Cookie syntax and a private storage scope are not proof of an issued session. Conversely, deleting every old locator when adding authentication loses collection continuity after expiry. Keeping non-authorizing locators and requiring fresh operator proof separates recovery from authorization without rewriting existing private data.
+
 ## 2026-10-25 — Isolated application HSTS
 
 TODO item: 11.4.2.2 / ASVS 3.4.1. Native implementation and actual packaged verification are complete at source `42e6ecd5761f012d9f89c15c8386113e9a01124d`; current-head CI remains recorded in the PR. The other ten ASVS remediations and final-release gate remain open.

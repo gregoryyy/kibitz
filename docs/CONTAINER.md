@@ -21,8 +21,8 @@ the supplied host mapping is `127.0.0.1:8765`, preserving local browser access.
 
 First supply trusted native TLS files and a public issuer CA as described in
 [TLS setup](TLS.md). The default command requires `/tls/key.pem` and
-`/tls/cert.pem`; Compose mounts `.kibitz-data/tls` read-only there (override with
-`KIBITZ_TLS_DIRECTORY`). Files must be readable by UID 1000, with owner-only key
+`/tls/cert.pem` plus the private `/tls/operator.json` from [operator setup](SESSIONS.md); Compose mounts `.kibitz-data/tls` read-only there (override with
+`KIBITZ_TLS_DIRECTORY`). Files must be readable by UID 1000, with owner-only key/operator
 permissions; keep them outside the build context/public directories. The health
 probe uses verified HTTPS and Compose explicitly supplies `/tls/ca.pem` as its
 public issuer trust file. It does not install trust in a browser or provider.
@@ -38,7 +38,8 @@ Map `kibitz.test` to `127.0.0.1` in the host/browser resolver, then open
 the verified health probe. The default command sends one-year HSTS on this
 isolated name; IP/localhost serve only the exact static health manifest. The supplied
 [Compose configuration](../compose.yaml) uses the **mock coach** and a named private
-data volume. This is a reproducible local starting point with no provider keys or
+data volume, including `/data/sessions.sqlite`. Sign in with the private operator key
+in Settings or Your data. This is a reproducible local starting point with no provider keys or
 inference cost. `--env-file /dev/null` prevents implicit Compose loading of an
 operator `.env`; the app's default command also uses `--env=`. Real provider setup
 requires explicit runtime configuration and the app's separate sharing permission.

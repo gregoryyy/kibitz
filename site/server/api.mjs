@@ -3,7 +3,7 @@
 //                           usage: the server's requests, tokens, cost estimate and budget today (usage.mjs);
 //                           user: the same for this user, with the per-user budgets for paid models;
 //                           paid: whether the current provider is a paid (cloud) one
-// Users are grouped by a protected opaque cookie on HTTPS; HTTP development uses a separate namespace.
+// HTTPS uses backend-issued operator sessions; explicit HTTP development has separate synthetic groups.
 //   POST /api/ai/config  {provider?, localOnly?} -> status; switches among the providers .env sets up
 //   POST /api/ai/test    {} -> {ok, provider, model, ms, usage}: a tiny request to check the connection
 //   POST bodies may name a "task" (quick | chat | review) to pick that task's model.
@@ -14,7 +14,9 @@
 //   GET  /api/ai/embeddings -> safe destination/configuration and opaque cookie scope
 //   POST /api/ai/embeddings {texts, fingerprint, scope} -> {vectors, metadata, usage, user}
 //                           explicit bounded batches; no server text/vector storage
-import { CookieError, identityCookie } from './cookies.mjs';
+import { CookieError } from './cookies.mjs';
+import { developmentIdentity } from './session-identity.mjs';
+import { SessionError } from './sessions.mjs';
 import net from 'net';
 import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
@@ -40,7 +42,7 @@ export function createApi({
   users = userLedger({ tokensPerDay: config.userTokensPerDay, costPerDay: config.userCostPerDay, prices: parsePrices(config.prices) }),
   allow = usageAccounting(config).allow,
   countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); },
-  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false, hostname = null,
+  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false, hostname = null, identity = developmentIdentity,
 }) {
   const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
@@ -55,7 +57,7 @@ export function createApi({
     try {
       checkHost(req, hostname);
       checkOrigin(req);
-      const uid = identityCookie(req, res, 'usage', { allowInsecureHttp, create: true });
+      const uid = identity(req, res, 'usage', { allowInsecureHttp, create: true });
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
       if (pathname === '/api/ai/embeddings' && req.method === 'POST') {
         checkPost(req);
@@ -71,7 +73,7 @@ export function createApi({
       if (pathname === '/api/ai/structured' && req.method === 'POST') return await structured(req, res, uid);
       throw new GatewayError('not_found', 'Not found', 404);
     } catch (e) {
-      const g = e instanceof CookieError ? new GatewayError(e.code, e.message, e.code === 'forbidden' ? 403 : 400) : toGatewayError(e);
+      const g = e instanceof SessionError ? new GatewayError(e.code, e.message, e.status) : e instanceof CookieError ? new GatewayError(e.code, e.message, e.code === 'forbidden' ? 403 : 400) : toGatewayError(e);
       if (!res.headersSent) json(res, g.status, { error: { code: g.code, message: g.message } });
       else res.end();
     }

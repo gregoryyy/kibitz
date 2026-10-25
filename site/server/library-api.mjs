@@ -1,6 +1,6 @@
 // Same-origin, cookie-scoped persistence. No provider calls or automatic browser-library upload.
 import crypto from 'node:crypto';
-import { identityCookie } from './cookies.mjs';
+import { developmentIdentity } from './session-identity.mjs';
 import net from 'node:net';
 import { Chess } from 'chess.js';
 import { compileLibraryGame } from '../src/library/library.js';
@@ -8,6 +8,7 @@ import { LIBRARY_LIMITS } from './library-store.mjs';
 
 const HEADERS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', Vary: 'Cookie' };
 const ERRORS = {
+  session_expired: [401, 'Sign in to the local server to continue.'],
   forbidden: [403, 'Cross-origin library access is not allowed.'],
   bad_request: [400, 'Invalid library request.'],
   invalid_record: [400, 'A library record is invalid or unsupported.'],
@@ -73,17 +74,17 @@ export async function validateLibraryChanges(changes) {
 
 /**
  * Mount before the AI gateway, which otherwise handles all /api/ paths.
- * Status offers storage without creating a session; explicitly loading records creates one.
- * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean, hostname?: string|null}} [options]
+ * TLS requires an issued backend session; explicit HTTP development may create a synthetic group.
+ * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean, hostname?: string|null, identity?: typeof developmentIdentity}} [options]
  */
-export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false, hostname = null } = {}) {
+export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false, hostname = null, identity = developmentIdentity } = {}) {
   let windowAt = Date.now(), writes = 0;
   return async (req, res) => {
     const { pathname } = new URL(req.url, 'http://x');
     if (pathname !== '/api/library' && !pathname.startsWith('/api/library/')) return false;
     try {
       checkOrigin(req, hostname);
-      let token = identityCookie(req, res, 'library', { allowInsecureHttp });
+      let token = identity(req, res, 'library', { allowInsecureHttp });
       if (pathname === '/api/library/status') {
         if (req.method !== 'GET') fail('method');
         return json(res, 200, { available: !!store, scope: store && token ? scopeOf(token) : null });
@@ -94,7 +95,7 @@ export function createLibraryApi({ store = null, validate = validateLibraryChang
       if (erasing && req.method !== 'POST') fail('method');
       if (!store) fail('unavailable');
       if (req.method === 'GET') {
-        if (!token) token = identityCookie(req, res, 'library', { allowInsecureHttp, create: true });
+        if (!token) token = identity(req, res, 'library', { allowInsecureHttp, create: true });
         return json(res, 200, store.read(scopeOf(token)));
       }
       if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) fail('content_type');

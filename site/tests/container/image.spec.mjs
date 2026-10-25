@@ -181,7 +181,7 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     docker('run', '--rm', '--pull=never', '--user', '0:0', '--network', 'none', '--read-only',
       '--mount', `type=bind,src=${identity.dir},dst=/input,readonly`, '--mount', `type=volume,src=${material},dst=/tls`,
       '--entrypoint', 'node', image, '-e', `const fs=require('node:fs');
-        for(const name of ['key.pem','cert.pem']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
+        for(const name of ['key.pem','cert.pem','operator.json']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
         fs.chmodSync('/tls',0o700);fs.chownSync('/tls',1000,1000);`);
     containers.add(container);
     docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
@@ -197,19 +197,25 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     await expect.poll(async () => { try { return (await client.get(probeUrl + '/manifest.webmanifest')).status(); } catch { return 0; } }, { timeout: 30_000 }).toBe(200);
     expect(docker('exec', container, 'node', '-p', 'process.getuid()').trim()).toBe('1000');
     expect(JSON.parse(docker('inspect', container))[0].Mounts.find(mount => mount.Destination === '/tls').RW).toBe(false);
+    expect((await client.get(probeUrl + '/api/ai/status')).status()).toBe(401);
+    const login = await client.post(probeUrl + '/api/library/session', { data: { secret: identity.secret, migrate: true } }); expect(login.status()).toBe(200);
+    expect(login.headers()['set-cookie']).toContain('__Host-kibitz_session=');
+    expect(login.headers()['set-cookie']).toContain('; Secure');
     for (const route of ['/api/ai/status', '/api/library/records']) {
       const response = await client.get(probeUrl + route); expect(response.status()).toBe(200);
       expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
-      expect(response.headers()['set-cookie']).toMatch(/^__Secure-kibitz_(uid|library)=/);
-      expect(response.headers()['set-cookie']).toContain('; Secure');
+      expect(response.headers()['set-cookie']).toBeUndefined();
     }
-    context = await browser.newContext({ ignoreHTTPSErrors: true }); const page = await context.newPage();
+    context = await browser.newContext({ ignoreHTTPSErrors: true });
+    const session = (await client.storageState()).cookies.find(cookie => cookie.name === '__Host-kibitz_session');
+    await context.addCookies([{ name: session.name, value: session.value, url, secure: true, httpOnly: true, sameSite: 'Strict' }]);
+    const page = await context.newPage();
     const pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
     await page.addInitScript(() => { globalThis.__csp = []; globalThis.document.addEventListener('securitypolicyviolation', event => globalThis.__csp.push(`${event.violatedDirective} ${event.blockedURI}`)); });
     await page.route('**/*', route => new URL(route.request().url()).origin === url ? route.continue() : route.abort());
     await openContainerApp(page, url + '/?debug', open); await expect(page.locator('#board cg-board')).toBeVisible();
     expect(pageErrors).toEqual([]); expect(await page.evaluate(() => globalThis.__csp)).toEqual([]);
-    for (const file of ['/tls/key.pem', '/key.pem', '/.git/config']) {
+    for (const file of ['/tls/key.pem', '/key.pem', '/operator.json', '/sessions.sqlite', '/.git/config']) {
       const response = await client.get(probeUrl + file); expect(response.status()).toBe(404);
       expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
     }

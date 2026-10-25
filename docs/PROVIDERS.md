@@ -62,7 +62,7 @@ Build and run from the repository root:
 
 ```sh
 npm --prefix site run build
-node site/scripts/serve.mjs site/dist --api --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --usage .kibitz-data/usage.sqlite --offline --index _test.html
+node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --usage .kibitz-data/usage.sqlite --offline --index _test.html
 ```
 
 This explicit `--offline` invocation preserves the offline page path and removes legacy external font links if present. The current app already bundles its fonts and uses the same strict same-origin style/font policy in either mode. Coaching still needs the local Node gateway and Ollama process. The browser is served at `https://kibitz.test:8765/`. Grant **Ollama → coach** permission, then press **Test connection** when ready to load/run the selected model. Local models still use memory and computation. No Ollama CORS wildcard is needed: the browser calls Kibitz's same-origin gateway, and Node contacts Ollama.

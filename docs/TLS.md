@@ -4,7 +4,8 @@ The owner selected native Node HTTPS with operator-supplied certificates on
 2026-10-25. This completes the listener prerequisite **TODO 11.4.2.7.1**.
 [Protected cookies and migration](COOKIE-MIGRATION.md) implement **11.4.2.1**.
 The isolated-host HSTS policy implements **11.4.2.2**.
-The remaining ten ASVS fixes include authentication, external endpoint
+Backend-issued [operator sessions](SESSIONS.md) address **11.4.2.3**.
+The remaining nine ASVS fixes include session termination, external endpoint
 transport policy, actual TLS inventory and public-certificate evidence. This
 does not close the final-release gate.
 
@@ -17,10 +18,11 @@ npm --prefix site run build
 node site/scripts/serve.mjs site/dist --api --env .env \
   --index _test.html --host 127.0.0.1 --port 8765 \
   --usage .kibitz-data/usage.sqlite --library .kibitz-data/library.sqlite \
-  --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem
+  --operator .kibitz-data/tls/operator.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem
 ```
 
-Supply both files before running this command. The server neither generates
+First initialize the private [operator identity](SESSIONS.md) once, then supply
+both TLS files before running this command. The server neither generates
 certificates nor installs a certificate authority or changes a system/browser
 trust store. The unencrypted PEM private key and PEM certificate/chain must be
 matching, readable regular files outside **both** the static and optional model
@@ -108,14 +110,15 @@ an appropriate browser-profile/private-SQLite backup as described in
 identity tokens, private-library ownership and usage counters on HTTPS **at the
 same original hostname**. The new `.test` hostname does not inherit those cookies. Back up
 the browser profile as well as databases before upgrading; ordinary JSON browser
-exports omit HttpOnly cookies. The remaining operator-session and permission
-requirements are **11.4.2.3–11.4.2.5**. These grouping cookies are not authentication.
+exports omit HttpOnly cookies. Existing groups are adopted only after operator proof; the new backend-issued
+session supplies authentication. Termination and function permissions remain
+**11.4.2.4–11.4.2.5**.
 
 For recovery/export at the original IP/localhost origin, explicitly add
 **`--legacy-origin`** with a valid TLS pair and use the saved original profile and
 URL. This recovery mode has no HSTS and cannot combine with `--app-host` or
 `--http-dev`; it is not the supported final deployment. It preserves original
-cookie ownership and lets the operator verify/export old data before an explicit
+cookie ownership after operator sign-in and lets the operator verify/export old data before an explicit
 import at the new origin. New-origin grouping IDs and their counters are separate;
 the original owner/counters remain in current SQLite files and the old profile.
 No raw-token export, automatic cross-host transfer or secret-in-URL handoff exists.

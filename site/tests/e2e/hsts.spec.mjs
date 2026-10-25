@@ -21,6 +21,7 @@ test('the final isolated hostname has one-year HSTS and supports the built board
     if (new URL(route.request().url()).origin !== base) { external.push(route.request().url()); return route.abort(); }
     return route.continue();
   });
+  const cookie = await server.login(); await page.context().addCookies([{ name: '__Host-kibitz_session', value: cookie.split('=')[1], url: base, secure: true, httpOnly: true, sameSite: 'Strict' }]);
   const initial = await page.goto(base); expect(initial.headers()['strict-transport-security']).toBe('max-age=31536000');
   await open(page, base + '/?debug');
   await move(page, 'e2', 'e4'); await expect(page.locator('#moves button')).toHaveCount(2);
@@ -38,6 +39,7 @@ test('the final isolated hostname has one-year HSTS and supports the built board
 });
 
 test('browser API, static, HEAD and error responses retain HSTS regardless of spoofed forwarding headers', async ({ page }) => {
+  const cookie = await server.login(); await page.context().addCookies([{ name: '__Host-kibitz_session', value: cookie.split('=')[1], url: base, secure: true, httpOnly: true, sameSite: 'Strict' }]);
   await page.goto(base + '/icon.svg');
   const results = await page.evaluate(async () => {
     const cases = [['/api/ai/status', 'GET', 200], ['/api/library/status', 'GET', 200], ['/', 'HEAD', 200], ['/missing', 'GET', 404],

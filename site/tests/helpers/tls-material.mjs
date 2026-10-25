@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { newOperator } from '../../server/operator.mjs';
 import { execFileSync } from 'node:child_process';
 
 export function tlsMaterial({ hostname = 'kibitz.test' } = {}) {
@@ -14,6 +15,8 @@ export function tlsMaterial({ hostname = 'kibitz.test' } = {}) {
     execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-sha256', '-days', '1', '-subj', '/CN=localhost',
       '-config', config, '-extensions', 'fixture', '-keyout', key, '-out', cert], { stdio: 'ignore', timeout: 20_000 });
     fs.chmodSync(key, 0o600);
-    return { dir, key, cert, ca: fs.readFileSync(cert), close };
+    const operator = path.join(dir, 'operator.json'), setup = newOperator();
+    fs.writeFileSync(operator, JSON.stringify(setup), { mode: 0o600 });
+    return { dir, key, cert, operator, secret: setup.secret, ca: fs.readFileSync(cert), close };
   } catch (error) { close(); throw error; }
 }

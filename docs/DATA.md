@@ -29,3 +29,9 @@ These controls cover the standalone browser/optional Node-server library. An ext
 ## Operational usage counters
 
 The standard local serve recipes keep a separate private `.kibitz-data/usage.sqlite` for current-day request/token/cost counters and recent admission timestamps, grouped by hashed anonymous cookie IDs. Browser and library export/erase controls leave these operational limits intact. [Usage storage and lifecycle](USAGE.md) describe retention, private paths, operator inspection/reset, SQLite remnants and the absence of prompts, answers, raw cookies or keys.
+
+The experimental [operator session registry](SESSIONS.md) is private operational
+identity data. It contains grouping identifiers for authenticated recovery; browser
+export/erase does not remove it or revoke sessions. Keep the operator JSON, registry,
+current usage/library files and profile together in private backups. Revocation and
+authenticated client cleanup remain separate release TODOs.

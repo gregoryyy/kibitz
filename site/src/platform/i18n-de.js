@@ -3,6 +3,18 @@
 // starting with "@" only translate parts (i18n.js). Informal address (du), as chess books and apps
 // do. Chess terms follow German usage: Remis, Patzer, Theoriezug, Königsflügel.
 export default {
+  'Sign in to the local server in Settings to use the coach. Stockfish still works.': 'Melde dich in den Einstellungen am lokalen Server an, um den Trainer zu nutzen. Stockfish funktioniert weiterhin.',
+  'Local server sign-in': 'Am lokalen Server anmelden',
+  'Operator key': 'Betreiberschlüssel',
+  'Keep this browser’s existing server collection': 'Bisherige Server-Sammlung dieses Browsers behalten',
+  'Sign in': 'Anmelden',
+  'Use the key from your private operator setup file. The key is sent only to this local server. Provider sharing permission remains separate.': 'Verwende den Schlüssel aus deiner privaten Betreiberdatei. Er wird nur an diesen lokalen Server gesendet. Die Freigabe für KI-Anbieter bleibt davon getrennt.',
+  'Sign in to use the local gateway and server library.': 'Melde dich für das lokale Gateway und die Server-Bibliothek an.',
+  'Signed in to the local server.': 'Am lokalen Server angemeldet.',
+  'This collection belongs to another operator. Restore the intended setup file before migrating.': 'Diese Sammlung gehört einem anderen Betreiber. Stelle vor der Migration die zugehörige Betreiberdatei wieder her.',
+  'Too many sign-in attempts. Try again in a minute.': 'Zu viele Anmeldeversuche. Versuche es in einer Minute erneut.',
+  'Sign-in could not be confirmed. Check the operator key and try again.': 'Die Anmeldung konnte nicht bestätigt werden. Prüfe den Betreiberschlüssel und versuche es erneut.',
+  'Sign-in complete. Check the server library before continuing.': 'Angemeldet. Prüfe die Server-Bibliothek, bevor du fortfährst.',
   '{opening}: the game starts after {moves}': '{opening}: Die Partie beginnt nach {moves}',
   'Move display': 'Zugdarstellung',
   'English SAN (Nf3)': 'Englische SAN (Nf3)',

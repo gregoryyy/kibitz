@@ -1,3 +1,4 @@
+import { createOperatorPanel } from './operator-ui.js';
 import { browserStorage } from './store.js';
 import { pickLang, translator } from './i18n.js';
 import DE from './i18n-de.js';
@@ -91,3 +92,5 @@ $('#eraseProceed').addEventListener('click', () => {
     finally { cache.close(); }
   });
 });
+
+createOperatorPanel($('#operatorSignIn'), { t, onChange: () => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t('Sign-in complete. Check the server library before continuing.'); } });

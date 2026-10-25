@@ -1,7 +1,7 @@
 // Local static server; parse5 selects inline HTML scripts for CSP hashes.
 //   node scripts/serve.mjs <dir> [--port 8765] [--host 127.0.0.1] [--index index.html] [--api [--env .env]]
 //                          [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE]
-//                          [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]
+//                          [--operator FILE --sessions FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]
 // --api also mounts the AI gateway (server/api.mjs) under /api/, configured from the env file
 // (--env= loads none); the gateway additionally needs the provider SDKs. Every response carries security
 // headers, HTML pages a hash-based Content Security Policy (server/static.mjs).
@@ -38,11 +38,13 @@ async function main() {
       'tls-key': { type: 'string' },
       'tls-cert': { type: 'string' },
       'http-dev': { type: 'boolean', default: false },
+      operator: { type: 'string' },
+      sessions: { type: 'string' },
       'app-host': { type: 'string' },
       'legacy-origin': { type: 'boolean', default: false },
     },
   });
-  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]'); process.exit(2); }
+  if (positionals.length !== 1) { console.error('usage: serve.mjs <dir> [--port N] [--host H] [--index FILE] [--api [--env FILE]] [--models DIR [--model ID]] [--offline] [--library FILE] [--usage FILE] [--operator FILE --sessions FILE] [--tls-key FILE --tls-cert FILE [--app-host NAME | --legacy-origin] | --http-dev]'); process.exit(2); }
   const root = fs.realpathSync(positionals[0]);
   let modelsDir = '';
   if (opt.models) {
@@ -65,12 +67,28 @@ async function main() {
   const [{ BASE_HEADERS, isHiddenPath }, { servePublicFile }] = await Promise.all([
     import('../server/static.mjs'), import('../server/public-files.mjs'),
   ]);
+  let sessionApi = null, registry = null;
+  if (opt.api || opt.library) {
+    const { createSessionApi } = await import('../server/session-api.mjs');
+    if (tlsOptions) {
+      const { readOperator } = await import('../server/operator.mjs');
+      const { sessionStore } = await import('../server/sessions.mjs');
+      const { privateDatabaseFile } = await import('../server/private-files.mjs');
+      // Operator proof/configuration precedes private database creation.
+      const operator = readOperator(opt.operator, servedRoots);
+      if (!opt.sessions) throw Object.assign(new Error('Configure a private operator identity and session database outside served directories.'), { code: 'ERR_KIBITZ_OPERATOR_CONFIG' });
+      registry = sessionStore(privateDatabaseFile(opt.sessions, servedRoots));
+      process.once('exit', () => registry.close());
+      sessionApi = createSessionApi({ operator, store: registry, hostname: appHost });
+    } else sessionApi = createSessionApi(); // Explicit plaintext development, never final authentication.
+  }
+  const identity = tlsOptions ? sessionApi?.identity : undefined;
   let library = null, libraryStore = null;
   if (opt.library) {
     const { openPrivateLibrary } = await import('../server/library-files.mjs');
     const { createLibraryApi } = await import('../server/library-api.mjs');
     libraryStore = openPrivateLibrary(opt.library, servedRoots);
-    library = createLibraryApi({ store: libraryStore, allowInsecureHttp: opt['http-dev'], hostname: appHost });
+    library = createLibraryApi({ store: libraryStore, allowInsecureHttp: opt['http-dev'], hostname: appHost, ...(identity ? { identity } : {}) });
     process.once('exit', () => libraryStore.close());
   }
 
@@ -89,7 +107,7 @@ async function main() {
     const { usageAccounting } = await import('../server/usage.mjs');
     const usageStore = sqliteUsageStore(privateDatabaseFile(opt.usage, servedRoots));
     process.once('exit', () => usageStore.close());
-    api = createApi({ config, allowInsecureHttp: opt['http-dev'], hostname: appHost, ...usageAccounting(config, { store: usageStore }) });
+    api = createApi({ config, allowInsecureHttp: opt['http-dev'], hostname: appHost, ...(identity ? { identity } : {}), ...usageAccounting(config, { store: usageStore }) });
     console.log(aiConfigEvent(config));
     apiStatus = config.available ? `AI coach: ${logProvider(config.provider)} (configured)` : 'AI coach off: check Settings or server configuration';
   }
@@ -102,6 +120,7 @@ async function main() {
     // API routers also parse the target. Reject malformed URLs before an async rejection
     // could reach Node's default stack printer with its raw `input` property.
     try { new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request'); }
+    if (sessionApi && await sessionApi.handle(req, res)) return;
     if (library && await library(req, res)) return;
     if (api && await api(req, res)) return;
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'Method not allowed');

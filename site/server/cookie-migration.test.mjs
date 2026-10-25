@@ -31,26 +31,28 @@ test('real native HTTPS migration preserves library ownership, revisions, usage,
   const start = async script => { server = await httpsCli({ script, root, key: identity.key, cert: identity.cert, library: data.library, usage: data.usage }); };
   await start();
   const call = (route, cookie, body, headers) => request(server.base + '/api/' + route, identity.ca, cookie, body, headers);
-  const original = await call('library/status', backup); assert.equal(original.data.scope, data.scope);
-  assert.equal(original.cookies.length, 2); assert(original.cookies[0].startsWith(`__Secure-kibitz_library=${data.token};`));
-  const usage = await call('ai/status', backup); assert.equal(usage.data.user.requests, 1); assert.equal(usage.data.usage.requests, 1);
+  assert.equal((await call('library/status', backup)).status, 401);
+  const protectedCookie = await server.login(backup);
+  const original = await call('library/status', protectedCookie); assert.equal(original.data.scope, data.scope);
+  assert.deepEqual(original.cookies, []);
+  const usage = await call('ai/status', protectedCookie); assert.equal(usage.data.user.requests, 1); assert.equal(usage.data.usage.requests, 1);
   assert.equal(usage.data.user.input, 11); assert.equal(usage.data.user.output, 7);
-  const protectedCookie = `__Secure-kibitz_uid=${data.uid}; __Secure-kibitz_library=${data.token}`;
   const before = await call('library/records', protectedCookie); assert.equal(before.data.revision, 1); assert.deepEqual(before.data.games, [data.record]); assert.deepEqual(before.cookies, []);
   const next = { id: 'after-upgrade', kind: 'study', pgn: '1. d4 d5 *' };
   const saved = await call('library/records', protectedCookie, { scope: data.scope, revision: 1, changes: [{ collection: 'games', id: next.id, record: next }] });
   assert.equal(saved.status, 200); assert.equal(saved.data.revision, 2);
   assert.equal((await call('ai/test', protectedCookie, {})).status, 200);
-  const refused = await call('library/records', `__Secure-kibitz_library=invalid; ${backup}`);
+  const refused = await call('library/session', `__Secure-kibitz_library=invalid; ${backup}`, { secret: identity.secret, migrate: true });
   assert.equal(refused.status, 400); assert.deepEqual(refused.cookies, []);
   const forbidden = await call('ai/status', backup, undefined, { origin: 'http://attacker.invalid' }); assert.equal(forbidden.status, 403); assert.deepEqual(forbidden.cookies, []);
-  const stranger = await call('library/records', ''); assert.notEqual(stranger.data.scope, data.scope); assert.deepEqual(stranger.data.games, []);
+  const stranger = await call('library/records', ''); assert.equal(stranger.status, 401);
   await server.close(); await start(process.env.KIBITZ_COOKIE_ROLLBACK_SCRIPT);
   // The saved pre-upgrade identity still selects every post-upgrade write. No database downgrade,
   // token rewrite or snapshot restoration is needed when the browser profile is rolled back.
-  const restored = await call('library/records', backup); assert.equal(restored.data.scope, data.scope);
+  const recovered = process.env.KIBITZ_COOKIE_ROLLBACK_SCRIPT ? backup : await server.login(backup);
+  const restored = await call('library/records', recovered); assert.equal(restored.data.scope, data.scope);
   assert.equal(restored.data.revision, 2); assert.deepEqual(restored.data.games.map(game => game.id).sort(), ['after-upgrade', 'legacy-study']);
-  const counted = await call('ai/status', backup); assert.equal(counted.data.user.requests, 2); assert.equal(counted.data.usage.requests, 2);
+  const counted = await call('ai/status', recovered); assert.equal(counted.data.user.requests, 2); assert.equal(counted.data.usage.requests, 2);
   await server.close();
   for (const file of [data.library, data.usage]) {
     const db = new DatabaseSync(file, { readOnly: true });

@@ -322,7 +322,7 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .choice button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .choice button:disabled { color: var(--muted); background: var(--surface-2); cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
-textarea, input[type="text"], input[type="search"], input[type="url"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+textarea, input[type="text"], input[type="password"], input[type="search"], input[type="url"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
 textarea { resize: vertical; min-height: 44px; }
 .hint { font-size: 13px; color: var(--muted); }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; }
@@ -832,6 +832,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
       </div>
     </section>
+    <section class="settings-sec" id="operatorSignIn"></section>
     <section class="settings-sec" id="providerPrivacy"></section>
     <section class="settings-sec" id="offlineApp"></section>
     <section class="settings-sec">
@@ -898,6 +899,7 @@ import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/
 import { sanToSpeech, parseMoveInput, displaySan, notationMode } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import { createConsentStore, createPrivacyGate, PRIVACY_KEY } from './platform/privacy.js';
+import { createOperatorPanel } from './platform/operator-ui.js';
 import { createPrivacyPanel } from './platform/privacy-ui.js';
 import { createOfflinePanel } from './platform/offline-app.js';
 import { offlineCoach, rememberOfflineCoach } from './platform/offline-coach.js';
@@ -1025,13 +1027,14 @@ const use = name => (window.claude && typeof window.claude.use === 'function')
 let GATEWAY = null; // the local gateway's last status; null inside an artifact or when it can't be reached
 async function localSample() {
   let status;
-  try { const r = await fetch('api/ai/status'); status = r.ok ? await r.json() : null; } catch { status = null; }
-  if (status) rememberOfflineCoach(browserStorage(), status); else status = offlineCoach(browserStorage());
+  try { const r = await fetch('api/ai/status'); status = r.status === 401 ? { authenticationRequired: true, available: false } : r.ok ? await r.json() : null; } catch { status = null; }
+  if (status && !status.authenticationRequired) rememberOfflineCoach(browserStorage(), status); else if (!status) status = offlineCoach(browserStorage());
   GATEWAY = status; renderCoachSettings();
   if (!status?.available) { coachOffText(status); return null; }
   return canUseCoach() ? coachSample : null;
 }
 function coachOffText(status) {
+  if (status?.authenticationRequired) { $('#coachOff').textContent = t('Sign in to the local server in Settings to use the coach. Stockfish still works.'); return; }
   if (status?.available && !canUseCoach()) { $('#coachOff').textContent = t('Allow this provider in Settings → Privacy before sending data.'); return; }
   $('#coachOff').textContent = status ? `The coach is off: ${status.reason}. Change it in the coach settings below, or in .env and restart the server. Stockfish analysis, flags and review still work.`
     : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
@@ -3188,7 +3191,6 @@ async function gatewayPost(path, body) {
   return path === 'test' ? Privacy.run(GATEWAY?.provider, 'coach', ({ headers, signal }) => send(headers, signal)) : send();
 }
 async function refreshGateway() {
-  if (!GATEWAY) return;
   try { const r = await fetch('api/ai/status'); if (r.ok) { GATEWAY = await r.json(); rememberOfflineCoach(browserStorage(), GATEWAY); renderCoachSettings(); renderStudySearch(); } } catch { /* keep the last status */ }
 }
 async function changeGateway(body) {
@@ -4616,7 +4618,7 @@ modeHint(); renderProgress();
 // gear. A click on the backdrop (outside .settings-body) closes it too.
 {
   const dlg = /** @type {HTMLDialogElement} */ ($('#settings'));
-  $('#btnSettings').addEventListener('click', () => { dlg.showModal(); if (!$('#coachSettings').hidden) refreshGateway(); });
+  $('#btnSettings').addEventListener('click', () => { dlg.showModal(); if (!$('#coachSettings').hidden) refreshGateway(); operatorPanel.probe(); });
   $('#btnSettingsClose').addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 }
@@ -4643,6 +4645,7 @@ function applyProviderPermissions() {
   chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false;
   setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); renderStudySearch();
 }
+const operatorPanel = createOperatorPanel($('#operatorSignIn'), { t, enabled: !window.claude?.hot, onChange: async () => { SERVER_LIBRARY.disconnect(); await SERVER_LIBRARY.probe(); await refreshGateway(); applyProviderPermissions(); } });
 const privacyPanel = createPrivacyPanel($('#providerPrivacy'), { store: ProviderConsent, onChange: applyProviderPermissions, t });
 $('#btnPrivacy').addEventListener('click', () => $('#providerPrivacy').scrollIntoView({ block: 'start' }));
 $('#providerPrivacy').hidden = !!window.claude?.hot;

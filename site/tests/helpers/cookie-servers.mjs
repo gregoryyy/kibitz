@@ -1,11 +1,13 @@
 // Real loopback HTTP/TLS fixtures; keys exist only in a temporary private directory.
-// No provider/env file is used. This wrapper does not add HTTPS options to serve.mjs.
+// Isolated legacy-cookie transport tests inject identityCookie deliberately; the final CLI
+// uses the issued-session authority instead. No provider/env file is used.
 import http from 'node:http';
 import https from 'node:https';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { identityCookie } from '../../server/cookies.mjs';
 import { createApi } from '../../server/api.mjs';
 import { loadConfig, loadEmbeddingConfig } from '../../server/ai.mjs';
 import { createLibraryApi } from '../../server/library-api.mjs';
@@ -27,7 +29,7 @@ export async function cookieServers() {
     const urls = {};
     for (const encrypted of [false, true]) {
       const store = createLibraryStore(); stores.push(store);
-      const library = createLibraryApi({ store, allowInsecureHttp: !encrypted }), api = createApi({ allowInsecureHttp: !encrypted, config: loadConfig({ AI_PROVIDER: 'mock' }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }) });
+      const library = createLibraryApi({ store, identity: identityCookie, allowInsecureHttp: !encrypted }), api = createApi({ identity: identityCookie, allowInsecureHttp: !encrypted, config: loadConfig({ AI_PROVIDER: 'mock' }), embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }) });
       const handle = async (req, res) => {
         if (await library(req, res) || await api(req, res)) return;
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end('<!doctype html><title>Cookie transport fixture</title>');

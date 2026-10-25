@@ -47,3 +47,23 @@ export function identityCookie(req, res, kind, { allowInsecureHttp = false, crea
   if (secure && legacy.length) append(res, `${policy.legacy}=${attributes}; Secure; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
   return token;
 }
+
+// Group values are storage locators after operator proof, never credentials.
+export function legacyGrouping(req) {
+  const out = {};
+  for (const [kind, policy] of Object.entries(KINDS)) {
+    const current = values(req.headers.cookie, '__Secure-' + policy.legacy), old = values(req.headers.cookie, policy.legacy);
+    const chosen = current.length ? current : old;
+    if (chosen.length > 1 || chosen.length && !policy.pattern.test(chosen[0])) throw new CookieError('bad_request');
+    if (chosen.length) out[kind] = chosen[0];
+  }
+  return out;
+}
+
+export function retainGrouping(res, claims) {
+  for (const [kind, policy] of Object.entries(KINDS)) {
+    // Durable collection locator, never authorization. Fresh operator proof is mandatory.
+    append(res, `__Secure-${policy.legacy}=${claims[kind]}; Path=${policy.path}; Secure; HttpOnly; SameSite=Strict; Max-Age=31536000`);
+    append(res, `${policy.legacy}=; Path=${policy.path}; Secure; HttpOnly; SameSite=Strict; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`);
+  }
+}

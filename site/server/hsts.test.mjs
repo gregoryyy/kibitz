@@ -31,12 +31,13 @@ test('the final CLI enforces its isolated hostname and sends one-year HSTS throu
   fs.mkdirSync(models); fs.writeFileSync(path.join(models, model), 'SYNTHETIC_MODEL_BYTES');
   const server = await httpsCli({ root, key: identity.key, cert: identity.cert, final: true, extra: ['--models', models] }); t.after(server.close);
   assert.equal(new URL(server.base).hostname, 'kibitz.test');
+  const cookie = await server.login();
   const cases = [
     ['/', {}, 200], ['/', { method: 'HEAD' }, 200], ['/manifest.webmanifest', {}, 200],
     ['/models/' + model, {}, 200], ['/models/' + model, { method: 'HEAD' }, 200],
     ['/api/ai/sample', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prompt: 'hi' }) }, 200],
     ['/api/ai/status', {}, 200], ['/api/library/status', {}, 200], ['/api/library/records', {}, 200],
-    ['/api/library/records', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }, 401],
+    ['/api/library/records', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }, 400],
     ['/api/ai/config', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{bad' }, 400],
     ['/api/ai/status', { headers: { origin: 'https://localhost:8765' } }, 403],
     ['/api/ai/missing', {}, 404], ['/missing', {}, 404], ['/models/missing.gguf', {}, 404],
@@ -44,7 +45,7 @@ test('the final CLI enforces its isolated hostname and sends one-year HSTS throu
     ['/api/ai/test', { method: 'POST', headers: { 'content-type': 'text/plain' }, body: '{}' }, 415],
   ];
   for (const [route, options, status] of cases) {
-    const response = await get(server.base, identity.ca, route, options);
+    const response = await get(server.base, identity.ca, route, { ...options, headers: { cookie, ...options.headers } });
     assert.equal(response.status, status, `${options.method || 'GET'} ${route}`); assert.equal(response.headers['strict-transport-security'], HSTS, route);
   }
   assert.equal((await get(server.base, identity.ca, '/models/' + model)).body, 'SYNTHETIC_MODEL_BYTES');
@@ -54,7 +55,7 @@ test('the final CLI enforces its isolated hostname and sends one-year HSTS throu
     assert.equal(response.status, 403); assert.equal(response.headers['set-cookie'], undefined);
     assert.equal(response.headers['strict-transport-security'], undefined);
   }
-  const mapped = await get(server.base, identity.ca, '/api/ai/status', { headers: { host: 'kibitz.test:32769', origin: 'https://kibitz.test:32769' } });
+  const mapped = await get(server.base, identity.ca, '/api/ai/status', { headers: { cookie, host: 'kibitz.test:32769', origin: 'https://kibitz.test:32769' } });
   assert.equal(mapped.status, 200); assert.equal(mapped.headers['strict-transport-security'], HSTS);
   const foreignPort = await get(server.base, identity.ca, '/api/ai/status', { headers: { host: 'kibitz.test:32769', origin: 'https://kibitz.test:32768' } });
   assert.equal(foreignPort.status, 403); assert.equal(foreignPort.headers['strict-transport-security'], HSTS);
@@ -98,9 +99,10 @@ test('explicit legacy-origin recovery retains protected cookie ownership and has
   const identity = tlsMaterial(); t.after(identity.close);
   const server = await httpsCli({ root: publicRoot(identity), key: identity.key, cert: identity.cert }); t.after(server.close);
   assert.equal(new URL(server.base).hostname, '127.0.0.1');
-  const response = await get(server.base, identity.ca, '/api/ai/status', { headers: { cookie: 'kibitz_uid=' + 'a'.repeat(22) } });
+  const cookie = await server.login('kibitz_uid=' + 'a'.repeat(22));
+  const response = await get(server.base, identity.ca, '/api/ai/status', { headers: { cookie } });
   assert.equal(response.status, 200); assert.equal(response.headers['strict-transport-security'], undefined);
-  assert(response.headers['set-cookie'][0].startsWith('__Secure-kibitz_uid=' + 'a'.repeat(22) + ';'));
+  assert.equal(response.headers['set-cookie'], undefined);
 });
 
 

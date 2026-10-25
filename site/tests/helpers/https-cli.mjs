@@ -1,10 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import https from 'node:https';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const defaultScript = fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
 export function httpsCli({ root, key, cert, extra = [], library = ':memory:', usage = ':memory:', script = defaultScript, final = false, nodeArgs = [] }) {
   const child = spawn(process.execPath, [...nodeArgs, script, root, '--api', '--env=', '--library', library, '--usage', usage, '--index', '_test.html',
-    '--port', '0', ...(final || script !== defaultScript ? [] : ['--legacy-origin']), '--tls-key', key, '--tls-cert', cert, ...extra], {
+    '--port', '0', ...(script === defaultScript ? ['--operator', path.join(path.dirname(key), 'operator.json'), '--sessions', path.join(path.dirname(key), 'sessions.sqlite')] : []), ...(final || script !== defaultScript ? [] : ['--legacy-origin']), '--tls-key', key, '--tls-cert', cert, ...extra], {
     env: { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', AI_LOCAL_ONLY: '1',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', BROWSER_MODEL_URL: '', BROWSER_RUNTIME: 'wllama' },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -23,10 +26,27 @@ export function httpsCli({ root, key, cert, extra = [], library = ':memory:', us
       output += data.toString();
       if (output.length > 256 * 1024) { child.kill('SIGKILL'); clearTimeout(timer); reject(Error('HTTPS fixture output exceeded its limit')); return; }
       const url = /^Serving Kibitz at (https:\/\/(?:127\.0\.0\.1|(?:[a-z0-9-]+\.)+test):\d+\/)$/m.exec(output)?.[1];
-      if (url) { clearTimeout(timer); resolve({ child, base: url.slice(0, -1), output: () => output, close }); }
+      if (url) {
+        clearTimeout(timer); const base = url.slice(0, -1);
+        resolve({ child, base, output: () => output, close, login: async (cookie = '', { secret = JSON.parse(fs.readFileSync(path.join(path.dirname(key), 'operator.json'), 'utf8')).secret, migrate = true } = {}) => {
+          const response = await tlsRequest(base + '/api/library/session', fs.readFileSync(cert), { cookie, body: { secret, migrate } });
+          if (response.status !== 200) throw Error('Synthetic operator sign-in failed: ' + response.status);
+          return response.headers['set-cookie'].find(value => value.startsWith('__Host-kibitz_session=')).split(';')[0];
+        } });
+      }
     };
     child.stdout.on('data', collect); child.stderr.on('data', collect);
     child.once('error', () => { clearTimeout(timer); reject(Error('HTTPS fixture could not start')); });
     child.once('exit', () => { clearTimeout(timer); reject(Error('HTTPS fixture exited before listening')); });
   });
 }
+
+export const tlsRequest = (url, ca, { cookie = '', body = undefined, method = body === undefined ? 'GET' : 'POST', headers = {} } = {}) => new Promise((resolve, reject) => {
+  const req = https.request(url, { ca, agent: false, timeout: 5000, method, servername: new URL(url).hostname === '127.0.0.1' ? '' : new URL(url).hostname,
+    lookup: (_name, _options, done) => done(null, [{ address: '127.0.0.1', family: 4 }]),
+    headers: { cookie, ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...headers } }, res => {
+    let text = ''; res.setEncoding('utf8'); res.on('data', part => text += part);
+    res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, text, data: () => JSON.parse(text) }));
+  });
+  req.once('error', reject); req.once('timeout', () => req.destroy(Error('TLS fixture timed out'))); req.end(body === undefined ? undefined : JSON.stringify(body));
+});

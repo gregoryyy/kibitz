@@ -68,9 +68,10 @@ test('the actual CLI serves HTTPS with trusted chain/hostname validation, no pla
   assert.equal(page.protocol, 'TLSv1.3');
   assert.equal((await get(server.base + '/', fixture.ca, { maxVersion: 'TLSv1.2' })).protocol, 'TLSv1.2');
   assert(page.headers['content-security-policy'].includes("frame-ancestors 'none'"));
+  const cookie = await server.login();
   for (const route of ['/api/ai/status', '/api/library/records']) {
-    const response = await get(server.base + route, fixture.ca, { headers: { 'x-forwarded-proto': 'http' } });
-    assert.equal(response.status, 200); assert(response.headers['set-cookie'][0].split('; ').includes('Secure'));
+    const response = await get(server.base + route, fixture.ca, { headers: { cookie, 'x-forwarded-proto': 'http' } });
+    assert.equal(response.status, 200); assert.equal(response.headers['set-cookie'], undefined);
   }
   await assert.rejects(get(server.base + '/', undefined));
   await assert.rejects(get(server.base + '/', fixture.ca, { servername: 'wrong.example' }));
