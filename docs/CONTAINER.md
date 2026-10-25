@@ -79,7 +79,7 @@ to replace the mock default, follow [.env.example](../.env.example), and grant t
 chosen provider permission in Settings before sharing chess text. The container
 has its own loopback: a native Ollama service at host `127.0.0.1:11434` is not that
 address inside a bridge container. Use a deliberately reachable private endpoint
-or the native Node deployment; full provider/Ollama setup remains TODO 12.4.
+or the [native Node/Ollama setup](PROVIDERS.md#self-host-with-native-ollama).
 
 GGUF models and operator files are not included. A model directory can be mounted
 read-only outside `dist/` and explicitly selected with the existing CLI options;

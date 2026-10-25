@@ -29,6 +29,8 @@ The [threat model](docs/THREAT-MODEL.md) maps data flows, local trust assumption
 
 The [flipbook](docs/flipbook/README.md) follows the Opera Game into source search, opening repertoires, lessons and local practice, including German phone views.
 
+The [user guide](docs/GUIDE.md) walks through playing, analysis, reviews, practice, source search and data controls. [Provider setup and native Ollama](docs/PROVIDERS.md) covers API access, task models, explicit sharing, spending limits and a local offline-serving recipe.
+
 ## Quick start
 
 ```bash
@@ -74,7 +76,7 @@ The coach chat, game-review summary and study plan need a language model. Withou
 
 The **Openings** tab explores recorded continuations from the classics and your saved/imported games. It shows counts and results for the selected collection, with sample games at each move. Try a continuation on the scratch board and step back to explore another branch. During play it follows the help setting and needs Full engine help.
 
-The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. Drills are planned in TODO 5.4.
+The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. **Review due moves** recalls saved choices on an independent board; [practice scheduling](docs/PRACTICE.md) describes intervals and limits.
 
 **Settings → Player profile** keeps your explanation level, optional self-reported rating/pool/time control and learning goals in this browser. Saved preferences guide coach requests; goals are quoted user data, and the rating is separate from opponent strength. [Profile behavior and limits](docs/PROFILE.md) explain saving, request freshness and the absence of automatic rating inference.
 
@@ -108,7 +110,7 @@ Default server logs omit URLs, cookies, prompts and raw provider messages; [loca
 **Coach settings** (in the Coach tab, when running locally):
 - Switch between the providers your `.env` sets up.
 - See the model each task uses (`<PROVIDER>_MODEL_QUICK`, `_MODEL_REVIEW`).
-- Turn on local-only mode, so only Ollama is used (`AI_LOCAL_ONLY` makes it the default).
+- Turn on local-only mode, allowing Ollama or the in-browser model (`AI_LOCAL_ONLY` makes it the default). Ollama's own endpoint/model configuration still controls whether its computation is local; see [setup](docs/PROVIDERS.md#self-host-with-native-ollama).
 - Test the connection.
 - See today's requests and tokens, with a cost estimate if you set `AI_PRICES`.
 

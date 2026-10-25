@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — User guide, provider setup and native Ollama operation
+
+TODO item: 12.4, completing the parent documentation milestone after the existing flipbook refresh.
+
+### Implementation notes
+
+- Added a task-oriented user guide covering a mock-first start, interface/profile/notation, play and live-help boundaries, analysis/chat, review and independent practice, repertoires, source search, library ownership, backups/data controls and offline recovery. Linked the illustrated flipbook, Primer and retrieval/literature comparisons alongside detailed existing evidence notes.
+- Added provider setup for Claude, OpenAI, Mistral, Ollama, browser and mock; task-specific models, endpoint ownership, separate coach/embedding grants, explicit connection-test costs and accounting limits. Verified primary provider documentation rather than assuming account access, billing or model capability from configured names. The OpenAI section retains the configured Luna model and documents its supported Chat Completions mode.
+- Documented native same-machine Ollama with its own cloud mode disabled, exact installed local tags, preserved loopback, no unnecessary browser CORS change and a separate `--offline` Node invocation. Explain that app local-only routing, Ollama remote/model configuration, page offline mode and PWA/model caches have separate effects. The Docker loopback distinction links to this path without adding a network exposure recipe.
+- Linked both guides from root/developer READMEs and the container guide. Corrected stale README claims that repertoire drills were only planned and that local-only routing allowed only Ollama.
+- Validation: lint/JSDoc/ASVS records and build pass; 195 local link targets resolve and diff whitespace is clean. Actual isolated CLI smoke checks pass for the documented mock start and synthetic Ollama/offline configuration, including public/status responses, absent remote font allowances in offline mode and mode-0600 usage files. No inference request is sent. This prose-only change leaves the parent's tested runtime unchanged (670 unit/server passes, one opt-in live skip and eighteen targeted browser passes); those suites are not claimed as newly rerun for the guide.
+
+### Deviations
+
+- This documentation change neither obtains keys nor runs paid/provider/model-download commands. Setup examples are not new live availability, model-performance or chess-quality evidence. Existing provider-fixture/evaluation, human-calibration and release-gate gaps remain open.
+- No hosted accounts, LAN service, automatic JSON restore, model download choice or image publication is introduced. Existing browser exports and server cookie scopes retain their documented limits.
+
+### Insights
+
+- A beginner needs a task path across the feature-specific documents. Keeping the operational instructions separate makes privacy/resource choices visible before a connection test or model load.
+- Provider labels, configured model names and successful small replies establish different facts. None alone demonstrates local computation, full tool support or explanation correctness.
+
 ## 2026-10-25 — GPT-6 Luna Chat Completions tool mode
 
 TODO item: 2.10.1. Provider setup documentation remains a separate milestone.

@@ -2,6 +2,8 @@
 
 Play Stockfish 19 in the browser, get your mistakes flagged as you play, ask Claude to explain positions, review finished games, keep a games library, and get reading suggestions matched to the position on the board.
 
+Start with the [user guide](../docs/GUIDE.md) for tasks and evidence limits, or [provider/Ollama setup](../docs/PROVIDERS.md) for the local gateway. This document covers the implementation and development workflow.
+
 Stockfish does all the calculation, locally in a Web Worker. Claude only explains: it receives the engine's lines and is told not to invent variations.
 
 Claude url: https://claude.ai/chat/a529eba0-1588-46b2-ab42-b4f792b1d68d?artifact=9e603ff0-6c50-46b6-a1b1-80ec8e86fa65&org=02556618-dd82-41b1-950b-71fe78412f63
