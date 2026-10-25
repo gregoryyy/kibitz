@@ -16,7 +16,7 @@ import { newOperator } from './operator.mjs';
 async function fixture(t, options = {}) {
   const identity = tlsMaterial(); t.after(identity.close);
   const root = path.join(identity.dir, 'public'); fs.mkdirSync(root); fs.writeFileSync(path.join(root, '_test.html'), '<title>Session boundary</title>');
-  const server = await httpsCli({ root, key: identity.key, cert: identity.cert, final: true, ...options }); t.after(server.close);
+  const server = await httpsCli({ root, key: identity.key, cert: identity.cert, operatorSecret: identity.secret, final: true, ...options }); t.after(server.close);
   return { identity, root, server, call: (route, options) => tlsRequest(server.base + route, identity.ca, options) };
 }
 
@@ -39,7 +39,7 @@ test('real final CLI rejects missing, forged, duplicate and raw grouping asserti
 test('fresh operator proof adopts existing private records; changing legacy assertions after sign-in cannot change ownership', async t => {
   const { server, identity } = await fixture(t); const data = legacyCookieData(identity.dir);
   // Start the actual CLI with pre-existing databases, separately from the initial empty fixture.
-  await server.close(); const migrated = await httpsCli({ root: path.join(identity.dir, 'public'), key: identity.key, cert: identity.cert, library: data.library, usage: data.usage, final: true }); t.after(migrated.close);
+  await server.close(); const migrated = await httpsCli({ root: path.join(identity.dir, 'public'), key: identity.key, cert: identity.cert, operatorSecret: identity.secret, library: data.library, usage: data.usage, final: true }); t.after(migrated.close);
   const request = (route, opts) => tlsRequest(migrated.base + route, identity.ca, opts);
   const proof = await request('/api/library/session', { cookie: `kibitz_uid=${data.uid}; kibitz_library=${data.token}`, body: { secret: identity.secret, migrate: true } });
   assert.equal(proof.status, 200); assert.equal(proof.headers['set-cookie'].length, 5);
@@ -53,7 +53,7 @@ test('fresh operator proof adopts existing private records; changing legacy asse
   const saved = await request('/api/library/records', { cookie: cookie + '; __Secure-kibitz_library=' + 'z'.repeat(43) });
   assert.equal(saved.status, 200); assert.equal(saved.data().scope, data.scope); assert.deepEqual(saved.data().games, [data.record]);
   assert.equal((await request('/api/ai/status', { cookie })).data().user.requests, 1);
-  await migrated.close(); const restarted = await httpsCli({ root: path.join(identity.dir, 'public'), key: identity.key, cert: identity.cert, library: data.library, usage: data.usage, final: true }); t.after(restarted.close);
+  await migrated.close(); const restarted = await httpsCli({ root: path.join(identity.dir, 'public'), key: identity.key, cert: identity.cert, operatorSecret: identity.secret, library: data.library, usage: data.usage, final: true }); t.after(restarted.close);
   assert.equal((await tlsRequest(restarted.base + '/api/library/records', identity.ca, { cookie })).data().scope, data.scope);
   const renewed = await restarted.login(cookie); assert.equal((await tlsRequest(restarted.base + '/api/library/records', identity.ca, { cookie: renewed })).data().scope, data.scope);
 });
@@ -63,7 +63,7 @@ test('replacing the operator rejects another owner’s issued session and refuse
   const issued = await tlsRequest(server.base + '/api/library/session', identity.ca, { body: { secret: identity.secret, migrate: true } });
   const cookie = issued.headers['set-cookie'].filter(value => !value.includes('Max-Age=0')).map(value => value.split(';')[0]).join('; ');
   await server.close(); const replacement = newOperator(); fs.writeFileSync(identity.operator, JSON.stringify(replacement));
-  const next = await httpsCli({ root, key: identity.key, cert: identity.cert, final: true }); t.after(next.close);
+  const next = await httpsCli({ root, key: identity.key, cert: identity.cert, operatorSecret: replacement.secret, final: true }); t.after(next.close);
   assert.equal((await tlsRequest(next.base + '/api/ai/status', identity.ca, { cookie })).status, 401);
   const adoption = await tlsRequest(next.base + '/api/library/session', identity.ca, { cookie: cookie.split('; ').filter(part => part.startsWith('__Secure-')).join('; '), body: { secret: replacement.secret, migrate: true } });
   assert.equal(adoption.status, 409); assert.equal(adoption.headers['set-cookie'], undefined);

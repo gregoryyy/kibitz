@@ -15,6 +15,12 @@ pending source, checks and decisions.
 
 ### Added
 
+- Experimental backend-issued local operator sessions for HTTPS gateway/library access,
+  private explicit setup, English/German sign-in and proof-authorized migration
+  preserving existing collections/counters. Native/container APIs require the
+  operator file and separate private session registry. Logout/revocation, explicit
+  permissions and client cleanup retain their final-release TODOs.
+
 - Native HTTPS listener using operator-supplied certificates and private
   keys, with validated files and no HTTP fallback on invalid TLS configuration.
   Standard API launches require TLS; controlled HTTP development is explicit.

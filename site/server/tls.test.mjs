@@ -63,7 +63,7 @@ const get = (url, ca, extra = {}) => new Promise((resolve, reject) => {
 });
 
 test('the actual CLI serves HTTPS with trusted chain/hostname validation, no plaintext fallback and native Secure cookies', async t => {
-  const server = await httpsCli({ root, key: fixture.key, cert: fixture.cert }); t.after(server.close);
+  const server = await httpsCli({ root, key: fixture.key, cert: fixture.cert, operatorSecret: fixture.secret }); t.after(server.close);
   const page = await get(server.base + '/', fixture.ca); assert.equal(page.status, 200); assert.match(page.body, /<title>HTTPS/);
   assert.equal(page.protocol, 'TLSv1.3');
   assert.equal((await get(server.base + '/', fixture.ca, { maxVersion: 'TLSv1.2' })).protocol, 'TLSv1.2');

@@ -62,8 +62,9 @@ test('operator setup is private, explicit, bounded and never overwrites an exist
   assert.throws(() => readOperator(filename, [fs.realpathSync(path.dirname(filename))]), code('ERR_KIBITZ_OPERATOR_CONFIG'));
   const link = path.join(dir, 'linked'); fs.symlinkSync(filename, link); assert.throws(() => readOperator(link, []), code('ERR_KIBITZ_OPERATOR_CONFIG'));
   fs.chmodSync(filename, 0o644); assert.throws(() => readOperator(filename, []), code('ERR_KIBITZ_OPERATOR_CONFIG')); fs.chmodSync(filename, 0o600);
-  for (const text of ['x'.repeat(4097), '{bad', JSON.stringify({ ...newOperator(), extra: 'private-marker' })]) {
-    fs.writeFileSync(filename, text); assert.throws(() => readOperator(filename, []), error => error.code === 'ERR_KIBITZ_OPERATOR_CONFIG' && !error.message.includes('private-marker'));
+  for (const [index, text] of ['x'.repeat(4097), '{bad', JSON.stringify({ ...newOperator(), extra: 'private-marker' })].entries()) {
+    const malformed = path.join(dir, `invalid-${index}.json`);
+    fs.writeFileSync(malformed, text, { flag: 'wx', mode: 0o600 }); assert.throws(() => readOperator(malformed, []), error => error.code === 'ERR_KIBITZ_OPERATOR_CONFIG' && !error.message.includes('private-marker'));
   }
 });
 

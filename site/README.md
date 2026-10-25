@@ -12,7 +12,7 @@ ChatGPT url: https://chatgpt.com/g/g-p-69a21eed60a8819192ac813ccef2b58f-chess/c/
 
 ## Quick start
 
-The release target is a [local single-user app](../docs/DEPLOYMENT.md). `serve.mjs` already defaults to loopback. Its anonymous library cookie supplies local collection separation; hosted authentication and per-account keys remain deferred.
+The release target is a [local single-user app](../docs/DEPLOYMENT.md). `serve.mjs` already defaults to loopback. Its experimental [operator sessions](../docs/SESSIONS.md) verify gateway/library access at the backend; hosted accounts and per-account provider keys remain deferred.
 
 The standard serve recipes retain daily AI usage and per-browser minute allowances in private `.kibitz-data/usage.sqlite`. Direct `serve.mjs` needs explicit `--usage FILE` for persistence. [Usage settings and limits](../docs/USAGE.md) describe cookie grouping, retention and completed-usage admission thresholds.
 
@@ -93,12 +93,12 @@ Browser-only storage remains the default, and a hosted artifact keeps its accoun
 ```sh
 npm run build
 node scripts/serve.mjs dist --index _test.html --api --env ../.env --library ../.kibitz-data/library.sqlite \
-  --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem
+  --operator ../.kibitz-data/tls/operator.json --sessions ../.kibitz-data/sessions.sqlite --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem
 ```
 
-Then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Library and usage databases must be private regular files outside both the static and any separate `--models` directory, including through symlinks. An explicit model directory must already exist; startup checks it before creating databases. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.
+Sign in to the local server in Settings, then choose **Use server library** in Library. Games and personal references persist in the private SQLite file; **Use browser library** restores the separate existing browser collection. Switching never copies either collection. `--library` also works without `--api`; `--library :memory:` provides temporary storage for tests. Library and usage databases must be private regular files outside both the static and any separate `--models` directory, including through symlinks. An explicit model directory must already exist; startup checks it before creating databases. New files use mode 0600 and new directories 0700; `.kibitz-data/` is ignored by Git.
 
-Server libraries use an anonymous HttpOnly browser cookie. Clearing that cookie starts another library, leaving the earlier records in SQLite. Accounts and cross-device sign-in remain TODO 10.1–10.2. IndexedDB caches acknowledged records by the verified server scope. A failed cache write still reports a successful server save. Known-owner cached snapshots are read-only; a fresh load must verify the cookie owner before showing cached server data. Offline writes are not queued. Conflicts or an uncertain acknowledgement require **Refresh server library** before retrying; repeat imports then deduplicate against the refreshed records.
+TLS server libraries require an issued [operator session](../docs/SESSIONS.md). Protected grouping cookies remain proof-authorized recovery locators, not API credentials. Preserve the operator file, registry, current databases and original profile together. Hosted accounts and cross-device sign-in remain deferred under TODO 10.2. IndexedDB caches acknowledged records by the verified server scope. A failed cache write still reports a successful server save. Known-owner cached snapshots are read-only; a fresh load must verify the cookie owner before showing cached server data. Offline writes are not queued. Conflicts or an uncertain acknowledgement require **Refresh server library** before retrying; repeat imports then deduplicate against the refreshed records.
 
 Source/PGN bytes, record IDs and extra metadata remain intact. Late responses and held controls cannot cross storage contexts; unchanged records retain source-form drafts through ordinary acknowledgements. Current-game and lesson state stays separate. [Schema, API, limits and lifecycle](../docs/LIBRARY.md#server-library-and-browser-cache) describe the implementation and scope.
 

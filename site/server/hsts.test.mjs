@@ -29,7 +29,7 @@ test('the final CLI enforces its isolated hostname and sends one-year HSTS throu
   const identity = tlsMaterial(); t.after(identity.close);
   const root = publicRoot(identity), models = path.join(identity.dir, 'models'), model = 'qwen2.5-0.5b-instruct-q4_k_m.gguf';
   fs.mkdirSync(models); fs.writeFileSync(path.join(models, model), 'SYNTHETIC_MODEL_BYTES');
-  const server = await httpsCli({ root, key: identity.key, cert: identity.cert, final: true, extra: ['--models', models] }); t.after(server.close);
+  const server = await httpsCli({ root, key: identity.key, cert: identity.cert, operatorSecret: identity.secret, final: true, extra: ['--models', models] }); t.after(server.close);
   assert.equal(new URL(server.base).hostname, 'kibitz.test');
   const cookie = await server.login();
   const cases = [
@@ -66,7 +66,7 @@ test('the final CLI enforces its isolated hostname and sends one-year HSTS throu
 
 test('parser-level failures close the TLS socket without emitting a response outside the hostname policy', async t => {
   const identity = tlsMaterial(); t.after(identity.close);
-  const server = await httpsCli({ root: publicRoot(identity), key: identity.key, cert: identity.cert, final: true }); t.after(server.close);
+  const server = await httpsCli({ root: publicRoot(identity), key: identity.key, cert: identity.cert, operatorSecret: identity.secret, final: true }); t.after(server.close);
   const bytes = await new Promise((resolve, reject) => {
     let bytes = 0;
     const socket = tls.connect({ host: '127.0.0.1', port: Number(new URL(server.base).port), servername: 'kibitz.test', ca: identity.ca }, () => {
@@ -97,7 +97,7 @@ test('invalid application hosts, mode combinations and missing SANs fail before 
 
 test('explicit legacy-origin recovery retains protected cookie ownership and has no localhost-wide HSTS', async t => {
   const identity = tlsMaterial(); t.after(identity.close);
-  const server = await httpsCli({ root: publicRoot(identity), key: identity.key, cert: identity.cert }); t.after(server.close);
+  const server = await httpsCli({ root: publicRoot(identity), key: identity.key, cert: identity.cert, operatorSecret: identity.secret }); t.after(server.close);
   assert.equal(new URL(server.base).hostname, '127.0.0.1');
   const cookie = await server.login('kibitz_uid=' + 'a'.repeat(22));
   const response = await get(server.base, identity.ca, '/api/ai/status', { headers: { cookie } });
@@ -117,7 +117,7 @@ fs.promises.open = async (...args) => {
   if (String(args[0]) === ${JSON.stringify(faulty)}) handle.readFile = async () => { throw Object.assign(new Error('PRIVATE_FAULT_MARKER'), {code: 'EIO'}); };
   return handle;
 };`);
-  const server = await httpsCli({ root, key: identity.key, cert: identity.cert, final: true, extra: ['--app-host', hostname], nodeArgs: ['--import', hook] }); t.after(server.close);
+  const server = await httpsCli({ root, key: identity.key, cert: identity.cert, operatorSecret: identity.secret, final: true, extra: ['--app-host', hostname], nodeArgs: ['--import', hook] }); t.after(server.close);
   assert.equal(new URL(server.base).hostname, hostname);
   const failure = await get(server.base, identity.ca, '/fault.html');
   assert.equal(failure.status, 500); assert.equal(failure.headers['strict-transport-security'], HSTS); assert.equal(failure.body, 'File unavailable\n');
@@ -127,7 +127,7 @@ fs.promises.open = async (...args) => {
 
 test('an independently trusted HSTS client caches the policy and upgrades HTTP on the same port without a redirect or trust bypass', async t => {
   const run = promisify(execFile), identity = tlsMaterial(), wrong = tlsMaterial(); t.after(identity.close); t.after(wrong.close);
-  const server = await httpsCli({ root: publicRoot(identity), key: identity.key, cert: identity.cert, final: true }); t.after(server.close);
+  const server = await httpsCli({ root: publicRoot(identity), key: identity.key, cert: identity.cert, operatorSecret: identity.secret, final: true }); t.after(server.close);
   const version = (await run('curl', ['--version'])).stdout; assert.match(version, /Features:.*\bHSTS\b/);
   const port = new URL(server.base).port, cache = path.join(identity.dir, 'hsts-cache');
   const args = ['--noproxy', '*', '--resolve', `kibitz.test:${port}:127.0.0.1`, '--hsts', cache, '--max-time', '5', '--silent', '--show-error', '--output', '/dev/null', '--write-out', '%{url_effective} %{http_code}'];

@@ -7,7 +7,7 @@ import { legacyCookieData } from '../helpers/legacy-cookie-data.mjs';
 let identity, server, legacy;
 test.beforeAll(async () => {
   identity = tlsMaterial(); legacy = legacyCookieData(identity.dir);
-  server = await httpsCli({ root: process.env.E2E_DIST || fileURLToPath(new URL('../../dist', import.meta.url)), key: identity.key, cert: identity.cert,
+  server = await httpsCli({ root: process.env.E2E_DIST || fileURLToPath(new URL('../../dist', import.meta.url)), key: identity.key, cert: identity.cert, operatorSecret: identity.secret,
     library: legacy.library, usage: legacy.usage, script: process.env.KIBITZ_COOKIE_SERVER_SCRIPT });
 });
 test.afterAll(async () => { try { await server?.close(); } finally { identity?.close(); } });

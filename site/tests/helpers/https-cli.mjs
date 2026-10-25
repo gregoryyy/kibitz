@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const defaultScript = fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
-export function httpsCli({ root, key, cert, extra = [], library = ':memory:', usage = ':memory:', script = defaultScript, final = false, nodeArgs = [] }) {
+export function httpsCli({ root, key, cert, operatorSecret, extra = [], library = ':memory:', usage = ':memory:', script = defaultScript, final = false, nodeArgs = [] }) {
   const child = spawn(process.execPath, [...nodeArgs, script, root, '--api', '--env=', '--library', library, '--usage', usage, '--index', '_test.html',
     '--port', '0', ...(script === defaultScript ? ['--operator', path.join(path.dirname(key), 'operator.json'), '--sessions', path.join(path.dirname(key), 'sessions.sqlite')] : []), ...(final || script !== defaultScript ? [] : ['--legacy-origin']), '--tls-key', key, '--tls-cert', cert, ...extra], {
     env: { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', AI_LOCAL_ONLY: '1',
@@ -28,7 +28,7 @@ export function httpsCli({ root, key, cert, extra = [], library = ':memory:', us
       const url = /^Serving Kibitz at (https:\/\/(?:127\.0\.0\.1|(?:[a-z0-9-]+\.)+test):\d+\/)$/m.exec(output)?.[1];
       if (url) {
         clearTimeout(timer); const base = url.slice(0, -1);
-        resolve({ child, base, output: () => output, close, login: async (cookie = '', { secret = JSON.parse(fs.readFileSync(path.join(path.dirname(key), 'operator.json'), 'utf8')).secret, migrate = true } = {}) => {
+        resolve({ child, base, output: () => output, close, login: async (cookie = '', { secret = operatorSecret, migrate = true } = {}) => {
           const response = await tlsRequest(base + '/api/library/session', fs.readFileSync(cert), { cookie, body: { secret, migrate } });
           if (response.status !== 200) throw Error('Synthetic operator sign-in failed: ' + response.status);
           return response.headers['set-cookie'].find(value => value.startsWith('__Host-kibitz_session=')).split(';')[0];

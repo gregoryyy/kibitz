@@ -9,7 +9,7 @@ test.use({ ignoreHTTPSErrors: true, launchOptions: { args: ['--host-resolver-rul
 let identity, server, base;
 test.beforeAll(async () => {
   identity = tlsMaterial();
-  server = await httpsCli({ root: process.env.E2E_DIST || fileURLToPath(new URL('../../dist', import.meta.url)), key: identity.key, cert: identity.cert,
+  server = await httpsCli({ root: process.env.E2E_DIST || fileURLToPath(new URL('../../dist', import.meta.url)), key: identity.key, cert: identity.cert, operatorSecret: identity.secret,
     final: true, script: process.env.KIBITZ_HSTS_SERVER_SCRIPT });
   base = server.base.replace('127.0.0.1', 'kibitz.test');
 });

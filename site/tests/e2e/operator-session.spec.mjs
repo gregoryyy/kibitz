@@ -7,7 +7,7 @@ test.use({ ignoreHTTPSErrors: true, launchOptions: { args: ['--host-resolver-rul
 let identity, server;
 test.beforeAll(async () => {
   identity = tlsMaterial();
-  server = await httpsCli({ root: process.env.E2E_DIST || fileURLToPath(new URL('../../dist', import.meta.url)), key: identity.key, cert: identity.cert,
+  server = await httpsCli({ root: process.env.E2E_DIST || fileURLToPath(new URL('../../dist', import.meta.url)), key: identity.key, cert: identity.cert, operatorSecret: identity.secret,
     final: true, script: process.env.KIBITZ_SESSION_SERVER_SCRIPT });
 });
 test.afterAll(async () => { try { await server?.close(); } finally { identity?.close(); } });

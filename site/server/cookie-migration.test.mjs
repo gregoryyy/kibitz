@@ -28,7 +28,7 @@ test('real native HTTPS migration preserves library ownership, revisions, usage,
   const data = legacyCookieData(identity.dir), backup = `kibitz_uid=${data.uid}; kibitz_library=${data.token}`;
   let server;
   t.after(async () => { await server?.close(); });
-  const start = async script => { server = await httpsCli({ script, root, key: identity.key, cert: identity.cert, library: data.library, usage: data.usage }); };
+  const start = async script => { server = await httpsCli({ script, root, key: identity.key, cert: identity.cert, operatorSecret: identity.secret, library: data.library, usage: data.usage }); };
   await start();
   const call = (route, cookie, body, headers) => request(server.base + '/api/' + route, identity.ca, cookie, body, headers);
   assert.equal((await call('library/status', backup)).status, 401);

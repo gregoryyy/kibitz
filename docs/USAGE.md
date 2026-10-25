@@ -1,16 +1,24 @@
 # Local usage limits
 
-TODO 2.11 targets the selected local single-user app. The gateway groups browsers by the random HttpOnly `kibitz_uid` cookie. This is usage grouping, without sign-in or authenticated quotas: clearing or replacing the cookie starts another user. Hosted account budgets remain deferred with TODO 10.2.
+TODO 2.11 targets the local single-user app. HTTPS gateway access now requires an
+experimental [backend-issued operator session](SESSIONS.md). Its registered claims
+select the usage group; invented session tokens or raw grouping assertions fail.
+Protected HttpOnly `__Secure-kibitz_uid` locators at `/api/` preserve the same group
+only after fresh operator proof during migration/recovery. The library has its own
+separate locator. Explicit HTTP development uses synthetic `kibitz_dev_*` groups
+without authentication and stays outside final deployment.
 
-New usage cookies include HttpOnly, SameSite=Strict and the `/api/` path. Direct native TLS also adds Secure; local HTTP and spoofed forwarding headers do not. Existing valid IDs are reused without reissuing a cookie. The library has a separate cookie/path with the same transport policy. See the [deployment boundary](DEPLOYMENT.md). These exact-value guarantees apply
-on the same hostname; moving to the isolated `.test` origin creates a new grouping
-ID with separate per-group counters. Old counters remain in SQLite and the old
-profile can access them through explicit trusted-TLS legacy-origin recovery.
+Limits remain per collection/group, not hosted account budgets. An authenticated
+operator can explicitly create another collection; this does not evade shared
+server allowances. Same-host migration preserves existing counters, while a new
+`.test` hostname creates separate browser cookies/storage/groups. Original counters
+remain in SQLite and can be inspected through proof-authorized trusted-TLS
+legacy-origin recovery with the original profile. See [migration](COOKIE-MIGRATION.md).
 
 `just serve`, `just offline` and `npm run serve` select the gitignored private `.kibitz-data/usage.sqlite`. Counters survive a server restart. For a direct invocation, opt in explicitly:
 
 ```sh
-node site/scripts/serve.mjs site/dist --api --env .env --usage .kibitz-data/usage.sqlite --index _test.html
+node site/scripts/serve.mjs site/dist --api --env .env --operator .kibitz-data/tls/operator.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --usage .kibitz-data/usage.sqlite --index _test.html
 ```
 
 Direct `serve.mjs --api` without `--usage`, evaluation tools and automated tests use `:memory:`; restarting those intentionally resets accounting. Startup states whether counters are persistent or in memory. `--usage` has no effect without `--api`.
@@ -49,7 +57,9 @@ Admission commits server/user minute slots before inference. Completion commits 
 
 ## Stored data and lifecycle
 
-The private file contains current-day numeric totals (requests, tokens, estimated costs, unpriced/paid tokens), recent admission timestamps and SHA-256 hashes of cookie IDs. It contains no raw cookies, prompts, answers, game scores, notes, API keys or model IDs. The library and usage databases are separate, versioned schemas. Unknown schemas/data remain intact and fail closed.
+The private file contains current-day numeric totals (requests, tokens, estimated costs, unpriced/paid tokens), recent admission timestamps and SHA-256 hashes of cookie IDs. It contains no raw cookies, prompts, answers, game scores, notes, API keys or model IDs. The library and usage databases are separate, versioned schemas. The separate
+[session registry](SESSIONS.md) does contain private raw grouping locators for
+proof-authorized recovery; it needs its own private backup/retention handling. Unknown schemas/data remain intact and fail closed.
 
 New directories use mode 0700 and files 0600. Paths inside either served root (static files and any separate `--models` directory), including parent symlink aliases, public-readable files and final symlinks are refused. An explicit model directory must already exist; invalid/missing model roots fail startup before database files or their parents are created. The same path policy protects library databases. SQLite sidecars remain operator-managed private files. Paths are operator-selected and never supplied by HTTP callers.
 
