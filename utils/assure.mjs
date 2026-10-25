@@ -108,7 +108,7 @@ export function trackedFiles(root) {
   }).sort((a, b) => compare(a.path, b.path));
 }
 
-function readText(root, file) {
+export function readText(root, file) {
   // Open first; metadata and bounded reads refer to that same regular file.
   const fd = fs.openSync(path.join(root, file), fs.constants.O_RDONLY | fs.constants.O_NONBLOCK | (fs.constants.O_NOFOLLOW || 0));
   try {
@@ -122,7 +122,7 @@ function readText(root, file) {
   } finally { fs.closeSync(fd); }
 }
 
-function markdownLines(text) {
+export function markdownLines(text) {
   let fence;
   return text.split('\n').map((text, index) => {
     const mark = text.match(/^\s*(`{3,}|~{3,})/);

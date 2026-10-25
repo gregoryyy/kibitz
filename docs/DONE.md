@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Object, PR-section and documentation assurance browser
+
+TODO items: 0.16, 0.16.1–0.16.3.
+
+### Implementation notes
+
+- Add separate [object/PR](assure/objects.json) and [documentation](assure/documents.json) graphs with a shared [typed contract](assure/detail-types.mjs). `utils/assure-detail.mjs` extracts functions, classes, methods and control-flow blocks without executing source; qualified identities, AST selectors, exact text hashes and source ranges support reproducible replay. Direct lexical calls and declared local imported exports retain their resolution evidence.
+- Retain public PR bodies, exact head/base commits, observed states and paginated changed-file lists in [a separate metadata snapshot](assure/pull-requests.json). PR description sections connect explicit TODO/file/object references; changed-file membership remains a distinct file-level relation. Explicit refresh is read-only network access; build/check/browser stay offline.
+- Add project Markdown heading hierarchy, fenced blocks, inline/reference-style links, local heading targets and external documentation URLs. Source containment locates the original TODO/DONE/insight/deviation nodes; unresolved anchors, historical paths and ambiguous object names remain gaps.
+- Local validation: all eight detailed-graph fixtures and the full unit/server suite pass (720 passes, one opt-in live skip); three focused Playwright cases pass with no external requests, page errors or CSP violations. Browser checks cover search, typed filters, replayed source, directions, history, deep links, truncation, text-only hostile labels and source/Host/method confinement. The fixed Cytoscape container rule is supplied by local CSS rather than an injected stylesheet.
+- Research [browser foundations](assure/LEVELS.md#browser-foundation-comparison) and choose exact development dependency Cytoscape.js 3.34.4 (MIT), served locally. Build [the small browser](../utils/assure-browser/README.md) under `utils/`: search, directed bounded walks, filters, history/deep links, graph/list navigation and hash-checked source inspection. A fixed-asset loopback server exposes graph IDs rather than arbitrary paths. CI checks all layers and runs focused Playwright coverage before the full app suite.
+
+### Deviations
+
+- These levels add reference precision, not compliance or completion claims. Static calls do not prove runtime execution; dynamic/member calls, re-export chains and unsupported languages remain outside extraction. Exact object mentions require a cited file and unambiguous name in the same authored section/item. PR file membership never becomes an inferred object-level change claim.
+- Retained PR descriptions are refreshable snapshots because GitHub does not supply immutable body revisions. Review comments and CI logs are not fetched. Documentation extraction covers common headings and inline/full/collapsed reference links, with unsupported anchors and schemes recorded rather than guessed.
+
+### Insights
+
+- Lexical scope matters: a parameter that shadows a function name must not become a call edge to the containing function. Independent fixtures exposed and corrected that mapping before real data generation.
+- A replayable range and content hash let readers inspect exactly what an edge refers to. Keeping PR/file changes separate from section/object mentions preserves that precision when historical descriptions are incomplete.
+
 ## 2026-10-25 — Typed file-level assurance lineage
 
 TODO item: 0.15.

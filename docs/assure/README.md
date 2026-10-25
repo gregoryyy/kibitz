@@ -1,5 +1,9 @@
 # Assurance lineage
 
+See [levels 2 and 3](LEVELS.md) for separate object/PR and documentation graphs,
+replayable selectors, foundation comparison and the `just assure-browser` explorer.
+The original file-level contract and query interface remain available below.
+
 The [typed graph](lineage.json) connects tracked file artifacts, every numbered
 [TODO item](../TODO.md), every [DONE entry](../DONE.md), and its individual
 insights and deviations. Start with the [generated report](REPORT.md) for the
@@ -55,8 +59,8 @@ are scanned; symlinks and submodules are inventoried without following them.
 JavaScript and inline HTML scripts are parsed with the existing ESLint and
 parse5 dependencies; analyzed application/test modules are never imported or executed. Package
 imports, dynamic nonliteral expressions and generated dist assets are outside
-the extracted dependency graph. Functions/classes, runtime call graphs, glob
-expansion and HTML/link-anchor validation are future scope.
+the extracted dependency graph. Functions/classes and documentation anchors are extracted separately at levels 2/3.
+Runtime call graphs, glob expansion and HTML anchor validation remain outside scope.
 
 Markdown links resolve relative to their document. Code-span paths can resolve
 as repository/site paths or a unique suffix; this resolution is recorded, and

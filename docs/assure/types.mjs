@@ -55,7 +55,7 @@ export const SCHEMA = {
 
 // Validate this contract's small schema vocabulary offline; this is not a general
 // JSON Schema implementation. Endpoint and ownership checks go beyond the schema.
-function shape(value, schema, at = 'graph') {
+export function shape(value, schema, at = 'graph') {
   const fail = () => { throw new Error(`Invalid assurance shape at ${at}`); };
   if (schema.oneOf) {
     const matches = schema.oneOf.filter(s => { try { shape(value, s, at); return true; } catch { return false; } });

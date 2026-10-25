@@ -34,6 +34,10 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 0.14 Organize existing source modules into `chess/`, `coach/`, `library/`, `openings/` and `platform/`; preserve directories in the build and update imports, tests, tools and documentation. *(added)*
 
 - [x] 0.15 Create a typed file-level assurance lineage graph linking artifacts, TODO items, DONE entries, insights and deviations; retain provenance/gaps and provide reproducible validation and queries. *(added)*
+- [x] 0.16 Extend assurance with separate object/PR and documentation/link graphs, reproducible object selection, and a small searchable dependency browser in `utils/`.
+  - [x] 0.16.1 Object/function/block lineage and retained PR description sections with explicit provenance.
+  - [x] 0.16.2 Documentation headings, fenced blocks, project links and cross-level planning/rationale connections.
+  - [x] 0.16.3 Compare compatible graph foundations and implement offline search, traversal and source inspection.
 
 ## 1. Play against the engine
 

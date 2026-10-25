@@ -42,6 +42,14 @@ rejects an unexpected bundle instead of silently skipping this adaptation.
 
 The parser and decoder stay in server-side `node_modules/`; their licence files remain with the installed packages. They are not browser modules or model dependencies.
 
+The optional [assurance browser](utils/assure-browser/README.md) serves
+[Cytoscape.js](https://github.com/cytoscape/cytoscape.js) **3.34.4**, copyright
+2016–2026 The Cytoscape Consortium, under MIT. It is an exact development
+dependency in the site lockfile, served from the installed package only by the
+loopback repository utility. Its bundled MIT notice is retained and available
+at the utility's `/vendor/LICENSE`; the utility supplies its fixed container
+position rule in local CSS. It is not copied into `site/dist/` or the app image.
+
 Development tools (Playwright, ESLint, TypeScript and their dependencies) are not shipped; their licences are in `site/node_modules/`.
 
 Container CI additionally runs the official [Trivy](https://github.com/aquasecurity/trivy) 0.76.1 scanner (Apache-2.0), pinned by manifest digest. It is a separate build/review tool, not part of the distributed app image. Its public advisory database is refreshed and its timestamp/digest recorded for each image check; [coverage and limits](docs/IMAGE-ADVISORIES.md) distinguish it from a complete release review.
