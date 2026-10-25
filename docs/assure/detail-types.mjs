@@ -1,4 +1,5 @@
 // Levels 2 and 3 share a contract, but remain separate snapshots from level 1.
+import { CONFIDENCE_SCHEMA } from './confidence.mjs';
 import { createHash } from 'node:crypto';
 import { shape, isRepositoryPath } from './types.mjs';
 export const DETAIL_RELATIONS = {
@@ -31,12 +32,12 @@ const nodeFields = {
   external: { name: str, url: str },
 };
 export const DETAIL_SCHEMA = {
-  $schema: 'https://json-schema.org/draft/2020-12/schema', title: 'Kibitz detailed reference lineage, version 1',
-  ...record({ schemaVersion: { const: 1 }, level: { enum: [2, 3] }, extractor: { const: 'kibitz-detail-1' }, baseSha256: sha,
+  $schema: 'https://json-schema.org/draft/2020-12/schema', title: 'Kibitz detailed reference lineage, version 2',
+  ...record({ schemaVersion: { const: 2 }, level: { enum: [2, 3] }, extractor: { const: 'kibitz-detail-1' }, baseSha256: sha,
     exclusions: record({ externalImportCalls: integer, memberOrDynamicCalls: integer }),
     inputs: { type: 'array', items: record({ path: str, sha256: sha }) },
     nodes: { type: 'array', items: { oneOf: Object.entries(nodeFields).map(([type, fields]) => record({ id: str, type: { const: type }, ...fields })) } },
-    edges: { type: 'array', items: record({ type: { enum: Object.keys(DETAIL_RELATIONS) }, from: str, to: str,
+    edges: { type: 'array', items: record({ confidence: CONFIDENCE_SCHEMA, type: { enum: Object.keys(DETAIL_RELATIONS) }, from: str, to: str,
       evidence: record({ source, reference: text, resolution: str }) }) },
     unresolved: { type: 'array', items: record({ source, reference: text, reason: str, candidates: { type: 'array', items: str } }) },
   }),

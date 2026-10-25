@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "edges": [
+    {
+      "type": "implements",
+      "from": "file:utils/assure-infer.mjs",
+      "to": "todo:0.17",
+      "confidence": {
+        "value": 0.9,
+        "method": "analyst",
+        "policy": "typed-links-1",
+        "rationale": "Initial author assessment: this utility implements the deterministic typed-path findings for TODO 0.17. Uncalibrated support weight, not independent acceptance."
+      },
+      "evidence": {
+        "source": { "path": "utils/assure-infer.mjs", "line": 16, "endLine": 16 },
+        "reference": "inferFindings constructs typed-path findings with explicit thresholds and bounds.",
+        "resolution": "authored_assessment"
+      }
+    },
+    {
+      "type": "verifies",
+      "from": "file:site/tests/unit/assure-confidence.test.mjs",
+      "to": "todo:0.17",
+      "confidence": {
+        "value": 0.9,
+        "method": "analyst",
+        "policy": "typed-links-1",
+        "rationale": "Initial author assessment: independent fixtures check confidence bounds, overrides, inference paths and false-positive boundaries. This link does not assert test execution or complete verification."
+      },
+      "evidence": {
+        "source": { "path": "site/tests/unit/assure-confidence.test.mjs", "line": 1, "endLine": 1 },
+        "reference": "The confidence and inference fixture suite is the proposed verification trace.",
+        "resolution": "authored_assessment"
+      }
+    }
+  ]
+}

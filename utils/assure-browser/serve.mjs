@@ -3,17 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
-import { validateGraph } from '../../docs/assure/types.mjs';
-import { validateLayers } from '../../docs/assure/detail-types.mjs';
+import { applyAssessments } from '../../docs/assure/assessment-types.mjs';
+import { readAssurance, inferFindings } from '../assure-infer.mjs';
 import { readText } from '../assure.mjs';
 import { sha256, validatePullRequests } from '../assure-detail.mjs';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export function createBrowser(root = ROOT) {
-  const layers = ['lineage', 'objects', 'documents'].map(name => JSON.parse(fs.readFileSync(path.join(root, `docs/assure/${name}.json`), 'utf8')));
-  validateGraph(layers[0]); validateLayers(layers[0], layers.slice(1));
+  const { layers, assessments } = readAssurance(root);
+  const findings = inferFindings(layers, assessments);
   const nodes = new Map(layers.flatMap(l => l.nodes).map(n => [n.id, n]));
   const prs = validatePullRequests(JSON.parse(readText(root, 'docs/assure/pull-requests.json')));
-  const data = JSON.stringify({ layers });
+  const data = JSON.stringify({ layers: applyAssessments(layers, assessments), findings });
   const assets = new Map([
     ['/', ['utils/assure-browser/index.html', 'text/html']], ['/style.css', ['utils/assure-browser/style.css', 'text/css']],
     ['/app.mjs', ['utils/assure-browser/app.mjs', 'text/javascript']], ['/model.mjs', ['utils/assure-browser/model.mjs', 'text/javascript']],

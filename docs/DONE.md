@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Confidence-weighted assurance links and review findings
+
+TODO item: 0.17.
+
+### Implementation notes
+
+- Extend all three graph contracts to version 2 with finite confidence weights, method, policy and rationale for each declared relation type. Extracted structural references retain direct support; unique suffixes and exact-name attribution use explicitly uncalibrated heuristic weights. Confidence does not claim implementation, truth, runtime execution or acceptance.
+- Add editable [typed assessments](assure/links.json) and their contract. Multiple relation types can coexist for the same pair; per-type overrides preserve extracted provenance. Initial author hypotheses link the inference utility and its fixtures to this TODO without inventing independent review or test-success evidence.
+- Add `utils/assure-infer.mjs`, [findings](assure/findings.json) and a [report](assure/FINDINGS.md). Rules distinguish authored deviations, unresolved/missing trace links, unassessed implementation/verification, competing assessments and bounded possible dependency impact. Each supported finding retains typed paths; path weights use the minimum, alternatives the maximum, without an independence or probability claim.
+- Validation passes the full unit/server suite (730 passes, one opt-in live skip), all thirty-one focused assurance cases, four real-browser cases, fresh app build, utility lint and normal lint/JSDoc/ASVS/freshness checks. Browser coverage exercises actual confidence filtering and finding support paths; no provider calls occur.
+- Expand [the assurance README](assure/README.md) with the three levels, vocabulary, confidence policy, examples, inference semantics and maintenance. Extend the local browser with minimum-confidence filtering, weighted edges, findings search and inspectable support paths. Normal checks regenerate in memory and reject stale graphs or findings.
+
+### Deviations
+
+- The first rules infer evidence gaps and review scope. An absent authored `implements`/`verifies` assessment does not prove absent code/tests; a possible deviation impact is not an observed defect or root cause. Negative findings are scoped to the extracted graph and chosen threshold, with limits reported.
+- Weights are transparent initial support conventions, not calibrated probabilities. No LLM or paid service assigns confidence. Combined reflection headings remain separate from recorded deviations unless an analyst explicitly supplies a typed hypothesis.
+
+### Insights
+
+- Confidence belongs to a relation type: the same artifact pair may support both a strong reference link and a weaker implementation interpretation. Repeating evidence must not inflate support, and filtering must use the effective per-type override rather than retaining the stronger original in parallel.
+- Missing traceability and recorded deviations are different observations. Keeping their evidence paths and qualifications visible makes later inference reviewable without converting documentation omissions into defect claims.
+
 ## 2026-10-25 — Object, PR-section and documentation assurance browser
 
 TODO items: 0.16, 0.16.1–0.16.3.

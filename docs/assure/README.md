@@ -1,89 +1,185 @@
-# Assurance lineage
+# Assurance: typed evidence, confidence and findings
 
-See [levels 2 and 3](LEVELS.md) for separate object/PR and documentation graphs,
-replayable selectors, foundation comparison and the `just assure-browser` explorer.
-The original file-level contract and query interface remain available below.
+This directory records how project artifacts, requirements, progress and rationale
+connect. The goal is to locate evidence gaps and deviations and trace their
+possible impact. A typed, weighted link describes the relationship its evidence
+supports. It does not establish endpoint truth, completed verification, approval
+or causation.
 
-The [typed graph](lineage.json) connects tracked file artifacts, every numbered
-[TODO item](../TODO.md), every [DONE entry](../DONE.md), and its individual
-insights and deviations. Start with the [generated report](REPORT.md) for the
-type diagram, inventory, TODO/DONE indexes and gaps. The [JSON Schema](schema.json)
-describes the data; [types.mjs](types.mjs) defines relation direction and validates
-shapes, endpoints, ownership and planning hierarchy offline.
+## Start here
 
 ```bash
-just assure-build                 # refresh the three generated artifacts
-just assure                       # validate integrity and exact freshness
-just assure-query 11.3.9           # TODO, linked DONE entries and nearby rationale
-just assure-query site/src/coach/prompt.js
-# Equivalently, with site dependencies installed:
-node utils/assure.mjs build
-node utils/assure.mjs check
-node utils/assure.mjs query todo:11.3.9
+just assure-browser               # open the printed loopback URL, normally :8788
+just assure                       # offline integrity, confidence and freshness
+just assure-build                 # rebuild after staging new/deleted paths
+just assure-query 11.3.9           # original file/TODO/rationale neighborhood
+just assure-prs                   # explicit read-only GitHub metadata refresh
+node utils/assure-detail.mjs replay 'EXACT_OBJECT_OR_SECTION_ID'
 ```
 
-Each edge retains its file and line range, original reference syntax, and
-resolution method. File IDs are `file:REPO_PATH`, TODO IDs are `todo:NUMBER`,
-milestones are `milestone:NUMBER`, and DONE IDs use their dated heading slug.
-Note IDs combine their DONE identity, type and content digest, so adding an
-unrelated entry or shifting lines does not rename them. Editing a note creates
-a new content identity. Git retains earlier snapshots; this first graph is a
-current-checkout reference graph, not a history of file revisions.
+The browser searches all levels, walks incoming/outgoing dependencies, filters
+relation types and minimum confidence, shows weighted edges and source evidence,
+and lists **Gap and deviation findings** with their supporting typed paths.
+Graph filters affect traversal; the selected root stays visible. Search returns
+100 nodes, graph walks at most 70 nodes, and finding lists show the first 40
+matches. Every limit is stated. The findings' rule threshold is separate from the
+browser's graph display filter.
 
-| Relation | From → to | Meaning |
+## Files and levels
+
+| File | Purpose |
+| --- | --- |
+| [lineage.json](lineage.json) | Level 1: tracked file artifacts, TODO hierarchy/status, DONE entries, insights, deviations and combined reflections |
+| [objects.json](objects.json) | Level 2: functions, classes, methods, control-flow blocks and retained PR description sections |
+| [documents.json](documents.json) | Level 3: project documentation headings, fenced blocks and local/external links |
+| [pull-requests.json](pull-requests.json) | Explicitly refreshed PR bodies, observed state, head/base commits and paginated changed-file lists |
+| [links.json](links.json) | Editable per-type confidence assessments and semantic link hypotheses |
+| [findings.json](findings.json) | Generated findings, rule policy, related nodes, exact supporting paths and input fingerprint |
+| [REPORT.md](REPORT.md), [FINDINGS.md](FINDINGS.md) | Generated inventory/trace index and findings overview |
+| [types.mjs](types.mjs), [detail-types.mjs](detail-types.mjs), [assessment-types.mjs](assessment-types.mjs) | Typed contracts, allowed endpoints and integrity rules |
+| [schema.json](schema.json), [detail-schema.json](detail-schema.json), [links-schema.json](links-schema.json) | Generated JSON Schema contracts |
+| [confidence.mjs](confidence.mjs) | Shared confidence shape, initial policy and path aggregation |
+| [LEVELS.md](LEVELS.md) | Extraction/replay details, scope limits and browser foundation comparison |
+
+The three extracted graphs use schema version **2**, requiring confidence on
+every edge. Assessments and findings have their own version 1 contracts. File IDs
+are `file:PATH`, TODOs `todo:NUMBER`, PRs `pr:NUMBER`; other identities come from
+qualified names, headings or rationale content. Exact file/body ranges, selectors
+and hashes support replay; IDs are checkout identities, not rename/history proof.
+
+## Relation types
+
+Types are directional. Several types may hold for the same pair; their confidence
+weights are independent assessments and are not normalized to sum to one.
+
+| Family | Types | Interpretation |
 | --- | --- | --- |
-| `part_of` | TODO → parent TODO or milestone | Numeric planning hierarchy |
-| `recorded_in` | Item/note → file | Where the item is written |
-| `references_todo` | DONE → TODO/milestone | Identifier in its TODO annotation, including partial/open context |
-| `has_insight` | DONE → insight | A paragraph or bullet under Insights |
-| `has_deviation` | DONE → deviation | A paragraph or bullet under Deviations |
-| `has_reflection` | DONE → combined reflection | A combined insight/deviation heading, kept without guessing categories |
-| `mentions` | File/item/note → file | A resolvable Markdown code-span reference |
-| `links_to` | File/item/note → file | A local Markdown hyperlink |
-| `imports` | File → file | Literal relative JS import, export-from, import expression or require |
+| Planning/rationale | `part_of`, `recorded_in`, `references_todo`, `has_insight`, `has_deviation`, `has_reflection` | Authored hierarchy, references and note ownership; TODO status comes only from its checkbox |
+| Extracted references | `mentions`, `links_to`, `imports`, `mentions_object`, `documents_link` | A token, literal import or hyperlink resolves to a target |
+| Object/document structure | `contains_object`, `contains_section`, `contains_block`, `locates_item` | Parsed containment and source ranges |
+| Static binding dependencies | `calls`, `references_binding`, `imports_binding` | Direct lexical targets, callback/value reads and declared local exports; not runtime execution |
+| PR provenance | `has_description`, `changes_file`, `references_item`, `mentions_file` | Retained description sections, changed-file membership and explicit annotations; file changes do not imply object changes |
+| Authored hypotheses | `implements`, `verifies`, `documents`, `deviates_from`, `supports`, `contradicts` | Explicit analyst interpretation with a citation and rationale; never generated by upgrading a mention into satisfaction |
 
-TODO status comes only from its checkbox. A DONE annotation can discuss work
-still open: for example, the release preparation entry references open TODO
-11.6, and completed provider work can reference missing recorded fixtures in
-2.15. Edges do not establish implementation, test success, compliance, acceptance
-or completion. Insights and deviations keep their original text and context.
+The contracts define allowed endpoint types. A combined reflection heading is
+kept separate from a recorded deviation; an analyst can propose `deviates_from`
+when justified, with its own confidence and citation.
 
-Inline Markdown links and code spans use a scanner with bounded forward progress,
-including malformed destinations. Links inside code spans are examples rather
-than hyperlink edges. Reference-style link definitions are outside this first
-extractor.
+## Confidence means support for this type
 
-The inventory includes only tracked/staged Git paths, including tests, data,
-documentation and configuration. Only regular Markdown, JS/MJS and HTML files
-are scanned; symlinks and submodules are inventoried without following them.
-JavaScript and inline HTML scripts are parsed with the existing ESLint and
-parse5 dependencies; analyzed application/test modules are never imported or executed. Package
-imports, dynamic nonliteral expressions and generated dist assets are outside
-the extracted dependency graph. Functions/classes and documentation anchors are extracted separately at levels 2/3.
-Runtime call graphs, glob expansion and HTML anchor validation remain outside scope.
+Every link carries this shape:
 
-Markdown links resolve relative to their document. Code-span paths can resolve
-as repository/site paths or a unique suffix; this resolution is recorded, and
-ambiguous short names stay unresolved. Renamed/missing historical paths,
-directory references, unknown TODO identifiers and parse failures remain in
-`unresolved`; the report makes them visible. No semantic rename or ownership
-mapping is inferred. Numeric TODO ranges and abbreviated sibling lists are
-expanded explicitly; unsupported ranges remain visible.
+```json
+{
+  "value": 0.85,
+  "method": "rule",
+  "policy": "typed-links-1",
+  "rationale": "Exact name in an explicitly cited file; semantic attribution remains a heuristic."
+}
+```
 
-The query returns a two-hop, bidirectional neighborhood, capped at 150 nodes
-with an explicit `truncated` flag. It omits containment/hierarchy edges during
-traversal to avoid expanding the whole log through its containing file. The
-stored graph retains those edges. Use its exact node IDs for DONE/note queries.
+Weights are finite numbers in **[0, 1]**. `observed` means direct syntactic or
+structural support for the narrowly defined type; `rule` is an explicit heuristic;
+`analyst` is an authored assessment. They are initial, **uncalibrated support
+weights**, not measured probabilities of correctness or defects. No model or paid
+service assigns them.
 
-When updating artifacts, TODO or DONE, stage new/deleted files, run
-`just assure-build`, then stage `lineage.json`, `schema.json` and `REPORT.md`.
-Generation is deterministic: there is no timestamp, absolute checkout path or
-self-referential HEAD hash. The inventory digest and scanned-input digests make
-stale output detectable. The generated outputs are excluded from input scanning
-to avoid recursive hashes. `just check` and CI check exact freshness without
-rewriting output. Existing unresolved references are data to review, not a
-claim that all historical references have been repaired.
+| Initial extraction rule | Weight | What it supports |
+| --- | ---: | --- |
+| Direct structural, literal-path or lexical-binding evidence | 1.00 | The defined reference/containment/binding type, with its documented static limits |
+| Unique current path suffix | 0.80 | A plausible token-to-file mapping; historical intent remains uncertain |
+| Exact object name within an explicitly cited file | 0.85 | A constrained but semantic attribution of that name to the current object |
+| Analyst assessment | Authored | The particular proposed type and rationale; it is not independent acceptance |
 
-The schema uses [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema-core).
-The offline checker implements only the schema vocabulary used by this contract,
-plus graph-specific integrity rules; it is not a general JSON Schema validator.
+A value of 1 for `mentions` does not imply any confidence in `implements`. A high
+`verifies` weight says the cited artifact is proposed as verification evidence;
+it does not record a passing test run or exhaustive coverage. `links.json` seeds
+only two author hypotheses for this feature, explicitly marked as such.
+
+## Add types or assess an existing link
+
+Edit `links.json` rather than generated snapshots. Add a record with `type`,
+existing `from`/`to` IDs, analyst confidence and source evidence. For example:
+
+```json
+{
+  "type": "implements",
+  "from": "file:utils/assure-infer.mjs",
+  "to": "todo:0.17",
+  "confidence": {
+    "value": 0.9,
+    "method": "analyst",
+    "policy": "typed-links-1",
+    "rationale": "Initial author hypothesis; inspect inferFindings and its limits."
+  },
+  "evidence": {
+    "source": { "path": "utils/assure-infer.mjs", "line": 16, "endLine": 16 },
+    "reference": "inferFindings constructs deterministic typed-path findings.",
+    "resolution": "authored_assessment"
+  }
+}
+```
+
+For an existing `(type, from, to)`, the assessment overrides its confidence in the
+**effective** graph while retaining the extracted evidence and separate assessment
+citation. The original generated graph stays unchanged. Different authored hypothesis types for the
+same pair coexist. Extracted vocabulary can only override a link actually present
+in the parsed graph; an analyst cannot invent parsed ownership or a static call. Duplicate assessments of the same type/pair, unknown endpoints,
+invalid types, missing rationale and non-finite/out-of-range weights fail checks.
+Lowering an existing type's confidence genuinely removes it from walks/inference
+above that threshold; the original stronger version is not left in parallel.
+
+## Inferring gaps and deviations
+
+`utils/assure-infer.mjs` starts with explicit, inspectable rules:
+
+| Finding | Status | Meaning |
+| --- | --- | --- |
+| `recorded_deviation` | Recorded | An authored deviation note, with its DONE/TODO and directly mentioned artifact context |
+| `assessed_deviation` | Candidate | An analyst's explicit deviation hypothesis |
+| `unresolved_reference` | Gap | The extractor could not resolve a recorded reference; historical paths and excluded scope can explain it |
+| `missing_done_reference` | Gap | A checked TODO lacks a DONE annotation link at the selected threshold |
+| `implements_unassessed`, `verifies_unassessed` | Candidate | A checked TODO lacks a sufficiently supported explicit assessment of that type; code/tests may already exist |
+| `conflicting_assessments` | Candidate | The same pair has `supports` and `contradicts` above threshold |
+| `possible_deviation_impact` | Candidate | An explicit implementation/deviation association followed through bounded incoming static dependencies; review scope, not an observed defect or root cause |
+
+Inference defaults to threshold **0.80**, dependency depth **2** and **100** impact
+nodes per deviation context. Truncation is reported. Each supporting path scores
+as its **minimum** link confidence; alternative paths use the **maximum**. Repeated
+citations do not increase confidence, cycles cannot amplify support, and a later
+stronger alternate path is considered. This is a conservative ranking convention,
+not Bayesian inference, an independence assumption or calibrated defect likelihood.
+Support paths retain stored edge directions; an evidence chain may traverse an
+edge backwards, as in deviation ← DONE → TODO. The pure function accepts
+different thresholds/bounds for controlled analysis. Identical unresolved citations
+across levels or repeated on the same line are collapsed into one finding; raw
+extractor records remain in their source datasets.
+
+Absence rules have confidence 1 only in their closed-world statement about the
+retained graph. They cannot establish absence in the real project. Initial
+implementation/verification findings will be numerous because historical work
+has not yet received explicit assessments. Never treat that backlog as evidence
+that all those features or tests are missing. Recorded deviations likewise keep
+the author's wording and scope; they are not automatically diagnosed causes.
+
+## Maintenance and reproducibility
+
+Inventory only tracked/staged paths. Stage new/deleted files, run
+`just assure-build`, review changes to graphs, assessments and findings, then
+stage the outputs. `just assure` and CI regenerate in memory and compare exact
+freshness, including assessment changes. Generated reports are excluded from
+source scanning to avoid recursive hashes. No timestamp or HEAD self-reference
+is introduced by graph generation.
+
+Normal build/check/browser use retained metadata offline. `just assure-prs`
+explicitly refreshes mutable GitHub descriptions; review and regenerate afterward.
+Symlink targets, private/untracked files and operator configuration stay outside
+scanning. Parsing never executes source. Browser labels/source are plain text;
+the server binds to loopback and exposes only fixed assets and graph-ID sources.
+No arbitrary path endpoint, CDN, telemetry, inference call or weight download is
+needed. See [LEVELS.md](LEVELS.md) for unsupported languages, dynamic calls,
+Markdown limits, source replay and retained-PR history limits.
+
+The schemas use [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema-core).
+The offline validator implements the small vocabulary used here plus graph
+integrity checks; it is not a general JSON Schema validator.
