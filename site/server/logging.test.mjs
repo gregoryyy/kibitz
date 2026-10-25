@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import http from 'node:http';
-import { aiConfigEvent, aiErrorEvent, logRequest, routeCategory, serverErrorEvent } from './logging.mjs';
+import { aiConfigEvent, aiErrorEvent, fileErrorEvent, logRequest, routeCategory, serverErrorEvent } from './logging.mjs';
 import { createApi } from './api.mjs';
 import { createEmbedder, createProvider, GatewayError, loadConfig, loadEmbeddingConfig } from './ai.mjs';
 
@@ -16,7 +16,7 @@ const checkPrivate = lines => {
 };
 
 test('log fields use a closed vocabulary even for hostile codes, statuses and config values', () => {
-  const lines = [aiErrorEvent(hostile, hostile, hostile, hostile), aiConfigEvent({ provider: hostile, model: hostile, reason: hostile }), serverErrorEvent({ code: hostile, message: hostile, stack: hostile })];
+  const lines = [aiErrorEvent(hostile, hostile, hostile, hostile), aiConfigEvent({ provider: hostile, model: hostile, reason: hostile }), serverErrorEvent({ code: hostile, message: hostile, stack: hostile }), fileErrorEvent(hostile, hostile)];
   checkPrivate(lines);
   assert.deepEqual(JSON.parse(lines[0]), { at: JSON.parse(lines[0]).at, event: 'ai_error', action: 'other', provider: 'other', code: 'other', status: 0 });
   for (const value of [-1, NaN, Infinity, 600, '401', {}, null]) assert.equal(JSON.parse(aiErrorEvent('sample', 'openai', 'auth_failed', value)).status, 0);

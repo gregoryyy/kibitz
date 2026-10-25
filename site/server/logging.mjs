@@ -38,6 +38,11 @@ export function aiConfigEvent(config) {
   return line({ event: 'ai_config', provider: logProvider(config.provider), available: !!config.available, localOnly: !!config.localOnly });
 }
 
+export function fileErrorEvent(resource, code) {
+  const codes = new Set(['EIO', 'EMFILE', 'ENFILE', 'ENOMEM', 'ESTALE', 'EBADF', 'ERR_STREAM_PREMATURE_CLOSE']);
+  return line({ event: 'file_error', resource: resource === 'model' ? 'model' : 'static', code: codes.has(code) ? code : 'other' });
+}
+
 // These application-owned messages are exact matches, never arbitrary exception prose.
 const STARTUP_HINTS = new Map([
   ['The database must be outside every served directory.', 'The database must be outside every served directory.'],

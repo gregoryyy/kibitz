@@ -23,6 +23,30 @@ The existing `--host` option can change the listener for deliberate development/
 
 Default HTTP/AI logs use fixed categories and omit raw URLs, cookies, prompts and provider messages. See [local monitoring and retention](OPERATIONS.md) for status checks, error events and private log files.
 
+## Public files and filesystem ownership
+
+The server serves regular files from canonical public directories. A root selected
+through a symlink is resolved at startup; symlinked assets or child directories are
+refused, including aliases within the public tree. Keep private databases, env files
+and backups outside both static and model roots. Model routes remain restricted to
+catalogue filenames; a catalogue name does not authorize an alias to another file.
+
+The [shared reader](../site/server/public-files.mjs) checks the opened file's type and
+identity after opening, before using that descriptor for response metadata and bytes. No-follow/nonblocking
+open flags apply where the platform supplies them; descriptor identity checks also
+reject a changed leaf. Atomic replacement/unlink after validation cannot redirect
+an active response. Streams stop at the captured size and detect truncation; HTML
+CSP hashes and content length are computed from the actual descriptor-read body.
+See Node's [file/stream API](https://nodejs.org/docs/latest-v24.x/api/fs.html#filehandlecreatereadstreamoptions)
+for descriptor lifetime semantics.
+
+Public roots and their parent directories must remain writable only by the trusted
+operator/build process. These controls do not sandbox a malicious filesystem owner,
+lock in-place writes, prevent hard links to private files, or rehash model weights on
+every request. Stop the server during builds or publish regular assets atomically;
+do not rebuild its served `dist/` during an active browser run. The existing model
+marker is an availability check, not ongoing integrity verification.
+
 ## Consequences for the plan
 
 - TODO 10.2 hosted authentication is deferred. Passkeys/OAuth, account sessions, tenant isolation, account-based budgets and encrypted per-user provider keys are prerequisites for any later hosted service.

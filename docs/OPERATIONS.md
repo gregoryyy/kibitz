@@ -9,6 +9,7 @@ Application events contain fixed categories, numbers and booleans:
 | `http` | `method`, `route`, `status`, `complete`, `ms` | Response status and elapsed milliseconds, capped at one day. A disconnect before completion has status `0` and `complete: false`. |
 | `ai_error` | `action`, `provider`, `code`, `status` | Sample, structured, connection-test or embedding failure. Status is the exception's numeric HTTP status, or `0` if absent/invalid. Cancelled work emits no AI error. |
 | `ai_config` | `provider`, `available`, `localOnly` | Initial gateway configuration or a successful settings change. Availability means configured, without testing connectivity. |
+| `file_error` | `resource`, `code` | Static/model I/O failure using fixed categories, without a path or raw exception. Missing/denied files use HTTP 404 without a separate fault event. |
 | `server_error` | `code`, `hint` | Startup/listener failure with an allowlisted system code and a fixed operator hint. |
 
 Methods, providers, actions, routes and codes use closed vocabularies; unknown values
@@ -29,7 +30,8 @@ interface”. Directory paths, arbitrary hostnames and model names are omitted. 
 is no verbose mode that restores request/provider payload logging. Node/runtime
 warnings, OS diagnostics and operator utilities (benchmarks, fixture capture and the
 flipbook) have their own output; the HTTP event contract does not cover those tools.
-Unexpected static-file race/error handling remains tracked in
+Static/model reads now share descriptor validation, bounded streams and handled failures
+(11.2.5). Other scanner contexts and post-merge verification remain tracked in
 [#99](https://github.com/gregoryyy/kibitz/issues/99).
 
 ## Running and retaining logs
@@ -74,11 +76,15 @@ import fs from "node:fs";
 for (const line of fs.readFileSync(".kibitz-data/runtime.log", "utf8").split("\n")) {
   try {
     const e = JSON.parse(line);
-    if (e.event === "ai_error" || e.event === "server_error" ||
+    if (e.event === "ai_error" || e.event === "file_error" || e.event === "server_error" ||
         (e.event === "http" && (!e.complete || e.status >= 400))) console.log(JSON.stringify(e));
   } catch {}
 }'
 ```
+
+Inspect `file_error` for disk/resource faults or a file truncated during transfer. A
+failed stream is terminated, while an HTML read failure before headers returns 500.
+Descriptors close after completion, HEAD, empty files, errors and disconnects.
 
 Watch repeated `auth_failed`/`model_not_found` failures for configuration problems,
 `rate_limited`/`budget_exceeded` for admission limits, and `timeout`/`provider_error`
