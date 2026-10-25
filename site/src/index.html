@@ -1034,10 +1034,11 @@ async function localSample() {
   return canUseCoach() ? coachSample : null;
 }
 function coachOffText(status) {
-  if (status?.permissionDenied) { $('#coachOff').textContent = t('This function is disabled by the local operator.'); return; }
-  if (status?.functions?.coach === false && status.provider !== 'browser') { $('#coachOff').textContent = t('Server coaching is disabled by the local operator.'); return; }
-  if (status?.authenticationRequired) { $('#coachOff').textContent = t('Sign in to the local server in Settings to use the coach. Stockfish still works.'); return; }
-  if (status?.available && !canUseCoach()) { $('#coachOff').textContent = t('Allow this provider in Settings → Privacy before sending data.'); return; }
+  // Authored DOM text is translated once by translateTree; pretranslation is seen as an unknown source.
+  if (status?.permissionDenied) { $('#coachOff').textContent = 'This function is disabled by the local operator.'; return; }
+  if (status?.functions?.coach === false && status.provider !== 'browser') { $('#coachOff').textContent = 'Server coaching is disabled by the local operator.'; return; }
+  if (status?.authenticationRequired) { $('#coachOff').textContent = 'Sign in to the local server in Settings to use the coach. Stockfish still works.'; return; }
+  if (status?.available && !canUseCoach()) { $('#coachOff').textContent = 'Allow this provider in Settings → Privacy before sending data.'; return; }
   $('#coachOff').textContent = status ? `The coach is off: ${status.reason}. Change it in the coach settings below, or in .env and restart the server. Stockfish analysis, flags and review still work.`
     : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
 }
