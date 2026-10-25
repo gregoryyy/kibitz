@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Library-cache session cleanup (experimental)
+
+TODO item: 11.4.2.11.1, the first bounded part of 11.4.2.11 / ASVS 14.3.1. The parent and its deviation remain open; the ASVS matrix stays at 40 verified, 26 not applicable, two deviations and two open.
+
+### Implementation notes
+
+- Classify the actual `session_expired` response as an identity failure, rather than a generic outage that may display a freshly scoped cache. HTTP 401/403 also deny fallback when their error body is malformed or unknown. Observed expiry/owner/permission failures withdraw the server-library snapshot and explicitly erase every bucket in the known derived cache.
+- Add cancellable IndexedDB opening/transactions and explicit whole-cache deletion. Invalidate before erasure, wait for native deletion acknowledgement, and fence externally deleted connections against implicit repopulation. Preserve future layouts/envelopes during ordinary reads/writes; explicit cleanup intentionally removes this noncanonical cache even with an unknown format. A blocked delete reports failure after three seconds and needs an explicit acknowledged retry.
+- Add `endSession()` to withdraw the snapshot, abort requests and invalidate queued/late mutations. Check the generation before starting a cache write as well as after completion, including reentrant snapshot notifications. Reconnect waits for cleanup and stays blocked after failure; changing library views during deletion must not lose its eventual completion. Ordinary close/disconnect still preserves the cache.
+- Wire Settings and data-page sign-out attempts to immediate local cleanup, independently of backend reachability; require successful cleanup before fresh sign-in. Keep backend-termination and local-erasure messages separate, preserve a visible retry and German wording, and retry only local cleanup after an already acknowledged backend logout. Abort/fence pending data-page reads and withdraw export/erase confirmations so a late read cannot restore them.
+- Add focused logic and real IndexedDB/native HTTPS browser regressions, retaining ordinary library persistence, cache failure, future-format, data export/erasure, permission and sign-in coverage. The actual preceding built application fails the new expiry regression by displaying its synthetic `private-expired` cached game after an authoritative 401. The complete mock-only unit suite passes 826 tests with one opt-in live skip, with ambient cloud credentials removed. All 41 affected browser cases pass across the affected run and corrected 11-case final recheck; the original delayed-read fixture used an unavailable Node resolver rather than the browser-only hostname mapping, and now holds an actual browser-read snapshot. Fresh build/lint/JSDoc and ASVS record checks pass; all three assurance layers are regenerated and checked before commit. Full current-head CI remains separate and pending.
+- Document the exact boundary and remaining lifecycle/migration work in [CLIENT-DATA-LIFECYCLE.md](CLIENT-DATA-LIFECYCLE.md); link the data and ASVS guidance. Preserve authoritative server SQLite records and canonical browser-only collections. No dependency, production identity/trust change, paid provider request or model download.
+
+### Deviations
+
+- This is a separate reviewable cache/session submilestone. Active board/chat/drafts, private worker/index state, autosave provenance/migration, client departure/BFCache, automatic offline expiry and already loaded data in other tabs still require coordinated cleanup. Neither local cache deletion nor backend logout establishes complete client erasure. Keep TODO 11.4.2.11 and ASVS 14.3.1 unsatisfied with the original RC/final-release conditions and dates.
+
+### Insights
+
+- An authoritative authentication failure must not enter the ordinary network-outage cache path. A generation check after persistence is too late to prevent resurrection: cancel transactions and check before starting writes, including writes reached through notification callbacks. Backend logout can succeed while local deletion is blocked, so retries must retain the acknowledgement and accurately report each outcome.
+
 ## 2026-10-25 — Private position analysis without navigation URLs (experimental)
 
 TODO item: 11.4.2.10 / ASVS 14.2.1. The reviewed implementation and cited verification technically address this control; the release gate and authenticated client-data lifecycle remain open.

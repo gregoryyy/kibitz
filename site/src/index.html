@@ -2031,6 +2031,8 @@ function renderLibraryStorage() {
   const locations = { online: 'Saved on this server', cached: 'Cached server library (read only)', conflict: 'Server library needs refresh', connecting: 'Connecting…', unavailable: 'Server library unavailable' };
   $('#libWhere').textContent = selected ? locations[state.mode] || 'Server library unavailable' : Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
   const errors = { permission_unavailable: 'Server function permissions could not be confirmed.', permission_denied: 'This function is disabled by the local operator.', conflict: 'The server library changed elsewhere. Refresh before retrying; your current edit remains in the form.',
+    library_cache_cleanup: 'The library view was cleared, but its browser cache could not be erased. Close other Kibitz tabs and retry sign-out.',
+    session_expired: 'The server library session changed. Reconnect before saving changes.',
     session_changed: 'The server library session changed. Reconnect before saving changes.', no_session: 'The server library session changed. Reconnect before saving changes.',
     quota: 'The server library is full. Delete some games or references before retrying.', invalid_record: 'The server rejected a record. Check its PGN or source fields.',
     invalid_changes: 'The server rejected a record. Check its PGN or source fields.', rate_limited: 'Too many server library writes. Try again in a minute.' };
@@ -4661,7 +4663,7 @@ function applyProviderPermissions() {
   chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false;
   setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); renderStudySearch();
 }
-const operatorPanel = createOperatorPanel($('#operatorSignIn'), { t, enabled: !window.claude?.hot, onChange: async () => { SERVER_LIBRARY.disconnect(); await SERVER_LIBRARY.probe(); await refreshGateway(); applyProviderPermissions(); } });
+const operatorPanel = createOperatorPanel($('#operatorSignIn'), { t, enabled: !window.claude?.hot, onEndSession: () => SERVER_LIBRARY.endSession(), onChange: async state => { if (state.authenticated) await SERVER_LIBRARY.probe(); await refreshGateway(); applyProviderPermissions(); } });
 const privacyPanel = createPrivacyPanel($('#providerPrivacy'), { store: ProviderConsent, onChange: applyProviderPermissions, t });
 $('#btnPrivacy').addEventListener('click', () => $('#providerPrivacy').scrollIntoView({ block: 'start' }));
 $('#providerPrivacy').hidden = !!window.claude?.hot;

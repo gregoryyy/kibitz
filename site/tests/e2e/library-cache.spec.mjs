@@ -89,3 +89,63 @@ test('unavailable storage, invalid scopes and closing are explicit failures with
   });
   expect(result.absent).toBe('library_cache_unavailable'); expect(result.invalid).toBe('library_cache_invalid'); expect(result.closed).toBe('library_cache_unavailable'); expect(result.kept.snapshot.revision).toBe(0);
 });
+
+test('explicit cleanup cancels a pending open/write and later work cannot resurrect its old private snapshot', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const { createLibraryCache } = await import('/library/cache.js'), cache = createLibraryCache(), scope = 'a'.repeat(64);
+    const value = { version: 1, scope, revision: 1, games: [{ id: 'private', pgn: '1. e4 *' }], books: [] };
+    const pending = cache.write(value).then(() => 'saved', error => error.code);
+    await cache.clear(); const status = await pending;
+    const absent = await cache.read(scope);
+    await cache.write({ ...value, revision: 2, games: [{ id: 'fresh', pgn: '1. d4 *' }] });
+    const fresh = await cache.read(scope); cache.close(); return { status, absent, fresh: fresh.snapshot };
+  });
+  expect(result.status).toBe('library_cache_unavailable'); expect(result.absent).toBeNull(); expect(result.fresh.revision).toBe(2); expect(result.fresh.games[0].id).toBe('fresh');
+});
+
+test('cleanup after a successful put request aborts its transaction before deleting the cache', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const { createLibraryCache } = await import('/library/cache.js'), cache = createLibraryCache(), scope = 'a'.repeat(64);
+    await cache.write({ version: 1, scope, revision: 0, games: [], books: [] });
+    const put = IDBObjectStore.prototype.put; let cleanup, succeeded = false;
+    IDBObjectStore.prototype.put = function (value, key) {
+      const request = key === undefined ? put.call(this, value) : put.call(this, value, key);
+      request.addEventListener('success', () => { succeeded = true; cleanup = cache.clear(); }); return request;
+    };
+    let status;
+    try { status = await cache.write({ version: 1, scope, revision: 1, games: [{ id: 'private', pgn: '1. e4 *' }], books: [] }).then(() => 'saved', error => error.code); }
+    finally { IDBObjectStore.prototype.put = put; }
+    await cleanup; const absent = await cache.read(scope); cache.close(); return { status, succeeded, absent };
+  });
+  expect(result.succeeded).toBe(true); expect(result.status).toBe('library_cache_unavailable'); expect(result.absent).toBeNull();
+});
+
+test('explicit erasure deletes a future cache while external deletion fences older connections against repopulation', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const { createLibraryCache, LIBRARY_CACHE_DB } = await import('/library/cache.js'), scope = 'a'.repeat(64), old = createLibraryCache();
+    const value = { version: 1, scope, revision: 1, games: [{ id: 'private', pgn: '1. e4 *' }], books: [] }; await old.write(value);
+    const cleaner = createLibraryCache(); await cleaner.clear();
+    const blocked = await old.write(value).then(() => 'saved', error => error.code); old.close(); cleaner.close();
+    const future = await new Promise((resolve, reject) => { const request = indexedDB.open(LIBRARY_CACHE_DB, 7); request.onupgradeneeded = () => request.result.createObjectStore('future'); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    future.onversionchange = () => future.close();
+    const last = createLibraryCache(); await last.clear(); const absent = await last.read(scope); last.close();
+    return { blocked, absent };
+  });
+  expect(result.blocked).toBe('library_cache_unavailable'); expect(result.absent).toBeNull();
+});
+
+test('blocked erasure reports failure and keeps the cache closed until an explicit successful retry', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const { createLibraryCache, LIBRARY_CACHE_DB } = await import('/library/cache.js'), scope = 'a'.repeat(64), cache = createLibraryCache();
+    await cache.write({ version: 1, scope, revision: 1, games: [], books: [] });
+    const blocker = await new Promise((resolve, reject) => { const request = indexedDB.open(LIBRARY_CACHE_DB, 1); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    const failed = await cache.clear().then(() => 'erased', error => error.code);
+    const blocked = await cache.read(scope).then(() => 'readable', error => error.code);
+    blocker.close(); await cache.clear(); const absent = await cache.read(scope); cache.close(); return { failed, blocked, absent };
+  });
+  expect(result.failed).toBe('library_cache_blocked'); expect(result.blocked).toBe('library_cache_unavailable'); expect(result.absent).toBeNull();
+});

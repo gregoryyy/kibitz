@@ -13,6 +13,8 @@ const language = pickLang(savedLanguage, [...navigator.languages]), i18n = trans
 document.documentElement.lang = language;
 document.title = 'Kibitz — ' + t('Your data');
 for (const node of document.querySelectorAll('[data-i18n]')) { node.textContent = t(node.textContent); node.setAttribute('translate', 'no'); }
+let serverGeneration = 0;
+const serverPending = new Set();
 let busy = false, snapshot = null, confirmation = null, allowedRead = true, allowedErase = true;
 const buttons = [...document.querySelectorAll('button')].filter(button => !['eraseCancel', 'eraseProceed'].includes(button.id));
 function updateButtons() {
@@ -23,21 +25,24 @@ function download(text, name) {
   link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 async function serverRequest(path, body = undefined) {
+  const gen = serverGeneration, current = () => { if (gen !== serverGeneration) throw Object.assign(Error('cancelled'), { code: 'session_changed' }); };
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 15000);
+  serverPending.add(ctl);
   try {
     const response = await fetch('api/library/' + path, { credentials: 'same-origin', redirect: 'error', signal: ctl.signal,
       ...(body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) });
+    current();
     const limit = response.ok ? LIBRARY_LIMITS.totalBytes + 1_000_000 : 8192;
     if (+response.headers.get('content-length') > limit || !response.body) throw Error('response');
     const reader = response.body.getReader(), decoder = new TextDecoder('utf-8', { fatal: true }); let text = '', bytes = 0;
     while (true) {
-      const part = await reader.read(); if (part.done) break; bytes += part.value.byteLength;
+      const part = await reader.read(); current(); if (part.done) break; bytes += part.value.byteLength;
       if (bytes > limit) { await reader.cancel(); throw Error('response'); } text += decoder.decode(part.value, { stream: true });
     }
-    const value = JSON.parse(text + decoder.decode());
+    const value = JSON.parse(text + decoder.decode()); current();
     if (!response.ok) throw Object.assign(Error('server'), { code: value?.error?.code });
     return validateLibrarySnapshot(value);
-  } finally { clearTimeout(timer); }
+  } finally { clearTimeout(timer); serverPending.delete(ctl); }
 }
 const serverCounts = value => t('Saved games: {games} · references: {books}', { games: value.games.length, books: value.books.length });
 async function run(area, action, erasing = false) {
@@ -93,4 +98,10 @@ $('#eraseProceed').addEventListener('click', () => {
   });
 });
 
-createOperatorPanel($('#operatorSignIn'), { t, onAccess: grants => { allowedRead = grants === null || grants.includes('library:read'); allowedErase = grants === null || grants.includes('library:erase') && allowedRead; updateButtons(); }, onChange: state => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t(state.authenticated ? 'Sign-in complete. Check the server library before continuing.' : 'Signed out of the local server.'); } });
+createOperatorPanel($('#operatorSignIn'), { t, onEndSession: async () => {
+  serverGeneration++; for (const ctl of serverPending) ctl.abort(); serverPending.clear();
+  snapshot = null; confirmation = null; $('#eraseConfirm').close(); updateButtons();
+  $('#serverStatus').textContent = t('The server library session changed. Reconnect before saving changes.');
+  const cache = createLibraryCache();
+  try { await cache.clear(); return true; } finally { cache.close(); }
+}, onAccess: grants => { allowedRead = grants === null || grants.includes('library:read'); allowedErase = grants === null || grants.includes('library:erase') && allowedRead; updateButtons(); }, onChange: state => { snapshot = null; updateButtons(); $('#serverStatus').textContent = t(state.authenticated ? 'Sign-in complete. Check the server library before continuing.' : 'Signed out of the local server.'); } });

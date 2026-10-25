@@ -39,3 +39,10 @@ authenticated client cleanup remains a release TODO.
 [Operator function grants](PERMISSIONS.md) independently control server read, write
 and erase. Permission denial or unverifiable policy cannot use a cached private
 library as fallback. Complete authenticated client cleanup remains a separate gate.
+
+The experimental [library-cache session boundary](CLIENT-DATA-LIFECYCLE.md) also
+clears the derived server-library cache on explicit sign-out attempts, before
+fresh sign-in and after observed identity/permission failure. Offline logout
+can clear this local copy without confirming backend revocation. Blocked cleanup
+is reported and requires retry. Server records and browser-only saved collections
+remain; the wider authenticated DOM/memory/storage lifecycle is still open.

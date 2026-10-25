@@ -18,6 +18,7 @@ export default {
   'Save server library': 'Server-Bibliothek speichern',
   'Erase server library': 'Server-Bibliothek löschen',
   'Sign out': 'Abmelden',
+  'The library view was cleared, but its browser cache could not be erased. Close other Kibitz tabs and retry sign-out.': 'Die Bibliotheksansicht wurde geleert, aber ihr Browser-Cache konnte nicht gelöscht werden. Andere Kibitz-Tabs schließen und die Abmeldung erneut versuchen.',
   'Signed out of the local server.': 'Vom lokalen Server abgemeldet.',
   'Sign-out could not be confirmed. Check the connection and try again.': 'Die Abmeldung konnte nicht bestätigt werden. Prüfe die Verbindung und versuche es erneut.',
   'Sign in to the local server in Settings to use the coach. Stockfish still works.': 'Melde dich in den Einstellungen am lokalen Server an, um den Trainer zu nutzen. Stockfish funktioniert weiterhin.',
