@@ -1,0 +1,118 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "headers": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "376167",
+      "content-security-policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: 'sha256-w+exaoPGD8MmZN/xggKmG2BvZOv7DY2JzbL79zdGXPc='; worker-src 'self' blob:; style-src 'self' 'sha256-pZeMx81ApnSwvzUSw7/IT77x3mDZhcp+r5hK1ocpTA4='; style-src-attr 'none'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "content-type": "text/html; charset=utf-8",
+      "cross-origin-embedder-policy": "require-corp",
+      "cross-origin-opener-policy": "same-origin",
+      "cross-origin-resource-policy": "same-origin",
+      "date": "Sun, 25 Oct 2026 11:08:25 GMT",
+      "keep-alive": "timeout=5",
+      "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY"
+    }
+  },
+  {
+    "path": "/data.html",
+    "status": 200,
+    "headers": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "3384",
+      "content-security-policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'sha256-Lp0fUXWMKgMv0XEKZXoGwsKHuvLnW3ER5KaAlNPU+Ho='; style-src-attr 'none'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      "content-type": "text/html; charset=utf-8",
+      "cross-origin-embedder-policy": "require-corp",
+      "cross-origin-opener-policy": "same-origin",
+      "cross-origin-resource-policy": "same-origin",
+      "date": "Sun, 25 Oct 2026 11:08:25 GMT",
+      "keep-alive": "timeout=5",
+      "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY"
+    }
+  },
+  {
+    "path": "/icon.svg",
+    "status": 200,
+    "headers": {
+      "cache-control": "no-cache",
+      "connection": "keep-alive",
+      "content-length": "285",
+      "content-type": "image/svg+xml; charset=utf-8",
+      "cross-origin-embedder-policy": "require-corp",
+      "cross-origin-opener-policy": "same-origin",
+      "cross-origin-resource-policy": "same-origin",
+      "date": "Sun, 25 Oct 2026 11:08:25 GMT",
+      "keep-alive": "timeout=5",
+      "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY"
+    }
+  },
+  {
+    "path": "/api/ai/status",
+    "status": 200,
+    "headers": {
+      "cache-control": "no-store",
+      "connection": "keep-alive",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Sun, 25 Oct 2026 11:08:25 GMT",
+      "keep-alive": "timeout=5",
+      "set-cookie": "kibitz_uid=zFCx20nId6BTG5p3BEXJwA; Path=/api/; HttpOnly; SameSite=Strict; Max-Age=31536000",
+      "transfer-encoding": "chunked",
+      "x-content-type-options": "nosniff"
+    }
+  },
+  {
+    "path": "/api/ai/embeddings",
+    "status": 200,
+    "headers": {
+      "cache-control": "no-store",
+      "connection": "keep-alive",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Sun, 25 Oct 2026 11:08:25 GMT",
+      "keep-alive": "timeout=5",
+      "set-cookie": "kibitz_uid=tz_Cuq8KRbNb5ehI2NbnUg; Path=/api/; HttpOnly; SameSite=Strict; Max-Age=31536000",
+      "transfer-encoding": "chunked",
+      "x-content-type-options": "nosniff"
+    }
+  },
+  {
+    "path": "/api/library/status",
+    "status": 200,
+    "headers": {
+      "cache-control": "no-store",
+      "connection": "keep-alive",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Sun, 25 Oct 2026 11:08:25 GMT",
+      "keep-alive": "timeout=5",
+      "transfer-encoding": "chunked",
+      "vary": "Cookie",
+      "x-content-type-options": "nosniff"
+    }
+  },
+  {
+    "path": "/api/library/records",
+    "status": 200,
+    "headers": {
+      "cache-control": "no-store",
+      "connection": "keep-alive",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Sun, 25 Oct 2026 11:08:25 GMT",
+      "keep-alive": "timeout=5",
+      "set-cookie": "kibitz_library=p0rz59MpqZQ6p_-k1fsmPAHkzoOBLFnV1osa0RzfkXw; Path=/api/library/; HttpOnly; SameSite=Strict; Max-Age=31536000",
+      "transfer-encoding": "chunked",
+      "vary": "Cookie",
+      "x-content-type-options": "nosniff"
+    }
+  }
+]

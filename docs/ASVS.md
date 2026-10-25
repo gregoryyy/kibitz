@@ -71,6 +71,16 @@ Keep the [OWASP application](OWASP-TOP10.md), [LLM](OWASP-LLM.md), automated-sca
 and release gates separate. In particular, unrestricted chess prose and mutable
 model identities remain open under TODO 11.3.
 
+The owner allows the ten deviations and two open controls temporarily in
+PR #133's local release candidate, with the existing dated follow-up. Every one
+must be fixed and verified before the first final (non-prerelease) release.
+[TODO 11.4.2.1–11.4.2.12](TODO.md) assigns an individual remediation and acceptance
+criteria to each control; `followUp` in [asvs-l1.json](asvs-l1.json) identifies
+the exact item. RC approval does not change technical status or close a TODO.
+The release procedure must check implementations and evidence, as well as the
+updated statuses, before final-release approval. Existing earlier deadlines
+continue to apply.
+
 For a release, re-review every changed control against the release commit, rerun
 its cited tests and automated scans, record results and unresolved requirements
 in the release PR, and obtain explicit owner disposition of deviations. For a
