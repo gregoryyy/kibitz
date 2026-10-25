@@ -314,3 +314,5 @@ The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, 
 ### Persistent local accounting
 
 `server/usage-store.mjs` stores current-day counters and bounded minute admissions in a private versioned SQLite database. `usageAccounting()` shares it across coach/tests/embeddings, commits both server/user completion totals atomically and checks per-cookie plus aggregate rates before provider work. Cookie IDs are hashed; no prompts, responses, raw cookies or keys enter the ledger. Standard serve recipes select `.kibitz-data/usage.sqlite`; direct CLI calls default to memory. Shared private-file checks keep both usage and library databases outside the static tree. [Accounting behavior and lifecycle](USAGE.md) explain threshold overshoot, failures, retention and the deferred account boundary.
+
+The [assurance lineage](assure/README.md) connects file artifacts, TODO/DONE items, insights and deviations with source locations.

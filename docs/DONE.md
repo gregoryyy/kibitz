@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Typed file-level assurance lineage
+
+TODO item: 0.15.
+
+### Implementation notes
+
+- Added [the assurance graph](assure/lineage.json), its [typed contract](assure/types.mjs), generated schema/report and a repository-local generator/query command in `utils/assure.mjs`. It inventories tracked artifacts and extracts TODO hierarchy/status, DONE references and individual insight/deviation notes with source locations. Combined headings keep a separate reflection type.
+- Link Markdown files and logical items to referenced files; parse literal local JavaScript imports and inline HTML modules without executing them. Preserve ambiguous/missing historical references as explicit unresolved records. Every typed edge has source evidence, and the checker validates endpoint types, ownership, hierarchy and deterministic freshness.
+- Add `just assure`, `just assure-build` and `just assure-query`; `just check` and CI include the freshness/integrity check. The normal Node suite includes small independent fixture cases for parsing, provenance, ranges, ambiguity, safety, integrity and stale data. Local validation passes lint/JSDoc/ASVS, a fresh application build and the full unit/server suite (712 passes, one opt-in live skip); all thirteen focused lineage cases and separate utility/contract lint pass. Actual TODO/file queries and deterministic build/check round trips are exercised without provider calls.
+
+- Initial PR CodeQL flags a backtracking Markdown-link regex (27) and ambiguous classifier anchoring (28). A real old-builder probe times out after two seconds on an unterminated link with 28 escaped pairs. Replace link/code-span extraction and report-label stripping with a scanner that advances through characters/runs, and express directory/extension classification as separate tests. A bounded child covers 100,000 escaped pairs plus a large unmatched-bracket input; title/escape/nesting/code-span cases pass. No query, assertion or finding is suppressed. Corrected scan `40181285750` marks both PR findings fixed. After #130 merged, the freshness gate detected the new main artifacts in the tested merge; integrating main and regenerating the graph restores coverage of that source.
+
+### Deviations
+
+- This first graph records file-level references and authored planning status. It does not infer implementation or requirement satisfaction from a DONE reference, conflate preparation with release approval, or repair historical paths by guessing. Runtime/dynamic dependencies, symbols and historical file revisions remain outside scope.
+- New/deleted files must be staged before regeneration, keeping untracked/private operator material outside the inventory. The generated report makes missing annotation links and unresolved references visible rather than treating them as verified lineage.
+
+### Insights
+
+- Insights and deviations explain why an artifact and a TODO are connected. Keeping them as addressable nodes preserves that rationale during traversal, including partial implementation and open limitations.
+- A source location and an explicit relation type distinguish a reference from a completion claim. The graph should preserve those distinctions even when its endpoint files exist and all structural checks pass.
+
 ## 2026-10-25 — Track ASVS fixes required before final release
 
 TODO items: 11.4.2.1–11.4.2.12 (all open); release gate 11.6 remains open.

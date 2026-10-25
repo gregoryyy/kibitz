@@ -34,6 +34,8 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 0.13 Document the LLM and symbolic design across features in a brief [design overview](AI-DESIGN.md), distinguishing built behaviour, planned features and ROAD explorations. *(added)*
 - [x] 0.14 Organize existing source modules into `chess/`, `coach/`, `library/`, `openings/` and `platform/`; preserve directories in the build and update imports, tests, tools and documentation. *(added)*
 
+- [x] 0.15 Create a typed file-level assurance lineage graph linking artifacts, TODO items, DONE entries, insights and deviations; retain provenance/gaps and provide reproducible validation and queries. *(added)*
+
 ## 1. Play against the engine
 
 - [x] 1.1 Board UI: legal moves, promotion, flip, coordinates *(prototype)*
