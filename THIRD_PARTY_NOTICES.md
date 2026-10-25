@@ -29,7 +29,7 @@ rejects an unexpected bundle instead of silently skipping this adaptation.
 
 ## Loaded by the page, not shipped
 
-- The in-browser model's weights, which `just offline` downloads from Hugging Face into `site/models/` and the local server hands to the page: [Qwen2.5 1.5B Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF) or [Qwen2.5 0.5B Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF), Alibaba Cloud (Qwen team), Apache-2.0. They're not in the repo.
+- The in-browser model's weights, which `just offline` downloads from Hugging Face into `site/models/` and the local server hands to the page: [Qwen2.5 1.5B Instruct at `91cad511`](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/tree/91cad51170dc346986eccefdc2dd33a9da36ead9) or [Qwen2.5 0.5B Instruct at `9217f5db`](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/tree/9217f5db79a29953eb74d5343926648285ec7e67), Alibaba Cloud (Qwen team), Apache-2.0. They're not in the repo. [Source, pointer and licence evidence](docs/security/2026-10-25-browser-models.json) records the exact metadata reviewed without downloading weights.
 
 ## Used by the server (`site/server/`, installed from npm, not shipped to browsers)
 
