@@ -72,6 +72,38 @@ These links make upstream inspection possible without guessing a current branch.
 The npm-reported commit is unsigned registry metadata; the registry signature
 verified above covers only the package identity/integrity payload.
 
+## Browser-model source revisions
+
+The two catalogue GGUF downloads now select full official Qwen commits. On
+2026-10-25, exact-revision API metadata and raw Git LFS pointer text matched the
+existing file sizes and SHA-256 pins. The pointer text also reproduces the Git
+blob IDs reported by those exact trees. The
+[retained record](security/2026-10-25-browser-models.json) contains the pointers,
+revision URLs and hashes of the observed model-card/licence metadata:
+
+| Model | Official repository revision | Existing weights |
+| --- | --- | --- |
+| Qwen2.5 1.5B Instruct Q4_K_M | [`91cad51170dc346986eccefdc2dd33a9da36ead9`](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/tree/91cad51170dc346986eccefdc2dd33a9da36ead9) | 1,117,320,736 bytes; unchanged SHA-256 |
+| Qwen2.5 0.5B Instruct Q4_K_M | [`9217f5db79a29953eb74d5343926648285ec7e67`](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/tree/9217f5db79a29953eb74d5343926648285ec7e67) | 491,400,032 bytes; unchanged SHA-256 |
+
+Hugging Face [documents selecting a full commit](https://huggingface.co/docs/huggingface_hub/guides/download#from-specific-version)
+for a particular file revision. The runtime download still verifies the complete
+weight response independently. This review fetched only small metadata, licence,
+model-card and pointer text; it did not download or independently rehash weights.
+API responses include mutable service metadata even at a fixed repository
+revision; their recorded response hashes identify this observation, not an
+immutable API representation. Offline tests replay the retained pointers and
+check catalogue agreement. The actual-CLI regression intercepts every fetch with
+tiny synthetic bytes while preserving the production source locators.
+
+The model cards declare the respective Qwen instruct base models and Apache-2.0
+licences. Those are publisher statements, not independent training/quantization
+lineage, signed build attestations, model-safety or chess-quality evidence. A
+revision pin does not promise permanent hosting. The
+[upgrade procedure](OFFLINE.md#model-weight-downloads) keeps source, bytes,
+licence and compatibility review together; cloud/Ollama/Chrome identities and
+TODO 11.3.3 remain open.
+
 ## Release follow-up
 
 The [dated Action record](security/2026-10-25-action-advisories.json) independently

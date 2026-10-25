@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { BROWSER_MODELS } from '../../server/models.mjs';
 const script = fileURLToPath(new URL('../../scripts/fetch-model.mjs', import.meta.url));
 const preload = new URL('../fixtures/model-download.mjs', import.meta.url).href;
 const bytes = Buffer.from('synthetic verified weights\n'), filename = 'qwen2.5-1.5b-instruct-q4_k_m.gguf';
@@ -55,6 +56,19 @@ test('verified synthetic download publishes the exact file and marker without le
     const again = await download(dir, 'oversize'); expect(again.code, again.stderr).toBe(0); expect(again.stdout).toContain('already downloaded and checked');
     expect(fs.readFileSync(path.join(dir, filename))).toEqual(bytes);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('both catalogue models request immutable upstream revisions through the real CLI', async () => {
+  for (const model of BROWSER_MODELS) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kibitz-download-revision-'));
+    try {
+      const result = await download(dir, 'valid', ['--model', model.id]);
+      expect(result.code, result.stderr).toBe(0);
+      expect(result.stdout).toContain(`from ${model.source}`);
+      expect(fs.readFileSync(path.join(dir, model.file))).toEqual(bytes);
+      expect(fs.readFileSync(path.join(dir, model.file + '.sha256'), 'utf8').trim()).toBe(crypto.createHash('sha256').update(bytes).digest('hex'));
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  }
 });
 
 test('wrong hashes, truncation and stalled headers/body leave no published or partial download', async () => {
