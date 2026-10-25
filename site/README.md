@@ -189,7 +189,8 @@ scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
 scripts/fetch-model.mjs  Downloads the in-browser model into models/ once (just offline); --timeout-ms sets the transfer deadline
 scripts/download-model.mjs Pinned byte cap and streaming SHA-256, verified publication and temporary-file cleanup
-scripts/record-ai-fixtures.mjs  Records real provider responses for the contract tests (uses .env keys)
+scripts/record-ai-fixtures.mjs  Operator capture plan; --yes stages successful wire fixtures privately (uses .env keys)
+scripts/fixture-recording.mjs  Bounded single-attempt SDK capture, credential checks and atomic JSON publication
 scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env;
                       --models serves the in-browser model's weights; --offline drops Google Fonts and other hosts;
                       --library FILE mounts optional private SQLite storage independently of the AI gateway

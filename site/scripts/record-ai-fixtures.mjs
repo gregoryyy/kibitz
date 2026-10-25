@@ -1,50 +1,58 @@
-// Records real provider responses as fixtures for the contract tests (TODO 2.15).
-//   node scripts/record-ai-fixtures.mjs <provider...> [--env ../.env]
-// Sends two tiny requests per provider (a short chat reply and board annotations as JSON) with the
-// keys from .env, and saves each HTTP response's status, content type and body to
-// server/fixtures/<provider>-<case>.json. Response headers are not kept (they can carry account
-// ids), and neither is the request (it carries the key). Costs a few hundred tokens per provider.
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { parseArgs } from 'util';
-import Anthropic from '@anthropic-ai/sdk';
-import OpenAI from 'openai';
-import { complete, createProvider, loadConfig } from '../server/ai.mjs';
-import { FORMATS } from '../server/schema.mjs';
+// See docs/AI-FIXTURES.md. Planning/refusal performs no inference or output writes.
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
+import { loadConfig } from '../server/ai.mjs';
+import { CaptureError, CASES, FILES, checkSecrets, recordFixture, publishFixture } from './fixture-recording.mjs';
 
-const { values: opt, positionals } = parseArgs({ allowPositionals: true, options: { env: { type: 'string', default: '../.env' } } });
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-try { process.loadEnvFile(path.resolve(root, opt.env)); } catch (e) { if (e.code !== 'ENOENT') throw e; }
-if (!positionals.length) { console.error('usage: record-ai-fixtures.mjs <anthropic|openai|mistral|ollama ...>'); process.exit(2); }
-
-const CASES = {
-  chat: { system: 'You are a chess coach. Answer in one short sentence.', messages: [{ role: 'user', content: 'Name one principle for the opening.' }], maxTokens: 400 },
-  json: { messages: [{ role: 'user', content: 'Position after 1. e4 e5 2. Nf3, Black to move. Point out the attacked pawn and the best defence as board annotations.' }], maxTokens: 1500, schema: FORMATS.annotations },
-};
-
-for (const name of positionals) {
-  const cfg = loadConfig({ ...process.env, AI_PROVIDER: name });
-  if (!cfg.available) { console.error(`${name}: skipped (${cfg.reason})`); continue; }
-  for (const [label, c] of Object.entries(CASES)) {
-    let saved = null;
-    const recordingFetch = async (url, init) => {
-      const res = await fetch(url, init);
-      const body = await res.text();
-      const day = new Date().toISOString().slice(0, 10);
-      saved = { provider: name, case: label, model: cfg.model, recorded: day, source: `recorded with scripts/record-ai-fixtures.mjs on ${day}`, status: res.status, contentType: res.headers.get('content-type') || '', body };
-      return new Response(body, { status: res.status, headers: { 'content-type': saved.contentType } });
-    };
-    const baseURL = name === 'ollama' ? cfg.baseURL.replace(/\/+$/, '') + '/v1' : cfg.baseURL;
-    const client = name === 'anthropic' ? new Anthropic({ apiKey: cfg.apiKey, baseURL: cfg.baseURL, fetch: recordingFetch, maxRetries: 0 })
-      : new OpenAI({ apiKey: cfg.apiKey, baseURL, fetch: recordingFetch, maxRetries: 0 });
-    let outcome;
-    try { const r = await complete(createProvider(cfg, { client }), c.messages, c); outcome = `${r.text.length} chars, usage ${JSON.stringify(r.usage)}`; }
-    catch (e) { outcome = `error ${e.status ?? ''} ${e.code ?? ''}`.trim(); }
-    if (!saved) { console.error(`${name}/${label}: no response recorded (${outcome})`); continue; }
-    const file = path.join(root, 'server/fixtures', `${name}-${label}.json`);
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(saved, null, 2) + '\n');
-    console.log(`${name}/${label}: HTTP ${saved.status}, ${outcome} -> ${path.relative(root, file)}`);
+export async function main(args = process.argv.slice(2)) {
+  try {
+    const { values: opt, positionals: names } = parseArgs({ args, allowPositionals: true, options: {
+      env: { type: 'string', default: '../.env' }, out: { type: 'string', default: '../.kibitz-data/ai-fixtures' },
+      plan: { type: 'boolean', default: false }, yes: { type: 'boolean', default: false },
+    } });
+    if (!names.length || new Set(names).size !== names.length || names.some(name => !Object.hasOwn(FILES, name))) throw new CaptureError('invalid_selection');
+    if (opt.env) { try { process.loadEnvFile(path.resolve(root, opt.env)); } catch (error) { if (error.code !== 'ENOENT') throw new CaptureError('env_unreadable'); } }
+    const secrets = ['ANTHROPIC', 'OPENAI', 'MISTRAL'].map(p => process.env[`${p}_API_KEY`]).filter(Boolean);
+    const configs = names.map(name => {
+      const cfg = loadConfig({ ...process.env, AI_PROVIDER: name });
+      if (!cfg.available || cfg.provider !== name) throw new CaptureError('provider_unavailable');
+      if (cfg.model.length > 200 || [...cfg.model].some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)) throw new CaptureError('invalid_model');
+      checkSecrets(JSON.stringify({ model: cfg.model }), secrets);
+      return cfg;
+    });
+    const out = path.resolve(root, opt.out);
+    // Resolve existing parent aliases without creating output during a dry run.
+    let existing = out;
+    while (!fs.existsSync(existing)) existing = path.dirname(existing);
+    const canonical = path.resolve(fs.realpathSync(existing), path.relative(existing, out));
+    const repo = fs.realpathSync(path.dirname(root)), inside = path.relative(repo, canonical);
+    const allowed = ['.kibitz-data', path.join('site', 'server', 'fixtures')].some(p => inside === p || inside.startsWith(p + path.sep));
+    if (canonical === path.parse(canonical).root || canonical.split(path.sep).some(p => ['.git', 'node_modules'].includes(p)) ||
+        (!inside.startsWith('..' + path.sep) && !path.isAbsolute(inside) && !allowed)) throw new CaptureError('invalid_output');
+    checkSecrets(canonical, secrets);
+    console.log('Fixture plan: up to two HTTP requests per provider; chat 400 and JSON 1500 output tokens.');
+    console.log('No SDK retries, redirects, fallback, tools, judge or embeddings. Provider billing may apply, including Ollama aliases.');
+    for (const cfg of configs) console.log(`${cfg.provider}: ${JSON.stringify(cfg.model)}; chat + json`);
+    console.log(`Output: ${JSON.stringify(canonical)}. Review private fields before copying fixtures into the repository.`);
+    if (opt.plan) return 0;
+    if (!opt.yes) { console.error('Recording requires --yes after reviewing the plan.'); return 2; }
+    // Check the directory before incurring provider work.
+    fs.mkdirSync(canonical, { recursive: true, mode: 0o700 });
+    fs.accessSync(canonical, fs.constants.W_OK);
+    for (const cfg of configs) {
+      for (const label of Object.keys(CASES)) {
+        const saved = await recordFixture(cfg, label, { secrets });
+        await publishFixture(canonical, saved);
+        console.log(`${cfg.provider}/${label}: captured HTTP 200`);
+      }
+    }
+    return 0;
+  } catch (error) {
+    console.error(`fixture_recording: ${error instanceof CaptureError ? error.code : 'operation_failed'}`);
+    return 1;
   }
 }
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = await main();
