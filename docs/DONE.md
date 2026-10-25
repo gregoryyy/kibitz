@@ -9,7 +9,7 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ## 2026-10-25 — Isolated application HSTS
 
-TODO item: 11.4.2.2 / ASVS 3.4.1. Native implementation and focused verification are complete; packaged/current-head CI is recorded in the PR before finalizing the assessment. The other ten ASVS remediations and final-release gate remain open.
+TODO item: 11.4.2.2 / ASVS 3.4.1. Native implementation and actual packaged verification are complete at source `42e6ecd5761f012d9f89c15c8386113e9a01124d`; current-head CI remains recorded in the PR. The other ten ASVS remediations and final-release gate remain open.
 
 ### Implementation notes
 
@@ -18,6 +18,7 @@ TODO item: 11.4.2.2 / ASVS 3.4.1. Native implementation and focused verification
 - Keep original profiles usable for trusted-TLS recovery through explicit `--legacy-origin`, with protected-cookie migration and no HSTS. Document that a new hostname has new cookies/storage/groups, not an automatic identity transfer; export/import explicitly and preserve both profiles/current SQLite files. Describe host-wide policy lifetime across ports, trusted renewal/restart, cross-origin collection/counter limits and rollback without plaintext or trust bypass. Update native/container/provider/operations commands and the actual fifth Linux-image case for the final hostname.
 - Fresh build and lint/JSDoc/ASVS record checks pass. Full mocked unit/server suite: 727 passes, one opt-in live skip. Eleven focused transport/HSTS groups pass, including exact/custom SAN, aliased/mapped authorities, all routed status classes, real synthetic model and mock-answer streams, an injected filesystem 500, parser close, startup/storage ordering and original-origin recovery. A real curl HSTS client rejects a wrong CA, caches the policy only with its exact generated CA and upgrades HTTP on the same port without redirect or verification bypass.
 - All fourteen focused browser cases pass: built board/Stockfish/mock coach/library, application/error/HEAD headers, no alias cookie/app access, existing native HTTPS/cookie migration/CSP/preflight cases. The HSTS regression fails against the actual pre-HSTS cookie CLI on its missing header. Test-only browser resolver/trust exceptions do not prove operator trust or browser HSTS-cache acceptance. Linux packaging, full-app CI and assessment source identities are tracked in the PR; no local Docker result is claimed.
+- Actual Linux image job `121205581181` / run `40205550605` passes all five cases at `42e6ecd`, after integrating the exact-event TLS startup correction from #140. CodeQL/alert gate, ZAP/CSP/inventory, unit/lint/types/build/audit and secrets also pass; full application Playwright remains live and is not inferred from focused checks. Tick the HSTS TODO and update only ASVS 3.4.1's technical status, with that source revision and cited evidence: 30 verified/30 not-applicable/eight deviation/two open. Historical RC exceptions, raw reports and other deadlines/statuses are unchanged.
 
 ### Deviations
 

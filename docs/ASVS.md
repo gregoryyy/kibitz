@@ -44,9 +44,10 @@ The review leaves these findings visible:
   exploit: JSON/non-safelisted headers and absent CORS approval were already
   separate defenses. Remaining deployment and verification gaps follow below.
 - Local HTTP does not meet the transport, cookie-prefix and HSTS requirements.
-  Native TLS sets Secure, but current cookie names lack a secure prefix even there.
-  Do not silently add HSTS for localhost or rename private-library cookies without
-  considering other local apps and existing data. Revisit with TODO 12.2 packaging.
+  That was the RC baseline: protected-cookie migration (11.4.2.1) and an isolated
+  HTTPS/HSTS hostname (11.4.2.2) now address those two controls in the current
+  source. Explicit development/recovery modes stay outside final deployment.
+  Actual provider/endpoint transport and trust inventories retain their TODOs.
 - Cookie values group usage and private-library data; they do not authenticate a
   person. Backend format/scope checks do not provide issued-session registration,
   revocation, logout or account lifecycle. Browser expiration is not server revocation.
@@ -93,5 +94,34 @@ the checker baseline and source hash together; never silently refresh a live URL
 profile rollback and explicit development-only HTTP namespaces. The current
 3.3.1 source/test assessment is updated in the checklist; historical RC reports
 and their raw findings retain their original revision/status. This is not a
-dismissal of default-branch CodeQL alerts. The other eleven tracked ASVS fixes
-and the final-release gate remain open.
+dismissal of default-branch CodeQL alerts. Cookie identity continuity is scoped
+to the original hostname; the isolated HSTS origin has its own browser
+storage/groups and requires explicit export/import plus saved-profile recovery.
+The other ten tracked ASVS fixes and the final-release gate remain open.
+
+
+## Isolated-host HSTS remediation
+
+[TODO 11.4.2.2](TODO.md) implements an isolated `.test` application authority,
+exact-SAN validation and one-year HSTS before application routing. The assessment
+reviews implementation/test source **`42e6ecd5761f012d9f89c15c8386113e9a01124d`**.
+Its [actual Linux image job](https://github.com/gregoryyy/kibitz/actions/runs/40205550605/job/121205581181)
+passes the five image/browser/persistence cases, including the default TLS
+command, mapped application authority, protected cookies, HSTS on API/error
+responses, read-only identity files, UID 1000 and verified static HTTPS health.
+All eleven focused HSTS/transport groups, fourteen focused browser cases,
+727 unit/server cases (one opt-in live skip), build and record/lint/type checks
+also pass. CodeQL/alert gate, ZAP/CSP/inventory, audit and secrets pass at that
+source; the separate full application browser job remains source-specific in
+the PR and is not replaced by the focused result.
+
+The HSTS status changes from deviation to verified; all other technical statuses
+are preserved: **30 verified, 30 not applicable, eight deviations, two open**.
+Original RC evidence/dates remain historical. The [TLS guide](TLS.md) explains
+why Chromium's localhost exemption requires another namespace, normal certificate
+trust, host-wide lifetime across ports and explicit original-origin recovery.
+An independent curl test validates actual caching/upgrades with the exact fixture
+CA and rejects a wrong CA; browser fixtures verify headers/functionality using
+test-only trust/resolution exceptions, not operator browser policy acceptance.
+Actual endpoint/public-trust evidence remains 11.4.2.6/11.4.2.8. This is not
+final-release approval or a dismissal of any remaining findings.

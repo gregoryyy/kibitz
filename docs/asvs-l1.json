@@ -8,7 +8,7 @@
   },
   "scope": "local-single-user",
   "reviewed": "2026-10-25",
-  "revision": "54878f9396f7582226a17dc8b49ea522bc77e13e",
+  "revision": "42e6ecd5761f012d9f89c15c8386113e9a01124d",
   "controls": [
     {
       "id": "v5.0.0-1.2.1",
@@ -211,13 +211,22 @@
     {
       "id": "v5.0.0-3.4.1",
       "topic": "HSTS",
-      "status": "deviation",
-      "method": "scope-review",
-      "note": "The local server intentionally has no HSTS policy and supports HTTP. A one-year localhost-wide policy would affect other apps and ports. Reassess transport and deployment before enabling it. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Final native TLS uses the isolated kibitz.test authority (or an explicitly configured dedicated .test name) with exact DNS-SAN startup validation and operator loopback resolution. One-year HSTS is set before all application routes, including static/model/AI streams, HEAD and normal success/error responses. IP/localhost aliases expose only a static health manifest with no identity/HSTS; parser failures close without an outside-policy response. Forwarding headers cannot alter this policy; published ports retain full Origin checks. Native/custom-host/500/alias tests, built-browser tests, an independently trusted curl policy-cache/upgrade test and the actual default-command Linux image case pass at the reviewed source. Explicit HTTP development and original-origin TLS recovery are outside final deployment. No includeSubDomains/preload, automatic cross-host cookie transfer or operator browser trust/inventory claim is made.",
       "evidence": [
-        "site/server/static.mjs",
-        "docs/DEPLOYMENT.md",
-        "docs/releases/0.1.0-rc.1.md"
+        "site/scripts/serve.mjs",
+        "site/server/transport.mjs",
+        "site/server/tls.mjs",
+        "site/server/transport.test.mjs",
+        "site/server/hsts.test.mjs",
+        "site/tests/e2e/hsts.spec.mjs",
+        "site/tests/container/image.spec.mjs",
+        "site/tests/container/startup.mjs",
+        "docs/TLS.md",
+        "docs/COOKIE-MIGRATION.md",
+        "docs/CONTAINER.md",
+        "docs/ASVS.md"
       ],
       "followUp": "TODO 11.4.2.2"
     },
