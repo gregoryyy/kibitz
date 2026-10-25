@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Authored typed-link assessments, version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "edges"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "from",
+          "to",
+          "confidence",
+          "evidence"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "part_of",
+              "recorded_in",
+              "references_todo",
+              "has_insight",
+              "has_deviation",
+              "has_reflection",
+              "mentions",
+              "links_to",
+              "imports",
+              "contains_object",
+              "calls",
+              "references_binding",
+              "imports_binding",
+              "contains_section",
+              "contains_block",
+              "locates_item",
+              "mentions_object",
+              "documents_link",
+              "has_description",
+              "changes_file",
+              "references_item",
+              "mentions_file",
+              "implements",
+              "verifies",
+              "documents",
+              "deviates_from",
+              "supports",
+              "contradicts"
+            ]
+          },
+          "from": {
+            "type": "string",
+            "minLength": 1
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "method",
+              "policy",
+              "rationale"
+            ],
+            "properties": {
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "method": {
+                "enum": [
+                  "observed",
+                  "rule",
+                  "analyst"
+                ]
+              },
+              "policy": {
+                "const": "typed-links-1"
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "reference",
+              "resolution"
+            ],
+            "properties": {
+              "source": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "path",
+                  "line",
+                  "endLine"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "line": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "endLine": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              "reference": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resolution": {
+                "const": "authored_assessment"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

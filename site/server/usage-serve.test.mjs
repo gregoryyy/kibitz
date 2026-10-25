@@ -5,25 +5,22 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import net from 'node:net';
 import { fileURLToPath } from 'node:url';
 const script = fileURLToPath(new URL('../scripts/serve.mjs', import.meta.url));
 async function start(root, database, extra = {}) {
-  const probe = net.createServer(); await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve));
-  const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
-  const child = spawn(process.execPath, [script, root, '--port', String(port), '--api', '--http-dev', '--env=', '--usage', database], {
+  const child = spawn(process.execPath, [script, root, '--port', '0', '--host', '127.0.0.1', '--http-dev', '--api', '--env=', '--usage', database], {
     stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'mock', AI_LOCAL_ONLY: '', EMBEDDING_PROVIDER: 'mock',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', AI_RATE_LIMIT_PER_MINUTE: '10', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1', AI_TOKEN_BUDGET_PER_DAY: '0', ...extra },
   });
-  let output = '', errors = '';
+  let output = '', errors = '', base = '';
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => { child.kill(); reject(Error('Usage server startup timed out')); }, 20_000);
-    child.stdout.on('data', chunk => { output += String(chunk); if (output.includes('Serving')) { clearTimeout(timer); resolve(null); } });
+    child.stdout.on('data', chunk => { output += String(chunk); const ready = output.match(/^Serving Kibitz at (http:\/\/127\.0\.0\.1:[1-9]\d*)\/\r?$/m); if (ready) { base = ready[1]; clearTimeout(timer); resolve(null); } });
     child.stderr.on('data', chunk => { errors += String(chunk); });
     child.once('exit', code => { clearTimeout(timer); reject(Error(`Usage server exited (${code}): ${errors}`)); });
     child.once('error', error => { clearTimeout(timer); reject(error); });
   });
-  return { base: `http://127.0.0.1:${port}`, output: () => output, stop: async () => {
+  return { base, output: () => output, stop: async () => {
     if (child.exitCode !== null || child.signalCode !== null) return;
     const done = new Promise(resolve => child.once('exit', resolve)); child.kill(); await done;
   } };
