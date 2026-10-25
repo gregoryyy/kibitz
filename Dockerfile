@@ -11,6 +11,7 @@ COPY site/server ./server
 COPY site/scripts ./scripts
 COPY site/data ./data
 RUN npm run build
+RUN node --input-type=module -e "import { writeImageDeployment } from './server/deployment.mjs'; writeImageDeployment(process.cwd());"
 RUN mkdir /runtime-data && chown 1000:1000 /runtime-data && chmod 700 /runtime-data
 
 FROM base AS production-dependencies
@@ -36,7 +37,8 @@ COPY --from=build /app/site/dist ./dist
 # Shared pure browser modules are also imported by the server, outside the public tree.
 COPY --from=build /app/site/src ./src
 COPY --from=build /app/site/server ./server
-COPY --from=build /app/site/scripts/serve.mjs /app/site/scripts/image-inventory.mjs /app/site/scripts/healthcheck.mjs ./scripts/
+COPY --from=build /app/site/.kibitz-image.json ./
+COPY --from=build /app/site/scripts/serve.mjs /app/site/scripts/native-runtime.mjs /app/site/scripts/native-sandbox.mjs /app/site/scripts/image-inventory.mjs /app/site/scripts/healthcheck.mjs ./scripts/
 COPY --from=build /app/LICENSE /app/THIRD_PARTY_NOTICES.md /app/
 COPY --from=build --chown=1000:1000 --chmod=0700 /runtime-data /data
 USER 1000:1000

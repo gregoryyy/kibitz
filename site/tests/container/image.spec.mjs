@@ -52,6 +52,7 @@ test('image runs without root or development/private checkout files and keeps da
     const fs=require('node:fs');
     console.log(JSON.stringify({uid:process.getuid(),
       git:fs.existsSync('/app/.git'),serverGit:fs.existsSync('/app/site/.git'),
+      deployment:JSON.parse(fs.readFileSync('/app/site/.kibitz-image.json','utf8')),
       privateSentinel:fs.existsSync('/app/site/server/.env.container-test'),
       eslint:fs.existsSync('/app/site/node_modules/eslint'),
       shell:fs.existsSync('/bin/sh'),npm:fs.existsSync('/usr/local/lib/node_modules/npm'),
@@ -59,6 +60,7 @@ test('image runs without root or development/private checkout files and keeps da
       usageMode:fs.statSync('/data/usage.sqlite').mode&0o777,
       libraryMode:fs.statSync('/data/library.sqlite').mode&0o777}));`;
   expect(JSON.parse(docker('exec', name, 'node', '-e', code))).toEqual({ uid: 1000, git: false, serverGit: false,
+    deployment: {version:1,kind:'source-free-image'},
     privateSentinel: false, eslint: false, shell: false, npm: false, dataMode: 0o700, usageMode: 0o600, libraryMode: 0o600 });
   const info = JSON.parse(docker('inspect', name))[0];
   expect(info.Config.User).toBe('1000:1000'); expect(info.HostConfig.ReadonlyRootfs).toBe(true);

@@ -1,5 +1,27 @@
 # DONE
 
+## 2026-10-25 — Native checkout isolation (experimental)
+
+TODO item: 11.4.2.9.1 under 11.4.2.9 / ASVS 13.4.1. The parent control remains a deviation while full platform/deployment verification is outstanding; this entry does not grant final-release approval.
+
+### Implementation notes
+
+- Keep the native HTTPS command and existing private data paths. Before SDK loading, database opening or listening, validate identity/policy in a trusted bootstrap and re-execute the application under macOS filesystem restrictions or an unprivileged Linux bubblewrap namespace. Grant selected runtime/model/config reads and private owner-only SQLite parent writes; make runtime/public/policy paths read-only and reject metadata-overlapping grants. Resolve linked worktree/common Git paths and chained object alternates without evaluating Git/scripts. Missing/refused isolation has no unrestricted final-mode fallback.
+- Pass only a bounded regular-file proof descriptor: it establishes that a canary exists while OS pathname reads must fail. Check original metadata and runtime ancestry before application work, close proof, forward termination and stop the child on bootstrap disconnect. An invalid child marker cannot replace proof; refusing one must not close an unrelated Node event-loop descriptor. Replace raw loader diagnostics with the existing fixed startup-error category.
+- Expose the permission-policy directory read-only, preserving live offline atomic replacement/unlink rather than pinning an old policy inode on Linux. Keep identities in a dedicated private child directory and SQLite outside it; standard .kibitz-data/tls plus parent data paths already follow this layout. Separate synthetic TLS identities similarly while retaining fixture data/session paths and unchanged private schemas. Application writes cannot replace its policy or runtime.
+- Retain strict container context/exclusion, UID 1000, read-only root/identities and private volumes. Produce the source-free image marker only during its isolated build, verify its metadata-free ancestry at final startup, and preserve the actual packaged TLS regression. No nested native sandbox is required inside that existing execution boundary.
+- Add actual OS/SQLite/symlink/read-only-state/proof checks and listener-process probes that open descriptors without reading/logging Git contents. Exercise TLS, sessions, private storage, HTTP hidden paths and live policy replacement/deletion. Native macOS CI supplements Linux unit/browser/image checks; Linux installs its system bubblewrap prerequisite in the disposable runner. Local macOS TLS/session/permission/termination regressions pass (39 groups before the new CLI cases). The new browser fixture uses a browser-only loopback resolver and exact-CA native sign-in rather than requiring a host resolver/trust change.
+- The final complete mock-only unit suite passes: 815 tests, one opt-in live skip, with ambient cloud credentials removed. All 16 affected browser cases pass. The actual previous CLI at 97ec53f fails the new browser regression by reporting original Git metadata readable; no Git contents are read/logged. Fresh lint/JSDoc checks pass, including a diagnostic-injection regression that discards arbitrary child fields/paths. Record the owner's answer that no dedicated public domain is available; leave public certificate trust open. No production identities, certificates, trust changes, provider calls, model downloads or dependency lockfile changes occur.
+
+### Deviations
+
+- The owner explicitly selects macOS and Linux for the native final release (2026-10-25). Windows is outside that scope and refuses unsupported isolation. Keep the overall control open until Linux/macOS and packaged verification passes. Explicit HTTP development and legacy-origin recovery remain outside final scope. OS/bootstrap/runtime/directory writers stay trusted; do not count an altered runtime, deliberate metadata hard link or extra mount as a supported deployment. The filesystem policy is separate from network restrictions and hosted authentication.
+
+### Insights
+
+- Moving runtime files or hiding dot paths from HTTP does not stop a same-user process opening the original checkout. Node permissions also are not a malicious-code boundary, so verification must exercise the real OS restriction, including native SQLite. Isolation must preserve revocation semantics: a read-only file bind can silently retain an obsolete permission policy after the operator replaces its pathname.
+
+
 Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, the TODO items covered, and then:
 - **Implementation notes:** what was built, and where.
 - **Deviations:** what differs from the plan, and why.

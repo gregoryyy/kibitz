@@ -64,6 +64,19 @@ async function main() {
   if ((!tlsOptions && (opt.api || opt.library) && !opt['http-dev']) || (tlsOptions && opt['http-dev'])) {
     throw Object.assign(new Error('TLS required'), { code: 'ERR_KIBITZ_HTTPS_REQUIRED' });
   }
+  if (tlsOptions && !opt['legacy-origin']) {
+    // The parent is a trusted local bootstrap. Validate identity/policy before
+    // preparing sandbox directories, and start application work only in isolation.
+    if (opt.api || opt.library) {
+      const { readOperator } = await import('../server/operator.mjs');
+      const { readPermissions } = await import('../server/permissions.mjs');
+      const operator = readOperator(opt.operator, servedRoots);
+      readPermissions(opt.permissions, servedRoots, operator);
+      if (!opt.sessions) throw Object.assign(new Error('Configure a private operator identity and session database outside served directories.'), { code: 'ERR_KIBITZ_OPERATOR_CONFIG' });
+    }
+    const { isolateFinalRuntime } = await import('./native-runtime.mjs');
+    if (await isolateFinalRuntime(opt, servedRoots)) return;
+  }
   // Keep missing runtime dependencies inside the bounded startup-error handler.
   const [{ BASE_HEADERS, isHiddenPath }, { servePublicFile }] = await Promise.all([
     import('../server/static.mjs'), import('../server/public-files.mjs'),

@@ -25,6 +25,8 @@ node site/scripts/serve.mjs site/dist --api --env .env \
   --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem
 ```
 
+Final-mode native startup applies the experimental [filesystem restrictions](NATIVE-ISOLATION.md) before storage/listening. Linux needs an operator-installed bubblewrap package and permitted unprivileged namespaces; missing/refused isolation stops startup. Keep policy/identities in their own private directory, separate from SQLite files. Overall platform verification remains open under TODO 11.4.2.9.
+
 First initialize the private [operator identity](SESSIONS.md) once and create its
 [explicit permission policy](PERMISSIONS.md), then supply
 both TLS files before running this command. The server neither generates

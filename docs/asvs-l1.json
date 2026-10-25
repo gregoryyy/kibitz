@@ -561,7 +561,7 @@
       "topic": "Authentication rotation",
       "status": "verified",
       "method": "code-and-test",
-      "note": "Successful authentication issues a fresh token. When reauthenticating with a previous session cookie, the registry removes that operator-owned previous token and inserts its replacement in the same transaction. It cannot remove a different operator\u2019s token, and a failed issuance rolls back. Real TLS restart/recovery tests confirm the previous token returns 401 while the replacement retains the collection.",
+      "note": "Successful authentication issues a fresh token. When reauthenticating with a previous session cookie, the registry removes that operator-owned previous token and inserts its replacement in the same transaction. It cannot remove a different operator’s token, and a failed issuance rolls back. Real TLS restart/recovery tests confirm the previous token returns 401 while the replacement retains the collection.",
       "evidence": [
         "site/server/sessions.mjs",
         "site/server/session-api.mjs",
@@ -804,7 +804,7 @@
       "topic": "Deployed TLS versions",
       "status": "open",
       "method": "scope-review",
-      "note": "Native TLS fixtures and a dated direct-handshake inventory at the three default cloud origins plus the model-source host provide partial evidence. All four negotiated TLS 1.3; forced 1.2 also worked. Legacy attempts were refused by the local client, not established as peer refusal. The current source now enforces 1.2\u20131.3 listener/health settings and reviewed outbound runtime defaults, with verified local SDK TLS 1.3 fixtures and source-pinned image tests. Actual operator/browser/provider/CDN endpoint negotiations and complete downgrade-refusal evidence remain unverified; no release deployment was inspected. Owner approved a temporary evidence-gap exception for local 0.1.0-rc.1 on 2026-10-25, with endpoint/TLS review due 2026-11-01; this requirement stays open. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "note": "Native TLS fixtures and a dated direct-handshake inventory at the three default cloud origins plus the model-source host provide partial evidence. All four negotiated TLS 1.3; forced 1.2 also worked. Legacy attempts were refused by the local client, not established as peer refusal. The current source now enforces 1.2–1.3 listener/health settings and reviewed outbound runtime defaults, with verified local SDK TLS 1.3 fixtures and source-pinned image tests. Actual operator/browser/provider/CDN endpoint negotiations and complete downgrade-refusal evidence remain unverified; no release deployment was inspected. Owner approved a temporary evidence-gap exception for local 0.1.0-rc.1 on 2026-10-25, with endpoint/TLS review due 2026-11-01; this requirement stays open. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/scripts/serve.mjs",
         "site/server/cookie-transport.test.mjs",
@@ -862,13 +862,16 @@
       "topic": "Source-control metadata",
       "status": "deviation",
       "method": "scope-review",
-      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. Native checkout execution still lets the app user read Git metadata, so the overall local-deployment requirement remains a deviation under the owner-approved local RC scope. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. The original native checkout execution allowed the app user to read Git metadata. Experimental native OS isolation now covers the owner-selected macOS/Linux scope: local macOS process/SQLite/TLS/data checks pass, while independent Linux and packaged source verification is pending. Keep the overall requirement a deviation until that verification and assessment are complete. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/static.mjs",
         "site/server/static.test.mjs",
         "site/tests/container/image.spec.mjs",
         "docs/CONTAINER.md",
-        "docs/releases/0.1.0-rc.1.md"
+        "docs/releases/0.1.0-rc.1.md",
+        "site/scripts/native-runtime.mjs",
+        "site/server/deployment.test.mjs",
+        "docs/NATIVE-ISOLATION.md"
       ],
       "followUp": "TODO 11.4.2.9"
     },

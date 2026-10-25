@@ -30,6 +30,8 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci
+      - name: Install native filesystem isolation prerequisite
+        run: sudo apt-get install -y bubblewrap
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run check:asvs
@@ -53,6 +55,8 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
       - run: npm ci
+      - name: Install native filesystem isolation prerequisite
+        run: sudo apt-get install -y bubblewrap
       - run: npx playwright install --with-deps chromium
       - run: npm run test:assure-browser
       - run: npm run test:e2e
@@ -62,6 +66,22 @@ jobs:
           name: playwright-traces
           path: site/tests/out/
           retention-days: 7
+
+  native-macos:
+    name: Native macOS isolation
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - name: Exercise actual OS, TLS, storage and policy boundaries
+        run: node --test tests/unit/native-isolation.test.mjs server/deployment.test.mjs server/hsts.test.mjs server/session-api.test.mjs server/session-termination.test.mjs server/permissions-api.test.mjs server/tls.test.mjs
 
   secrets:
     name: Secret scan

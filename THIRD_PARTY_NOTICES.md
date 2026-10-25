@@ -83,3 +83,5 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 ```
+
+Native Linux isolation optionally invokes the operator-installed [bubblewrap](https://github.com/containers/bubblewrap) system package (LGPL-2.0-or-later). It is not vendored or distributed by this repository or image; the distribution manages its build and security updates. Its policy/integration limits are documented in [Native isolation](docs/NATIVE-ISOLATION.md).
