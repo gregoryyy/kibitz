@@ -13,6 +13,7 @@ Kibitz is licensed under the GNU General Public License, version 3 or (at your o
 | [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) | | CC0-1.0 | `eco.json`, built from `site/data/eco/` |
 | [Lichess puzzle database](https://database.lichess.org/#puzzles), 64-row starter subset retrieved 2026-10-24 | | CC0-1.0 | `curriculum/puzzle-data.js`, built from the recorded CSV/manifest in `site/data/puzzles/` |
 | [wllama](https://github.com/ngxson/wllama), Xuan-Son Nguyen and contributors; includes [llama.cpp](https://github.com/ggml-org/llama.cpp) (MIT, The ggml authors) | 3.8.1 | MIT | `wllama.js`, `wllama.wasm` |
+| Bricolage Grotesque (2022 project authors), Instrument Sans (2022 project authors), JetBrains Mono (2020 project authors), from [Google Fonts](https://github.com/google/fonts) | Source revision `e7db6ca603fd4862010383ff17ffd6cc4ffac1c0` | SIL Open Font License 1.1, complete per-family notices retained | `fonts/*.ttf`, `fonts/*-OFL.txt`, `fonts/manifest.json` |
 
 The page also ships numerical outcomes for 28 fixed endgame teaching positions, computed by the [Lichess Syzygy tablebase service](https://github.com/lichess-org/lila-tablebase) using Ronald de Man's Syzygy tables. `site/src/curriculum/tablebase-snapshots.js` records the exact query URL, retrieval time and digest of each saved result. These are computed chess facts; no tablebase files or server implementation are bundled. The teaching prose is original Kibitz material under the project licence. Refreshing the records is an explicit development command; the browser makes no tablebase requests.
 
@@ -22,7 +23,6 @@ The problems collection retains the published Réti/Saavedra diagram/score facts
 
 ## Loaded by the page, not shipped
 
-- Fonts from Google Fonts: Bricolage Grotesque, Instrument Sans, JetBrains Mono (all SIL Open Font License 1.1). Not in offline mode (`just offline`).
 - The in-browser model's weights, which `just offline` downloads from Hugging Face into `site/models/` and the local server hands to the page: [Qwen2.5 1.5B Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF) or [Qwen2.5 0.5B Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF), Alibaba Cloud (Qwen team), Apache-2.0. They're not in the repo.
 
 ## Used by the server (`site/server/`, installed from npm, not shipped to browsers)
@@ -37,6 +37,10 @@ The problems collection retains the published Réti/Saavedra diagram/score facts
 The parser and decoder stay in server-side `node_modules/`; their licence files remain with the installed packages. They are not browser modules or model dependencies.
 
 Development tools (Playwright, ESLint, TypeScript and their dependencies) are not shipped; their licences are in `site/node_modules/`.
+
+Container CI additionally runs the official [Trivy](https://github.com/aquasecurity/trivy) 0.76.1 scanner (Apache-2.0), pinned by manifest digest. It is a separate build/review tool, not part of the distributed app image. Its public advisory database is refreshed and its timestamp/digest recorded for each image check; [coverage and limits](docs/IMAGE-ADVISORIES.md) distinguish it from a complete release review.
+
+The candidate runtime uses [Google Distroless Node.js 24 on Debian 13](https://github.com/GoogleContainerTools/distroless/tree/main/nodejs), pinned by manifest digest. Distroless tooling is Apache-2.0; Node and Debian components retain their own upstream licences/notices in the base image. CI verifies the publisher with [Cosign](https://github.com/sigstore/cosign) 3.1.4 (Apache-2.0), installed by a pinned [cosign-installer](https://github.com/sigstore/cosign-installer) action (Apache-2.0). These verification tools are not distributed in the app image.
 
 ## chess.js licence
 

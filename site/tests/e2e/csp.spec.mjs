@@ -7,7 +7,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-const script = fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
+const script = process.env.KIBITZ_CSP_SERVER || fileURLToPath(new URL('../../scripts/serve.mjs', import.meta.url));
 const inertCode = 'window.cspDormant = true;';
 let root, child, stopped, base;
 test.beforeAll(async () => {
@@ -25,6 +25,10 @@ test.beforeAll(async () => {
     `<script type="application/json">${inertCode}</script>` +
     '<script>window.cspActive = true;</script>');
   fs.writeFileSync(path.join(root, 'artifact.html'), '<main id="result">waiting</main><script type="module">document.getElementById("result").textContent = "module ready";</script>');
+  fs.writeFileSync(path.join(root, 'styles.html'), '<!doctype html><meta charset="utf-8">' +
+    '<STYLE data-note="a > b">\r\n#trusted { color: rgb(1, 2, 3); }\r</STYLE >' +
+    '<template><style>#trusted { color: rgb(90, 80, 70); }</style></template>' +
+    '<div id="trusted">trusted block</div><div id="attribute">attribute probe</div><div id="runtime">runtime geometry</div>');
   child = spawn(process.execPath, [script, root, '--port', '0'], { stdio: ['ignore', 'pipe', 'pipe'] });
   stopped = new Promise(resolve => child.once('exit', resolve));
   let output = '';
@@ -72,6 +76,21 @@ test('the artifact-style body keeps its module executable and cross-origin isola
   expect(await page.evaluate(() => window.cspViolations)).toEqual([]);
   expect(response.headers()['cross-origin-opener-policy']).toBe('same-origin');
   expect(response.headers()['cross-origin-embedder-policy']).toBe('require-corp');
+});
+
+test('untrusted styles and style attributes are blocked while hashed CSS and runtime geometry work', async ({ page }) => {
+  const response = await page.goto(base + '/styles.html');
+  await expect(page.locator('#trusted')).toHaveCSS('color', 'rgb(1, 2, 3)');
+  await page.evaluate(() => {
+    const style = document.createElement('style'); style.textContent = '#trusted { color: rgb(90, 80, 70); }'; document.body.append(style);
+    document.querySelector('#attribute').setAttribute('style', 'display:none');
+    document.querySelector('#runtime').style.width = '43px';
+  });
+  await expect(page.locator('#trusted')).toHaveCSS('color', 'rgb(1, 2, 3)');
+  await expect(page.locator('#attribute')).toBeVisible();
+  await expect(page.locator('#runtime')).toHaveCSS('width', '43px');
+  await expect.poll(() => page.evaluate(() => window.cspViolations.map(v => v.directive).sort())).toEqual(['style-src-attr', 'style-src-elem']);
+  expect(response.headers()['content-security-policy']).not.toMatch(/unsafe-inline|unsafe-hashes|fonts\.google/);
 });
 
 test('a missing parser dependency produces a bounded actionable startup error', async () => {

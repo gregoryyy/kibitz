@@ -6,6 +6,8 @@ TODO 12.1 establishes a version policy and a user-facing
 The package and both root entries in `site/package-lock.json` currently agree on
 `0.1.0`. This is a development baseline; there are no release tags at the time
 this policy is introduced. This documentation does not publish a release.
+The [dated local release review packet](RELEASE-REVIEW.md) collects prerequisite
+evidence and outstanding dispositions; it is not release approval.
 
 The compatibility scope is the documented CLI/configuration behavior, gateway
 and optional library HTTP contracts, versioned data exports and persisted data
@@ -55,14 +57,14 @@ Prepare a release in its own branch and PR:
    not release-commit evidence.
 5. Review third-party maintenance deadlines, licences/notices, required source
    availability, packaged components, platform support and documentation. Confirm
-   the release's actual deployment/security scope. Container packaging and the
-   remaining user/provider/Ollama guide work have their own TODO items.
+   the release's actual deployment/security scope. Confirm the merged container
+   and user/provider/Ollama guides match that candidate.
 6. Merge only through the approved release PR with passing CI. After explicit
    release authorization, tag its exact merged commit as `vVERSION` and publish
    reviewed release notes/assets. Do not retag a different commit or publish from
    an unmerged feature branch. Correct a released defect with a new version.
 
-Creating this policy completes TODO 12.1. It does not complete packaging TODO 12.2,
-the remaining guides in 12.4 or the actual release gate in 11.6. Those require their
-own concrete verification and release decision. Feature and milestone PRs do not
+Creating this policy completes TODO 12.1. Packaging TODO 12.2 and guides in 12.4
+have their separate evidence; the actual release gate in 11.6 still requires
+candidate verification and a release decision. Feature and milestone PRs do not
 authorize automatic merges or publishing.

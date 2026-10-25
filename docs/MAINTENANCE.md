@@ -31,5 +31,8 @@ the release/maintenance PR with scope, mitigation, revised deadline and review d
 An exception must remain visible; do not dismiss an alert merely to make a check green.
 
 The current ASVS review does not establish that the whole component inventory is
-within these targets. TODO 11.5 and packaging TODO 12.2 must supply dated inventory,
-advisory and update evidence. Keep that distinction in release reporting.
+within these targets. [Automated scans](SECURITY-SCANS.md) and
+[exact-image evidence](IMAGE-ADVISORIES.md) supply dated snapshots, including
+individual lower-finding targets. Broader component coverage and exposure triage
+remain in the [release review](RELEASE-REVIEW.md); a snapshot does not establish
+continuing compliance with this policy.

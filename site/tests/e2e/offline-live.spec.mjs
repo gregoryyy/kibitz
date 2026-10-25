@@ -8,9 +8,8 @@ test.skip(process.env.KIBITZ_LIVE_MODEL !== '1', 'set KIBITZ_LIVE_MODEL=1 (and d
 test('the real model loads in the page and answers a question', async ({ page }) => {
   test.setTimeout(10 * 60_000);
   const outside = [];
-  // http(s) requests to other hosts; blob: URLs are the runtime's own workers. Google Fonts is allowed
-  // here (this server isn't --offline); serve.test.mjs checks that offline mode drops it.
-  page.on('request', r => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && !['127.0.0.1', 'localhost'].includes(u.hostname) && !/(^|\.)(gstatic|googleapis)\.com$/.test(u.hostname)) outside.push(r.url()); });
+  // Fonts are local in both modes; blob: URLs are the runtime's own workers.
+  page.on('request', r => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && !['127.0.0.1', 'localhost'].includes(u.hostname)) outside.push(r.url()); });
   await open(page);
   await openSettings(page);
   await page.locator('#optProvider button[data-v="browser"]').click();

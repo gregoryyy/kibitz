@@ -14,7 +14,7 @@ The [local Docker package](docs/CONTAINER.md) provides a mock-default recipe wit
 
 ## Prerequisites
 
-- **Node.js 24 LTS or newer** with npm (`.nvmrc` pins 24; tested with Node 25).
+- **Node.js 24.22.1 LTS** with npm, or a newer maintained security-patched release (`.nvmrc` pins the CI runtime).
 - **Google Chrome**, for the end-to-end tests (Playwright drives the installed browser).
 - **[just](https://github.com/casey/just)** (`brew install just`) is optional; every recipe has a plain npm equivalent below.
 - A recent desktop or mobile browser with WebAssembly support. Older browsers fall back to the slower asm.js engine.
@@ -28,6 +28,8 @@ The [threat model](docs/THREAT-MODEL.md) maps data flows, local trust assumption
 [Automated security checks](docs/SECURITY-SCANS.md) document dependency/code/secret checks and a pinned passive ZAP baseline against an isolated mock-only staging server, including evidence limits and retained reports.
 
 The [flipbook](docs/flipbook/README.md) follows the Opera Game into source search, opening repertoires, lessons and local practice, including German phone views.
+
+The [user guide](docs/GUIDE.md) walks through playing, analysis, reviews, practice, source search and data controls. [Provider setup and native Ollama](docs/PROVIDERS.md) covers API access, task models, explicit sharing, spending limits and a local offline-serving recipe.
 
 ## Quick start
 
@@ -72,9 +74,11 @@ The [LLM and symbolic design overview](docs/AI-DESIGN.md) maps the mechanisms ac
 
 The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library, opening explorer, repertoire builder and reading suggestions.
 
+Coaching prose is experimental. Kibitz checks recognized moves, selected board claims and captured engine evidence; these checks do not verify every explanation or strategic claim. Expand an answer's evidence cards and check important continuations with Stockfish. The [user guide](docs/GUIDE.md#analyse-and-ask-the-coach) explains the current limits.
+
 The **Openings** tab explores recorded continuations from the classics and your saved/imported games. It shows counts and results for the selected collection, with sample games at each move. Try a continuation on the scratch board and step back to explore another branch. During play it follows the help setting and needs Full engine help.
 
-The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. Drills are planned in TODO 5.4.
+The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. **Review due moves** recalls saved choices on an independent board; [practice scheduling](docs/PRACTICE.md) describes intervals and limits.
 
 **Settings → Player profile** keeps your explanation level, optional self-reported rating/pool/time control and learning goals in this browser. Saved preferences guide coach requests; goals are quoted user data, and the rating is separate from opponent strength. [Profile behavior and limits](docs/PROFILE.md) explain saving, request freshness and the absence of automatic rating inference.
 
@@ -108,7 +112,7 @@ Default server logs omit URLs, cookies, prompts and raw provider messages; [loca
 **Coach settings** (in the Coach tab, when running locally):
 - Switch between the providers your `.env` sets up.
 - See the model each task uses (`<PROVIDER>_MODEL_QUICK`, `_MODEL_REVIEW`).
-- Turn on local-only mode, so only Ollama is used (`AI_LOCAL_ONLY` makes it the default).
+- Turn on local-only mode, allowing Ollama or the in-browser model (`AI_LOCAL_ONLY` makes it the default). Ollama's own endpoint/model configuration still controls whether its computation is local; see [setup](docs/PROVIDERS.md#self-host-with-native-ollama).
 - Test the connection.
 - See today's requests and tokens, with a cost estimate if you set `AI_PRICES`.
 
@@ -116,7 +120,7 @@ Changes there last until the server restarts; keys never reach the page.
 
 **Offline mode:** `just offline` runs the coach on a small model inside the browser, so it works without a network, a key or a provider:
 - **First run:** it downloads Qwen2.5 1.5B Instruct (about 1.1 GB, Apache-2.0) into `site/models/` and checks its SHA-256. `just offline qwen2.5-0.5b` takes a 0.5 GB model instead, which is faster but weaker.
-- **Serving:** it serves without `.env` keys, in local-only mode. The page loads nothing from other hosts; the fonts fall back to system ones.
+- **Serving:** it serves without `.env` keys, in local-only mode. The page loads nothing from other hosts; its original fonts are bundled locally.
 - **In the page:** the model loads only after you press Load in the Coach tab. It runs on the GPU through WebGPU where the browser has it, otherwise on the CPU in WebAssembly, where Stockfish gives it some of its threads while it answers. It unloads after ten idle minutes.
 - **With `just serve`:** a downloaded model also appears as "In browser" in the coach settings. There you can also send only the quick questions and comments to it, and everything else to your provider.
 

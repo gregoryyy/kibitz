@@ -7,6 +7,130 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Local release review preparation
+
+TODO item: 11.6 preparation; the release gate remains open.
+
+### Implementation notes
+
+- Added a dated review packet binding the source/prerequisite PRs to the actual OWASP application/LLM, ASVS, web-baseline, exact-image and test evidence. Separate implementation-source evidence from the future release candidate and its required full checks.
+- Listed each of the ten ASVS deviations and both open requirements with the concrete decision or missing evidence. Retained the 31 runtime finding targets and the three current-main CodeQL medium contexts; the API reports no open main highs at `42761c3`. No finding is suppressed, dismissed or accepted on the owner's behalf.
+- Recorded the external inputs for human calibration, recorded-provider/German trials, mutable model identities and unrestricted chess-claim verification. Updated release/maintenance guidance to reflect completed packaging/guides while retaining the actual gate.
+- Checked official Debian records for all 25 distinct runtime CVEs behind the 31 package findings. Added a conservative exposure review covering actual amd64 identity, container restrictions, narrow function/service prerequisites, resolver configuration and unverified native call chains/ranges. No vendor classification is treated as a fix or owner exception; original deadlines and raw findings remain intact.
+- Added a fixed public-asset/Node-component capture to container CI, with explicit artifact retention. The exact command passes a native macOS smoke check for seven assets and 29 component/ABI entries, and fails on a missing asset; actual Linux inventory remains pending. Verified four npm registry signatures for the two pinned WASM packages against current advertised keys, matching lock integrities and rejecting a modified signed payload. Retained replayable public material and exact source candidates, explicitly without compilation attestation or mutable-model identity claims.
+- Independently resolved all six direct Action pins against official tags, dereferencing CodeQL's annotated tag. A paginated query finds no matching GitHub-reviewed/non-withdrawn advisories for those exact wrapper versions; it does not clear bundled dependencies, downloaded tools, runner runtimes, unreviewed reports or malware. The dated record preserves that scope, with no pin/token/setting/alert change.
+- Actual capture run `40168845693` at source `0936467` records Linux/x64 Node 24.22.1, 29 component/ABI entries and seven asset sizes/hashes matching the previously tested build. Both attempts fail the browser case after Chromium aborts initial modules with `ERR_NETWORK_CHANGED` (27/40 trace errors); the other three cases pass, and advisory scanning does not run. Added one container-only navigation recovery for that exact same-origin script failure. HTTP/page/other-network failures, repeated interruption and missing/violated CSP evidence still fail; six policy groups cover the boundaries. Corrected actual CI remains pending, with no timeout/assertion relaxation or app behavior change.
+- Recorded the owner's first-candidate choice to keep experimental free-form coaching with the verification limitation visible in README, user guide and LLM/release review. TODO 11.3.9 remains open; no claim of exhaustive chess-prose verification or disposition of other security requirements follows.
+- Corrected actual run `40169822979` passes at source `5764f74`, merge `07079b6`: publisher signature, both builds, all four browser/private-file/restart/compatibility cases and the strict image gate. Independent artifact review rechecks config/rootfs/source and report identity, fresh DB/raw gate, exact fourteen OS/sixteen library versions and all seven asset hashes/sizes. The map has 29 Node component/ABI entries; raw findings match the prior 23 medium/eight low exactly, retaining original deadlines and pending dispositions. Source CI passes unit/audit, CodeQL, secrets and passive checks; full Playwright remains running at this recording. ASVS stays 28 scoped verifications, 30 justified absences, ten deviations and two open.
+- Final documentation/evidence validation passes lint/JSDoc/ASVS plus all fourteen checker/recovery regression groups. All 472 local link targets resolve and diff whitespace is clean. Application/server/Docker/package sources are unchanged between `92ccc07` and `5764f74`; the new image evidence is attached to its actual source rather than relabeled as a release candidate. Integrated the user's merges through #122 without file changes.
+- Lint/JSDoc/ASVS and build pass; the complete settled-build unit/server suite passes (697 passes, one opt-in live skip), including the six recovery policy groups and eight checker groups. All 118 local link targets resolve and diff whitespace is clean. Supplemental coverage checks reconcile all 25 advisory rows with the 31 unchanged pending raw findings. Offline replay verifies all retained registry signatures and rejects altered payloads; the container workflow parses and retains the new JSON explicitly. Application runtime is unchanged; corrected Linux verification remains pending. The parent's full unit/browser/image results are not relabeled as release-candidate evidence. No paid/provider call, model download, operator configuration inspection, version bump, tag or publication.
+
+### Deviations
+
+- Prerequisites #118–#122 are merged; #123/#124 remain open at recording. Full browser CI is still running. This review preparation leaves the release candidate, TODO 11.6 approval and broader unsatisfied requirements separate; it does not establish ASVS compliance or authorize publishing.
+
+### Insights
+
+- A reviewable release decision needs exact evidence and individual unresolved conditions together. A passing feature check cannot supply an owner's risk disposition or evidence about a later merged revision.
+
+## 2026-10-25 — Verified image advisories and minimal runtime
+
+TODO item: 11.6.1 complete. The parent release gate, lower-finding dispositions and broader ASVS component/advisory requirement remain open.
+
+### Implementation notes
+
+- Added an advisory step to the existing actual container workflow after its browser/private-file/restart cases. It verifies the recorded/local image ID, source label/checkout revision and packaged Node version, then exports that image to a private temporary archive. A fixed official Trivy 0.76.1 multi-platform manifest digest was independently hashed before use; the scanner receives the archive read-only, without a Docker socket or operator/provider credentials.
+- The non-root scanner has a read-only root, bounded resources/deadline and one evidence/cache mount. Explicit empty config/ignore-file selection, disabled telemetry/version/dependency API calls, an empty initial cache and a selected official schema-two DB avoid ambient filtering or stale reuse. Record actual DB updated/downloaded/next-update timestamps and database/report/archive digests; reject expired/stale/future metadata, mismatched reports, missing OS or production dependency versions, modified findings and any high/critical result, including unfixed ones. Retain all raw severities/statuses for triage.
+- Artifacts retain only image/source/OS text metadata and advisory JSON for thirty days on success/failure. Private archives, cache/database bytes and temporary Docker client configuration are cleaned up; only uniquely owned scanner containers are removed, and cleanup failures cannot yield success. No image is pushed, provider/model is called or operator environment file is read.
+- Local preparation: all eight new validator/plan/CLI regression groups pass, as do lint/JSDoc/ASVS checks, build and the complete unit/server suite (682 passes, one opt-in live skip). All 109 local links resolve and diff whitespace is clean. Actual Docker/Trivy execution is reserved for Linux CI; no local image-scan success is claimed.
+- First actual run `40160064985` scans source `2fe12ab`/merge `715b120`, then fails on raw findings and validator identity/coverage assumptions. It records 244 package findings (61 high, one critical, 96 medium, 84 low, two unknown). The packaged Node is already 24.22.1; the prior 24.21.0 staging version belonged to the CI host. Corrected that distinction promptly. Raw findings remain retained, with no claim of application reachability or suppression to obtain a pass.
+- Corrected identity checks by independently hashing the Docker archive config and checking ordered rootfs layers/source against daemon and scanner metadata; retained the daemon image/index ID separately. Reconstruct Debian epochs/releases before exact inventory comparison. Ten advisory groups pass, including new archive/digest/traversal and Debian-version regressions; three independent status/status.d inventory groups also pass.
+- Prepared a pinned official Distroless Node 24/Debian 13 candidate to remove unused shell/npm/corepack/OS tools from the runtime. Preserve explicit UID/GID 1000, private data modes, vector entrypoint/health check and all app/storage semantics. Added pinned Cosign publisher verification and a fourth actual container case reopening a previous-packaging volume with the same cookie/usage and independent-client isolation. Build stages keep the original Node/npm image and their separate advisory scope. Pinned CI/minimum Node to 24.22.1 and downloaded/hash-checked its official macOS runtime into a temporary directory for validation; the system installation is unchanged. Candidate image/signature/raw scan and final local checks remain pending.
+- Final local checks on verified Node 24.22.1 pass lint/JSDoc/ASVS, build and the complete unit/server suite (688 passes, one opt-in live skip). Four container definitions load, without claiming local Docker execution; all fourteen advisory/inventory groups pass. All 172 local links resolve and diff whitespace is clean. The new Node floor independently rejects the reviewed vulnerable patch range even if a generic package scan misses the native runtime. Actual candidate verification follows in CI; no high/critical suppression is introduced.
+
+- Candidate run `40165570438` passes publisher verification, both builds, all four actual image/browser/restart/cross-packaging cases and the strict raw advisory gate at source `922bdd9`/merge `3f9fe8f`. Independently inspected report: Node 24.22.1, fourteen OS package versions and sixteen library versions, no high/critical findings; 23 medium and eight low remain retained for triage. This is package-scope evidence, not full release clearance.
+- The separate CodeQL check reports two new high file-system races in inventory/report readers (alerts 25/26). Replaced path-stat-then-read with a shared no-follow/nonblocking open, descriptor type/size check and bounded descriptor reads; actual bytes remain capped if the file grows. Added real filesystem replacement/symlink/growth/close regressions. No alert is dismissed or excluded. Retain small independently derived image-config/rootfs evidence so archive identity can be rechecked without uploading the archive. Final source CodeQL and image rerun remain pending.
+- Descriptor correction validation passes lint/JSDoc/ASVS and the complete unit/server suite on Node 24.22.1 (690 passes, one opt-in live skip), including all sixteen advisory/inventory regression groups. No app/UI behavior or scanner rule/severity/status is changed.
+- Final actual Linux run `40166278799` passes at source `92ccc07`, scanned merge `da379a15`: publisher signature, both image builds, four real container/browser/restart/cross-packaging cases and the strict advisory gate. Independent artifact review recomputes the archive config/report digests and checks source/rootfs identities, fourteen OS package versions, sixteen library versions and fresh database metadata. Node is 24.22.1; zero high/critical, 23 medium and eight low findings. Sanitized evidence retains every lower finding with review/remediation targets; exposure triage and owner acceptance remain pending.
+- CodeQL passes on the corrected source. Both PR alert instances (25/26) are fixed without dismissal or exclusion; unit/audit, secret and passive-baseline checks also pass. The complete browser job remains pending at evidence recording. ASVS remains 28 scoped verifications, 30 justified absences, ten deviations and two open; no release-clearance claim follows from the image result.
+- Final evidence/document validation passes lint/JSDoc/ASVS and all seven checklist regressions; 322 local link targets resolve and diff whitespace is clean. The subsequent evidence prose does not change the implementation scanned at `92ccc07`.
+
+### Deviations
+
+- This is detected-package advisory evidence, not a complete inventory/advisory claim for embedded Node/C++/WASM internals, Actions, browser/font parsers or model identities. ASVS 15.2.1, owner review of lower findings/deadlines and the actual release gate remain separate. The database freshness window is an input policy, not a remediation SLA or vulnerability guarantee.
+- Trivy is an Apache-2.0 CI tool in a separate image; no application dependency or distributed runtime scanner is added. Actual execution comes from Linux CI, with no local Docker success claimed. Medium/low findings remain visible rather than being suppressed or implicitly accepted.
+
+### Insights
+
+- A scanner exit code alone cannot establish what was scanned. Exact image/source identity, fresh database metadata and independently checked package coverage prevent empty, old or partial output from appearing clean.
+- A read-only exported archive allows scanning the tested image without granting a third-party tool access to the build daemon or running app/private storage.
+
+## 2026-10-25 — Verified local web assets and stricter stylesheet policy
+
+TODO item: 11.5.1 complete; release verification and informational findings remain separate.
+
+### Implementation notes
+
+- Replaced `style-src unsafe-inline` with separate parsed trusted stylesheet hashes and `style-src-attr 'none'`. Complete HTML/SVG style blocks use browser-normalized text; inert/template/raw-text/unfinished lookalikes and unsupported types grant no hashes. Script hashes and worker/WASM permissions retain their separate boundaries. Replaced eighteen authored style attributes and three dynamic string-style helpers with equivalent classes; trusted CSSOM geometry remains available.
+- Bundled the same Bricolage Grotesque, Instrument Sans and JetBrains Mono normal variable fonts from official Google Fonts revision `e7db6ca603fd4862010383ff17ffd6cc4ffac1c0`, retaining unchanged bytes, authors and full SIL OFL notices. The manifest records source URLs/sizes/hashes, the build verifies before publication, and offline bundles include the fonts/licences. No npm dependency, model download or automatic font refresh is added. Removed external font links/hosts and canonicalized the wrapper charset.
+- Added CSS boundary and negative scan-policy tests, pinned font/offline-inventory/integrity tests, actual CLI/Chrome CSS-injection regression and desktop/German-phone font/layout checks. Full unit/server suite passes (674 passes, one opt-in live skip). Initial browser run passes six cases; the phone case reveals that a language switch legitimately refetches all three local fonts. Its assertion now checks the three exact URL identities and every response rather than one fetch per font; loaded faces, CSP, external-request and layout assertions remain.
+- The CSS regression fails against the previous actual backend: the injected inert-template CSS changes the trusted element's colour under its old broad permission. The corrected backend blocks that CSS and a style attribute while allowing the trusted block and property-based geometry. Expanded final browser checks and actual Linux passive baseline are pending; no successful scan is inferred from header/unit tests.
+- Final local verification passes all thirty browser cases, including desktop/German-phone fonts, normal play/review, settings, layout/session transitions and all seven actual offline-app/update/erasure cases. Visually inspected both font/layout captures. Final-build CSS/font/integrity/scan-policy tests pass all 22 cases; lint/JSDoc/ASVS checks and seven-route header preflight pass, 335 local links resolve and diff whitespace is clean. Actual Linux raw passive evidence is still pending; no live provider, operator environment or model download was used.
+- Actual Linux baseline `40158959465` passes at source `00e7d16`, scanned merge `9c8d6843a0610b04c910f93b07afe00f392d3a1e`. Independently inspected/rechecked raw JSON: zero high/medium findings; the CSS, external-font SRI and charset types are absent. Six public source-comment instances and three grouping-cookie responses remain informational. All seven required routes occur in fifteen visited paths; all sixty passive rules remain enabled and the queue is empty. Actual startup records a literal loopback listener. Retained sanitized source/image/lock/report identities, not cookies or raw response bodies. npm audit is zero, SBOM 128; no scanner rule/path is suppressed.
+- Re-reviewed ASVS records at the exact implementation source and added the pinned font inventory to the still-open component-advisory requirement. Counts remain 28 scoped verifications, 30 justified absences, ten deviations and two open; stronger CSS and a clean passive result do not resolve deployment/model/claim/advisory limits. Source CI also passes unit/audit, CodeQL, Gitleaks and actual image/browser/restart tests; the full browser suite remains pending at this recording.
+- Final evidence/document checks pass lint/JSDoc/ASVS and seven checklist regression groups; 592 local links resolve across seventeen changed documents and diff whitespace is clean. No runtime change follows source `00e7d16`; the raw scan remains bound to that exact implementation rather than a future release commit.
+
+### Deviations
+
+- Full upstream variable TTF files replace browser-specific remote subsets, adding 790,040 font bytes plus licences/metadata to the public offline bundle. Typeface families remain the same; device rasterization/fallbacks can differ. No external stylesheet remains to require SRI.
+- Trusted build HTML can authorize its own active CSS/scripts. This remains an operator-owned-file boundary, not user-HTML sanitization or arbitrary CSS isolation. Existing local HTTP/account, mutable-model and unrestricted-prose limitations stay open.
+
+### Insights
+
+- CSS hashes preserve the self-contained artifact document without granting arbitrary style attributes. Actual browser tests must verify both refusal and the trusted runtime geometry that the board needs.
+- Bundling the existing typefaces removes an external stylesheet/privacy boundary while preserving typography offline; explicit byte/licence provenance makes that trade-off reviewable.
+
+## 2026-10-25 — User guide, provider setup and native Ollama operation
+
+TODO item: 12.4, completing the parent documentation milestone after the existing flipbook refresh.
+
+### Implementation notes
+
+- Added a task-oriented user guide covering a mock-first start, interface/profile/notation, play and live-help boundaries, analysis/chat, review and independent practice, repertoires, source search, library ownership, backups/data controls and offline recovery. Linked the illustrated flipbook, Primer and retrieval/literature comparisons alongside detailed existing evidence notes.
+- Added provider setup for Claude, OpenAI, Mistral, Ollama, browser and mock; task-specific models, endpoint ownership, separate coach/embedding grants, explicit connection-test costs and accounting limits. Verified primary provider documentation rather than assuming account access, billing or model capability from configured names. The OpenAI section retains the configured Luna model and documents its supported Chat Completions mode.
+- Documented native same-machine Ollama with its own cloud mode disabled, exact installed local tags, preserved loopback, no unnecessary browser CORS change and a separate `--offline` Node invocation. Explain that app local-only routing, Ollama remote/model configuration, page offline mode and PWA/model caches have separate effects. The Docker loopback distinction links to this path without adding a network exposure recipe.
+- Linked both guides from root/developer READMEs and the container guide. Corrected stale README claims that repertoire drills were only planned and that local-only routing allowed only Ollama.
+- Validation: lint/JSDoc/ASVS records and build pass; 195 local link targets resolve and diff whitespace is clean. Actual isolated CLI smoke checks pass for the documented mock start and synthetic Ollama/offline configuration, including public/status responses, absent remote font allowances in offline mode and mode-0600 usage files. No inference request is sent. This prose-only change leaves the parent's tested runtime unchanged (670 unit/server passes, one opt-in live skip and eighteen targeted browser passes); those suites are not claimed as newly rerun for the guide.
+
+### Deviations
+
+- This documentation change neither obtains keys nor runs paid/provider/model-download commands. Setup examples are not new live availability, model-performance or chess-quality evidence. Existing provider-fixture/evaluation, human-calibration and release-gate gaps remain open.
+- No hosted accounts, LAN service, automatic JSON restore, model download choice or image publication is introduced. Existing browser exports and server cookie scopes retain their documented limits.
+
+### Insights
+
+- A beginner needs a task path across the feature-specific documents. Keeping the operational instructions separate makes privacy/resource choices visible before a connection test or model load.
+- Provider labels, configured model names and successful small replies establish different facts. None alone demonstrates local computation, full tool support or explanation correctness.
+
+## 2026-10-25 — GPT-6 Luna Chat Completions tool mode
+
+TODO item: 2.10.1. Provider setup documentation remains a separate milestone.
+
+### Implementation notes
+
+- The OpenAI adapter sends `reasoning_effort: none` for the exact selected `gpt-6-luna` model, following its official Chat Completions function-calling requirement. Per-task overrides control the setting. Ordinary chat, native structured output, tool-result continuations and the small connection-test reply use the same supported mode. Other OpenAI model IDs, Mistral and Ollama receive no new parameter.
+- Three real-SDK tests intercept all transport and cover the rejection policy, per-task/provider matrix, structured response and continuation fields. Two browser regressions launch the actual CLI/SDK with a synthetic endpoint and no operator configuration; one completes a real Stockfish tool round and verifies its evidence, the other checks the settings connection button.
+- Validation: lint/JSDoc/ASVS, build and the full unit/server suite pass (670 passes, one opt-in live skip). Both new browser cases and all sixteen existing tool cases pass. The Stockfish browser regression fails against the previous backend with a provider rejection under the synthetic policy, then passes with this correction. No dependency, actual environment file, live provider, paid request or model download is used.
+
+### Deviations
+
+- The provider policy is synthetic and based on the documented contract. This is not a recorded live OpenAI rejection/success, availability check, or benchmark of explanation quality. TODO 2.15 and the missing live-provider comparison evidence remain open.
+- The correction retains the configured model and Chat Completions transport. It does not add a general reasoning setting or infer compatible model aliases.
+
+### Insights
+
+- A model default can conflict with a tool protocol even when a plain reply works. Connection checks and follow-up turns need the same model-specific transport policy, and the actual per-task selection must take precedence over the configured chat default.
+
 ## 2026-10-25 — Verified local container package and private persistence
 
 TODO item: 12.2 complete for packaging. Image publication, advisory clearance and the actual release gate remain separate.

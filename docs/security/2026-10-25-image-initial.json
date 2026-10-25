@@ -1,0 +1,36 @@
+{
+  "scope": "first-runtime-image-advisory-failure",
+  "date": "2026-10-25T03:58:15.482Z",
+  "sourceRevision": "2fe12abeae3c302d46b406ebd0bef363e071d532",
+  "scannedMergeRevision": "715b12080ab25f6ce7d11d8c07ff189cbb76f7f4",
+  "run": "https://github.com/gregoryyy/kibitz/actions/runs/40160064985",
+  "imageId": "sha256:9600567bcb15229c0d90b479f13b8649681a5b2fb2b64a997463ebe97fa37db1",
+  "imageConfigId": "sha256:c1e1b2a80868c3c3e8a9e5dbc14b83689a407ed59ec0ecf1e1c29b637bb2ef48",
+  "node": "v24.22.1",
+  "scanner": "ghcr.io/aquasecurity/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c",
+  "database": {
+    "Version": 2,
+    "NextUpdate": "2026-10-26T01:20:33.190871941Z",
+    "UpdatedAt": "2026-10-25T01:20:33.190884269Z",
+    "DownloadedAt": "2026-10-25T03:58:27.567009605Z",
+    "sha256": "3f7cd3138dfc143a2ab8ed36702dadc981e068f3801f5aac6eae6ff9477457fd"
+  },
+  "reportSha256": "c43ab249636f21c79bef42fce3baa940c0ad7362bd7625833cdb62cce0773c73",
+  "archiveSha256": "b7b7603e7737942cb0e29bfe910f2b782daef9e7fa35d7058b4701d4d3ac00bc",
+  "osPackages": 88,
+  "libraryPackages": 162,
+  "findingCounts": {
+    "LOW": 84,
+    "HIGH": 61,
+    "MEDIUM": 96,
+    "UNKNOWN": 2,
+    "CRITICAL": 1
+  },
+  "verificationPassed": false,
+  "errors": [
+    "Image identity mismatch",
+    "High or critical image vulnerability",
+    "Incomplete OS package coverage"
+  ],
+  "releaseApproved": false
+}

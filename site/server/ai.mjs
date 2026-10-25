@@ -269,6 +269,9 @@ function openAICompatProvider(cfg, client) {
       const msgs = openAIMessages(messages);
       const params = {
         model, stream: true, [tokenParam]: maxTokens,
+        // GPT-6 Luna's Chat Completions function protocol requires non-reasoning
+        // mode, including continuations and the small connection-test response.
+        ...(cfg.provider === 'openai' && model === 'gpt-6-luna' ? { reasoning_effort: 'none' } : {}),
         messages: system ? [{ role: 'system', content: system }, ...msgs] : msgs,
         ...(tools?.length ? { tools: tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.schema } })) } : {}),
         ...(cfg.provider === 'mistral' ? {} : { stream_options: { include_usage: true } }),
