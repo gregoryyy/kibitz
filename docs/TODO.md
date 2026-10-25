@@ -239,17 +239,20 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 11.2.6 Issue the AI usage cookie with Secure on a native TLS socket, matching the library. Preserve supported local HTTP behavior; real TLS/browser regressions cover scope, reuse and untrusted forwarding headers. Cookie context 4 remains deployment-scoped under #99
   - [x] 11.2.7 Select CSP script hashes with an HTML parser, including correct tag/attribute/text boundaries and inert content; bounded missing-dependency startup, licence notices and browser regressions. Contexts 2/3/5 under #99; other scanner findings remain open
   - [x] 11.2.8 Stage provider fixtures privately after explicit execution; bound capture, reject errors/incomplete/credential-bearing responses and replace files atomically. Context 9 under #99; synthetic SDK/CLI regressions. Real missing-provider recordings (2.15) and main-branch scan verification remain open
-- [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item:
+- [ ] 11.3 OWASP Top 10 for LLM Applications (2025), with test cases for each item; [evidence, limits and 2026 crosswalk](OWASP-LLM.md). Review is complete; reflected rejection credentials, model identity, unrestricted claim verification and runtime stream bounds remain open:
   - [x] 11.3.1 LLM01 Prompt injection: direct (chat) and indirect (PGN comments, library text)
-  - [ ] 11.3.2 LLM02 Sensitive information disclosure: API keys, other users' data
-  - [ ] 11.3.3 LLM03 Supply chain: pinned packages and model versions
-  - [ ] 11.3.4 LLM04 Data and model poisoning: imported games and annotations in the RAG store
-  - [ ] 11.3.5 LLM05 Improper output handling: model output never rendered as HTML; annotations validated. Remaining: annotation validation (with 4.4); output is already rendered as text only.
-  - [ ] 11.3.6 LLM06 Excessive agency: model actions are limited to validated, bounded board tools; the saved library is read-only, and leaving a running game requires confirmation
-  - [ ] 11.3.7 LLM07 System prompt leakage: no secrets in prompts
-  - [ ] 11.3.8 LLM08 Vector and embedding weaknesses: users' data kept separate in the RAG store
-  - [ ] 11.3.9 LLM09 Misinformation: every chess claim checked against the engine
-  - [ ] 11.3.10 LLM10 Unbounded consumption: rate limits and token budgets. Remaining: per-user limits (10.1); the gateway has a rate limit, a daily token budget, max output tokens and size limits.
+  - [ ] 11.3.2 LLM02 Sensitive information disclosure: credential/context separation, cookie-scoped library isolation and provider/purpose consent tested; provider rejection messages can still reflect configured keys without recognized prefixes
+    - [ ] 11.3.2.1 Remove reflected credentials/private prose from page-facing provider rejections across affected routes; preserve bounded useful capability feedback, with real-SDK and actual-CLI/browser regressions
+  - [ ] 11.3.3 LLM03 Supply chain: packages/GGUF bytes are pinned and tested; cloud IDs, Ollama tags and Chrome-managed updates remain mutable. Model identity/upgrade evidence and 11.5 remain open
+  - [x] 11.3.4 LLM04 Data and model poisoning: imported games/annotations stay validated source assertions in the scoped RAG store; source identity never promotes their prose to engine evidence. Source/model truth is not certified
+  - [x] 11.3.5 LLM05 Improper output handling: model prose rendered as text; schema, board marks, legal moves and request-bound citations validated, with hostile unit/browser cases
+  - [x] 11.3.6 LLM06 Excessive agency: model actions are limited to validated, bounded board tools; the saved library is read-only, and leaving a running game requires confirmation
+  - [x] 11.3.7 LLM07 System prompt leakage: configured credentials remain transport-only; four real-SDK/gateway tests inspect model context and public responses. Prompts/policies are not secret authorization controls
+  - [x] 11.3.8 LLM08 Vector and embedding weaknesses: scoped/model-bound in-memory vectors, pre-upload filtering, separate consent and stale/cross-scope rejection tests; hosted tenancy is not claimed
+  - [ ] 11.3.9 LLM09 Misinformation: every chess claim checked against the engine. Partial only: recognized move/selected English piece claims and confirmed motifs are checked; arbitrary prose can still return zero problems
+  - [ ] 11.3.10 LLM10 Unbounded consumption: shared/per-cookie rates and persistent soft token/cost thresholds implemented/tested; independent total provider-stream time/byte bounds remain open
+    - [ ] 11.3.10.1 Bound runtime provider streams independently of SDK header/request timeouts, with stalled/oversized/abort and actual-CLI regressions; review accounting and failure diagnostics on every affected path
+  - [x] 11.3.11 Review all ten categories against code/tests, add four-adapter credential-context tests and a 2026 numbering crosswalk, and reproduce unresolved misinformation/stream-deadline limits without live calls
 - [ ] 11.4 OWASP ASVS: pick a level (L1 for a local app, L2 if hosted with accounts), keep a verification checklist, automate checks where possible
 - [ ] 11.5 Automated scans: Dependabot, CodeQL, secret scanning, OWASP ZAP baseline against staging, CSP check
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings
