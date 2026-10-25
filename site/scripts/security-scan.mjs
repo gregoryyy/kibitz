@@ -159,7 +159,7 @@ export async function run(args = process.argv.slice(2)) {
         '--user', `1000:${process.getgid()}`, '--workdir', '/zap/wrk', '-v', `${output}:/zap/wrk:rw`, ZAP_IMAGE,
         'bash', '-c', 'umask 0002; exec "$@"', 'kibitz-zap',
         'zap-baseline.py', '-t', staging.base + '/', '-m', '1', '-T', '5', '--autooff',
-        '--hook', '/zap/wrk/hooks.py', '-z', '-silent -dir /zap/wrk/zap-home -host 127.0.0.1 -config api.addrs.addr.name=127.0.0.1 -config api.addrs.addr.regex=false',
+        '--hook', '/zap/wrk/hooks.py', '-z', '-silent -dir /zap/wrk/zap-home -config api.addrs.addr.name=127.0.0.1 -config api.addrs.addr.regex=false',
         '-J', 'zap.json', '-r', 'zap.html']);
       containerStarted = false; // docker run --rm has exited and removed this container.
       if (code !== 0 && code !== 2) throw new Error(`ZAP baseline failed with exit ${code}`);

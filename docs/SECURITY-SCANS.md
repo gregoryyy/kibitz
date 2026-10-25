@@ -46,6 +46,13 @@ Its primary group matches the runner and the report directory is mode 0770; a
 group-writable umask allows CI to collect and remove generated evidence without
 running the scanner as root or making the directory world-writable.
 
+The hook replaces the pinned launcher's initial wildcard listener with loopback,
+checking its expected argument structure before starting ZAP. The pinned network
+add-on takes the first host option, so appending an override is insufficient.
+Four Python regression tests exercise replacement, option preservation, source
+drift rejection, read-only seeding and the actual URL-method coverage interface
+without needing ZAP on the host. No rule options are rewritten.
+
 The [baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) uses passive
 analysis rather than an active attack scan. Its
 [hook](https://www.zaproxy.org/docs/docker/scan-hooks/) seeds only GET routes for
