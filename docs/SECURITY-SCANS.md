@@ -124,3 +124,9 @@ The post-merge main CodeQL snapshot at `71a863d` records only open medium alerts
 No high alert remains in that snapshot; this does not settle lower findings or
 other scanners. Keep the release gate independent and rerun against the release
 commit after all required merges.
+
+The separate [packaged-image advisory check](IMAGE-ADVISORIES.md) targets the exact
+CI-built/tested container archive with a pinned scanner, fresh recorded database,
+OS/production-package coverage and high/critical gate. It retains all raw findings;
+its actual Linux verification is pending. This complements npm/ZAP evidence rather
+than extending either scanner's coverage to opaque WASM/model internals.

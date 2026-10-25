@@ -38,6 +38,8 @@ The parser and decoder stay in server-side `node_modules/`; their licence files 
 
 Development tools (Playwright, ESLint, TypeScript and their dependencies) are not shipped; their licences are in `site/node_modules/`.
 
+Container CI additionally runs the official [Trivy](https://github.com/aquasecurity/trivy) 0.76.1 scanner (Apache-2.0), pinned by manifest digest. It is a separate build/review tool, not part of the distributed app image. Its public advisory database is refreshed and its timestamp/digest recorded for each image check; [coverage and limits](docs/IMAGE-ADVISORIES.md) distinguish it from a complete release review.
+
 ## chess.js licence
 
 ```

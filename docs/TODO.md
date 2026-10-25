@@ -259,6 +259,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 11.5 Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP against isolated mock staging, CSP check and retained inventory/evidence; [actual CI baseline](SECURITY-SCANS.md) covers seven required routes / sixty passive rules, zero highs, two medium and three informational finding types. Native GitHub feature settings are documented separately; no release/compliance claim
   - [x] 11.5.1 [Web assets](WEB-ASSETS.md): trusted stylesheet hashes and blocked style attributes, original pinned local fonts/licences, canonical wrapper charset and preserved interface/offline behavior. Old-backend regression fails, thirty browser cases pass, and the actual unsuppressed raw baseline reports zero high/medium findings; informational source-comment/cookie findings remain recorded
 - [ ] 11.6 Release gate: security checklist in the release PR; no open high-severity findings
+  - [ ] 11.6.1 Exact packaged-image advisory evidence: pinned scanner, fresh recorded database, complete OS/production-library inventory, retained raw findings and a high/critical gate; actual Linux verification pending. Parent release approval and broader component/model reviews remain separate
 
 ## 12. Release and operations *(added)*
 

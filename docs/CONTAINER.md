@@ -7,6 +7,11 @@ The actual [Linux image/browser run](https://github.com/gregoryyy/kibitz/actions
 passes all three cases at source `f9ce54a`. [Evidence metadata](security/2026-10-25-container.json)
 records the exact built image and scanned source identities.
 
+The [image advisory check](IMAGE-ADVISORIES.md) adds a pinned scanner and fresh
+database to the same CI-built image, retaining raw findings and failing on
+high/critical results or incomplete package evidence. Actual verification of this
+new check is pending; inventories alone still do not provide advisory clearance.
+
 Use Docker Engine 28 or newer and the Compose plugin. The explicit loopback mapping
 follows [Docker's port-publishing behavior](https://docs.docker.com/engine/network/port-publishing/).
 The server listens on the container interface so the bridge mapping can reach it;

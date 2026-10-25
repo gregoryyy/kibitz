@@ -7,6 +7,27 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Exact-image advisory evidence (actual verification pending)
+
+TODO item: 11.6.1 remains open until actual Linux execution and raw report review. The parent release gate and ASVS component/advisory requirement remain open.
+
+### Implementation notes
+
+- Added an advisory step to the existing actual container workflow after its browser/private-file/restart cases. It verifies the recorded/local image ID, source label/checkout revision and packaged Node version, then exports that image to a private temporary archive. A fixed official Trivy 0.76.1 multi-platform manifest digest was independently hashed before use; the scanner receives the archive read-only, without a Docker socket or operator/provider credentials.
+- The non-root scanner has a read-only root, bounded resources/deadline and one evidence/cache mount. Explicit empty config/ignore-file selection, disabled telemetry/version/dependency API calls, an empty initial cache and a selected official schema-two DB avoid ambient filtering or stale reuse. Record actual DB updated/downloaded/next-update timestamps and database/report/archive digests; reject expired/stale/future metadata, mismatched reports, missing OS or production dependency versions, modified findings and any high/critical result, including unfixed ones. Retain all raw severities/statuses for triage.
+- Artifacts retain only image/source/OS text metadata and advisory JSON for thirty days on success/failure. Private archives, cache/database bytes and temporary Docker client configuration are cleaned up; only uniquely owned scanner containers are removed, and cleanup failures cannot yield success. No image is pushed, provider/model is called or operator environment file is read.
+- Local preparation: all eight new validator/plan/CLI regression groups pass, as do lint/JSDoc/ASVS checks, build and the complete unit/server suite (682 passes, one opt-in live skip). All 109 local links resolve and diff whitespace is clean. Actual Docker/Trivy execution is reserved for Linux CI; no local image-scan success is claimed.
+
+### Deviations
+
+- This is detected-package advisory evidence, not a complete inventory/advisory claim for embedded Node/C++/WASM internals, Actions, browser/font parsers or model identities. ASVS 15.2.1, owner review of lower findings/deadlines and the actual release gate remain separate. The database freshness window is an input policy, not a remediation SLA or vulnerability guarantee.
+- Trivy is an Apache-2.0 CI tool in a separate image; no application dependency or distributed runtime scanner is added. Actual findings may require further remediation before this PR can pass.
+
+### Insights
+
+- A scanner exit code alone cannot establish what was scanned. Exact image/source identity, fresh database metadata and independently checked package coverage prevent empty, old or partial output from appearing clean.
+- A read-only exported archive allows scanning the tested image without granting a third-party tool access to the build daemon or running app/private storage.
+
 ## 2026-10-25 — Verified local web assets and stricter stylesheet policy
 
 TODO item: 11.5.1 complete; release verification and informational findings remain separate.
