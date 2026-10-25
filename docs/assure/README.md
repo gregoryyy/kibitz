@@ -44,6 +44,11 @@ still open: for example, the release preparation entry references open TODO
 2.15. Edges do not establish implementation, test success, compliance, acceptance
 or completion. Insights and deviations keep their original text and context.
 
+Inline Markdown links and code spans use a scanner with bounded forward progress,
+including malformed destinations. Links inside code spans are examples rather
+than hyperlink edges. Reference-style link definitions are outside this first
+extractor.
+
 The inventory includes only tracked/staged Git paths, including tests, data,
 documentation and configuration. Only regular Markdown, JS/MJS and HTML files
 are scanned; symlinks and submodules are inventoried without following them.

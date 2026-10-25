@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { buildGraph, trackedFiles, resolveReference, todoReferences, neighborhood, renderReport, run } from '../../../utils/assure.mjs';
+import { buildGraph, trackedFiles, resolveReference, todoReferences, markdownReferences, neighborhood, renderReport, run } from '../../../utils/assure.mjs';
 import { validateGraph, SCHEMA } from '../../../docs/assure/types.mjs';
 
 const TODO = '# TODO\n\n## 0. Foundation\n\n- [x] 0.1 Build `site/src/a.js`\n- [ ] 0.2 More work\n';
@@ -66,6 +66,22 @@ test('Markdown resolution uses exact local links and records unique-suffix evide
   assert.equal(resolveReference('docs/DONE.md', 'b.js', files, 'markdown_link').reason, 'missing');
   assert.equal(resolveReference('docs/DONE.md', '../../private.md', files, 'markdown_link').reason, 'outside_repository');
   assert.equal(resolveReference('docs/DONE.md', 'https://example.invalid/private.md', files, 'markdown_link').ignored, true);
+});
+
+test('Markdown scanning handles titles, nesting, escapes and code spans; adversarial input finishes in a bounded child', () => {
+  const refs = markdownReferences('[guide](<../guide with spaces.md> "title") `[example](ignored.md)` [nested](../a_(v1).md) [escaped](../a\\(v1\\).md)');
+  assert.deepEqual(refs.map(r => [r.syntax, r.reference]), [
+    ['markdown_link', '../guide with spaces.md'], ['code_span', '[example](ignored.md)'],
+    ['markdown_link', '../a_(v1).md'], ['markdown_link', '../a\\(v1\\).md'],
+  ]);
+  assert.equal(resolveReference('docs/DONE.md', './a\\(v1\\).md', new Set(['docs/a(v1).md']), 'markdown_link').path, 'docs/a(v1).md');
+  const script = `import { markdownReferences } from ${JSON.stringify(new URL('../../../utils/assure.mjs', import.meta.url).href)};
+    const malformed = '[](' + '\\\\!'.repeat(100000);
+    if (markdownReferences(malformed).length !== 0) process.exit(2);
+    if (markdownReferences(String.fromCharCode(96) + 'x' + String.fromCharCode(96)).length !== 1) process.exit(3);
+    if (markdownReferences('['.repeat(200000)).length !== 0) process.exit(4);`;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8', timeout: 8000 });
+  assert.ifError(result.error); assert.equal(result.status, 0, result.stderr);
 });
 
 test('fenced examples cannot create TODOs or links; combined rationale headings remain a distinct type', t => {

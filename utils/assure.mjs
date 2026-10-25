@@ -25,7 +25,80 @@ const evidence = (source, syntax, reference = '', resolution = '') => ({ ...sour
 const slug = text => text.toLowerCase().replace(/[^\p{L}\p{N}_ -]/gu, '').replaceAll(' ', '-');
 // Copied labels keep their text; source-relative links must not become broken
 // report-relative links. The report supplies its own explicit source links.
-const markdown = text => String(text).replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('|', '\\|').replaceAll('\n', ' ');
+const markdown = value => {
+  const text = String(value), parts = []; let cursor = 0;
+  for (const ref of markdownReferences(text).filter(r => r.syntax === 'markdown_link')) {
+    parts.push(text.slice(cursor, ref.start), ref.label); cursor = ref.end;
+  }
+  parts.push(text.slice(cursor));
+  return parts.join('').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('|', '\\|').replaceAll('\n', ' ');
+};
+
+// Scan each character/run a bounded number of times. In particular, an
+// unterminated destination cannot restart exponential regex backtracking.
+export function markdownReferences(text) {
+  const ticks = new Map(), positions = new Map(), refs = [], brackets = [];
+  for (let i = 0; i < text.length;) {
+    if (text[i] !== '`') { i++; continue; }
+    const start = i; while (text[i] === '`') i++;
+    const length = i - start;
+    if (!ticks.has(length)) ticks.set(length, []);
+    ticks.get(length).push({ start, end: i });
+  }
+  const destination = start => {
+    let i = start;
+    while (/\s/u.test(text[i] || '') && i < text.length) i++;
+    let reference, end;
+    if (text[i] === '<') {
+      const from = ++i;
+      while (i < text.length && text[i] !== '>') { if (text[i] === '\\' && i + 1 < text.length) i++; i++; }
+      if (i === text.length) return { end: i };
+      reference = text.slice(from, i++);
+    } else {
+      const from = i; let depth = 0;
+      while (i < text.length) {
+        if (text[i] === '\\' && i + 1 < text.length) { i += 2; continue; }
+        if (text[i] === '(') depth++;
+        else if (text[i] === ')') { if (!depth) break; depth--; }
+        else if (/\s/u.test(text[i]) && !depth) break;
+        i++;
+      }
+      reference = text.slice(from, i);
+    }
+    while (i < text.length && /\s/u.test(text[i])) i++;
+    if (text[i] === '"' || text[i] === "'") {
+      const quote = text[i++];
+      while (i < text.length && text[i] !== quote) { if (text[i] === '\\' && i + 1 < text.length) i++; i++; }
+      if (text[i] === quote) i++;
+      while (i < text.length && /\s/u.test(text[i])) i++;
+    }
+    if (reference && text[i] === ')') { end = i + 1; return { reference, end }; }
+    return { end: Math.min(i + 1, text.length) };
+  };
+  for (let i = 0; i < text.length;) {
+    if (text[i] === '\\') { i += 2; continue; }
+    if (text[i] === '`') {
+      const start = i; while (text[i] === '`') i++;
+      const length = i - start, runs = ticks.get(length);
+      let at = positions.get(length) || 0;
+      while (at < runs.length && runs[at].start < start) at++;
+      const close = runs[at + 1]; positions.set(length, at + (close ? 2 : 1));
+      if (close) { refs.push({ syntax: 'code_span', reference: text.slice(i, close.start), start, end: close.end }); i = close.end; }
+      continue;
+    }
+    if (text[i] === '[') brackets.push(i);
+    if (text[i] === ']' && brackets.length) {
+      const start = brackets.pop();
+      if (text[i + 1] === '(') {
+        const found = destination(i + 2);
+        if (found.reference) refs.push({ syntax: 'markdown_link', reference: found.reference, label: text.slice(start + 1, i), start, end: found.end });
+        brackets.length = 0; i = found.end; continue;
+      }
+    }
+    i++;
+  }
+  return refs;
+}
 
 export function trackedFiles(root) {
   return execFileSync('git', ['ls-files', '--stage', '-z'], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).split('\0').filter(Boolean).map(row => {
@@ -62,7 +135,7 @@ function markdownLines(text) {
 export function resolveReference(file, reference, inventory, syntax) {
   if (/^(?:[a-z][a-z0-9+.-]*:|#|\/\/)/i.test(reference)) return { ignored: true };
   let target;
-  try { target = decodeURIComponent(reference.split(/[?#]/)[0]).replaceAll('\\ ', ' '); } catch { return { reason: 'missing', candidates: [] }; }
+  try { target = decodeURIComponent(reference.split(/[?#]/)[0]).replace(/\\([\\()[\] <>])/g, '$1'); } catch { return { reason: 'missing', candidates: [] }; }
   const normalize = value => path.posix.normalize(value);
   const relative = normalize(path.posix.join(path.posix.dirname(file), target));
   if (target.startsWith('/') || relative === '..' || relative.startsWith('../')) return { reason: 'outside_repository', candidates: [] };
@@ -113,7 +186,7 @@ export function buildGraph(root, files = trackedFiles(root)) {
   const issue = (source, reference, reason, candidates = []) => unresolved.push({ source, reference, reason, candidates });
   for (const file of files) {
     const kind = /\.md$/.test(file.path) ? 'documentation' : /(^|\/)(tests?|fixtures)\/|\.test\./.test(file.path) ? 'test'
-      : /\.(?:m?js|ts|html|py|sh)$/.test(file.path) ? 'source' : /(?:^|\/)(?:data|eval)\/|\.(?:pgn|csv|tsv)$/.test(file.path) ? 'data'
+      : /\.(?:m?js|ts|html|py|sh)$/.test(file.path) ? 'source' : /(?:^|\/)(?:data|eval)\//.test(file.path) || /\.(?:pgn|csv|tsv)$/.test(file.path) ? 'data'
         : /\.(?:json|ya?ml)$|(?:^|\/)(?:\.[^/]+|justfile|Dockerfile|LICENSE)$/.test(file.path) ? 'configuration' : 'asset';
     addNode({ id: `file:${file.path}`, type: 'artifact', path: file.path, kind, mode: file.mode });
     if (['100644', '100755'].includes(file.mode) && !OUTPUTS.includes(file.path) && /\.(?:md|m?js|html)$/.test(file.path)) {
@@ -211,10 +284,9 @@ export function buildGraph(root, files = trackedFiles(root)) {
   };
   for (const [file, text] of texts) {
     if (file.endsWith('.md')) for (const row of markdownLines(text).filter(l => l.active)) {
-      for (const m of row.text.matchAll(/!?\[[^\]\n]*\]\(\s*(?:<([^>\n]*)>|((?:\\.|[^()\s]|\([^()\n]*\))+))(?:\s+["'][^"'\n]*["'])?\s*\)/g)) attach(file, row.line, m[1] || m[2], 'markdown_link');
-      for (const m of row.text.matchAll(/(`+)(.*?)\1/g)) {
-        const ref = m[2];
-        if (/^(?:[\w./@%+ -]+\.(?:m?js|ts|md|html|json|css|ya?ml|pgn|csv|tsv|pdf|wasm|sh|py|svg|png|jpe?g|gif|webp|ttf|woff2?|txt|sqlite)|(?:[\w./-]*\/)?(?:justfile|Dockerfile|LICENSE|\.[\w.-]+)|[\w./-]+\/)$/u.test(ref)) attach(file, row.line, ref, 'code_span');
+      for (const found of markdownReferences(row.text)) {
+        const ref = found.reference;
+        if (found.syntax === 'markdown_link' || /^(?:[\w./@%+ -]+\.(?:m?js|ts|md|html|json|css|ya?ml|pgn|csv|tsv|pdf|wasm|sh|py|svg|png|jpe?g|gif|webp|ttf|woff2?|txt|sqlite)|(?:[\w./-]*\/)?(?:justfile|Dockerfile|LICENSE|\.[\w.-]+)|[\w./-]+\/)$/u.test(ref)) attach(file, row.line, ref, found.syntax);
       }
     }
     else if (/\.m?js$/.test(file)) parseImports(file, text);
