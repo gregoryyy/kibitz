@@ -60,7 +60,8 @@ Current source-002fd92 evidence is retained in the
 [structured record](releases/0.1.0-rc.1-evidence.json) and
 [raw report archive](releases/evidence/0.1.0-rc.1/002fd92/README.md): 699 unit
 passes/one skip, passing CodeQL/secret/audit, actual image and passive scans.
-The full browser run is still live at this recording. Later documentation and
+The full browser run passes with 423 passes/one skip, completing at 11:46 UTC.
+Later documentation and
 integration commits require final-head checks; earlier green results do not
 replace them.
 
@@ -153,6 +154,6 @@ closed by this packet:
   prose with this gap documented; broader deterministic verification needs its
   own plan and is not claimed complete.
 - **11.6:** original prerequisites and owner dispositions are recorded; current
-  full browser results and final-head/source evidence remain outstanding.
+  source-002fd92 checks pass, while final-head/source evidence remains outstanding.
   Only a passing, approved release PR and explicit publication
   authorization can lead to a tag/assets; this preparation does neither.

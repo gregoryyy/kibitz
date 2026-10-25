@@ -83,7 +83,11 @@
   "browser": {
     "run": 40187595208,
     "job": 121151579906,
-    "status": "running-at-review"
+    "status": "passed",
+    "passed": 423,
+    "skipped": 1,
+    "failed": 0,
+    "completedAt": "2026-10-25T11:46:29Z"
   },
   "rawSha256": {
     "image/os-packages.txt": "134f5ea93986819cd02b6956a6da2bc346754a806e391259c377ac3ba3260736",
