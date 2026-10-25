@@ -76,6 +76,10 @@ no blanket reachability exclusion, suppression or risk acceptance. Apply the
 [maintenance policy](MAINTENANCE.md), including its overdue/release rule.
 CodeQL 20/21 are intentional operator capture writes; 23 reflects supported
 local HTTP cookies. Their documented contexts still need release disposition.
+The [initial runtime exposure review](security/2026-10-25-runtime-triage.md)
+checks all 25 distinct CVEs against vendor records and the supplied configuration.
+It records CPU/function/service prerequisites, the resolver configuration concern
+and native-linkage/range gaps. All raw findings and owner dispositions remain open.
 
 ## Candidate work and external inputs
 
