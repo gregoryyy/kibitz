@@ -21,6 +21,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
 - [x] 0.1 Create the GitHub repo, push `main`, and protect it (PRs required, CI must pass, no force pushes). Note: GitHub offers no branch protection or rulesets for private repos on the Free plan, so PR-only merging is a convention (AGENTS.md) until the repo is public or on Pro.
 - [x] 0.2 Decide the target layout: evolve `claude/` and `codex/` in parallel, or merge them into one app folder. Record the decision in DONE.md. (Merged into `site/`.)
 - [x] 0.3 Set up npm workspaces (`client`, `server`, `shared`) and pin Node LTS (`.nvmrc`, `engines`). Decided against workspaces for now: `site/` stays one npm project (see DONE.md). Node 24 LTS is pinned.
+  - [x] 0.3.1 Make `just` dependency installation detect changed manifests/lockfiles/runtime and missing or mismatched packages before building; retain a fast path only for a verified complete tree.
 - [x] 0.4 Decide on typing: JS + JSDoc checked by `tsc --checkJs`, or TypeScript. JS + JSDoc, checked by `npm run typecheck`.
 - [x] 0.5 Add linting and formatting (ESLint, Prettier). ESLint and `.editorconfig`; no Prettier (see DONE.md).
 - [x] 0.6 Set up the test harness: `node:test` for unit tests, `@playwright/test` for e2e (port `claude/tests/e2e.py` to JS)
