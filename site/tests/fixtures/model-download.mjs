@@ -2,10 +2,16 @@
 // Production code has no fixture mode, alternate catalogue path or network bypass.
 import crypto from 'node:crypto';
 import { BROWSER_MODELS } from '../../server/models.mjs';
-const bytes = Buffer.from('synthetic verified weights\n'), source = 'https://model.example.invalid/synthetic.gguf';
-BROWSER_MODELS[0] = { ...BROWSER_MODELS[0], bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), source };
+const bytes = Buffer.from('synthetic verified weights\n');
+// Keep the production source locators so the real CLI must request the pinned revision.
+// Every fetch is still intercepted; only size/hash are replaced with tiny synthetic bytes.
+const sources = new Set(BROWSER_MODELS.map(model => model.source));
+for (let index = 0; index < BROWSER_MODELS.length; index++) {
+  BROWSER_MODELS[index] = { ...BROWSER_MODELS[index], bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') };
+}
 globalThis.fetch = async (url, options = {}) => {
-  if (url !== source) throw Error('Unexpected fixture request');
+  if (!sources.has(url)) throw Error('Unexpected fixture request');
+  if (!/^https:\/\/huggingface\.co\/Qwen\/[^/]+\/resolve\/[a-f0-9]{40}\/[^/]+\.gguf$/.test(url)) throw Error('Catalogue request must use a full source revision');
   options.signal?.throwIfAborted();
   const scenario = process.env.KIBITZ_DOWNLOAD_SCENARIO || 'valid';
   if (scenario === 'headers-hang') return await new Promise((resolve, reject) => {

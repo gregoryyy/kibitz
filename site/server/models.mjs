@@ -1,24 +1,24 @@
 // Models for the in-browser coach (TODO 2.16): GGUF files the page runs itself with wllama.
 // scripts/fetch-model.mjs downloads one once into site/models/; scripts/serve.mjs --models then
 // serves it from there, so the page never fetches weights from another host. Each file is
-// pinned by size and SHA-256 (taken from the Hugging Face LFS metadata).
+// pinned by source commit, size and SHA-256 (checked against exact-revision LFS metadata).
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
-const HF = (repo, file) => `https://huggingface.co/${repo}/resolve/main/${file}`;
+const HF = (repo, revision, file) => `https://huggingface.co/${repo}/resolve/${revision}/${file}`;
 export const BROWSER_MODELS = [
   {
     id: 'qwen2.5-1.5b', name: 'Qwen2.5 1.5B Instruct', licence: 'Apache-2.0',
     file: 'qwen2.5-1.5b-instruct-q4_k_m.gguf', bytes: 1117320736,
     sha256: '6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e',
-    source: HF('Qwen/Qwen2.5-1.5B-Instruct-GGUF', 'qwen2.5-1.5b-instruct-q4_k_m.gguf'),
+    source: HF('Qwen/Qwen2.5-1.5B-Instruct-GGUF', '91cad51170dc346986eccefdc2dd33a9da36ead9', 'qwen2.5-1.5b-instruct-q4_k_m.gguf'),
   },
   {
     id: 'qwen2.5-0.5b', name: 'Qwen2.5 0.5B Instruct', licence: 'Apache-2.0',
     file: 'qwen2.5-0.5b-instruct-q4_k_m.gguf', bytes: 491400032,
     sha256: '74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db',
-    source: HF('Qwen/Qwen2.5-0.5B-Instruct-GGUF', 'qwen2.5-0.5b-instruct-q4_k_m.gguf'),
+    source: HF('Qwen/Qwen2.5-0.5B-Instruct-GGUF', '9217f5db79a29953eb74d5343926648285ec7e67', 'qwen2.5-0.5b-instruct-q4_k_m.gguf'),
   },
 ];
 export const DEFAULT_BROWSER_MODEL = 'qwen2.5-1.5b';
