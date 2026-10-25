@@ -199,8 +199,11 @@ test('the packaged non-root server supports native HTTPS from read-only operator
       expect(response.headers()['set-cookie']).toContain('; Secure');
     }
     context = await browser.newContext({ ignoreHTTPSErrors: true }); const page = await context.newPage();
+    const pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
+    await page.addInitScript(() => { globalThis.__csp = []; globalThis.document.addEventListener('securitypolicyviolation', event => globalThis.__csp.push(`${event.violatedDirective} ${event.blockedURI}`)); });
     await page.route('**/*', route => new URL(route.request().url()).origin === url ? route.continue() : route.abort());
-    await open(page, url + '/?debug'); await expect(page.locator('#board cg-board')).toBeVisible();
+    await openContainerApp(page, url + '/?debug', open); await expect(page.locator('#board cg-board')).toBeVisible();
+    expect(pageErrors).toEqual([]); expect(await page.evaluate(() => globalThis.__csp)).toEqual([]);
     for (const file of ['/tls/key.pem', '/key.pem', '/.git/config']) expect((await client.get(url + file)).status()).toBe(404);
     await expect.poll(() => JSON.parse(docker('inspect', container))[0].State.Health.Status, { timeout: 15_000 }).toBe('healthy');
     expect(docker('logs', container)).not.toContain('PRIVATE KEY');
