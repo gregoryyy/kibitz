@@ -19,7 +19,7 @@ flowchart LR
 
 | Node type | Count |
 | --- | ---: |
-| artifact | 550 |
+| artifact | 552 |
 | milestone | 13 |
 | todo | 212 |
 | done | 122 |
@@ -27,7 +27,7 @@ flowchart LR
 | deviation | 206 |
 | reflection | 2 |
 
-3777 typed edges; 423 scanned text inputs; 317 unresolved references.
+3783 typed edges; 424 scanned text inputs; 317 unresolved references.
 
 ## TODO → DONE index
 
@@ -435,7 +435,7 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [THIRD_PARTY_NOTICES.md:10](../../THIRD_PARTY_NOTICES.md) | index.html | ambiguous |
 | [THIRD_PARTY_NOTICES.md:11](../../THIRD_PARTY_NOTICES.md) | index.html | ambiguous |
 
-### Files without extracted relationships (45)
+### Files without extracted relationships (44)
 
 The first thirty are listed; these files remain in the inventory. Extraction coverage is described in README.md.
 
