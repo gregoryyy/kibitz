@@ -27,7 +27,7 @@ async function updateSite() {
       if (file.startsWith('api/') || file.split('/').some(part => part.startsWith('.'))) throw Error('excluded');
       const target = new URL(file, root); if (!target.href.startsWith(root.href)) throw Error('outside fixture');
       const bytes = file === 'sw.js' && replacement ? Buffer.from(replacement) : await readFile(target);
-      const type = file.endsWith('.js') ? 'text/javascript' : file.endsWith('.wasm') ? 'application/wasm' : file.endsWith('.html') ? 'text/html; charset=utf-8' : file.endsWith('.json') ? 'application/json' : file.endsWith('.webmanifest') ? 'application/manifest+json' : file.endsWith('.svg') ? 'image/svg+xml' : 'text/plain';
+      const type = file.endsWith('.js') ? 'text/javascript' : file.endsWith('.wasm') ? 'application/wasm' : file.endsWith('.html') ? 'text/html; charset=utf-8' : file.endsWith('.json') ? 'application/json' : file.endsWith('.webmanifest') ? 'application/manifest+json' : file.endsWith('.svg') ? 'image/svg+xml' : file.endsWith('.ttf') ? 'font/ttf' : 'text/plain';
       response.writeHead(200, { ...BASE_HEADERS, 'Content-Type': type, 'Content-Length': bytes.length, 'Cache-Control': 'no-store', ...(file.endsWith('.html') ? { 'Content-Security-Policy': cspFor(bytes.toString()) } : {}) }); response.end(bytes);
     } catch { response.writeHead(404, BASE_HEADERS); response.end(); }
   });

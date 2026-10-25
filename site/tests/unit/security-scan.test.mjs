@@ -11,7 +11,7 @@ const headers = () => new Headers({
   'content-type': 'text/html; charset=utf-8', 'x-content-type-options': 'nosniff',
   'referrer-policy': 'no-referrer', 'x-frame-options': 'DENY', 'cross-origin-opener-policy': 'same-origin',
   'cross-origin-embedder-policy': 'require-corp', 'cross-origin-resource-policy': 'same-origin',
-  'content-security-policy': "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  'content-security-policy': "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; style-src 'self' 'sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB='; style-src-attr 'none'; font-src 'self'",
 });
 
 test('scan target is always a dedicated loopback HTTP origin and scanner is digest-pinned', () => {
@@ -37,9 +37,22 @@ test('header audit fails on missing or weakened boundaries, duplicate CSP and ex
     assert.ok(checkHeaders(changed).some(e => e.includes('Duplicate CSP')), directive);
   }
   const externalOnly = headers();
-  externalOnly.set('content-security-policy', externalOnly.get('content-security-policy').replace(/ 'sha256-[^']+'/g, ''));
+  externalOnly.set('content-security-policy', externalOnly.get('content-security-policy').replace(" 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='", ''));
   assert.ok(checkHeaders(externalOnly).includes('Missing inline script hashes'));
   assert.deepEqual(checkHeaders(externalOnly, { inline: false }), []);
+});
+
+test('header audit rejects inline CSS authority, remote fonts and style override bypasses', () => {
+  for (const source of ["'unsafe-inline'", "'unsafe-hashes'", '*', 'https://fonts.googleapis.com']) {
+    const changed = headers(); changed.set('content-security-policy', changed.get('content-security-policy').replace("style-src 'self'", `style-src 'self' ${source}`));
+    assert.ok(checkHeaders(changed).includes('Unexpected CSP style source'), source);
+  }
+  for (const [before, after] of [["style-src-attr 'none'", "style-src-attr 'unsafe-inline'"], ["font-src 'self'", "font-src 'self' https://fonts.gstatic.com"]]) {
+    const changed = headers(); changed.set('content-security-policy', changed.get('content-security-policy').replace(before, after));
+    assert.ok(checkHeaders(changed).length);
+  }
+  const override = headers(); override.set('content-security-policy', override.get('content-security-policy') + "; style-src-elem 'unsafe-inline'");
+  assert.ok(checkHeaders(override).includes('Unexpected CSP style override'));
 });
 
 test('high findings fail even if baseline exit status would call them WARN; lower findings remain visible', () => {

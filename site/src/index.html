@@ -3,9 +3,11 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#3a49d6">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
+/* Original variable fonts, pinned and bundled with their SIL OFL licences in fonts/. */
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 200 800; font-display: swap; src: url("fonts/bricolage-grotesque.ttf") format("truetype"); }
+@font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("fonts/instrument-sans.ttf") format("truetype"); }
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: swap; src: url("fonts/jetbrains-mono.ttf") format("truetype"); }
 /* Layout: board column (eval bar · board · move sheet) beside a tabbed coaching desk; stacks on phones. */
 :root {
   --bg: #eceef3; --surface: #ffffff; --surface-2: #f4f5f9; --ink: #161b2e; --muted: #5a6178; --line: #d8dbe5;
@@ -77,7 +79,7 @@ main { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.9
 
 .boardwrap { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: 6px; align-items: stretch; }
 .evalbar { position: relative; border-radius: 4px; overflow: hidden; background: var(--evalb); border: 1px solid var(--line); }
-.evalbar .w { position: absolute; left: 0; right: 0; bottom: 0; background: var(--evalw); transition: height .35s ease; }
+.evalbar .w { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: var(--evalw); transition: height .35s ease; }
 .evalbar.flipped .w { top: 0; bottom: auto; }
 .evalbar.hidden-eval .w { height: 50% !important; }
 .evalbar .mid { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--muted); opacity: .5; }
@@ -439,6 +441,17 @@ a.ext { color: var(--accent); font-size: 14px; }
 .confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r); background: var(--accent-soft); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 @media (max-width: 520px) { .brand small { display: none; } .tabs button { padding: 10px 10px; } .pane { padding: 14px 12px; } .tiles .big { font-size: 26px; } }
+
+/* Shared authored layout choices; dynamic engine/board geometry uses CSSOM properties. */
+.mt-8 { margin-top: 8px; }
+.gap-12 { gap: 12px; }
+.push-right { margin-right: auto; }
+.model-actions { margin-top: 6px; gap: 6px; }
+.coach-actions { flex-direction: column; align-items: stretch; gap: 6px; }
+#libSearch { flex: 1; min-width: 160px; }
+#optDepth { width: auto; }
+.game-result { --c: var(--accent); }
+.clipboard-copy { position: fixed; opacity: 0; }
 </style>
 
 <header class="top">
@@ -456,7 +469,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <div class="board-context"><strong id="boardMode">Current game</strong><span class="game-title" id="boardGame" translate="no"></span><button class="btn small" id="boardReturn" hidden>Return to my game</button></div>
     <div class="player" id="playerTop"></div>
     <div class="boardwrap">
-      <div class="evalbar" id="evalbar" title="Engine evaluation"><div class="w" id="evalW" style="height:50%"></div><div class="mid"></div></div>
+      <div class="evalbar" id="evalbar" title="Engine evaluation"><div class="w" id="evalW"></div><div class="mid"></div></div>
       <div class="board-outer"><div id="board" class="cg-wrap" translate="no"></div><div id="keyboardBoard" class="keyboard-board"></div><div id="boardPreview" class="board-preview" hidden></div><div id="promo" class="promo" hidden></div></div>
     </div>
     <div class="player" id="playerBottom"></div>
@@ -504,7 +517,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div><strong id="browserModelName">In-browser model</strong> <span class="hint" id="browserModelState"></span></div>
         <p id="browserModelNotice" hidden></p>
         <progress id="browserModelProgress" max="1" value="0" hidden></progress>
-        <div class="row" style="margin-top:6px;gap:6px"><button class="btn small primary" id="btnLoadModel">Load</button><button class="btn small" id="btnUnloadModel" hidden>Unload</button></div>
+        <div class="row model-actions"><button class="btn small primary" id="btnLoadModel">Load</button><button class="btn small" id="btnUnloadModel" hidden>Unload</button></div>
       </div>
       <div class="notice" id="coachOff" hidden>The coach needs an AI provider in this view. Stockfish analysis, flags and review still work.</div>
       <div class="chat" id="chat" aria-live="polite"></div>
@@ -512,7 +525,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div class="chips"><button class="chip primary" id="btnComment" title="A comment on the aspects chosen in the Coach tab">Comment on this position</button><span id="coachChips" class="chips"></span></div>
       <div class="composer">
         <textarea id="coachInput" rows="2" placeholder="Ask about this position, your last move, or a plan"></textarea>
-        <div class="row" style="flex-direction:column;align-items:stretch;gap:6px"><button class="btn primary" id="coachSend">Ask</button><button class="btn" id="coachStop" hidden>Stop</button></div>
+        <div class="row coach-actions"><button class="btn primary" id="coachSend">Ask</button><button class="btn" id="coachStop" hidden>Stop</button></div>
       </div>
       <p class="hint" id="coachSourcesHint" hidden>Relevant game comments and study notes may be sent with your question.</p>
       <p class="hint usage-line" id="usageLine" role="status" translate="no" hidden></p>
@@ -562,7 +575,7 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div class="row"><button class="btn primary" id="btnNewGame">Start game</button><span class="hint" id="gameStateHint"></span></div>
       <details class="box"><summary>Load a position or PGN to analyse</summary>
         <div class="field"><textarea id="loadText" rows="4" placeholder="Paste a FEN or a PGN game"></textarea></div>
-        <div class="row" style="margin-top:8px"><button class="btn" id="btnLoad">Load into analysis</button><span class="hint" id="loadMsg"></span></div>
+        <div class="row mt-8"><button class="btn" id="btnLoad">Load into analysis</button><span class="hint" id="loadMsg"></span></div>
       </details>
     </div>
 
@@ -575,7 +588,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <p class="hint" id="challengeProgress" hidden></p>
       </div>
       <div class="field"><span class="lbl-sm" id="interestingLbl">Interesting moves, not only the best</span>
-        <div class="row" style="gap:12px;flex-wrap:wrap"><span class="hint">Lines</span><div class="choice" id="optLines"><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div>
+        <div class="row gap-12"><span class="hint">Lines</span><div class="choice" id="optLines"><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div>
           <span class="hint">within</span><div class="choice" id="optWindow"><button data-v="50">0.5</button><button data-v="100">1</button><button data-v="200">2</button></div><span class="hint">pawns of the best</span></div>
         <ol class="interesting" id="interesting" aria-labelledby="interestingLbl"></ol>
       </div>
@@ -591,7 +604,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     </div>
 
     <div class="pane" data-pane="review" hidden>
-      <div class="row"><h2 style="margin-right:auto" id="reviewTitle">Game review</h2><button class="btn primary" id="btnReview">Run review</button><button class="btn" id="btnReviewStop" hidden>Stop</button></div>
+      <div class="row"><h2 class="push-right" id="reviewTitle">Game review</h2><button class="btn primary" id="btnReview">Run review</button><button class="btn" id="btnReviewStop" hidden>Stop</button></div>
       <p class="hint" id="reviewGame" translate="no"></p>
       <div class="progress" id="reviewProgress" hidden><div></div></div>
       <p class="hint" id="reviewStage" role="status" hidden></p>
@@ -602,10 +615,10 @@ a.ext { color: var(--accent); font-size: 14px; }
     </div>
 
     <div class="pane" data-pane="library" hidden>
-      <div class="row"><h2 style="margin-right:auto">Games library</h2><span class="hint" id="libWhere"></span></div>
+      <div class="row"><h2 class="push-right">Games library</h2><span class="hint" id="libWhere"></span></div>
       <section class="box" id="libStoragePanel" aria-label="Library storage" hidden>
         <p class="hint">The browser library and server library stay separate. Switching does not copy games or references.</p>
-        <div class="row" style="flex-wrap:wrap">
+        <div class="row">
           <button class="btn small" id="libUseServer" aria-pressed="false">Use server library</button>
           <button class="btn small ghost" id="libUseBrowser" aria-pressed="true">Use browser library</button>
           <button class="btn small ghost" id="libServerRefresh">Refresh server library</button>
@@ -619,7 +632,7 @@ a.ext { color: var(--accent); font-size: 14px; }
           <p class="hint">Search comments and study notes. Results are source text, not checked advice.</p>
           <label for="studyQuery" class="sr-only">Study text keywords</label>
           <input type="search" id="studyQuery" maxlength="500" placeholder="Try isolated pawn, blockade or Qxf7" autocomplete="off">
-          <div class="row" style="margin-top:8px">
+          <div class="row mt-8">
             <label for="studyMethod">Search method<select id="studyMethod"><option value="keyword">Keywords</option><option value="dense">By meaning</option><option value="hybrid">Combined</option></select></label>
             <label for="studySource">Search in<select id="studySource"><option value="all">All study text</option><option value="library">My annotations</option><option value="classic">Classic annotations</option><option value="guide">Study notes</option></select></label>
             <label for="studyLanguage">Text language<select id="studyLanguage"><option value="ui">Interface language</option><option value="all">Any language</option><option value="en">English</option><option value="de">Deutsch</option></select></label>
@@ -663,7 +676,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div class="lib-list" data-pattern="results" translate="no"></div>
       </details>
       <div class="row">
-        <input type="search" id="libSearch" aria-label="Search games" placeholder="Search player, opening, year, result, theme" maxlength="200" style="flex:1;min-width:160px">
+        <input type="search" id="libSearch" aria-label="Search games" placeholder="Search player, opening, year, result, theme" maxlength="200">
         <div class="choice" id="libFilter"><button data-v="all" aria-pressed="true">All</button><button data-v="played" aria-pressed="false">Played</button><button data-v="study" aria-pressed="false">Studies</button><button data-v="classics" aria-pressed="false">Classics</button><button data-v="problems" aria-pressed="false">Problems</button></div>
       </div>
       <details class="box" id="libSearchFilters">
@@ -684,7 +697,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <div class="field"><textarea id="importText" rows="5" placeholder="Paste one or more PGN games. Comments in { } are indexed so the coach can quote them when a similar position comes up."></textarea></div>
         <p class="hint">Repeated copies are skipped; different annotations or source details stay separate.</p>
         <details><summary>Source and licences (optional)</summary><div id="importSourceFields"></div></details>
-        <div class="row" style="margin-top:8px"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg" role="status" aria-live="polite" data-raw translate="no"></span></div>
+        <div class="row mt-8"><button class="btn" id="btnImport">Add to library</button><span class="hint" id="importMsg" role="status" aria-live="polite" data-raw translate="no"></span></div>
       </details>
       <div class="row"><button class="btn small" id="btnSaveCurrent">Save current game</button><button class="btn small" id="btnExportAll">Copy all as PGN</button></div>
     </div>
@@ -754,7 +767,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     </div>
 
     <div class="pane" data-pane="reading" hidden>
-      <div class="row"><h2 style="margin-right:auto">Reading for this position</h2><a class="ext" id="lichessLink" href="https://lichess.org/analysis" target="_blank" rel="noopener">Open on Lichess ↗</a></div>
+      <div class="row"><h2 class="push-right">Reading for this position</h2><a class="ext" id="lichessLink" href="https://lichess.org/analysis" target="_blank" rel="noopener">Open on Lichess ↗</a></div>
       <div id="themeChips" class="chips"></div>
       <div id="bookList" class="lib-list"></div>
       <h3>Seen before in your library</h3>
@@ -765,10 +778,10 @@ a.ext { color: var(--accent); font-size: 14px; }
       <div id="studyPlan"></div>
       <details class="box"><summary>Add your own book, course or notes</summary>
         <div class="field"><input type="text" id="refTitle" placeholder="Title, e.g. My Caro-Kann course"></div>
-        <div class="field" style="margin-top:8px"><input type="text" id="refAuthor" placeholder="Author or source (optional)"></div>
-        <div class="field" style="margin-top:8px"><textarea id="refNote" rows="2" placeholder="What it covers, or which chapter to read"></textarea></div>
-        <div class="field" style="margin-top:8px"><span class="lbl-sm">Themes it covers</span><div class="chips" id="refTags"></div></div>
-        <div class="row" style="margin-top:8px"><button class="btn" id="btnAddRef">Add reference</button><span class="hint" id="refMsg"></span></div>
+        <div class="field mt-8"><input type="text" id="refAuthor" placeholder="Author or source (optional)"></div>
+        <div class="field mt-8"><textarea id="refNote" rows="2" placeholder="What it covers, or which chapter to read"></textarea></div>
+        <div class="field mt-8"><span class="lbl-sm">Themes it covers</span><div class="chips" id="refTags"></div></div>
+        <div class="row mt-8"><button class="btn" id="btnAddRef">Add reference</button><span class="hint" id="refMsg"></span></div>
       </details>
     </div>
   </section>
@@ -795,7 +808,7 @@ a.ext { color: var(--accent); font-size: 14px; }
           <label for="profilePool">Rating pool<select id="profilePool" data-profile="pool"></select></label>
           <label for="profileTimeControl">Rating time control<select id="profileTimeControl" data-profile="timeControl"></select></label>
         </div>
-        <div class="field" style="margin-top:8px"><label for="profileGoals">Learning goals</label><textarea id="profileGoals" data-profile="goals" rows="3" maxlength="500" translate="no" aria-describedby="profileHelp profileMessage"></textarea></div>
+        <div class="field mt-8"><label for="profileGoals">Learning goals</label><textarea id="profileGoals" data-profile="goals" rows="3" maxlength="500" translate="no" aria-describedby="profileHelp profileMessage"></textarea></div>
         <p class="hint" id="profileHelp">Saved in this browser. Your level, rating and goals accompany coach requests. Ratings are your own report, not a measured Kibitz rating.</p>
         <div class="row"><button class="btn small primary" type="submit" data-profile="save">Save profile</button><button class="btn small" type="button" data-profile="reload">Reload profile</button></div>
       </form>
@@ -822,7 +835,7 @@ a.ext { color: var(--accent); font-size: 14px; }
     <section class="settings-sec">
       <h3>Engine</h3>
       <div class="field">
-        <dl class="kv"><dt>Analysis depth</dt><dd><select id="optDepth" style="width:auto"><option value="12">12 (fast)</option><option value="14" selected>14</option><option value="16">16</option><option value="18">18 (slow)</option></select></dd>
+        <dl class="kv"><dt>Analysis depth</dt><dd><select id="optDepth"><option value="12">12 (fast)</option><option value="14" selected>14</option><option value="16">16</option><option value="18">18 (slow)</option></select></dd>
         <dt>Runs</dt><dd id="engineWhere">In your browser, nothing leaves the page.</dd></dl>
       </div>
     </section>
@@ -1601,7 +1614,7 @@ function showFlag() {
   const slot = $('#flagSlot'); slot.replaceChildren();
   if (S.over && S.mode === 'play' && S.cursor === last()) {
     const youWon = (S.over.result === '1-0' && S.userColor === 'w') || (S.over.result === '0-1' && S.userColor === 'b');
-    slot.append(el('div', { class: 'flag', style: '--c: var(--accent)' },
+    slot.append(el('div', { class: 'flag game-result' },
       el('span', { class: 'glyph' }, S.over.result === '1/2-1/2' ? '½' : youWon ? '1' : '0'),
       el('div', { class: 'head' }, `Game over: ${S.over.result} by ${S.over.reason}`),
       el('div', { class: 'sub' }, 'Saved to your library. Run the review to see the turning points and get the coach\'s summary.'),
@@ -2853,7 +2866,7 @@ function renderLibrary() {
 }
 async function copyText(t, msg) {
   try { await navigator.clipboard.writeText(t); toast(msg); }
-  catch { const ta = el('textarea', { style: 'position:fixed;opacity:0' }); ta.value = t; document.body.append(ta); ta.select(); try { document.execCommand('copy'); toast(msg); } catch { toast('Copy failed. Select the text manually.'); } ta.remove(); }
+  catch { const ta = el('textarea', { class: 'clipboard-copy' }); ta.value = t; document.body.append(ta); ta.select(); try { document.execCommand('copy'); toast(msg); } catch { toast('Copy failed. Select the text manually.'); } ta.remove(); }
 }
 async function downloadPGN(g) {
   const dl = await use('downloads');
@@ -3010,7 +3023,7 @@ function renderReview() {
   const sumBox = el('div', { class: 'summary', id: 'summaryBox' });
   if (S.summary) { const context = answerContext(last(), 'all', null, S, { review: true }); renderRich(sumBox, S.summary, context.fen, checkFor(S.summary, context)); }
   else sumBox.append(el('span', { class: 'empty-note' }, 'The coach can turn these numbers into a short write-up: how the opening went, what decided the game, and what to practise.'));
-  body.append(el('div', { class: 'row' }, el('h3', { style: 'margin-right:auto' }, 'Coach summary'), el('button', { class: 'btn small primary', id: 'btnSummary', onclick: writeSummary, disabled: !COACH.sample }, S.summary ? 'Rewrite' : 'Write summary')));
+  body.append(el('div', { class: 'row' }, el('h3', { class: 'push-right' }, 'Coach summary'), el('button', { class: 'btn small primary', id: 'btnSummary', onclick: writeSummary, disabled: !COACH.sample }, S.summary ? 'Rewrite' : 'Write summary')));
   body.append(sumBox);
 }
 function evalGraph() {

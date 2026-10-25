@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Local web assets and stricter stylesheet policy (verification in progress)
+
+TODO item: 11.5.1 remains open until the actual raw baseline rerun finishes.
+
+### Implementation notes
+
+- Replaced `style-src unsafe-inline` with separate parsed trusted stylesheet hashes and `style-src-attr 'none'`. Complete HTML/SVG style blocks use browser-normalized text; inert/template/raw-text/unfinished lookalikes and unsupported types grant no hashes. Script hashes and worker/WASM permissions retain their separate boundaries. Replaced eighteen authored style attributes and three dynamic string-style helpers with equivalent classes; trusted CSSOM geometry remains available.
+- Bundled the same Bricolage Grotesque, Instrument Sans and JetBrains Mono normal variable fonts from official Google Fonts revision `e7db6ca603fd4862010383ff17ffd6cc4ffac1c0`, retaining unchanged bytes, authors and full SIL OFL notices. The manifest records source URLs/sizes/hashes, the build verifies before publication, and offline bundles include the fonts/licences. No npm dependency, model download or automatic font refresh is added. Removed external font links/hosts and canonicalized the wrapper charset.
+- Added CSS boundary and negative scan-policy tests, pinned font/offline-inventory/integrity tests, actual CLI/Chrome CSS-injection regression and desktop/German-phone font/layout checks. Full unit/server suite passes (674 passes, one opt-in live skip). Initial browser run passes six cases; the phone case reveals that a language switch legitimately refetches all three local fonts. Its assertion now checks the three exact URL identities and every response rather than one fetch per font; loaded faces, CSP, external-request and layout assertions remain.
+- The CSS regression fails against the previous actual backend: the injected inert-template CSS changes the trusted element's colour under its old broad permission. The corrected backend blocks that CSS and a style attribute while allowing the trusted block and property-based geometry. Expanded final browser checks and actual Linux passive baseline are pending; no successful scan is inferred from header/unit tests.
+- Final local verification passes all thirty browser cases, including desktop/German-phone fonts, normal play/review, settings, layout/session transitions and all seven actual offline-app/update/erasure cases. Visually inspected both font/layout captures. Final-build CSS/font/integrity/scan-policy tests pass all 22 cases; lint/JSDoc/ASVS checks and seven-route header preflight pass, 335 local links resolve and diff whitespace is clean. Actual Linux raw passive evidence is still pending; no live provider, operator environment or model download was used.
+
+### Deviations
+
+- Full upstream variable TTF files replace browser-specific remote subsets, adding 790,040 font bytes plus licences/metadata to the public offline bundle. Typeface families remain the same; device rasterization/fallbacks can differ. No external stylesheet remains to require SRI.
+- Trusted build HTML can authorize its own active CSS/scripts. This remains an operator-owned-file boundary, not user-HTML sanitization or arbitrary CSS isolation. Existing local HTTP/account, mutable-model and unrestricted-prose limitations stay open.
+
+### Insights
+
+- CSS hashes preserve the self-contained artifact document without granting arbitrary style attributes. Actual browser tests must verify both refusal and the trusted runtime geometry that the board needs.
+- Bundling the existing typefaces removes an external stylesheet/privacy boundary while preserving typography offline; explicit byte/licence provenance makes that trade-off reviewable.
+
 ## 2026-10-25 — User guide, provider setup and native Ollama operation
 
 TODO item: 12.4, completing the parent documentation milestone after the existing flipbook refresh.

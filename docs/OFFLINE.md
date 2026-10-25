@@ -2,7 +2,7 @@
 
 Start Kibitz normally, open **Settings → Offline app**, then choose **Prepare or check updates**. Keep the page open until preparation is confirmed, then reload once. Bookmark that same address, including its port, or install Kibitz through your browser's app-install menu when offered. The browser can subsequently open that address with the Node server unavailable.
 
-Preparation saves a complete public app bundle: Stockfish workers and WASM, chess rules/board code, opening tables, reference games, curriculum, application modules, data-management page and model runtime. It does not download model weights, send games to a service or cache API responses. Browser-local saved games, current-game snapshots and practice results retain their existing localStorage lifecycle. Bundled references and lessons are available offline. The private server library still needs a verified server owner; a fresh offline load cannot reveal an earlier cookie owner's cached collection. Select the browser library before relying on it offline.
+Preparation saves a complete public app bundle: Stockfish workers and WASM, chess rules/board code, opening tables, reference games, curriculum, application modules, bundled fonts/licences, data-management page and model runtime. It does not download model weights, send games to a service or cache API responses. Browser-local saved games, current-game snapshots and practice results retain their existing localStorage lifecycle. Bundled references and lessons are available offline. The private server library still needs a verified server owner; a fresh offline load cannot reveal an earlier cookie owner's cached collection. Select the browser library before relying on it offline.
 
 ## Coach choices
 

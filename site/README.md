@@ -186,7 +186,7 @@ data/eco/*.tsv        Lichess chess-openings dataset (CC0). Built into dist/eco.
                       dist/openings.json (every named line with its moves, for "start from an opening"),
                       and dist/opening-variations.json (named destinations of legal next moves by position).
                       Data/compiler changes rebuild these outputs automatically; build:eco forces regeneration.
-scripts/build.mjs     Copies the module directory tree and vendored libraries, builds opening data, inlines CSS → dist/
+scripts/build.mjs     Copies modules, vendored libraries and verified local fonts, builds opening data, inlines CSS → dist/
 scripts/build-eco.mjs Opening table builder
 scripts/calibrate.mjs Self-play round robin that measures the weakened levels against Stockfish's UCI_Elo
 scripts/fetch-model.mjs  Downloads the in-browser model into models/ once (just offline); --timeout-ms sets the transfer deadline
@@ -194,7 +194,7 @@ scripts/download-model.mjs Pinned byte cap and streaming SHA-256, verified publi
 scripts/record-ai-fixtures.mjs  Operator capture plan; --yes stages successful wire fixtures privately (uses .env keys)
 scripts/fixture-recording.mjs  Bounded single-attempt SDK capture, credential checks and atomic JSON publication
 scripts/serve.mjs     Local static server (UTF-8, security headers, no dotfiles); --api mounts the AI gateway, loads ../.env;
-                      --models serves the in-browser model's weights; --offline drops Google Fonts and other hosts;
+                      --models serves the in-browser model's weights; --offline supports the offline page path and removes legacy remote-font links;
                       --library FILE mounts optional private SQLite storage independently of the AI gateway
 server/ai.mjs         AI gateway core: config from env (every provider, models per task, local-only), provider
                       adapters with chat() (Anthropic SDK; openai SDK for OpenAI, Mistral, Ollama), embed(),
