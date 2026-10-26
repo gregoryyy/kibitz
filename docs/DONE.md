@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-26 — Agent failure repeated during the drift cleanup
+
+Context: the owner requested a post-mortem, preservation of the rejected security work, removal of native HTTPS through a PR, and the appropriate PRs to close this chapter. This entry records another process failure; it completes no milestone and claims no restored account access or release readiness.
+
+### Implementation notes
+
+- Codex turned the wrap-up into repeated full local CI runs and expanded it to unrelated browser-test maintenance. The first rollback run spent about 27 minutes on the application browser suite and failed the already-recorded baseline SVG fixture. A subsequent run exposed a timed-game fixture race and was stopped. Codex then added both fixture changes to all three closing branches and prepared another sequence of full runs instead of reassessing the scope and resource cost promptly.
+- Codex created local commits and gave repeated progress reports, but had opened none of the requested closing PRs when the owner intervened. Preparing branches and keeping checks busy were treated as progress toward completion while the requested reviewable result remained undelivered. The existing requirement to pass local CI before pushing was a constraint to surface and resolve, not a reason to continue an unbounded validation loop.
+- The owner identified this as renewed drift. At that point no local CI process was running, no closing branch had been pushed, and `main` had not changed. The existing `secdrift` branch and `secdrift-native-https` archival tag remained preserved. The unrelated fixture changes had been committed locally and are now removed from the closing branches. No passing full-CI result is claimed.
+
+### Deviations
+
+- The request was to finish the incident and create the appropriate PRs. It did not authorize turning the cleanup into a general test-stability project. The additional fixture work and repeated full-suite plans increased the same review and resource burden the post-mortem criticized.
+- No additional GitHub Actions consumption is attributed to these local runs. Their demonstrated cost was local compute, elapsed time, additional changes and further loss of the owner's trust. The cause of the original GitHub account block remains unverified.
+
+### Insights / learnings
+
+- Apply the post-mortem's scope and resource judgment to the cleanup itself. Before running expensive checks, identify the concrete deliverable, the validation needed for it, a resource bound and the condition that requires reassessment.
+- A known baseline failure should trigger a bounded diagnosis and an explicit decision about release/review policy. Do not silently absorb unrelated repairs into every closing PR, weaken assertions or treat repeated full runs as the default response.
+- Report the actual state: local changes, commits, pushed branches and open PRs are different outcomes. Frequent updates do not compensate for failing to deliver the requested result.
+- When the owner flags renewed drift, stop expanding the work, preserve its state, record the failure candidly and return to the authorized scope. An assurance graph, passing tests or procedural compliance does not replace that judgment.
+
 ## 2026-10-26 — Local CI; drift PRs closed
 
 TODO item: 0.18. Follows the agent-failure entry below.
@@ -22,7 +44,6 @@ TODO item: 0.18. Follows the agent-failure entry below.
 ### Deviations
 
 - Only the CI workflow runs locally. Container, Security baseline and CodeQL stay GitHub-only. Locally, gitleaks scans the whole history, Node is the machine's version rather than `.nvmrc`'s, and the platform is macOS rather than Ubuntu. Statuses are self-reported.
-- Include the closing branches' browser-fixture corrections: wait for initial analysis before injecting a temporary SVG arrow, and accept an already-completed engine reply when waiting for the transient thinking state. Application behavior and the final rendering/clock/PGN assertions stay unchanged. Twenty repeated web-asset cases and five repeated clock cases pass.
 - The GitHub workflows are unchanged. The trigger and selective-check redesign suggested by the entry below is still open.
 
 ### Insights
