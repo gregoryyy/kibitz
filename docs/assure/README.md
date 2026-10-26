@@ -20,10 +20,26 @@ node utils/assure-detail.mjs replay 'EXACT_OBJECT_OR_SECTION_ID'
 The browser searches all levels, walks incoming/outgoing dependencies, filters
 relation types and minimum confidence, shows weighted edges and source evidence,
 and lists **Gap and deviation findings** with their supporting typed paths.
-Graph filters affect traversal; the selected root stays visible. Search returns
-100 nodes, graph walks at most 70 nodes, and finding lists show the first 40
-matches. Every limit is stated. The findings' rule threshold is separate from the
-browser's graph display filter.
+Single-click inspects an element while preserving the highlighted path and
+viewport. Double-click, or **Walk from inspected element**, starts a new path.
+Back and the URL track path navigation only. Captured source belongs to the
+inspected element; stale responses cannot replace a later inspection.
+Traversal filters affect reachability; the path root stays visible. The default
+**Lineage columns** view groups the complete walk within the chosen depth into
+documents/references, plan, progress/PRs/rationale and code/tests. Columns page 40
+cards each, with full counts, page jumps and search across all pages. Grouping
+never implies causal order or a dependency direction. Inspection preserves pages,
+scroll and the highlighted root. The adjacent inspector marks whether the
+inspected element is within the reviewed path.
+
+**Connections of path root** lists every filtered direct relation in pages of 40,
+with direction/type counts, distinct neighbor counts, evidence search and
+individual confidence. It stays anchored to the root during inspection. The
+optional local graph shows at most 70 nodes and reports this against the full
+walk; it does not limit columns or connections. Global search returns the first
+100 nodes (refine its query), and finding lists show the first 40 matches. These
+limits are stated. The findings' rule threshold is separate from traversal
+filters. See the [browser guide](../../utils/assure-browser/README.md).
 
 ## Files and levels
 

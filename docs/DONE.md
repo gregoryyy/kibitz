@@ -7,6 +7,45 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Complete paged lineage for high-degree assurance review
+
+TODO item: 0.16.5.
+
+### Implementation notes
+
+- Make stable lineage columns the default browser view, using the local Propeller assurance page as the design reference. Group documents/references, plan, PRs/progress/rationale and code/tests without drawing a dense all-edge layout. Every node reachable within the chosen depth and traversal filters remains available; only card rendering is paged, 40 per column. Search covers all pages, counts disclose scope, and First/Last plus direct page selection reach late neighbors. Compact labels retain their full literal text in the inspector.
+- Keep single-click inspection separate from the reviewed root, highlighted cards, column pages, scroll, history and URL. Double-click or the explicit walking button changes the root. Show whether an inspected element is within the reviewed path; place the inspector beside columns on wide screens and below on smaller screens. Independently scroll details and connections so exposing source controls cannot shift a relation between double-click events. Keep captured-source checks and stale-response protection.
+- Page the complete filtered direct connections of the reviewed root independently of the optional graph. Show direction/type counts, distinct neighbors, confidence and searchable evidence; parallel relation types remain separate. Expand each literal confidence/evidence record rather than filling the viewport with raw JSON. This list remains anchored during inspection, preserving double-click targets and review context. Keep the existing local graph as an optional 70-node view, report its count against the complete walk, and retain its guarded single/double tap behavior.
+- Validation: fresh app build, full mocked unit/server suite (737 passes, one opt-in live skip), four added high-degree/paging unit groups and all 14 focused browser cases. A 4,800-connection fixture checks late-node access, complete counts, at most 160 rendered cards plus 40 connection rows, filtering, confidence, page jumps, keyboard actions, stable inspection, double-click/Back and narrow screens. The high-degree regression fails against the previous browser at 70 nodes/69 relations instead of the expected 4,801 nodes/4,800 relations. Existing source, hostile-label, confinement and canvas regressions remain covered. Lint/JSDoc/ASVS and regenerated assurance integrity/freshness are checked with this change.
+
+### Deviations
+
+- Columns follow role-based lists rather than reproducing Propeller's all-edge SVG. Exact links are reviewed in the paged typed connection list; no visual left-to-right order implies causality. Completeness is scoped to the selected filters and depth, not an unlimited transitive closure. The retained graph is still loaded/indexed in memory; this change bounds rendered DOM, not dataset size. Global search still explicitly shows its first 100 matches and findings their first 40.
+- No dependency, confidence policy, inferred relationship or finding rule is added. The existing Cytoscape dependency remains for optional local graph mode.
+
+### Insights
+
+- A display cap must not become an evidence cap. High-degree review needs complete indexed results and independently paged rendering, so a connection's position in extraction order cannot determine whether it is reviewable. Stable roles and explicit typed relation records preserve readability without turning thousands of links into a hairball.
+
+## 2026-10-25 — Inspect assurance elements without replacing the reviewed path
+
+TODO item: 0.16.4.
+
+### Implementation notes
+
+- Separated the inspected element from the current walk root and path history. Single-clicks on graph nodes, relation entries, search results and findings show details/source without rebuilding the graph, moving its root highlight or changing its edges, layout, viewport or URL. Double-clicking explicitly starts a new walk; the standard **Walk from inspected element** button supports keyboard and touch. Back records path changes only, and filters still operate on that path's root.
+- Disabled incidental graph selection styling so inspection retains the existing root highlight. Guarded double taps by element identity: Cytoscape groups nearby taps by time even across different nodes, so two distinct inspections must not become a path change. Captured source reads use the inspected identity and an inspection revision; an old response cannot overwrite a later inspection, including returning to the same element. Kept literal rendering, source confinement and the existing confidence semantics. Regenerated the assurance layers/findings for the updated code, tests, requirement and documentation.
+- Validation: fresh build, full mocked unit/server suite (733 passes/one opt-in live skip), all 32 assurance groups and all nine focused browser cases pass. The single-click regression fails against the previous live browser by observing the path URL change. Lint/JSDoc/ASVS and regenerated assurance integrity/freshness checks pass; CI remains source-specific in the PR.
+- Added state/history unit coverage and actual browser regressions for single/double canvas clicks, rapid distinct-node clicks, unchanged graph instance/edges/layout/viewport/URL/history, keyboard walking, search/findings inspection and out-of-order source reads. Updated existing navigation cases to double-click for intentional walks. Validation results are recorded in the PR.
+
+### Deviations
+
+- Search results and findings use the same inspect/navigation distinction as graph nodes and relation entries. No new dependency, confidence policy or inference rule is introduced. Inspection is transient; copied URL fragments and reload retain the reviewed path root.
+
+### Insights
+
+- A selected detail panel and a traversal root are different review actions. Keeping their state separate lets a reader verify evidence along a path without changing the context being reviewed; source requests need the same distinction to avoid stale detail replacement.
+
 ## 2026-10-25 — Confidence-weighted assurance links and review findings
 
 TODO item: 0.17.

@@ -110,3 +110,21 @@ JSON graphs and their types remain usable with either foundation. The utility is
 GPL-3.0-or-later like this repository; Cytoscape retains its bundled MIT notice
 and [upstream licence](https://github.com/cytoscape/cytoscape.js/blob/v3.34.4/LICENSE). No vendored
 minified library or new application runtime dependency is committed.
+
+## High-degree review presentation (TODO 0.16.5)
+
+The Propeller local assurance page (`assure/out/lineage.html`) provided the design
+reference: stable semantic columns, an adjacent inspector and separate inspected
+and reviewed-path identities. Kibitz implements that interaction using its
+existing plain DOM stack. It introduces no library or copied assets.
+
+The default columns enumerate the complete filtered walk within the requested
+depth, with 40-card pages per role and search over all reachable elements. A
+separate paged relation list preserves exact direction, per-type confidence and
+evidence for the root's direct connections. This avoids a dense all-edge drawing
+and makes late neighbors reachable without changing the path. Semantic grouping
+is a presentation convention, not a declaration of left-to-right causality.
+Cytoscape remains an optional, bounded 70-node view for small neighborhoods; its
+limit is displayed against the complete walk count. The entire retained graph
+is indexed in memory, so paging bounds rendered elements rather than dataset
+loading. The browser does not claim performance on arbitrarily large datasets.

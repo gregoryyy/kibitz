@@ -4,12 +4,12 @@ Generated offline from typed, confidence-weighted links. These are recorded devi
 
 | Rule | Count |
 | --- | ---: |
-| implements_unassessed | 203 |
+| implements_unassessed | 205 |
 | missing_done_reference | 22 |
 | possible_deviation_impact | 6 |
-| recorded_deviation | 210 |
-| unresolved_reference | 2847 |
-| verifies_unassessed | 203 |
+| recorded_deviation | 213 |
+| unresolved_reference | 2848 |
+| verifies_unassessed | 205 |
 
 Confidence threshold: 0.8; dependency depth: 2; per-deviation impact limit: 100; truncated contexts: 0.
 
@@ -61,7 +61,6 @@ See [README](README.md) for weights, inference rules, exclusions and maintenance
 
 ### unresolved_reference
 
-- gap; 1.00; `section:docs/DONE.md#implementation-notes-121`: missing: server/
 - gap; 1.00; `object:site/tests/e2e/chat.spec.mjs#program%3A%3CArrowFunctionExpression%3Adf6b514e835c%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 - gap; 1.00; `object:site/tests/e2e/chat.spec.mjs#program%3A%3CArrowFunctionExpression%3Ae634ba4a9f91%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 - gap; 1.00; `section:.github/pull_request_template.md#checklist`: directory: site/
@@ -69,6 +68,7 @@ See [README](README.md) for weights, inference rules, exclusions and maintenance
 - gap; 1.00; `object:site/tests/e2e/retrieval-citations.spec.mjs#program%3A%3CArrowFunctionExpression%3A910f53aa1c66%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#test
 - gap; 1.00; `pr:28`: historical\_PR\_file\_absent: site/src/notation.js
 - gap; 1.00; `object:site/tests/e2e/pgn-import.spec.mjs#program%3A%3CArrowFunctionExpression%3Acc9615a0dec6%3E%2F%3CArrowFunctionExpression%3A7c296240cc3b%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
+- gap; 1.00; `object:site/tests/e2e/tools.spec.mjs#program%3A%3CArrowFunctionExpression%3A128a960cc339%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 
 ### verifies_unassessed
 
