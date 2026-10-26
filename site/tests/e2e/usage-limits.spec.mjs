@@ -16,7 +16,7 @@ test('a browser rate refusal and its usage survive a gateway restart while anoth
   const url = `http://127.0.0.1:${port}/?debug`; let child, second;
   const stop = async () => { if (!child || child.exitCode !== null || child.signalCode !== null) return; const done = new Promise(resolve => child.once('exit', resolve)); child.kill(); await done; };
   const start = async () => {
-    child = spawn(process.execPath, ['scripts/serve.mjs', 'dist', '--api', '--env=', '--usage', path.join(dir, 'usage.sqlite'), '--index', '_test.html', '--port', String(port)], {
+    child = spawn(process.execPath, ['scripts/serve.mjs', 'dist', '--api', '--http-dev', '--env=', '--usage', path.join(dir, 'usage.sqlite'), '--index', '_test.html', '--port', String(port)], {
       cwd: site, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', AI_LOCAL_ONLY: '',
         ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', AI_RATE_LIMIT_PER_MINUTE: '10', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1', AI_TOKEN_BUDGET_PER_DAY: '0' },
     });

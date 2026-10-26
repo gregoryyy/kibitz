@@ -9,6 +9,10 @@ passes four image/browser/restart/previous-packaging compatibility cases at sour
 [Current evidence](security/2026-10-25-image-advisories.json) records exact identities.
 The [earlier packaging evidence](security/2026-10-25-container.json) remains historical.
 
+The packaged app enforces the same [HTTPS-only service policy](TLS-POLICY.md)
+as native operation. Plain provider overrides are unavailable even when the app
+itself is reached over valid HTTPS; local-only inference does not waive TLS.
+
 The [image advisory check](IMAGE-ADVISORIES.md) adds a pinned scanner and fresh
 database to the same CI-built image, retaining raw findings and failing on
 high/critical results or incomplete package evidence. Actual verification has zero
@@ -19,15 +23,27 @@ follows [Docker's port-publishing behavior](https://docs.docker.com/engine/netwo
 The server listens on the container interface so the bridge mapping can reach it;
 the supplied host mapping is `127.0.0.1:8765`, preserving local browser access.
 
+First supply trusted native TLS files and a public issuer CA as described in
+[TLS setup](TLS.md). The default command requires `/tls/key.pem` and
+`/tls/cert.pem` plus private `/tls/operator.json` and `/tls/permissions.json` from [operator setup](SESSIONS.md) and [explicit permission setup](PERMISSIONS.md); Compose mounts `.kibitz-data/tls` read-only there (override with
+`KIBITZ_TLS_DIRECTORY`). Files must be readable by UID 1000, with owner-only key/operator
+permissions; keep them outside the build context/public directories. The health
+probe uses verified HTTPS and Compose explicitly supplies `/tls/ca.pem` as its
+public issuer trust file. It does not install trust in a browser or provider.
+
 From the repository root:
 
 ```sh
 docker compose --env-file /dev/null up --build -d
 ```
 
-Open `http://127.0.0.1:8765/`. The supplied
+Map `kibitz.test` to `127.0.0.1` in the host/browser resolver, then open
+`https://kibitz.test:8765/`. Supply the exact DNS SAN plus the loopback IP SAN for
+the verified health probe. The default command sends one-year HSTS on this
+isolated name; IP/localhost serve only the exact static health manifest. The supplied
 [Compose configuration](../compose.yaml) uses the **mock coach** and a named private
-data volume. This is a reproducible local starting point with no provider keys or
+data volume, including `/data/sessions.sqlite`. Sign in with the private operator key
+in Settings or Your data. This is a reproducible local starting point with no provider keys or
 inference cost. `--env-file /dev/null` prevents implicit Compose loading of an
 operator `.env`; the app's default command also uses `--env=`. Real provider setup
 requires explicit runtime configuration and the app's separate sharing permission.
@@ -74,7 +90,9 @@ docker volume create kibitz-data
 docker run --detach --name kibitz --init --read-only --cap-drop ALL \
   --security-opt no-new-privileges --tmpfs /tmp:mode=1777 \
   --publish 127.0.0.1:8765:8765 \
-  --mount type=volume,src=kibitz-data,dst=/data kibitz:local
+  --mount type=volume,src=kibitz-data,dst=/data \
+  --mount type=bind,src="$PWD/.kibitz-data/tls",dst=/tls,readonly \
+  --env KIBITZ_HEALTH_CA=/tls/ca.pem kibitz:local
 ```
 
 [Runtime environment options](https://docs.docker.com/reference/cli/docker/container/run/)
@@ -108,10 +126,15 @@ private data, Git metadata, local builds and downloaded models.
 
 The [read-token container workflow](../.github/workflows/container.yml) builds a
 local image, validates Compose without an env file, installs a test browser and
-runs four actual image cases: process/filesystem boundaries, real Stockfish/mock
+runs five actual image cases: process/filesystem boundaries, real Stockfish/mock
 coach UI, private volume/cookie isolation across restart, and reopening a volume
 from the previous packaging recipe. Both recipes use the current app/schema;
-the fourth case checks packaging compatibility. A synthetic private
+the fourth case checks packaging compatibility. Those four controlled compatibility
+cases explicitly select HTTP development mode and distinct development cookies.
+The fifth runs the default TLS image command using read-only synthetic identities,
+checks protected cookies, actual browser serving and verified HTTPS health.
+[Cookie migration and rollback](COOKIE-MIGRATION.md) cover the separate legacy
+identity/database transition. A synthetic private
 file in the allowed server source tree tests the env exclusion. It records image
 ID/source revision and the Debian package inventory for thirty days; failure
 traces last seven days. It never logs into a registry, pushes an image or uses
@@ -135,7 +158,7 @@ keeping its cookie contexts and persistence assertions. The supplied Compose
 recipe uses a fixed host port.
 Other architectures and image vulnerability/advisory coverage require their own
 evidence. The metadata inventory is not an advisory clearance or release approval.
-Local HTTP, cookie prefixes/HSTS, account/session limits and other
+Account/session limits and other
 [ASVS deviations](ASVS.md) remain. Excluding Git in a packaged process does not
 change a native checkout's process access. The CSS/font findings were addressed
 in [11.5.1](WEB-ASSETS.md); component coverage and LLM identity/prose limits remain open.

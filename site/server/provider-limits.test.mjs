@@ -106,7 +106,7 @@ test('decoded text/tool metadata and embedding JSON remain bounded for injected 
 test('embedding SDK and Ollama metadata inspection share an independent total deadline', async () => {
   for (const provider of ['openai', 'ollama']) {
     let signal;
-    const cfg = loadEmbeddingConfig({ EMBEDDING_PROVIDER: provider, OPENAI_API_KEY: 'synthetic-key', EMBEDDING_MODEL: 'fixture', AI_TIMEOUT_MS: '35' });
+    const cfg = loadEmbeddingConfig({ EMBEDDING_PROVIDER: provider, OPENAI_API_KEY: 'synthetic-key', EMBEDDING_MODEL: 'fixture', OLLAMA_BASE_URL: 'https://localhost:11434', AI_TIMEOUT_MS: '35' });
     const embed = createEmbedder(cfg, { client: { async post(p, opts) { signal = opts.signal; return new Promise(() => {}); } },
       inspectModel: async (model, supplied) => { signal = supplied; return new Promise(() => {}); } });
     await assert.rejects(embed.embed(['note']), { code: 'timeout' }); assert.equal(signal.aborted, true);

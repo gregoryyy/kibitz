@@ -6,7 +6,7 @@ const script = process.env.KIBITZ_LUNA_SERVER || fileURLToPath(new URL('../../sc
 const preload = new URL('../fixtures/luna-chat.mjs', import.meta.url).href;
 
 async function launch() {
-  const child = spawn(process.execPath, ['--import', preload, script, 'dist', '--api', '--env=', '--index', '_test.html', '--port', '0'], {
+  const child = spawn(process.execPath, ['--import', preload, script, 'dist', '--api', '--http-dev', '--env=', '--index', '_test.html', '--port', '0'], {
     stdio: ['ignore', 'pipe', 'pipe'], env: { PATH: process.env.PATH, AI_PROVIDER: 'openai', OPENAI_API_KEY: 'synthetic-luna-key',
       OPENAI_BASE_URL: 'https://luna-fixture.invalid/v1', OPENAI_MODEL: 'gpt-6-luna', EMBEDDING_PROVIDER: 'mock',
       BROWSER_RUNTIME: 'wllama', BROWSER_MODEL_URL: 'models/fake.gguf', BROWSER_MODEL_NAME: 'Fake model', BROWSER_MODEL_BYTES: '1000',

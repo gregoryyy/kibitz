@@ -11,11 +11,29 @@ pending source, checks and decisions.
 
 ## [Unreleased]
 
+- Isolated local HTTPS defaults to `kibitz.test` with one-year HSTS, exact DNS-SAN startup checks and a static-only health alias. Supply its loopback name mapping; use explicit legacy-origin TLS recovery/export before transitioning old profiles.
+
 ### Added
 
-- Optional native HTTPS listener using operator-supplied certificates and private
+- Experimental operator-bound backend function grants, private explicit policy setup,
+  live permission changes and read-only server-library access. TLS API startup now
+  requires a private permission file; browser claims/consent cannot grant functions.
+
+- Experimental backend logout and absolute-expiry enforcement, copied-token replay
+  rejection across restart, cancellation of held responses across processes, and
+  English/German sign-out controls retaining collections for fresh-key recovery.
+
+- Experimental backend-issued local operator sessions for HTTPS gateway/library access,
+  private explicit setup, English/German sign-in and proof-authorized migration
+  preserving existing collections/counters. Native/container APIs require the
+  operator file and separate private session registry. Complete client cleanup retains its final-release TODO.
+
+- Native HTTPS listener using operator-supplied certificates and private
   keys, with validated files and no HTTP fallback on invalid TLS configuration.
-  Cookie migration and the remaining final-release ASVS fixes are still pending.
+  Standard API launches require TLS; controlled HTTP development is explicit.
+- Protected Secure-prefixed API cookies, preserving existing library ownership
+  and usage counters with tested migration/profile rollback and separate HTTP
+  development identities. Remaining ASVS fixes keep their own final-release gates.
 
 ## [0.1.0-rc.1] — prepared 2026-10-25, unpublished draft
 

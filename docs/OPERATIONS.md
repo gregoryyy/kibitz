@@ -49,9 +49,13 @@ from the repository root, after `just build`:
 umask 077
 mkdir -p .kibitz-data
 chmod 700 .kibitz-data
-node site/scripts/serve.mjs site/dist --api --env .env --index _test.html \
+node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --index _test.html \
   --usage .kibitz-data/usage.sqlite > .kibitz-data/runtime.log 2>&1
 ```
+
+The public session-status probe reports authentication flags without issuing cookies
+or running inference. Gateway/library status now requires operator sign-in; do not
+put the key or session cookie into shell history or monitoring arguments.
 
 Logs are neither persisted nor rotated by the application. The operator controls
 retention and should rotate/remove saved logs between runs as needed; a redirected
@@ -61,11 +65,12 @@ URLs or cookies when preserving this policy.
 
 ## Checking the local server
 
-For a no-inference liveness check, use:
+For a no-inference liveness check with the operator-supplied public issuer CA
+certificate at `.kibitz-data/tls/ca.pem`, use:
 
 ```sh
-curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8765/
-curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8765/api/ai/status
+curl --resolve kibitz.test:8765:127.0.0.1 --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error --output /dev/null https://kibitz.test:8765/
+curl --resolve kibitz.test:8765:127.0.0.1 --cacert .kibitz-data/tls/ca.pem --fail --silent --show-error https://kibitz.test:8765/api/session/status
 ```
 
 The first checks static serving; the second checks the enabled gateway handler.

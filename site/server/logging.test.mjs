@@ -54,7 +54,7 @@ async function gateway(t, { error, delayed = false, late = false } = {}) {
   } } } };
   const config = loadConfig({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'sk-synthetic-secret', OPENAI_MODEL: 'MODEL_PRIVATE', AI_RATE_LIMIT_PER_MINUTE: '1000' });
   const embeddingConfig = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai', OPENAI_API_KEY: 'sk-synthetic-secret', EMBEDDING_MODEL: 'MODEL_PRIVATE' });
-  const api = createApi({ config, provider: createProvider(config, { client }), embeddingConfig,
+  const api = createApi({ allowInsecureHttp: true, config, provider: createProvider(config, { client }), embeddingConfig,
     embedder: createEmbedder(embeddingConfig, { client: { async post() { throw error || Object.assign(new Error(hostile), { status: 500 }); } } }),
     log: { error: line => logs.push(line), info: line => logs.push(line) } });
   const server = http.createServer((req, res) => api(req, res));
@@ -63,7 +63,7 @@ async function gateway(t, { error, delayed = false, late = false } = {}) {
   const base = `http://127.0.0.1:${server.address().port}/api/ai/`;
   const request = async (action, body) => {
     const res = await fetch(base + action, { ...(body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) }),
-      headers: { 'content-type': 'application/json', cookie: 'kibitz_uid=abcdefghijklmnopqrstuv; private=COOKIE_PRIVATE', 'x-kibitz-consent': `v1:openai:${action === 'embeddings' ? 'embeddings' : 'coach'}` } });
+      headers: { 'content-type': 'application/json', cookie: 'kibitz_dev_uid=abcdefghijklmnopqrstuv; private=COOKIE_PRIVATE', 'x-kibitz-consent': `v1:openai:${action === 'embeddings' ? 'embeddings' : 'coach'}` } });
     return { status: res.status, text: await res.text() };
   };
   return { logs, calls, entered, release, request };

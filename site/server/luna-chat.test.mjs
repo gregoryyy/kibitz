@@ -17,7 +17,7 @@ function fixture(provider = 'openai', model = 'gpt-6-luna') {
       return new Response(wire('openai', [body.response_format ? JSON.stringify(annotations) : 'OK']), { headers: { 'content-type': 'text/event-stream' } });
     } });
   const env = { AI_PROVIDER: provider, OPENAI_API_KEY: 'synthetic-luna-key', MISTRAL_API_KEY: 'synthetic-mistral-key',
-    OPENAI_MODEL: model, MISTRAL_MODEL: model, OLLAMA_MODEL: model };
+    OPENAI_MODEL: model, MISTRAL_MODEL: model, OLLAMA_MODEL: model, OLLAMA_BASE_URL: 'https://localhost:11434' };
   return { requests, provider: createProvider(loadConfig(env), { client }) };
 }
 const question = [{ role: 'user', content: 'Explain development.' }];

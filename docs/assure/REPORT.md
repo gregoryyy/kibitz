@@ -19,15 +19,15 @@ flowchart LR
 
 | Node type | Count |
 | --- | ---: |
-| artifact | 586 |
+| artifact | 640 |
 | milestone | 13 |
-| todo | 229 |
-| done | 130 |
-| insight | 307 |
-| deviation | 217 |
+| todo | 233 |
+| done | 141 |
+| insight | 318 |
+| deviation | 230 |
 | reflection | 2 |
 
-3998 typed edges; 439 scanned text inputs; 324 unresolved references.
+4382 typed edges; 492 scanned text inputs; 367 unresolved references.
 
 ## TODO → DONE index
 
@@ -239,31 +239,35 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 | 11.4: OWASP ASVS review: selected stable 5.0.0 L1 for the local single-user app; 70 individually assessed requirements, pinned offline coverage/evidence/document checks in CI. Review completion is not compliance or release approval; HTTP findings, deployment deviations and incomplete inventory remain explicit | done | 1 | [docs/TODO.md:267](../../docs/TODO.md) |
 | 11.4.1: HTTP hardening from the L1 review: compare the AI gateway Origin's native scheme as well as host, preserve direct local clients, ignore forwarded-header spoofing, and declare UTF-8 on SVG responses; native HTTP/TLS and actual-CLI/browser regressions, both old behaviors reproduced | done | 2 | [docs/TODO.md:268](../../docs/TODO.md) |
 | 11.4.2: Resolve all ten ASVS deviations and both open controls accepted temporarily in PR #133 **before the first final (non-prerelease) release**. The RC exceptions do not carry into that release. Each child needs implemented remediation, cited verification and an updated assessment; approval or another exception does not close a fix. The project maintainer owns follow-up. Keep the 2026-11-01 review dates, 2026-11-24 component-plan date and original finding deadlines; final-release readiness is an additional gate, not a deadline extension. Preserve the local single-user scope; hosted accounts remain deferred under 10.2. | open | 0 | [docs/TODO.md:269](../../docs/TODO.md) |
-| 11.4.2.1: **ASVS 3.3.1 — cookie protection:** use Secure cookies with the required `__Host-` or `__Secure-` prefix in the supported final deployment. Design and test a data-preserving migration for existing usage/private-library groups, including rollback and cookie-scope isolation; update compatibility guidance. | open | 2 | [docs/TODO.md:270](../../docs/TODO.md) |
-| 11.4.2.2: **ASVS 3.4.1 — HSTS:** establish an isolated HTTPS application hostname/deployment and send HSTS with at least a one-year maximum age on every response. Test success/error paths and document deployment/rollback effects without applying a localhost-wide policy to unrelated apps. | open | 1 | [docs/TODO.md:271](../../docs/TODO.md) |
-| 11.4.2.3: **ASVS 7.2.1 — backend session verification:** replace trusted grouping-cookie assertions with backend-verified, issued sessions bound to the local operator. Reject invented or cross-owner tokens and migrate existing private collections safely; verify gateway and library access. This does not introduce hosted multi-user accounts. | open | 1 | [docs/TODO.md:272](../../docs/TODO.md) |
-| 11.4.2.4: **ASVS 7.4.1 — session termination:** invalidate sessions at the backend on logout and expiry, rejecting copied tokens and further use after termination. Test replay, expiry, concurrent requests and restart behavior; browser cookie expiry alone is insufficient. | open | 1 | [docs/TODO.md:273](../../docs/TODO.md) |
-| 11.4.2.5: **ASVS 8.2.1 — explicit function permissions:** enforce backend permissions for the authenticated local operator across AI, connection-test, embedding and private-library functions. Test missing/denied permission and cross-owner access; same-origin checks and sharing consent remain separate controls. | open | 1 | [docs/TODO.md:274](../../docs/TODO.md) |
-| 11.4.2.6: **ASVS 12.1.1 — actual TLS inventory:** record protocol settings and verified negotiated versions for every supported final browser/gateway/provider/service transport, allowing only currently recommended TLS versions and preferring the latest. Retain dated endpoint evidence without credentials; enforce the reviewed configuration and test downgrade refusal. Initial inventory review remains due 2026-11-01. | open | 1 | [docs/TODO.md:275](../../docs/TODO.md) |
-| 11.4.2.7: **ASVS 12.2.1 — encrypted connectivity:** require TLS for the final browser/gateway deployment and external HTTP service connections, rejecting insecure fallback and unsupported plaintext endpoint overrides. Test actual native/container boundaries and failure behavior; update deployment/provider instructions. | open | 2 | [docs/TODO.md:276](../../docs/TODO.md) |
-| 11.4.2.7.1: Add native Node HTTPS with operator-supplied PEM identities, bounded private-file checks, refusal of invalid TLS configuration without HTTP fallback, real CLI/browser tests and a packaged-image TLS case. This prerequisite does not close cookie migration, final transport enforcement, external endpoint policy or the parent ASVS control | done | 1 | [docs/TODO.md:277](../../docs/TODO.md) |
-| 11.4.2.8: **ASVS 12.2.2 — public certificate trust:** inventory externally facing services and verify publicly trusted certificates, hostname checks and renewal/expiry handling. Test invalid/untrusted/expired certificates without a trust bypass; private test certificates are not release endpoint evidence. | open | 1 | [docs/TODO.md:278](../../docs/TODO.md) |
-| 11.4.2.9: **ASVS 13.4.1 — checkout isolation:** ensure source-control metadata is unavailable both over HTTP and to the application process in every supported final execution mode, including native operation. Stage or isolate native runtime files outside readable checkout metadata; test process-level and HTTP access while preserving packaged exclusion. | open | 1 | [docs/TODO.md:279](../../docs/TODO.md) |
-| 11.4.2.10: **ASVS 14.2.1 — private positions in URLs:** replace the position-bearing external navigation path with a handoff that keeps sensitive FEN/private data out of URLs, query strings and browser history. Verify outbound navigation, referrers and error/log paths; document the replacement analysis workflow. | open | 1 | [docs/TODO.md:280](../../docs/TODO.md) |
-| 11.4.2.11: **ASVS 14.3.1 — authenticated client-data lifecycle:** clear authenticated data from DOM, memory and browser storage when the client/session terminates, including offline termination. Coordinate session revocation, caches and in-flight results; test logout, expiry, owner changes and recovery, with explicit migration/backup handling for existing saved collections. | open | 1 | [docs/TODO.md:281](../../docs/TODO.md) |
-| 11.4.2.12: **ASVS 15.2.1 — component remediation evidence:** complete the component/build/tool/model inventory and advisory-age evidence, resolve coverage/provenance gaps, and remediate any component beyond the documented timeframes. Retain exact source/licence/version/scan evidence and independently review final runtime/build assets. Component review remains due 2026-11-01 and the remediation plan 2026-11-24; closure is required before final release even if those dates are later. | open | 1 | [docs/TODO.md:282](../../docs/TODO.md) |
-| 11.5: Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP against isolated mock staging, CSP check and retained inventory/evidence; actual CI baseline covers seven required routes / sixty passive rules, zero highs, two medium and three informational finding types. Native GitHub feature settings are documented separately; no release/compliance claim | done | 1 | [docs/TODO.md:283](../../docs/TODO.md) |
-| 11.5.1: Web assets: trusted stylesheet hashes and blocked style attributes, original pinned local fonts/licences, canonical wrapper charset and preserved interface/offline behavior. Old-backend regression fails, thirty browser cases pass, and the actual unsuppressed raw baseline reports zero high/medium findings; informational source-comment/cookie findings remain recorded | done | 2 | [docs/TODO.md:284](../../docs/TODO.md) |
-| 11.5.2: Keep CodeQL initialization/analysis on the same immutable revision; group future Dependabot updates and reproduce the split-version failure with a unit regression (PR #130) | done | 1 | [docs/TODO.md:285](../../docs/TODO.md) |
-| 11.5.3: Preserve strict style CSP with Chessground 10.4.2: move its fixed SVG color-scheme declaration to trusted CSS, document the local build adaptation and reproduce the attribute/appearance failure in Playwright | done | 1 | [docs/TODO.md:286](../../docs/TODO.md) |
-| 11.6: Release gate: security checklist in the release PR; no open high-severity findings. Dated local review packet records prerequisite evidence, individual ASVS deviations/open controls, retained advisory targets and required owner/candidate decisions; preparation does not close the gate. RC-only acceptance in #133 requires all twelve ASVS remediation items 11.4.2.1–11.4.2.12 fixed and verified before the first final release | open | 3 | [docs/TODO.md:287](../../docs/TODO.md) |
-| 11.6.1: Exact image advisory evidence and minimal runtime: pinned verified publisher/scanner, fresh hashed DB, independent config/rootfs and OS/production-library coverage, four actual container/compatibility cases and a strict high/critical gate. Actual raw report has zero high/critical; 23 medium/eight low findings retain triage targets. CodeQL races fixed without dismissal. Parent release approval and broader component/model reviews remain separate | done | 1 | [docs/TODO.md:288](../../docs/TODO.md) |
-| 11.6.2: Reconcile the integrated draft candidate and existing owner-approved exceptions; retain sixteen raw scan/inventory files with source/merge identities, checksums and independently reviewed results in the candidate evidence. All ASVS statuses, findings and original deadlines remain; final-head checks and the parent release decision stay open | done | 1 | [docs/TODO.md:289](../../docs/TODO.md) |
-| 12.1: Semantic versioning and a changelog: documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; release procedure. Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published | done | 1 | [docs/TODO.md:293](../../docs/TODO.md) |
-| 12.2: Packaging: local Docker image and Compose recipe, pinned Node 24, non-root runtime, private named volume and excluded operator/checkout files; four actual Linux image/browser/restart/previous-packaging cases pass, with publisher signature and image/source/package advisory evidence (11.6.1). No registry publication or release approval | done | 1 | [docs/TODO.md:294](../../docs/TODO.md) |
-| 12.3: Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; operator checks and retention, fake-SDK and real-CLI regressions | done | 1 | [docs/TODO.md:295](../../docs/TODO.md) |
-| 12.4: Docs: user guide, provider setup and native Ollama self-hosting, linked to existing privacy, offline, data, evidence and container instructions; primary-source console references checked, mock/local commands verified without real inference | done | 2 | [docs/TODO.md:296](../../docs/TODO.md) |
-| 12.4.1: Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation is complete in 12.4 | done | 1 | [docs/TODO.md:297](../../docs/TODO.md) |
+| 11.4.2.1: **ASVS 3.3.1 — cookie protection:** use Secure cookies with the required `__Host-` or `__Secure-` prefix in the supported final deployment. Design and test a data-preserving migration for existing usage/private-library groups, including rollback and cookie-scope isolation; update compatibility guidance. | done | 3 | [docs/TODO.md:270](../../docs/TODO.md) |
+| 11.4.2.2: **ASVS 3.4.1 — HSTS:** establish an isolated HTTPS application hostname/deployment and send HSTS with at least a one-year maximum age on every response. Test success/error paths and document deployment/rollback effects without applying a localhost-wide policy to unrelated apps. | done | 2 | [docs/TODO.md:271](../../docs/TODO.md) |
+| 11.4.2.3: **ASVS 7.2.1 — backend session verification:** replace trusted grouping-cookie assertions with backend-verified, issued sessions bound to the local operator. Reject invented or cross-owner tokens and migrate existing private collections safely; verify gateway and library access. This does not introduce hosted multi-user accounts. | done | 2 | [docs/TODO.md:272](../../docs/TODO.md) |
+| 11.4.2.4: **ASVS 7.4.1 — session termination:** invalidate sessions at the backend on logout and expiry, rejecting copied tokens and further use after termination. Test replay, expiry, concurrent requests and restart behavior; browser cookie expiry alone is insufficient. | done | 2 | [docs/TODO.md:273](../../docs/TODO.md) |
+| 11.4.2.5: **ASVS 8.2.1 — explicit function permissions:** enforce backend permissions for the authenticated local operator across AI, connection-test, embedding and private-library functions. Test missing/denied permission and cross-owner access; same-origin checks and sharing consent remain separate controls. | done | 2 | [docs/TODO.md:274](../../docs/TODO.md) |
+| 11.4.2.6: **ASVS 12.1.1 — actual TLS inventory:** record protocol settings and verified negotiated versions for every supported final browser/gateway/provider/service transport, allowing only currently recommended TLS versions and preferring the latest. Retain dated endpoint evidence without credentials; enforce the reviewed configuration and test downgrade refusal. Initial inventory review remains due 2026-11-01. | open | 2 | [docs/TODO.md:275](../../docs/TODO.md) |
+| 11.4.2.6.1: Add a transport inventory and bounded credential-free TLS probe, retaining dated direct handshakes at the three default cloud origins and model-source host. Distinguish runtime settings, latest-version negotiation, local-policy refusal and peer alerts; keep actual deployment/browser/image/SDK/redirect evidence and final enforcement open under the parent | done | 1 | [docs/TODO.md:276](../../docs/TODO.md) |
+| 11.4.2.7: **ASVS 12.2.1 — encrypted connectivity:** require TLS for the final browser/gateway deployment and external HTTP service connections, rejecting insecure fallback and unsupported plaintext endpoint overrides. Test actual native/container boundaries and failure behavior; update deployment/provider instructions. | done | 3 | [docs/TODO.md:277](../../docs/TODO.md) |
+| 11.4.2.7.1: Add native Node HTTPS with operator-supplied PEM identities, bounded private-file checks, refusal of invalid TLS configuration without HTTP fallback, real CLI/browser tests and a packaged-image TLS case. This prerequisite does not close cookie migration, final transport enforcement, external endpoint policy or the parent ASVS control | done | 1 | [docs/TODO.md:279](../../docs/TODO.md) |
+| 11.4.2.8: **ASVS 12.2.2 — public certificate trust:** inventory externally facing services and verify publicly trusted certificates, hostname checks and renewal/expiry handling. Test invalid/untrusted/expired certificates without a trust bypass; private test certificates are not release endpoint evidence. | open | 1 | [docs/TODO.md:280](../../docs/TODO.md) |
+| 11.4.2.9: **ASVS 13.4.1 — checkout isolation:** ensure source-control metadata is unavailable both over HTTP and to the application process in every supported final execution mode, including native operation. Stage or isolate native runtime files outside readable checkout metadata; test process-level and HTTP access while preserving packaged exclusion. | done | 2 | [docs/TODO.md:282](../../docs/TODO.md) |
+| 11.4.2.9.1: Add and verify native Linux/macOS filesystem restrictions, actual-process/SQLite/HTTP denial and unchanged private data/permissions; retain source-free image exclusion. Source-pinned Linux/macOS/image evidence covers the owner-selected final modes | done | 1 | [docs/TODO.md:283](../../docs/TODO.md) |
+| 11.4.2.10: **ASVS 14.2.1 — private positions in URLs:** replace the position-bearing external navigation path with a handoff that keeps sensitive FEN/private data out of URLs, query strings and browser history. Verify outbound navigation, referrers and error/log paths; document the replacement analysis workflow. | done | 2 | [docs/TODO.md:284](../../docs/TODO.md) |
+| 11.4.2.11: **ASVS 14.3.1 — authenticated client-data lifecycle:** clear authenticated data from DOM, memory and browser storage when the client/session terminates, including offline termination. Coordinate session revocation, caches and in-flight results; test logout, expiry, owner changes and recovery, with explicit migration/backup handling for existing saved collections. | open | 4 | [docs/TODO.md:285](../../docs/TODO.md) |
+| 11.4.2.11.1: Library-cache session boundary: erase the derived server cache on explicit sign-out (including offline failure), fresh sign-in and identity/permission failure observed by the library session; withdraw snapshots, fence pending writes/reads and report blocked cleanup with retry. Canonical records stay intact; parent lifecycle/ASVS 14.3.1 remains open | done | 1 | [docs/TODO.md:286](../../docs/TODO.md) |
+| 11.4.2.11.2: Shared client-session boundary: propagate gateway/data/library 401s, observed expiry and replacement across mediated transports and live tabs; fence whole responses, preserve acknowledged local termination across reloads and block offline browser-coach fallback until verification. Keep complete DOM/worker/autosave lifecycle and the parent control open | done | 1 | [docs/TODO.md:287](../../docs/TODO.md) |
+| 11.4.2.12: **ASVS 15.2.1 — component remediation evidence:** complete the component/build/tool/model inventory and advisory-age evidence, resolve coverage/provenance gaps, and remediate any component beyond the documented timeframes. Retain exact source/licence/version/scan evidence and independently review final runtime/build assets. Component review remains due 2026-11-01 and the remediation plan 2026-11-24; closure is required before final release even if those dates are later. | open | 1 | [docs/TODO.md:288](../../docs/TODO.md) |
+| 11.5: Automated scans: Dependabot version-PR configuration, existing CodeQL/Gitleaks/audit, pinned ZAP against isolated mock staging, CSP check and retained inventory/evidence; actual CI baseline covers seven required routes / sixty passive rules, zero highs, two medium and three informational finding types. Native GitHub feature settings are documented separately; no release/compliance claim | done | 1 | [docs/TODO.md:289](../../docs/TODO.md) |
+| 11.5.1: Web assets: trusted stylesheet hashes and blocked style attributes, original pinned local fonts/licences, canonical wrapper charset and preserved interface/offline behavior. Old-backend regression fails, thirty browser cases pass, and the actual unsuppressed raw baseline reports zero high/medium findings; informational source-comment/cookie findings remain recorded | done | 2 | [docs/TODO.md:290](../../docs/TODO.md) |
+| 11.5.2: Keep CodeQL initialization/analysis on the same immutable revision; group future Dependabot updates and reproduce the split-version failure with a unit regression (PR #130) | done | 1 | [docs/TODO.md:291](../../docs/TODO.md) |
+| 11.5.3: Preserve strict style CSP with Chessground 10.4.2: move its fixed SVG color-scheme declaration to trusted CSS, document the local build adaptation and reproduce the attribute/appearance failure in Playwright | done | 1 | [docs/TODO.md:292](../../docs/TODO.md) |
+| 11.6: Release gate: security checklist in the release PR; no open high-severity findings. Dated local review packet records prerequisite evidence, individual ASVS deviations/open controls, retained advisory targets and required owner/candidate decisions; preparation does not close the gate. RC-only acceptance in #133 requires all twelve ASVS remediation items 11.4.2.1–11.4.2.12 fixed and verified before the first final release | open | 3 | [docs/TODO.md:293](../../docs/TODO.md) |
+| 11.6.1: Exact image advisory evidence and minimal runtime: pinned verified publisher/scanner, fresh hashed DB, independent config/rootfs and OS/production-library coverage, four actual container/compatibility cases and a strict high/critical gate. Actual raw report has zero high/critical; 23 medium/eight low findings retain triage targets. CodeQL races fixed without dismissal. Parent release approval and broader component/model reviews remain separate | done | 1 | [docs/TODO.md:294](../../docs/TODO.md) |
+| 11.6.2: Reconcile the integrated draft candidate and existing owner-approved exceptions; retain sixteen raw scan/inventory files with source/merge identities, checksums and independently reviewed results in the candidate evidence. All ASVS statuses, findings and original deadlines remain; final-head checks and the parent release decision stay open | done | 1 | [docs/TODO.md:295](../../docs/TODO.md) |
+| 12.1: Semantic versioning and a changelog: documented compatibility scope, 0.x bump rules, candidates, package/lock alignment, data migrations and immutable release tags; release procedure. Existing 0.1.0 remains an unreleased development baseline; no release was tagged/published | done | 1 | [docs/TODO.md:299](../../docs/TODO.md) |
+| 12.2: Packaging: local Docker image and Compose recipe, pinned Node 24, non-root runtime, private named volume and excluded operator/checkout files; four actual Linux image/browser/restart/previous-packaging cases pass, with publisher signature and image/source/package advisory evidence (11.6.1). No registry publication or release approval | done | 1 | [docs/TODO.md:300](../../docs/TODO.md) |
+| 12.3: Logging and monitoring for the local app: closed-vocabulary HTTP/AI/config/startup events, no raw URLs/provider messages or personal payloads; operator checks and retention, fake-SDK and real-CLI regressions | done | 1 | [docs/TODO.md:301](../../docs/TODO.md) |
+| 12.4: Docs: user guide, provider setup and native Ollama self-hosting, linked to existing privacy, offline, data, evidence and container instructions; primary-source console references checked, mock/local commands verified without real inference | done | 2 | [docs/TODO.md:302](../../docs/TODO.md) |
+| 12.4.1: Refresh the flipbook for the current interface, repertoire/lessons/practice and German phone views; nineteen screenshots and nine approved fresh Haiku 5.5 answers, with prose-only capture and recorded provenance. Parent user/provider/Ollama documentation is complete in 12.4 | done | 1 | [docs/TODO.md:303](../../docs/TODO.md) |
 
 ## DONE → rationale and scope
 
@@ -272,6 +276,17 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 | [2026-10-26 — Agent failure repeated during the drift cleanup](../DONE.md#2026-10-26--agent-failure-repeated-during-the-drift-cleanup) | none recorded | 4 | 2 | 0 |
 | [2026-10-26 — Local CI; drift PRs closed](../DONE.md#2026-10-26--local-ci-drift-prs-closed) | 0.18 | 3 | 2 | 0 |
 | [2026-10-26 — Agent failure: security scope expansion, excessive CI and unsupported billing diagnosis](../DONE.md#2026-10-26--agent-failure-security-scope-expansion-excessive-ci-and-unsupported-billing-diagnosis) | none recorded | 6 | 2 | 0 |
+| [2026-10-25 — Shared client-session boundary (experimental)](../DONE.md#2026-10-25--shared-client-session-boundary-experimental) | 11.4.2.11, 11.4.2.11.2 | 1 | 1 | 0 |
+| [2026-10-25 — Library-cache session cleanup (experimental)](../DONE.md#2026-10-25--library-cache-session-cleanup-experimental) | 11.4.2.11, 11.4.2.11.1 | 1 | 1 | 0 |
+| [2026-10-25 — Private position analysis without navigation URLs (experimental)](../DONE.md#2026-10-25--private-position-analysis-without-navigation-urls-experimental) | 11.4.2.10 | 1 | 1 | 0 |
+| [2026-10-25 — Native checkout isolation (experimental)](../DONE.md#2026-10-25--native-checkout-isolation-experimental) | 11.4.2.9, 11.4.2.9.1 | 1 | 1 | 0 |
+| [2026-10-25 — Encrypted provider, embedding and model-provisioning connections (experimental)](../DONE.md#2026-10-25--encrypted-provider-embedding-and-model-provisioning-connections-experimental) | 11.4.2.7 | 1 | 1 | 0 |
+| [2026-10-25 — Partial TLS transport inventory and reproducible probe (experimental)](../DONE.md#2026-10-25--partial-tls-transport-inventory-and-reproducible-probe-experimental) | 11.4.2.6, 11.4.2.6.1 | 1 | 1 | 0 |
+| [2026-10-25 — Explicit local operator function permissions (experimental)](../DONE.md#2026-10-25--explicit-local-operator-function-permissions-experimental) | 11.4.2.11, 11.4.2.5 | 1 | 1 | 0 |
+| [2026-10-25 — Backend logout and session termination (experimental)](../DONE.md#2026-10-25--backend-logout-and-session-termination-experimental) | 11.4.2.4 | 1 | 1 | 0 |
+| [2026-10-25 — Backend-issued local operator sessions (experimental)](../DONE.md#2026-10-25--backend-issued-local-operator-sessions-experimental) | 11.4.2.3 | 1 | 1 | 0 |
+| [2026-10-25 — Isolated application HSTS](../DONE.md#2026-10-25--isolated-application-hsts) | 11.4.2.2 | 1 | 2 | 0 |
+| [2026-10-25 — Protected cookies with identity-preserving migration](../DONE.md#2026-10-25--protected-cookies-with-identity-preserving-migration) | 11.4.2.1 | 1 | 2 | 0 |
 | [2026-10-25 — Native HTTPS listener prerequisite](../DONE.md#2026-10-25--native-https-listener-prerequisite) | 11.4.2.1, 11.4.2.7, 11.4.2.7.1 | 1 | 1 | 0 |
 | [2026-10-25 — Confidence-weighted assurance links and review findings](../DONE.md#2026-10-25--confidence-weighted-assurance-links-and-review-findings) | 0.17 | 2 | 2 | 0 |
 | [2026-10-25 — Object, PR-section and documentation assurance browser](../DONE.md#2026-10-25--object-pr-section-and-documentation-assurance-browser) | 0.16, 0.16.1, 0.16.2, 0.16.3 | 2 | 2 | 0 |
@@ -432,35 +447,35 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [AGENTS.md:9](../../AGENTS.md) | .env | missing |
 | [AGENTS.md:9](../../AGENTS.md) | .kibitz-data/ | missing |
 | [AGENTS.md:9](../../AGENTS.md) | site/server/ | directory |
-| [README.md:113](../../README.md) | .env | missing |
-| [README.md:113](../../README.md) | site/server/ | directory |
-| [README.md:116](../../README.md) | .env | missing |
-| [README.md:123](../../README.md) | .env | missing |
-| [README.md:132](../../README.md) | site/models/ | missing |
-| [README.md:133](../../README.md) | .env | missing |
-| [README.md:152](../../README.md) | .env | missing |
-| [README.md:156](../../README.md) | site/tests/out/ | missing |
-| [README.md:157](../../README.md) | .env | missing |
-| [README.md:157](../../README.md) | site/ | directory |
-| [README.md:158](../../README.md) | index.html | ambiguous |
-| [README.md:158](../../README.md) | scripts/ | missing |
-| [README.md:158](../../README.md) | server/ | missing |
-| [README.md:158](../../README.md) | src/ | missing |
-| [README.md:159](../../README.md) | .github/workflows/ | directory |
+| [README.md:128](../../README.md) | .env | missing |
+| [README.md:128](../../README.md) | site/server/ | directory |
+| [README.md:131](../../README.md) | .env | missing |
+| [README.md:138](../../README.md) | .env | missing |
+| [README.md:147](../../README.md) | site/models/ | missing |
+| [README.md:148](../../README.md) | .env | missing |
+| [README.md:167](../../README.md) | .env | missing |
+| [README.md:171](../../README.md) | site/tests/out/ | missing |
+| [README.md:172](../../README.md) | .env | missing |
+| [README.md:172](../../README.md) | site/ | directory |
+| [README.md:173](../../README.md) | index.html | ambiguous |
+| [README.md:173](../../README.md) | scripts/ | missing |
+| [README.md:173](../../README.md) | server/ | missing |
+| [README.md:173](../../README.md) | src/ | missing |
+| [README.md:174](../../README.md) | .github/workflows/ | directory |
 | [README.md:22](../../README.md) | index.html | ambiguous |
-| [README.md:62](../../README.md) | .github/ | directory |
-| [README.md:74](../../README.md) | dist/_test.html | missing |
-| [README.md:74](../../README.md) | dist/index.html | missing |
-| [README.md:75](../../README.md) | dist/eco.json | missing |
-| [README.md:76](../../README.md) | dist/ | missing |
-| [README.md:76](../../README.md) | site/src/ | directory |
-| [README.md:77](../../README.md) | /_test.html | outside_repository |
-| [README.md:77](../../README.md) | index.html | ambiguous |
-| [README.md:9](../../README.md) | site/ | directory |
-| [THIRD_PARTY_NOTICES.md:10](../../THIRD_PARTY_NOTICES.md) | chessground.js | missing |
-| [THIRD_PARTY_NOTICES.md:10](../../THIRD_PARTY_NOTICES.md) | index.html | ambiguous |
+| [README.md:44](../../README.md) | node site/scripts/operator.mjs .kibitz-data/tls/operator.json | missing |
+| [README.md:46](../../README.md) | .kibitz-data/tls/ | missing |
+| [README.md:52](../../README.md) | .test | missing |
+| [README.md:71](../../README.md) | .github/ | directory |
+| [README.md:83](../../README.md) | dist/_test.html | missing |
+| [README.md:83](../../README.md) | dist/index.html | missing |
+| [README.md:84](../../README.md) | dist/eco.json | missing |
+| [README.md:85](../../README.md) | dist/ | missing |
+| [README.md:85](../../README.md) | site/src/ | directory |
+| [README.md:86](../../README.md) | /_test.html | outside_repository |
+| [README.md:86](../../README.md) | index.html | ambiguous |
 
-### Files without extracted relationships (55)
+### Files without extracted relationships (56)
 
 The first thirty are listed; these files remain in the inventory. Extraction coverage is described in README.md.
 

@@ -76,7 +76,7 @@ test('mistral (hand-written): usage with the final chunk, no stream_options', as
 
 test('ollama (hand-written): a rejected response_format falls back to instructions', async () => {
   const r = replay('ollama-json-unsupported', 'ollama-json-fallback');
-  const out = await completeJson(providerFor({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'llama' }, r), msgs, FORMATS.annotations);
+  const out = await completeJson(providerFor({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'llama', OLLAMA_BASE_URL: 'https://localhost:11434' }, r), msgs, FORMATS.annotations);
   assert.equal(out.mode, 'fallback');
   assert.deepEqual(validate(ANNOTATION_SCHEMA, out.data), []);
   assert.ok(r.seen[0].body.response_format);

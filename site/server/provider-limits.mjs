@@ -1,9 +1,11 @@
+import { secureFetch, TransportError } from './secure-fetch.mjs';
 // Total operation bounds include headers, body consumption and SDK iteration/parsing.
 export const PROVIDER_LIMITS = Object.freeze({ bytes: 8 * 1024 * 1024, decodedBytes: 128 * 1024, timeoutMs: 15 * 60_000 });
 const ERRORS = {
   timeout: ['The AI provider timed out', 504],
   cancelled: ['Cancelled', 499],
   response_too_large: ['The AI provider returned too much data', 502],
+  provider_error: ['The AI provider returned an error', 502],
 };
 export class ProviderLimitError extends Error {
   constructor(code) { super(ERRORS[code][0]); this.code = code; this.status = ERRORS[code][1]; }
@@ -13,9 +15,9 @@ export class ProviderLimitError extends Error {
  * One call owns its controller, readers and counters; concurrent calls never share these.
  * @param {number} requestedMs
  * @param {AbortSignal} [signal]
- * @param {{fetcher?: typeof fetch, maxBytes?: number, maxDecodedBytes?: number}} [options] Embeddings need a larger decoded budget; transport injection is for tests.
+ * @param {{fetcher?: typeof fetch, allowInsecureLoopback?:boolean, maxBytes?: number, maxDecodedBytes?: number}} [options] Embeddings need a larger decoded budget; transport injection is for tests.
  */
-export function providerOperation(requestedMs, signal, { fetcher = fetch, maxBytes = PROVIDER_LIMITS.bytes, maxDecodedBytes = Math.min(maxBytes, PROVIDER_LIMITS.decodedBytes) } = {}) {
+export function providerOperation(requestedMs, signal, { fetcher = fetch, allowInsecureLoopback = false, maxBytes = PROVIDER_LIMITS.bytes, maxDecodedBytes = Math.min(maxBytes, PROVIDER_LIMITS.decodedBytes) } = {}) {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > PROVIDER_LIMITS.bytes || !Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 1 || maxDecodedBytes > maxBytes) throw new RangeError('Invalid provider response bound');
   const timeoutMs = Math.min(PROVIDER_LIMITS.timeoutMs, Math.max(1, Math.ceil(Number.isFinite(requestedMs) ? requestedMs : 60_000)));
   const expires = performance.now() + timeoutMs;
@@ -50,7 +52,9 @@ export function providerOperation(requestedMs, signal, { fetcher = fetch, maxByt
   const boundedFetch = async (url, init) => {
     const combined = init?.signal ? AbortSignal.any([ctl.signal, init.signal]) : ctl.signal;
     const response = await wait(async () => {
-      const result = await fetcher(url, { ...init, signal: combined });
+      let result;
+      try { result = await secureFetch(url, { ...init, signal: combined }, { fetcher, allowInsecureLoopback }); }
+      catch (failure) { if (failure instanceof TransportError) throw fail('provider_error'); throw failure; }
       if (closed || error) { void result.body?.cancel().catch(() => {}); check(); }
       return result;
     });

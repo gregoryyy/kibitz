@@ -4,34 +4,54 @@ Decision for TODO 10.1, confirmed by the project owner on 2026-10-24: **target a
 
 This deployment can still use a cloud AI provider chosen by the operator. “Local app” describes where the application runs; `AI_LOCAL_ONLY`, Ollama and the in-browser model provide the separate offline/local-inference options. Provider data sharing and explicit opt-in remain TODO 10.4.
 
+All final provider/embedding and model-provisioning connections obey the
+[encrypted transport policy](TLS-POLICY.md); plain loopback Ollama needs an
+existing trusted HTTPS front end or explicit isolated development. No keys,
+services or trust entries are provisioned automatically.
+
 ## Supported operation
 
-Build and run from the repository:
+Initialize the private [operator identity](SESSIONS.md) once and supply trusted operator certificates and a loopback resolver mapping for
+`kibitz.test` as described in [TLS setup](TLS.md), then build and run from the repository:
 
 ```sh
 just serve
 # Optional private, persistent library:
 cd site
-node scripts/serve.mjs dist --api --library ../.kibitz-data/library.sqlite
+node scripts/serve.mjs dist --api --env ../.env --library ../.kibitz-data/library.sqlite \
+  --operator ../.kibitz-data/tls/operator.json --permissions ../.kibitz-data/tls/permissions.json --sessions ../.kibitz-data/sessions.sqlite --tls-key ../.kibitz-data/tls/key.pem --tls-cert ../.kibitz-data/tls/cert.pem
 ```
 
 The server reads operator-supplied keys from the root `.env`; keys remain outside browser storage, exports, logs and prompts. Server-env key management satisfies TODO 2.9's supported local path. An encrypted store for separate account-owned keys belongs to a future hosted deployment.
 
-The optional library's anonymous HttpOnly cookie separates browser collections, without providing a sign-in or cross-device account. Clearing the cookie loses that browser's route to the previous server collection. Browser profiles, progress, repertoires and practice schedules stay local to the browser. The operator is responsible for local files and backups. Explicit export/deletion is tracked in TODO 10.3.
+Experimental backend-issued [operator sessions](SESSIONS.md) now authenticate TLS gateway/library access. Enter the private operator key in Settings or Your data. Protected grouping cookies are collection locators usable only with fresh operator proof; they do not grant API access. Existing private records/counters are adopted without rewriting their hashes. Browser progress, repertoires and practice schedules stay local, and hosted/cross-device accounts remain deferred. Keep the private operator file, session registry, current databases and browser profile in consistent backups.
 
 The owner selected native Node HTTPS with operator-supplied certificates for the
 final local-app transport. `serve.mjs --tls-key FILE --tls-cert FILE` now starts
 that listener; [TLS setup and data-transition limits](TLS.md) describe private
 identity files, normal browser trust and the remaining ASVS work. Both options
-are required; an invalid pair exits without an HTTP fallback. HTTP remains the
-RC/development default when neither option is supplied.
+are required; an invalid pair exits without an HTTP fallback. Cookie-bearing
+operation without TLS is refused before private database creation. Controlled
+HTTP development requires `--http-dev` and uses separate development cookies.
 
-Both APIs issue new cookies with `Secure` on the actual TLS socket. Forwarding
-headers do not control the flag. Existing valid cookies retain their identity
-without being reissued; preserve private-library/profile backups before changing
-origin, and do not clear an ownership cookie as a migration strategy. Cookie
-prefix/migration work remains TODO 11.4.2.1. These flags preserve local grouping
-and do not establish authenticated accounts or a trusted reverse-proxy deployment.
+Both APIs require the registered `__Host-kibitz_session` cookie with
+Secure/HttpOnly/SameSite=Strict/Path=/. Prior `__Secure-` groups keep their
+separate API paths as proof-authorized recovery locators. Forwarding headers do not
+control this policy. [Migration and rollback](COOKIE-MIGRATION.md) retain exact
+legacy tokens, library owner keys and usage counters, without changing usage/library
+schemas; a separate private session registry is added. Preserve profile/private-database backups before changing origin.
+Cookie migration preserves identities on the **same original hostname**. Moving
+to the isolated `kibitz.test` URL creates a new browser origin and new cookie
+groups; it does not automatically transfer old cookies, browser storage or
+collections. Export/import explicitly and retain old profiles/current databases.
+TLS-only `--legacy-origin` enables recovery/export at the exact old IP/localhost
+URL with its old profile; it has no HSTS and is not final-deployment mode.
+The new default sends one-year HSTS for the dedicated name before every
+application route, including normal error responses. No unrelated localhost/IP
+policy or plaintext redirect is installed. See [HSTS and rollback](TLS.md).
+This closes cookie remediation 11.4.2.1 and HSTS 11.4.2.2, while backend issuance is implemented experimentally under 11.4.2.3. [Backend termination](SESSION-TERMINATION.md) also addresses 11.4.2.4.
+[Explicit function grants](PERMISSIONS.md) address 11.4.2.5; complete client cleanup
+and the other final-release requirements remain open.
 
 The existing `--host` option can change the listener for deliberate development/packaging use. Binding to a LAN/public address does not add accounts, transport security or authorization. A public/shared service is outside this deployment decision. A local machine's users, browser profiles and anonymous cookie scopes are not a hosted tenant-security boundary.
 
@@ -97,3 +117,5 @@ paths, and keep public build files under the operator's control. See the
 The Claude artifact adapter remains an existing host-managed integration. The fully offline browser-model path remains supported. Neither changes the selected release target or supplies a self-hosted multi-user account implementation.
 
 A future hosted proposal must explicitly revisit this decision, threat model, authentication, tenant isolation, provider-key ownership, retention/deletion, persistent budgets, HTTPS and ASVS level before it can claim support.
+
+The experimental [native filesystem boundary](NATIVE-ISOLATION.md) now isolates the final-mode application process before storage/listening. Source-pinned macOS/Linux and image evidence addresses ASVS 13.4.1 / TODO 11.4.2.9 for the owner-selected final modes. The bootstrap/operator retains Git access; HTTP hiding is a separate check. The final-release gate remains open.

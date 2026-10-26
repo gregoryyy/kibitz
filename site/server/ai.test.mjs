@@ -54,8 +54,8 @@ test('ollama needs a model and an allowed host (SSRF guard)', () => {
   const blocked = loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'http://169.254.169.254:11434' });
   assert.equal(blocked.available, false);
   assert.match(blocked.reason, /OLLAMA_ALLOWED_HOSTS/);
-  assert.equal(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }).available, true);
-  assert.equal(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'http://gpu-box:11434', OLLAMA_ALLOWED_HOSTS: 'gpu-box' }).available, true);
+  assert.equal(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'https://localhost:11434' }).available, true);
+  assert.equal(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'https://gpu-box:11434', OLLAMA_ALLOWED_HOSTS: 'gpu-box' }).available, true);
 });
 
 test('numeric limits fall back to defaults on bad input', () => {
@@ -164,7 +164,7 @@ test('mistral: uses max_tokens and keeps only text parts of array content', asyn
 
 test('openai-compatible: content_filter raises refused', async () => {
   const client = fakeOpenAI([chunk('', 'content_filter')]);
-  await assert.rejects(drain(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }), { client }).chat(msgs)), { code: 'refused' });
+  await assert.rejects(drain(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'https://localhost:11434' }), { client }).chat(msgs)), { code: 'refused' });
 });
 
 test('mock provider streams a canned reply', async () => {
@@ -233,7 +233,7 @@ test('openai-compatible: system message first, usage from the last chunk; Mistra
   const mistral = fakeOpenAI([chunk('x', 'stop'), usageChunk]);
   await complete(createProvider(loadConfig({ AI_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }), { client: mistral }), msgs);
   assert.equal('stream_options' in mistral.calls[0].params, false);
-  const quiet = await complete(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm' }), { client: fakeOpenAI([chunk('x', 'stop')]) }), msgs);
+  const quiet = await complete(createProvider(loadConfig({ AI_PROVIDER: 'ollama', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'https://localhost:11434' }), { client: fakeOpenAI([chunk('x', 'stop')]) }), msgs);
   assert.deepEqual(quiet.usage, { input: 0, output: 0 }, 'no usage reported: zeros');
 });
 
@@ -249,7 +249,7 @@ test('embedding config: openai, mistral and ollama with their keys; anthropic is
   assert.equal(o.available, true); assert.equal(o.model, 'text-embedding-3-small');
   assert.equal(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mistral', MISTRAL_API_KEY: 'k' }).model, 'mistral-embed');
   assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama' }).reason, /EMBEDDING_MODEL/);
-  assert.equal(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama', EMBEDDING_MODEL: 'nomic-embed-text' }).available, true);
+  assert.equal(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama', EMBEDDING_MODEL: 'nomic-embed-text', OLLAMA_BASE_URL: 'https://localhost:11434' }).available, true);
   assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'ollama', EMBEDDING_MODEL: 'e', OLLAMA_BASE_URL: 'http://169.254.169.254' }).reason, /OLLAMA_ALLOWED_HOSTS/);
   assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'anthropic' }).reason, /not one of/);
   assert.match(loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'openai' }).reason, /OPENAI_API_KEY/);
@@ -296,7 +296,7 @@ test('every provider .env sets up can be switched to; others say why not', () =>
 });
 
 test('local-only: Ollama takes over, cloud providers are refused, or the coach is off', () => {
-  const env = { AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', OLLAMA_MODEL: 'llama' };
+  const env = { AI_PROVIDER: 'anthropic', ANTHROPIC_API_KEY: 'k', OLLAMA_MODEL: 'llama', OLLAMA_BASE_URL: 'https://localhost:11434' };
   const c = loadConfig({ ...env, AI_LOCAL_ONLY: '1' });
   assert.equal(c.provider, 'ollama'); assert.equal(c.available, true);
   assert.throws(() => switchProvider(c, 'anthropic'), { code: 'forbidden' });

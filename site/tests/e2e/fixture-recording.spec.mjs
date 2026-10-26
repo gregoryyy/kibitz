@@ -24,7 +24,7 @@ async function run(box, args = [], scenario = 'valid', extraEnv = {}) {
   const child = spawn(process.execPath, ['--import', preload, path.join(box.app, 'scripts/record-ai-fixtures.mjs'), '--env', box.envFile, ...args], {
     stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env,
       AI_LOCAL_ONLY: '', AI_TIMEOUT_MS: '5000', ANTHROPIC_API_KEY: '', OPENAI_API_KEY: secret, MISTRAL_API_KEY: '',
-      OPENAI_BASE_URL: 'https://fixture.invalid/v1', OPENAI_MODEL: 'fixture-model', OLLAMA_MODEL: '',
+      OPENAI_BASE_URL: 'https://fixture.invalid/v1', OPENAI_MODEL: 'fixture-model', OLLAMA_MODEL: '', OLLAMA_BASE_URL: 'https://localhost:11434',
       KIBITZ_FIXTURE_COUNT: box.count, KIBITZ_FIXTURE_SCENARIO: scenario, KIBITZ_FIXTURE_PROVIDER: 'openai', OPENAI_LOG: 'debug', ...extraEnv },
   });
   let stdout = '', stderr = '';
@@ -58,6 +58,7 @@ test('plan and invalid selections/configuration leave output absent and make no 
     { args: ['openai', '--yes'], env: { AI_LOCAL_ONLY: '1', OLLAMA_MODEL: 'fixture-local' }, code: 1 },
     { args: ['openai', '--yes'], env: { OPENAI_API_KEY: '' }, code: 1 },
     { args: ['ollama'], env: { OLLAMA_MODEL: 'fixture-local' }, code: 2 },
+    { args: ['ollama', '--plan'], env: { OLLAMA_MODEL: 'fixture-local', OLLAMA_BASE_URL: 'http://127.0.0.1:11434' }, code: 1 },
   ];
   for (const variant of variants) {
     const box = sandbox();

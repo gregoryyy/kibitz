@@ -7,7 +7,7 @@ let server, base, output = '';
 test.beforeAll(async () => {
   const socket = net.createServer(); await new Promise(resolve => socket.listen(0, '127.0.0.1', resolve));
   const port = socket.address().port; await new Promise(resolve => socket.close(resolve)); base = `http://127.0.0.1:${port}`;
-  server = spawn(process.execPath, ['scripts/serve.mjs', 'dist', '--api', '--env=', '--index', '_test.html', '--port', String(port)], {
+  server = spawn(process.execPath, ['scripts/serve.mjs', 'dist', '--api', '--http-dev', '--env=', '--index', '_test.html', '--port', String(port)], {
     cwd: process.cwd(), env: { ...process.env, AI_PROVIDER: 'mock', BROWSER_RUNTIME: 'chrome', AI_LOCAL_ONLY: '', AI_RATE_LIMIT_PER_MINUTE: '1000', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1000',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', EMBEDDING_PROVIDER: 'mock' }, stdio: ['ignore', 'pipe', 'pipe'],
   });

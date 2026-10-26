@@ -29,3 +29,29 @@ These controls cover the standalone browser/optional Node-server library. An ext
 ## Operational usage counters
 
 The standard local serve recipes keep a separate private `.kibitz-data/usage.sqlite` for current-day request/token/cost counters and recent admission timestamps, grouped by hashed anonymous cookie IDs. Browser and library export/erase controls leave these operational limits intact. [Usage storage and lifecycle](USAGE.md) describe retention, private paths, operator inspection/reset, SQLite remnants and the absence of prompts, answers, raw cookies or keys.
+
+The experimental [operator session registry](SESSIONS.md) is private operational
+identity data. It contains grouping identifiers for authenticated recovery; browser
+export/erase does not remove it or revoke sessions. Keep the operator JSON, registry,
+current usage/library files and profile together in private backups. [Backend revocation](SESSION-TERMINATION.md) is separate from erasure; complete
+authenticated client cleanup remains a release TODO.
+
+[Operator function grants](PERMISSIONS.md) independently control server read, write
+and erase. Permission denial or unverifiable policy cannot use a cached private
+library as fallback. Complete authenticated client cleanup remains a separate gate.
+
+The experimental [library-cache session boundary](CLIENT-DATA-LIFECYCLE.md) also
+clears the derived server-library cache on explicit sign-out attempts, before
+fresh sign-in and after observed identity/permission failure. Offline logout
+can clear this local copy without confirming backend revocation. Blocked cleanup
+is reported and requires retry. Server records and browser-only saved collections
+remain; the wider authenticated DOM/memory/storage lifecycle is still open.
+
+The shared session boundary extends this to mediated gateway/data-page 401s,
+observed absolute expiry and cross-tab replacement/termination. A small nonsecret
+local session marker remembers an acknowledged local sign-out across reloads; it
+contains no session identifier, token, proof, PGN or answer. Export retains it as owned metadata, and
+whole-browser erasure deliberately resets it while keeping the current backend
+session/server records usable. Failed marker persistence is reported separately
+and cannot promise durable termination; wider private DOM/worker/autosave cleanup
+remains open. See the [lifecycle scope and recovery contract](CLIENT-DATA-LIFECYCLE.md).

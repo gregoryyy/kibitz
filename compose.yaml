@@ -7,8 +7,10 @@ services:
       - "127.0.0.1:8765:8765"
     environment:
       AI_PROVIDER: mock
+      KIBITZ_HEALTH_CA: /tls/ca.pem
     volumes:
       - kibitz-data:/data
+      - ${KIBITZ_TLS_DIRECTORY:-./.kibitz-data/tls}:/tls:ro
     read_only: true
     tmpfs:
       - /tmp:mode=1777

@@ -76,7 +76,7 @@ test('chat completions (OpenAI, Mistral, Ollama): tool call pieces assembled by 
   const client = { chat: { completions: { async create(params) { calls.push(params); return (async function* () { yield* chunks; })(); } } } };
   for (const provider of ['openai', 'mistral', 'ollama']) {
     calls.length = 0;
-    const p = createProvider({ ...loadConfig({ AI_PROVIDER: provider, OPENAI_API_KEY: 'k', MISTRAL_API_KEY: 'k', OLLAMA_MODEL: 'm' }) }, { client });
+    const p = createProvider({ ...loadConfig({ AI_PROVIDER: provider, OPENAI_API_KEY: 'k', MISTRAL_API_KEY: 'k', OLLAMA_MODEL: 'm', OLLAMA_BASE_URL: 'https://localhost:11434' }) }, { client });
     const r = await complete(p, validateMessages({ messages: turns.slice(0, 1) }), { tools: validateTools(['analyse', 'threats']) });
     assert.deepEqual(calls[0].tools.map(t => [t.type, t.function.name]), [['function', 'analyse'], ['function', 'threats']], provider);
     assert.deepEqual(r.toolCalls, [{ id: 'call_a', name: 'analyse', input: { fen: 'f' } }, { id: 'call_b', name: 'threats', input: {} }], provider);

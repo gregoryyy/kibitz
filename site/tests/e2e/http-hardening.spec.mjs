@@ -27,7 +27,13 @@ test('normal browser POSTs and direct local clients still work; simple cross-ori
   const simple = await request.post('/api/ai/sample', { headers: { origin: 'https://untrusted.invalid', 'content-type': 'text/plain' }, data: '{"prompt":"hi"}' });
   expect(simple.status()).toBe(403);
   const preflight = await request.fetch('/api/ai/sample', { method: 'OPTIONS', headers: { origin: 'https://untrusted.invalid', 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type' } });
-  expect(preflight.status()).toBe(404); expect(preflight.headers()['access-control-allow-origin']).toBeUndefined();
+  // Identity protection checks every request's native origin before dispatch,
+  // including OPTIONS; a foreign preflight must not reach route lookup.
+  expect(preflight.status()).toBe(403); expect((await preflight.json()).error.code).toBe('forbidden');
+  expect(preflight.headers()['access-control-allow-origin']).toBeUndefined(); expect(preflight.headers()['set-cookie']).toBeUndefined();
+  const localOptions = await request.fetch('/api/ai/sample', { method: 'OPTIONS' });
+  expect(localOptions.status()).toBe(404); expect(localOptions.headers()['access-control-allow-origin']).toBeUndefined();
+  expect(localOptions.headers()['set-cookie']).toBeUndefined();
 });
 
 test('actual SVG GET and HEAD declare UTF-8 and the browser renders an SVG document', async ({ request, page }) => {

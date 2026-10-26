@@ -35,14 +35,23 @@ The [user guide](docs/GUIDE.md) walks through playing, analysis, reviews, practi
 
 ```bash
 cp .env.example .env   # then set AI_PROVIDER and that provider's key and model
-just serve             # install if needed, build, serve on http://127.0.0.1:8765/
+just serve             # build, then HTTPS at https://kibitz.test:8765/ (supply TLS files first)
 ```
 
 Before using a network provider, open **Settings → Coach → Provider permissions** and explicitly allow coach requests or embeddings for that provider. Keys alone do not enable sharing. [Privacy and data flows](docs/PRIVACY.md) explain configured endpoints, separate choices and revocation limits.
 
-For native HTTPS with your own certificate/key pair, use
-[`serve.mjs --tls-key FILE --tls-cert FILE`](docs/TLS.md). Invalid TLS setup stops
-startup; certificate trust and data migration requirements are documented there.
+Before serving, initialize the private [operator identity](docs/SESSIONS.md) once
+(`node site/scripts/operator.mjs .kibitz-data/tls/operator.json`) and create its private [function policy](docs/PERMISSIONS.md)
+(`node site/scripts/permissions.mjs .kibitz-data/tls/operator.json .kibitz-data/tls/permissions.json --all`).
+Then supply your trusted certificate/key pair at `.kibitz-data/tls/`
+as described in [native HTTPS setup](docs/TLS.md). Standard recipes require those
+files, the exact `kibitz.test` DNS SAN and an operator-configured loopback name
+mapping; invalid TLS setup stops startup. Every application response carries
+one-year HSTS for this isolated hostname. [Cookie migration and rollback](docs/COOKIE-MIGRATION.md)
+preserve existing server-library ownership and usage counters at the original
+hostname. Moving to the isolated `.test` origin requires explicit export/import;
+retain the original profile and current databases for recovery. HTTP development
+requires the explicit `--http-dev` option and separate development identities.
 
 On start the server prints `AI coach: <provider> / <model>`, or why the coach is off. Other recipes:
 
@@ -75,6 +84,12 @@ npm run serve          # builds, then serves dist/ with the AI gateway on port 8
 - The first build also generates `dist/eco.json` from `data/eco/*.tsv`. Run `npm run build:eco` to rebuild it after changing the opening data.
 - Edit files in `site/src/`. `dist/` is regenerated on every build and isn't committed.
 - Plain static servers (e.g. `python3 -m http.server`) work for the engine features, but they have no AI gateway, and they send no charset. Open `/_test.html` with them, not `/`: `index.html` has no `<meta charset>`, so the browser decodes it as Windows-1252 and every `≈`, `…` and `·` comes out garbled.
+
+Experimental [operator sign-in](docs/SESSIONS.md) and
+[backend logout](docs/SESSION-TERMINATION.md) protect local gateway/library access.
+Logout preserves collections for fresh-key recovery; complete authenticated client
+cleanup remains a final-release TODO. [Explicit function permissions](docs/PERMISSIONS.md)
+are enforced at the backend independently of sign-in/provider sharing.
 
 ## AI coach
 

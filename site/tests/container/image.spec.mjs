@@ -1,8 +1,11 @@
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
 import { test, expect, open, move } from '../e2e/fixtures.mjs';
 import { openContainerApp } from './startup.mjs';
 import { tlsMaterial } from '../helpers/tls-material.mjs';
+
+test.use({ launchOptions: { args: ['--host-resolver-rules=MAP kibitz.test 127.0.0.1', '--no-proxy-server'] } });
 
 const image = process.env.KIBITZ_CONTAINER_IMAGE || 'kibitz:container-test';
 const suffix = randomUUID().slice(0, 8), name = `kibitz-image-${suffix}`, volume = `kibitz-data-${suffix}`;
@@ -17,7 +20,9 @@ test.beforeAll(async () => {
   docker('volume', 'create', volume);
   docker('run', '-d', '--pull=never', '--name', name, '--init', '--read-only', '--cap-drop=ALL',
     '--security-opt=no-new-privileges', '--tmpfs', '/tmp:mode=1777', '--publish', '127.0.0.1::8765',
-    '--mount', `type=volume,src=${volume},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image);
+    '--mount', `type=volume,src=${volume},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', '--env', 'KIBITZ_HEALTH_HTTPS=0', image,
+    'scripts/serve.mjs', 'dist', '--api', '--http-dev', '--env=', '--host', '0.0.0.0', '--port', '8765',
+    '--index', '_test.html', '--usage', '/data/usage.sqlite', '--library', '/data/library.sqlite');
   base = publishedBase();
   await expect.poll(async () => {
     try { return (await fetch(base + '/manifest.webmanifest', { signal: AbortSignal.timeout(2000) })).status; }
@@ -48,6 +53,7 @@ test('image runs without root or development/private checkout files and keeps da
     const fs=require('node:fs');
     console.log(JSON.stringify({uid:process.getuid(),
       git:fs.existsSync('/app/.git'),serverGit:fs.existsSync('/app/site/.git'),
+      deployment:JSON.parse(fs.readFileSync('/app/site/.kibitz-image.json','utf8')),
       privateSentinel:fs.existsSync('/app/site/server/.env.container-test'),
       eslint:fs.existsSync('/app/site/node_modules/eslint'),
       shell:fs.existsSync('/bin/sh'),npm:fs.existsSync('/usr/local/lib/node_modules/npm'),
@@ -55,6 +61,7 @@ test('image runs without root or development/private checkout files and keeps da
       usageMode:fs.statSync('/data/usage.sqlite').mode&0o777,
       libraryMode:fs.statSync('/data/library.sqlite').mode&0o777}));`;
   expect(JSON.parse(docker('exec', name, 'node', '-e', code))).toEqual({ uid: 1000, git: false, serverGit: false,
+    deployment: {version:1,kind:'source-free-image'},
     privateSentinel: false, eslint: false, shell: false, npm: false, dataMode: 0o700, usageMode: 0o600, libraryMode: 0o600 });
   const info = JSON.parse(docker('inspect', name))[0];
   expect(info.Config.User).toBe('1000:1000'); expect(info.HostConfig.ReadonlyRootfs).toBe(true);
@@ -126,7 +133,10 @@ test('the previous packaging volume opens under the minimal runtime with the sam
     containers.add(container);
     docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
       '--security-opt=no-new-privileges', '--tmpfs', '/tmp:mode=1777', '--publish', '127.0.0.1::8765',
-      '--mount', `type=volume,src=${data},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', runtime);
+      '--mount', `type=volume,src=${data},dst=/data`, '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1',
+      '--env', 'KIBITZ_HEALTH_HTTPS=0', runtime, ...(runtime === 'kibitz:previous-runtime' ? ['node'] : []),
+      'scripts/serve.mjs', 'dist', '--api', '--http-dev', '--env=', '--host', '0.0.0.0', '--port', '8765',
+      '--index', '_test.html', '--usage', '/data/usage.sqlite', '--library', '/data/library.sqlite');
     return publishedBase(container);
   };
   const ready = async url => expect.poll(async () => {
@@ -172,31 +182,67 @@ test('the packaged non-root server supports native HTTPS from read-only operator
     // Test setup copies only synthetic bytes into a private, runtime-owned volume.
     // No host path is writable from the initializer; the app runs as its usual UID.
     docker('run', '--rm', '--pull=never', '--user', '0:0', '--network', 'none', '--read-only',
-      '--mount', `type=bind,src=${identity.dir},dst=/input,readonly`, '--mount', `type=volume,src=${material},dst=/tls`,
+      '--mount', `type=bind,src=${path.dirname(identity.key)},dst=/input,readonly`, '--mount', `type=volume,src=${material},dst=/tls`,
       '--entrypoint', 'node', image, '-e', `const fs=require('node:fs');
-        for(const name of ['key.pem','cert.pem']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
+        for(const name of ['key.pem','cert.pem','operator.json','permissions.json']){fs.copyFileSync('/input/'+name,'/tls/'+name);fs.chmodSync('/tls/'+name,0o600);fs.chownSync('/tls/'+name,1000,1000);}
         fs.chmodSync('/tls',0o700);fs.chownSync('/tls',1000,1000);`);
     containers.add(container);
     docker('run', '-d', '--pull=never', '--name', container, '--init', '--read-only', '--cap-drop=ALL',
       '--security-opt=no-new-privileges', '--publish', '127.0.0.1::8765', '--mount', `type=volume,src=${material},dst=/tls,readonly`,
+      '--tmpfs', '/data:mode=0700,uid=1000,gid=1000',
       '--health-interval', '2s', '--health-start-period', '0s',
       '--env', 'KIBITZ_HEALTH_HTTPS=1', '--env', 'KIBITZ_HEALTH_CA=/tls/cert.pem',
-      '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=1', image, 'scripts/serve.mjs', 'dist', '--api', '--env=',
-      '--library', ':memory:', '--host', '0.0.0.0', '--port', '8765', '--index', '_test.html',
-      '--tls-key', '/tls/key.pem', '--tls-cert', '/tls/cert.pem');
-    const url = publishedBase(container).replace('http:', 'https:');
-    client = await playwright.request.newContext({ ignoreHTTPSErrors: true });
-    await expect.poll(async () => { try { return (await client.get(url + '/manifest.webmanifest')).status(); } catch { return 0; } }, { timeout: 30_000 }).toBe(200);
+      '--env', 'AI_PROVIDER=mock', '--env', 'AI_LOCAL_ONLY=0',
+      '--env', 'OPENAI_API_KEY=syntheticTransportKey', '--env', 'OPENAI_BASE_URL=http://127.0.0.1:9/v1',
+      '--env', 'EMBEDDING_PROVIDER=openai', '--env', 'EMBEDDING_MODEL=fixture', image);
+    const probeUrl = publishedBase(container).replace('http:', 'https:'), url = probeUrl.replace('127.0.0.1', 'kibitz.test');
+    // Node API clients connect directly to the mapped loopback port; Chromium resolves
+    // the .test name with a browser-only loopback resolver rule. Both send the real application authority.
+    client = await playwright.request.newContext({ ignoreHTTPSErrors: true, extraHTTPHeaders: { host: new URL(url).host } });
+    await expect.poll(async () => { try { return (await client.get(probeUrl + '/manifest.webmanifest')).status(); } catch { return 0; } }, { timeout: 30_000 }).toBe(200);
     expect(docker('exec', container, 'node', '-p', 'process.getuid()').trim()).toBe('1000');
     expect(JSON.parse(docker('inspect', container))[0].Mounts.find(mount => mount.Destination === '/tls').RW).toBe(false);
+    expect((await client.get(probeUrl + '/api/ai/status')).status()).toBe(401);
+    const login = await client.post(probeUrl + '/api/library/session', { data: { secret: identity.secret, migrate: true } }); expect(login.status()).toBe(200);
+    expect(login.headers()['set-cookie']).toContain('__Host-kibitz_session=');
+    const configured = await (await client.get(probeUrl + '/api/ai/status')).json();
+    expect(configured.providers.find(provider => provider.name === 'openai')).toMatchObject({ available: false, reason: expect.stringContaining('HTTPS') });
+    expect((await client.post(probeUrl + '/api/ai/config', { data: { provider: 'openai' } })).status()).toBe(409);
+    expect((await (await client.get(probeUrl + '/api/ai/embeddings')).json()).available).toBe(false);
+    expect(login.headers()['set-cookie']).toContain('; Secure');
     for (const route of ['/api/ai/status', '/api/library/records']) {
-      const response = await client.get(url + route); expect(response.status()).toBe(200);
-      expect(response.headers()['set-cookie']).toContain('; Secure');
+      const response = await client.get(probeUrl + route); expect(response.status()).toBe(200);
+      expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
+      expect(response.headers()['set-cookie']).toBeUndefined();
     }
-    context = await browser.newContext({ ignoreHTTPSErrors: true }); const page = await context.newPage();
+    context = await browser.newContext({ ignoreHTTPSErrors: true });
+    const session = (await client.storageState()).cookies.find(cookie => cookie.name === '__Host-kibitz_session');
+    await context.addCookies([{ name: session.name, value: session.value, url, secure: true, httpOnly: true, sameSite: 'Strict' }]);
+    const page = await context.newPage();
+    const pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
+    await page.addInitScript(() => { globalThis.__csp = []; globalThis.document.addEventListener('securitypolicyviolation', event => globalThis.__csp.push(`${event.violatedDirective} ${event.blockedURI}`)); });
     await page.route('**/*', route => new URL(route.request().url()).origin === url ? route.continue() : route.abort());
-    await open(page, url + '/?debug'); await expect(page.locator('#board cg-board')).toBeVisible();
-    for (const file of ['/tls/key.pem', '/key.pem', '/.git/config']) expect((await client.get(url + file)).status()).toBe(404);
+    await openContainerApp(page, url + '/?debug', open); await expect(page.locator('#board cg-board')).toBeVisible();
+    expect(pageErrors).toEqual([]); expect(await page.evaluate(() => globalThis.__csp)).toEqual([]);
+    for (const file of ['/tls/key.pem', '/key.pem', '/operator.json', '/sessions.sqlite', '/.git/config']) {
+      const response = await client.get(probeUrl + file); expect(response.status()).toBe(404);
+      expect(response.headers()['strict-transport-security']).toBe('max-age=31536000');
+    }
+    // A separate offline operator process updates the private policy; the app's mount stays read-only.
+    docker('run', '--rm', '--pull=never', '--user', '1000:1000', '--network', 'none', '--read-only',
+      '--mount', `type=volume,src=${material},dst=/tls`, '--entrypoint', 'node', image, '-e', `const fs=require('node:fs');
+        const fd=fs.openSync('/tls/permissions.json','r+');try{const policy=JSON.parse(fs.readFileSync(fd,'utf8'));
+        policy.allow=['ai:read','library:read'];const text=JSON.stringify(policy);fs.ftruncateSync(fd,0);fs.writeSync(fd,text,0,'utf8');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}`);
+    expect((await client.get(probeUrl + '/api/ai/status')).status()).toBe(200);
+    expect((await client.get(probeUrl + '/api/library/records')).status()).toBe(200);
+    for (const route of ['/api/ai/test', '/api/ai/embeddings', '/api/library/erase']) {
+      const denied = await client.post(probeUrl + route, { data: {} }); expect(denied.status()).toBe(403);
+      expect((await denied.json()).error.code).toBe('permission_denied');
+    }
+    expect((await client.post(probeUrl + '/api/session/logout', { data: {} })).status()).toBe(200);
+    expect((await client.get(probeUrl + '/api/ai/status', { headers: { cookie: '__Host-kibitz_session=' + session.value } })).status()).toBe(401);
+    expect(await page.evaluate(async () => (await fetch('/api/library/records')).status)).toBe(401);
+    expect((await client.post(probeUrl + '/api/library/session', { data: { secret: identity.secret, migrate: true } })).status()).toBe(200);
     await expect.poll(() => JSON.parse(docker('inspect', container))[0].State.Health.Status, { timeout: 15_000 }).toBe('healthy');
     expect(docker('logs', container)).not.toContain('PRIVATE KEY');
   } catch (error) {

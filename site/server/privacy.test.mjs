@@ -9,7 +9,7 @@ test('gateway refuses missing/wrong-purpose/wrong-provider consent before SDK wo
   const config = loadConfig({ AI_PROVIDER: 'openai', OPENAI_API_KEY: 'fake', MISTRAL_API_KEY: 'fake' });
   const embeddingConfig = loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mistral', MISTRAL_API_KEY: 'fake', EMBEDDING_MODEL: 'embed' });
   const embedder = { async embedBatch() { calls.push('embedding'); return { usage: { input: 1, output: 0 }, vectors: [[1, 0]], providerModel: 'embed' }; } };
-  const api = createApi({ config, provider, makeProvider: () => provider, embeddingConfig, embedder, log: { error() {} } });
+  const api = createApi({ allowInsecureHttp: true, config, provider, makeProvider: () => provider, embeddingConfig, embedder, log: { error() {} } });
   const server = http.createServer((req, res) => api(req, res)); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   t.after(() => { server.closeAllConnections(); return new Promise(resolve => server.close(resolve)); });
   const base = `http://127.0.0.1:${server.address().port}/api/ai/`; let cookie = '';

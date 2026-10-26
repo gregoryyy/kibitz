@@ -107,7 +107,7 @@ test('TODO 0.18: conditions and the Linux-only --with-deps', () => {
 
 test('TODO 0.18: the repository CI workflow runs locally, every job and step', () => {
   const jobs = jobsOf(parseYaml(readFileSync(new URL('../../../.github/workflows/ci.yml', import.meta.url), 'utf8')));
-  assert.deepEqual(jobs.map(j => j.id), ['check', 'e2e', 'secrets']);
+  assert.deepEqual(jobs.map(j => j.id), ['check', 'e2e', 'native-macos', 'secrets']);
   for (const job of jobs) assert.ok(localSteps(job).length > 0, job.id);
   const secrets = localSteps(jobs.find(j => j.id === 'secrets'));
   assert.ok(secrets.some(s => s.kind === 'secrets'), 'gitleaks maps to the local binary');

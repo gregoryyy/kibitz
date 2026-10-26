@@ -14,6 +14,7 @@ The CI workflow stays the one definition of CI; the local run reads it from the 
 | --- | --- | --- |
 | `check` | `npm ci`, ESLint, `tsc`, ASVS and assurance checks, build, unit tests, `npm audit` | a few minutes |
 | `e2e` | Playwright browsers, the assurance browser tests and the full e2e suite | the longest job |
+| `native-macos` | Archived native OS/TLS/storage policy cases | platform-specific |
 | `secrets` | gitleaks | about 40 s |
 
 The other workflows run on GitHub only: Container (Docker image and persistence), Security baseline (ZAP and the mock staging server) and CodeQL (needs GitHub code scanning).
@@ -55,3 +56,12 @@ Commit statuses use the GitHub API, not Actions; the token stays with `gh`.
 - **Secret scanning:** locally gitleaks scans the whole history up to the commit; on GitHub the action scans the PR's commits.
 - **Not a sandbox.** Steps run as the user, with the user's files and network. Local CI runs only our own branches and reviewed Dependabot changes. The reduced environment keeps tokens out of reach by accident, not against hostile code.
 - **Statuses are self-reported.** They show that the run passed on that machine for that commit, not on an independent runner; `summary.md` and the logs are the evidence.
+
+## Integration into secdrift
+
+PR #154 targets the preserved security-drift branch. Its CI workflow also contains
+a native-macOS job and Linux bubblewrap installation steps. The local runner keeps
+those shell commands as written; it does not translate OS prerequisites or emulate
+the other platform. A complete archived workflow cannot be assumed to pass on one
+local machine. The base integration preserves the archive's application and
+workflow files; no further test run was performed for conflict resolution.

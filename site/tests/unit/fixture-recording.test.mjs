@@ -7,7 +7,7 @@ import { recordFixture, publishFixture } from '../../scripts/fixture-recording.m
 import { loadConfig } from '../../server/ai.mjs';
 import { annotations, wire } from '../fixtures/ai-wire.mjs';
 const secret = 'synthetic-api-credential-with-32-characters';
-const cfg = provider => loadConfig({ AI_PROVIDER: provider, [`${provider.toUpperCase()}_API_KEY`]: secret, OLLAMA_MODEL: 'fixture-model', ANTHROPIC_MODEL: 'claude-sonnet-5-5' });
+const cfg = provider => loadConfig({ AI_PROVIDER: provider, [`${provider.toUpperCase()}_API_KEY`]: secret, OLLAMA_MODEL: 'fixture-model', OLLAMA_BASE_URL: 'https://localhost:11434', ANTHROPIC_MODEL: 'claude-sonnet-5-5' });
 const response = body => async () => new Response(body, { headers: { 'content-type': 'text/event-stream' } });
 const directory = () => fs.mkdtemp(path.join(os.tmpdir(), 'kibitz-fixture-unit-'));
 
@@ -107,4 +107,13 @@ test('failed publication preserves an existing directory and removes temporary f
     await assert.rejects(publishFixture(dir, await recordFixture(cfg('openai'), 'chat', { fetcher: response(wire('openai')) })));
     assert.equal(await fs.readFile(path.join(file, 'prior'), 'utf8'), 'preserve'); assert.deepEqual(await fs.readdir(dir), ['openai-chat.json']);
   } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});
+
+
+test('unavailable or forged plaintext recorder configs fail before SDK construction or ambient credential fallback', async () => {
+  let calls = 0; const fetcher = async () => { calls++; return new Response('unexpected'); };
+  const config = cfg('openai');
+  await assert.rejects(recordFixture({ ...config, available: false, apiKey: undefined }, 'chat', { fetcher }), { code: 'provider_unavailable' });
+  await assert.rejects(recordFixture({ ...config, baseURL: 'http://127.0.0.1/v1' }, 'chat', { fetcher }), { code: 'invalid_transport' });
+  assert.equal(calls, 0);
 });

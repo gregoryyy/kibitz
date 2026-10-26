@@ -3,7 +3,7 @@
 //                           usage: the server's requests, tokens, cost estimate and budget today (usage.mjs);
 //                           user: the same for this user, with the per-user budgets for paid models;
 //                           paid: whether the current provider is a paid (cloud) one
-// Users are told apart by the kibitz_uid cookie (random, HttpOnly), set on the first API request.
+// HTTPS uses backend-issued operator sessions; explicit HTTP development has separate synthetic groups.
 //   POST /api/ai/config  {provider?, localOnly?} -> status; switches among the providers .env sets up
 //   POST /api/ai/test    {} -> {ok, provider, model, ms, usage}: a tiny request to check the connection
 //   POST bodies may name a "task" (quick | chat | review) to pick that task's model.
@@ -14,9 +14,13 @@
 //   GET  /api/ai/embeddings -> safe destination/configuration and opaque cookie scope
 //   POST /api/ai/embeddings {texts, fingerprint, scope} -> {vectors, metadata, usage, user}
 //                           explicit bounded batches; no server text/vector storage
-import crypto from 'crypto';
+import { authorizeFunction, permissionFor, functionFlags } from './permissions.mjs';
+import { CookieError } from './cookies.mjs';
+import { developmentIdentity } from './session-identity.mjs';
+import { checkSession, sessionAction } from './session-guard.mjs';
+import { SessionError } from './sessions.mjs';
 import net from 'net';
-import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
+import { applyLocalOnly, complete, createProvider, GatewayError, LOCAL_PROVIDERS, modelFor, loadEmbeddingConfig, publicStatus, switchProvider, toGatewayError, validateMessages, validateTools } from './ai.mjs';
 import { completeJson, FORMATS } from './schema.mjs';
 import { parsePrices, usageAccounting, usageLedger, userLedger } from './usage.mjs';
 import { createEmbeddingApi } from './embeddings.mjs';
@@ -40,11 +44,11 @@ export function createApi({
   users = userLedger({ tokensPerDay: config.userTokensPerDay, costPerDay: config.userCostPerDay, prices: parsePrices(config.prices) }),
   allow = usageAccounting(config).allow,
   countUsage = (uid, model, usage, options) => { ledger.add(model, usage); return users.add(uid, model, usage, options); },
-  embeddingConfig = undefined, embedder = undefined,
+  embeddingConfig = undefined, embedder = undefined, allowInsecureHttp = false, hostname = null, identity = developmentIdentity, authorize = authorizeFunction,
 }) {
-  const embeddings = createEmbeddingApi({ ...(embeddingConfig ? { config: embeddingConfig } : {}), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
+  const embeddings = createEmbeddingApi({ config: embeddingConfig || loadEmbeddingConfig(process.env, { allowInsecureLoopback: !!config.allowInsecureLoopback }), ...(embedder ? { embedder } : {}), localOnly: () => !!config.localOnly, allow, ledger, users, countUsage });
   const paid = () => !LOCAL_PROVIDERS.includes(config.provider);
-  const status = uid => ({ ...publicStatus(config), usage: ledger.today(), user: users.today(uid), paid: paid() });
+  const status = (uid, req) => ({ ...(functionFlags(req) ? { functions: functionFlags(req) } : {}), ...publicStatus(config), usage: ledger.today(), user: users.today(uid), paid: paid() });
   // Counts a finished request for the server and the user; returns its usage with the cost.
   const count = (uid, model, usage, isPaid) => ({
     input: usage?.input || 0, output: usage?.output || 0, cost: countUsage(uid, model, usage, { paid: isPaid }),
@@ -53,26 +57,29 @@ export function createApi({
     const { pathname } = new URL(req.url, 'http://x');
     if (!pathname.startsWith('/api/')) return false;
     try {
-      checkHost(req);
-      const uid = userOf(req, res);
+      checkHost(req, hostname);
+      checkOrigin(req);
+      const uid = identity(req, res, 'usage', { allowInsecureHttp, create: true });
+      authorize(req, permissionFor(req), { allowInsecureHttp });
       if (pathname === '/api/ai/embeddings' && req.method === 'GET') return json(res, 200, embeddings.status(uid));
       if (pathname === '/api/ai/embeddings' && req.method === 'POST') {
         checkPost(req);
-        const body = await readJson(req), providerName = embeddings.status(uid).provider;
+        const body = await readJson(req); checkSession(req);
+        const providerName = embeddings.status(uid).provider;
         requireConsent(req, providerName, 'embeddings');
-        try { return json(res, 200, await embeddings.embed(uid, body, res)); }
+        try { const result = await embeddings.embed(uid, body, res); checkSession(req); return json(res, 200, result); }
         catch (e) { report('embeddings', providerName, e); throw e; }
       }
-      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid));
+      if (pathname === '/api/ai/status' && req.method === 'GET') return json(res, 200, status(uid, req));
       if (pathname === '/api/ai/config' && req.method === 'POST') return await setConfig(req, res, uid);
       if (pathname === '/api/ai/test' && req.method === 'POST') return await testConnection(req, res, uid);
       if (pathname === '/api/ai/sample' && req.method === 'POST') return await sample(req, res, uid);
       if (pathname === '/api/ai/structured' && req.method === 'POST') return await structured(req, res, uid);
       throw new GatewayError('not_found', 'Not found', 404);
     } catch (e) {
-      const g = toGatewayError(e);
-      if (!res.headersSent) json(res, g.status, { error: { code: g.code, message: g.message } });
-      else res.end();
+      const g = e instanceof SessionError ? new GatewayError(e.code, e.message, e.status) : e instanceof CookieError ? new GatewayError(e.code, e.message, e.code === 'forbidden' ? 403 : 400) : toGatewayError(e);
+      if (!res.destroyed && !res.headersSent) json(res, g.status, { error: { code: g.code, message: g.message } });
+      else if (!res.destroyed) res.end();
     }
     return true;
   };
@@ -89,16 +96,15 @@ export function createApi({
 
   async function setConfig(req, res, uid) {
     checkPost(req);
-    const body = await readJson(req);
+    const body = await readJson(req); checkSession(req);
     let next = config;
     if (typeof body?.localOnly === 'boolean') next = applyLocalOnly({ ...next, localOnly: body.localOnly });
     if (body?.provider !== undefined) next = switchProvider(next, body.provider);
     if (next !== config) {
-      config = next; provider = config.available ? makeProvider(config) : null;
-      embeddings.policyChanged();
+      sessionAction(req, () => { config = next; provider = config.available ? makeProvider(config) : null; embeddings.policyChanged(); });
       log.info?.(aiConfigEvent(config));
     }
-    return json(res, 200, status(uid));
+    return json(res, 200, status(uid, req));
   }
 
   // The server's daily budget, and the user's for paid models.
@@ -119,6 +125,7 @@ export function createApi({
     let r;
     try { r = await complete(selected, [{ role: 'user', content: 'Reply with the single word OK.' }], { model, maxTokens: 256, signal: ac.signal }); }
     catch (e) { report('test', providerName, e); throw e; }
+    checkSession(req);
     return json(res, 200, { ok: true, provider: providerName, model, ms: Date.now() - t0, usage: count(uid, model, r.usage, isPaid), user: users.today(uid) });
   }
 
@@ -126,7 +133,7 @@ export function createApi({
   // daily budgets and the rate limit.
   async function accept(req, uid) {
     checkPost(req);
-    const body = await readJson(req);
+    const body = await readJson(req); checkSession(req);
     // Reading a request body yields: route and consent must be captured together afterwards.
     if (!provider) throw new GatewayError('unavailable', config.reason || 'No AI provider configured', 503);
     requireConsent(req, config.provider, 'coach');
@@ -143,16 +150,17 @@ export function createApi({
     res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', ...SECURITY_HEADERS });
     const ac = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
-    const write = obj => res.write(JSON.stringify(obj) + '\n');
+    const write = obj => sessionAction(req, () => res.write(JSON.stringify(obj) + '\n'));
     try {
       const it = selected.chat(messages, { model, tools, signal: ac.signal });
       let r;
       while (!(r = await it.next()).done) write({ text: r.value });
+      checkSession(req);
       const toolCalls = r.value?.toolCalls?.length ? r.value.toolCalls : undefined;
       write({ done: true, truncated: !!r.value?.truncated, ...(toolCalls ? { toolCalls } : {}), usage: count(uid, model, r.value?.usage, isPaid), user: users.today(uid) });
     } catch (e) {
-      const g = toGatewayError(e, ac.signal);
-      if (g.code !== 'cancelled') { report('sample', providerName, e, g); write({ error: { code: g.code, message: g.message } }); }
+      const g = e instanceof SessionError ? e : toGatewayError(e, ac.signal);
+      if (g.code !== 'cancelled' && g.code !== 'session_expired' && !res.destroyed) { report('sample', providerName, e, g); write({ error: { code: g.code, message: g.message } }); }
     }
     res.end();
     return true;
@@ -166,35 +174,23 @@ export function createApi({
     res.on('close', () => { if (!res.writableEnded) ac.abort(); });
     try {
       const out = await completeJson(selected, messages, format, { model, signal: ac.signal });
+      checkSession(req);
       return json(res, 200, { ...out, usage: count(uid, model, out.usage, isPaid), user: users.today(uid) });
     }
     catch (e) {
-      const g = toGatewayError(e, ac.signal);
+      const g = e instanceof SessionError ? e : toGatewayError(e, ac.signal);
       report('structured', providerName, e, g);
       throw g;
     }
   }
 }
 
-// The user, from the kibitz_uid cookie; a new random one is issued when it's missing or malformed.
-// It only tells users apart for counting and budgets (no accounts yet, TODO 10.1): HttpOnly, so page
-// scripts can't read it, and SameSite=Strict, so other sites' requests don't carry it.
-// Match the library's native-TLS behavior; forwarded scheme headers are not trusted.
-const UID_RE = /^[A-Za-z0-9_-]{22}$/;
-function userOf(req, res) {
-  const m = /(?:^|;\s*)kibitz_uid=([^;]*)/.exec(req.headers.cookie || '');
-  if (m && UID_RE.test(m[1])) return m[1];
-  const uid = crypto.randomBytes(16).toString('base64url');
-  res.setHeader('Set-Cookie', `kibitz_uid=${uid}; Path=/api/; HttpOnly; SameSite=Strict; Max-Age=31536000${req.socket.encrypted ? '; Secure' : ''}`);
-  return uid;
-}
-
 // DNS-rebinding guard: a rebinding attack reaches us under an attacker-controlled host name,
-// so only accept requests addressed to localhost or to an IP literal.
-function checkHost(req) {
+// so accept the configured application hostname; legacy/dev callers retain localhost/IP checks.
+function checkHost(req, hostname) {
   let host;
   try { host = new URL(`http://${req.headers.host}`).hostname.replace(/^\[|\]$/g, ''); } catch { host = ''; }
-  if (host !== 'localhost' && !net.isIP(host)) throw new GatewayError('forbidden', 'Host not allowed', 403);
+  if (hostname ? host !== hostname : host !== 'localhost' && !net.isIP(host)) throw new GatewayError('forbidden', 'Host not allowed', 403);
 }
 
 // CSRF guard: browsers send Origin on cross-site POSTs, so a page on another site can't spend
@@ -228,7 +224,6 @@ function readJson(req) {
 }
 
 function json(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', ...SECURITY_HEADERS });
-  res.end(JSON.stringify(body));
-  return true;
+  const send = () => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', ...SECURITY_HEADERS }); res.end(JSON.stringify(body)); return true; };
+  return status < 400 ? sessionAction(res, send) : send();
 }

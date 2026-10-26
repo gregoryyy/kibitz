@@ -16,7 +16,7 @@ function transport(...steps) {
 }
 function memoryCache(entries = []) {
   const saved = new Map(entries), reads = [], writes = [];
-  return { reads, writes, read: async scope => { reads.push(scope); return saved.get(scope) || null; },
+  return { reads, writes, saved, clear: async () => { saved.clear(); }, read: async scope => { reads.push(scope); return saved.get(scope) || null; },
     write: async value => { const copy = structuredClone(value); writes.push(copy); saved.set(copy.scope, { version: 1, scope: copy.scope, snapshot: copy, cachedAt: '2026-10-24T09:00:00Z' }); }, close() {} };
 }
 const online = () => [{ available: true, scope: a }, snapshot()];
@@ -76,7 +76,7 @@ test('unknown acknowledgements require refresh rather than a blind retry, retain
 });
 
 test('conflicts keep the current record/draft identity; expired or changed sessions clear their private snapshot', async () => {
-  for (const [error, status] of [['conflict', 409], ['session_changed', 409], ['no_session', 401]]) {
+  for (const [error, status] of [['conflict', 409], ['session_changed', 409], ['no_session', 401], ['session_expired', 401]]) {
     const net = transport(...online(), () => response({ error: { code: error } }, status)), session = createServerLibrary({ ...net, cache: memoryCache() });
     await session.connect(); const before = session.state.snapshot;
     await assert.rejects(session.change([{ collection: 'games', id: 'kept', record: before.games[0] }]), code(error));
@@ -100,3 +100,79 @@ test('probes detect a changed cookie owner, and a closed session cannot reconnec
   await session.connect(); await session.probe(); assert.equal(session.state.snapshot, null); assert.equal(session.state.error, 'session_changed');
   session.close(); const n = net.calls.length; await assert.rejects(session.connect(), code('library_cancelled')); await assert.rejects(session.change([]), code('library_cancelled')); assert.equal(net.calls.length, n);
 });
+
+test('an explicit server permission denial never falls back to a previously cached private collection', async () => {
+  const saved = { version: 1, scope: a, snapshot: snapshot(), cachedAt: '2026-10-24T09:00:00Z' }, cache = memoryCache([[a, saved]]);
+  const net = transport({ available: true, scope: a }, () => response({ error: { code: 'permission_denied' } }, 403));
+  const session = createServerLibrary({ ...net, cache }); await session.connect();
+  assert.equal(session.state.snapshot, null); assert.equal(session.state.mode, 'unavailable'); assert.equal(session.state.error, 'permission_denied'); assert.deepEqual(cache.reads, []); session.close();
+});
+
+test('a fresh permission denial during a probe withdraws the current private snapshot', async () => {
+  const cache = memoryCache(), net = transport(...online(), () => response({ error: { code: 'permission_denied' } }, 403));
+  const session = createServerLibrary({ ...net, cache }); await session.connect(); assert(session.state.snapshot);
+  await session.probe(); assert.equal(session.state.snapshot, null); assert.equal(session.state.mode, 'unavailable'); assert.equal(session.state.error, 'permission_denied'); session.close();
+});
+
+test('an unverifiable permission response is not treated as an offline cache fallback', async () => {
+  const saved = { version: 1, scope: a, snapshot: snapshot(), cachedAt: '2026-10-24T09:00:00Z' }, cache = memoryCache([[a, saved]]);
+  const net = transport({ available: true, scope: a }, () => response({ error: { code: 'permission_unavailable' } }, 503));
+  const session = createServerLibrary({ ...net, cache }); await session.connect();
+  assert.equal(session.state.snapshot, null); assert.equal(session.state.mode, 'unavailable'); assert.equal(session.state.error, 'permission_unavailable'); assert.deepEqual(cache.reads, []); session.close();
+});
+
+for (const failure of ['session_expired', 'no_session', 'session_changed', 'permission_denied', 'permission_unavailable']) {
+  test(`${failure} during records cannot expose the cache and explicitly erases all derived buckets`, async () => {
+    const cache = memoryCache([[a, { snapshot: snapshot() }], [b, { snapshot: snapshot(b) }]]);
+    const session = createServerLibrary({ ...transport({ available: true, scope: a }, () => response({ error: { code: failure } }, 401)), cache });
+    await session.connect(); assert.equal(session.state.snapshot, null); assert.equal(session.state.error, failure);
+    assert.deepEqual(cache.reads, []); assert.equal(cache.saved.size, 0); session.close();
+  });
+}
+
+test('termination withdraws immediately, blocks reconnect during deletion and supports an explicit failed-cleanup retry', async () => {
+  let release; const gate = new Promise(resolve => { release = resolve; });
+  const cache = memoryCache(), net = transport(...online(), ...online()), session = createServerLibrary({ ...net, cache });
+  await session.connect(); const clear = cache.clear; cache.clear = async () => { await gate; throw Error('blocked'); };
+  const ended = session.endSession(); assert.equal(session.state.snapshot, null); assert.equal(session.state.mode, 'off');
+  const reconnect = session.connect(); await new Promise(resolve => setImmediate(resolve)); assert.equal(net.calls.length, 2);
+  release(); assert.equal(await ended, false); assert.equal(await reconnect, null); assert.equal(session.state.error, 'library_cache_cleanup');
+  await session.probe(); await session.connect(); assert.equal(net.calls.length, 2);
+  cache.clear = clear; assert.equal(await session.endSession(), true); await session.connect(); assert.equal(session.state.mode, 'online'); session.close();
+});
+
+test('termination cancels queued mutations and late network results without caching or republishing them', async () => {
+  let release; const gate = new Promise(resolve => { release = resolve; });
+  const cache = memoryCache(), net = transport(...online(), async () => { await gate; return response(snapshot(a, 1)); });
+  const session = createServerLibrary({ ...net, cache }); await session.connect();
+  const first = session.change([{ collection: 'games', id: 'kept', record: snapshot().games[0] }]).catch(e => e.code);
+  const queued = session.change([]).catch(e => e.code); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(await session.endSession(), true); release();
+  assert.equal(await first, 'library_cancelled'); assert.equal(await queued, 'library_cancelled'); assert.equal(cache.saved.size, 0);
+  assert.equal(session.state.snapshot, null); assert.deepEqual(cache.writes.map(s => s.revision), [0]); session.close();
+});
+
+test('termination from the snapshot notification cannot start a cache write in the new generation', async () => {
+  const cache = memoryCache(); let cleanup;
+  const session = createServerLibrary({ ...transport(...online()), cache, onChange: state => { if (state.mode === 'online') cleanup = session.endSession(); } });
+  await assert.rejects(session.connect(), code('library_cancelled')); assert.equal(await cleanup, true);
+  assert.deepEqual(cache.writes, []); assert.equal(cache.saved.size, 0); assert.equal(session.state.snapshot, null); session.close();
+});
+
+test('changing library view during cleanup does not lose the completion or permanently block a fresh connection', async () => {
+  let release; const gate = new Promise(resolve => { release = resolve; });
+  const cache = memoryCache(), clear = cache.clear, session = createServerLibrary({ ...transport(...online(), ...online()), cache });
+  await session.connect(); cache.clear = async () => { await gate; await clear(); };
+  const cleanup = session.endSession(); session.disconnect(); release(); assert.equal(await cleanup, true);
+  await session.connect(); assert.equal(session.state.mode, 'online'); session.close();
+});
+
+for (const status of [401, 403]) {
+  test(`HTTP ${status} with a malformed or unknown error body still forbids private offline fallback`, async () => {
+    for (const body of ['not JSON', JSON.stringify({ error: { code: 'unknown_future_code' } })]) {
+      const cache = memoryCache([[a, { snapshot: snapshot() }]]), session = createServerLibrary({ ...transport({ available: true, scope: a }, () => new Response(body, { status })), cache });
+      await session.connect(); assert.equal(session.state.snapshot, null); assert.deepEqual(cache.reads, []); assert.equal(cache.saved.size, 0);
+      assert.equal(session.state.error, status === 401 ? 'session_expired' : 'permission_denied'); session.close();
+    }
+  });
+}

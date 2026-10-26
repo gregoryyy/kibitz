@@ -15,7 +15,7 @@ export function probe({ secure = false, ca = undefined, port = 8765, timeout = 4
     const done = passed => { clearTimeout(timer); resolve(passed); };
     try {
       const request = (secure ? https : http).get({ hostname: '127.0.0.1', port,
-        path: '/manifest.webmanifest', agent: false, ...(secure && ca ? { ca } : {}) }, response => {
+        path: '/manifest.webmanifest', agent: false, ...(secure ? { minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3', rejectUnauthorized: true } : {}), ...(secure && ca ? { ca } : {}) }, response => {
         response.resume(); response.once('end', () => done(response.statusCode === 200)); response.once('error', () => done(false));
       });
       request.once('error', () => done(false));

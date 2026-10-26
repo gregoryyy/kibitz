@@ -37,10 +37,16 @@ This split is also the user experience:
 The selected deployment is a local single-user app, confirmed in TODO 10.1. Existing loopback defaults, operator env keys and browser/optional private SQLite storage define the target; hosted authentication is deferred. [Deployment scope](DEPLOYMENT.md) distinguishes local hosting from the independent choice of cloud or local model inference.
 
 The owner selected [native Node HTTPS](TLS.md) with operator-supplied certificates
-for the final local deployment. The CLI's optional TLS listener shares the same
+for the final local deployment. The CLI's required TLS listener for APIs shares the same
 static/API handlers and uses the real socket for Origin and cookie transport
 checks; public identity-file exclusion and validation happen before storage opens.
-Final transport enforcement and the other ASVS remediations remain separate TODOs.
+[Protected-cookie migration](COOKIE-MIGRATION.md) retains exact ownership/usage
+keys and rejects ambiguous identities. Explicit HTTP development uses separate
+cookies. The isolated `kibitz.test` hostname has exact-SAN startup validation,
+operator loopback resolution and one-year HSTS before application routing;
+IP/localhost aliases expose only the static health manifest. Cross-host data
+transition and explicit legacy-origin recovery are documented in the TLS guide.
+External transport policy and other ASVS remediations remain open.
 
 ```mermaid
 flowchart LR
@@ -291,7 +297,16 @@ The default below is wllama. The optional `BROWSER_RUNTIME=chrome` / `just offli
 The [threat model](THREAT-MODEL.md) gives the supported deployment assumptions, data-flow diagram, asset/privilege boundaries, evidence and residual risks. The notes below are a brief overview rather than a release checklist.
 
 - **Keys stay on the server.** They are read from `.env` and used only by the gateway. They never appear in responses, logs or the page. The status endpoint names providers and models only.
-- **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Host checks accept localhost or IP literals. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
+- **Local operator sessions.** Experimental backend issuance (`server/operator.mjs`,
+  `sessions.mjs`, `session-api.mjs`) verifies a private installation key before
+  issuing a 256-bit HttpOnly host cookie. A separate private registry hashes session
+  tokens and binds usage/library identifiers to the operator; raw grouping assertions
+  no longer authorize TLS APIs. [Setup and migration](SESSIONS.md) describe storage
+  and recovery. [Backend termination](SESSION-TERMINATION.md) serializes protected
+  actions with durable revocation, closes held responses and preserves recovery
+  locators. A private [operator-bound function policy](PERMISSIONS.md) is rechecked at backend
+  dispatch and guarded output/mutation boundaries; complete client cleanup retains its TODO.
+- **Local browser request guards.** The default listener is loopback; browser POSTs require the same host/origin and JSON, with bounded bodies. Final Host checks accept the configured isolated `.test` hostname; explicit legacy/development modes retain localhost/IP checks. Non-browser local clients can omit Origin; these guards and cookie scopes are not authentication. The operator-configured Ollama base URL has a host allowlist.
 - **Page hardening:**
   - a hash-based CSP: inline scripts by hash only, no plugins, no framing, `base-uri 'none'`, and `connect-src 'self'`;
   - cross-origin isolation;

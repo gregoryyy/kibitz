@@ -13,7 +13,7 @@ async function serve(t, handler) {
 }
 const config = (name, url, timeout = 500) => loadConfig({ AI_PROVIDER: name, [`${name.toUpperCase()}_API_KEY`]: 'synthetic-key',
   [`${name.toUpperCase()}_BASE_URL`]: url + (['openai', 'mistral'].includes(name) ? '/v1' : ''),
-  [`${name.toUpperCase()}_MODEL`]: name === 'anthropic' ? 'claude-haiku-fixture' : 'fixture', AI_TIMEOUT_MS: String(timeout) });
+  [`${name.toUpperCase()}_MODEL`]: name === 'anthropic' ? 'claude-haiku-fixture' : 'fixture', AI_TIMEOUT_MS: String(timeout) }, { allowInsecureLoopback: true });
 const partial = name => name === 'anthropic' ? wire(name).split('event: content_block_stop')[0] : wire(name).split('\n\n')[0] + '\n\n';
 const question = [{ role: 'user', content: 'synthetic question' }];
 
@@ -73,7 +73,7 @@ test('embedding JSON and Ollama inspection are bounded before another text uploa
   const url = await serve(t, (req, res) => { paths.push(req.url); req.resume(); res.writeHead(200, { 'content-type': 'application/json' }); res.write('{"data":['); });
   for (const name of ['openai', 'ollama']) {
     const cfg = loadEmbeddingConfig({ EMBEDDING_PROVIDER: name, EMBEDDING_MODEL: 'fixture', OPENAI_API_KEY: 'synthetic-key', AI_TIMEOUT_MS: '500',
-      [`${name.toUpperCase()}_BASE_URL`]: url + (name === 'openai' ? '/v1' : '') });
+      [`${name.toUpperCase()}_BASE_URL`]: url + (name === 'openai' ? '/v1' : '') }, { allowInsecureLoopback: true });
     const before = paths.length;
     // The SDK's own JSON timer can win the race. Both paths must expose the same safe gateway error.
     await assert.rejects(createEmbedder(cfg).embed(['synthetic note']), error => { const mapped = toGatewayError(error); assert.equal(mapped.code, 'timeout'); assert.equal(mapped.status, 504); return true; });
@@ -112,7 +112,7 @@ test('disconnecting an actual gateway connection test closes upstream work and l
     res.writeHead(200, { 'content-type': 'text/event-stream' }); res.write(partial('openai')); enter();
   });
   const logs = [], cfg = config('openai', upstream, 5000);
-  const api = createApi({ config: cfg, embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }), log: { info: line => logs.push(line), error: line => logs.push(line) } });
+  const api = createApi({ allowInsecureHttp: true, config: cfg, embeddingConfig: loadEmbeddingConfig({ EMBEDDING_PROVIDER: 'mock' }), log: { info: line => logs.push(line), error: line => logs.push(line) } });
   const gateway = await serve(t, (req, res) => api(req, res));
   const ctl = new AbortController();
   const request = fetch(gateway + '/api/ai/test', { method: 'POST', headers: { 'content-type': 'application/json', 'x-kibitz-consent': 'v1:openai:coach' }, body: '{}', signal: ctl.signal });

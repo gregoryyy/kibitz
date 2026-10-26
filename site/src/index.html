@@ -322,7 +322,7 @@ cg-board square.check { background: radial-gradient(ellipse at center, rgb(230 4
 .choice button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .choice button:disabled { color: var(--muted); background: var(--surface-2); cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
 input[type="range"] { width: 100%; accent-color: var(--accent); }
-textarea, input[type="text"], input[type="search"], input[type="url"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
+textarea, input[type="text"], input[type="password"], input[type="search"], input[type="url"], select { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; }
 textarea { resize: vertical; min-height: 44px; }
 .hint { font-size: 13px; color: var(--muted); }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; }
@@ -769,7 +769,8 @@ a.ext { color: var(--accent); font-size: 14px; }
     </div>
 
     <div class="pane" data-pane="reading" hidden>
-      <div class="row"><h2 class="push-right">Reading for this position</h2><a class="ext" id="lichessLink" href="https://lichess.org/analysis" target="_blank" rel="noopener">Open on Lichess ↗</a></div>
+      <div class="row"><h2 class="push-right">Reading for this position</h2><button class="btn small" id="readingExplore" type="button" aria-describedby="readingExploreHint">Explore locally</button></div>
+      <p class="hint" id="readingExploreHint">Explore with Stockfish in this page. The game stays as it is.</p>
       <div id="themeChips" class="chips"></div>
       <div id="bookList" class="lib-list"></div>
       <h3>Seen before in your library</h3>
@@ -832,6 +833,7 @@ a.ext { color: var(--accent); font-size: 14px; }
         <p class="hint">API keys and model names are set in .env on the server and never reach this page. Changes here last until the server restarts.</p>
       </div>
     </section>
+    <section class="settings-sec" id="operatorSignIn"></section>
     <section class="settings-sec" id="providerPrivacy"></section>
     <section class="settings-sec" id="offlineApp"></section>
     <section class="settings-sec">
@@ -851,6 +853,7 @@ import { Chess } from './chess.js';
 import { Chessground } from './chessground.js';
 import * as K from './chess/knowledge.js';
 import { Engine, stockfishAttempts } from './chess/engine.js';
+import { createClientSession, openSessionChannel, bindClientSession } from './platform/client-session.js';
 import { createStore, browserStorage } from './platform/store.js';
 import { createKeyboardBoard } from './chess/keyboard-board.js';
 import { BOARD_MARK_STYLES, describeBoardMarks } from './chess/board-marks.js';
@@ -898,6 +901,7 @@ import { mainlineNags, nagText, NAG_CLASS, CLASS_NAG, isMoveNag } from './chess/
 import { sanToSpeech, parseMoveInput, displaySan, notationMode } from './chess/notation.js';
 import { LANGS, pickLang, translator, isText, germanSanToSan } from './platform/i18n.js';
 import { createConsentStore, createPrivacyGate, PRIVACY_KEY } from './platform/privacy.js';
+import { createOperatorPanel } from './platform/operator-ui.js';
 import { createPrivacyPanel } from './platform/privacy-ui.js';
 import { createOfflinePanel } from './platform/offline-app.js';
 import { offlineCoach, rememberOfflineCoach } from './platform/offline-coach.js';
@@ -936,6 +940,12 @@ const el = (tag, attrs = {}, ...kids) => {
 const LEVELS = { 1: 'beginner', 2: 'club player', 3: 'advanced player', 4: 'expert' };
 const GLYPH = { inaccuracy: '?!', mistake: '?', blunder: '??', best: '', good: '', book: '' };
 const CLS_LABEL = { inaccuracy: 'an inaccuracy', mistake: 'a mistake', blunder: 'a blunder', best: 'the best move', good: 'a good move', book: 'a book move' };
+const CLIENT_SESSION = createClientSession({ storage: browserStorage(), channel: openSessionChannel(), onEnd: reason => {
+  GATEWAY = { authenticationRequired: true, available: false };
+  const cleanup = SERVER_LIBRARY.endSession(reason); applyProviderPermissions(); return cleanup;
+} });
+const clientFetch = (input, init = {}) => CLIENT_SESSION.request(input, init);
+bindClientSession(CLIENT_SESSION);
 const store = createStore(browserStorage());
 
 // ---------------------------------------------------------------- Language (TODO 10.8)
@@ -1025,14 +1035,18 @@ const use = name => (window.claude && typeof window.claude.use === 'function')
 let GATEWAY = null; // the local gateway's last status; null inside an artifact or when it can't be reached
 async function localSample() {
   let status;
-  try { const r = await fetch('api/ai/status'); status = r.ok ? await r.json() : null; } catch { status = null; }
-  if (status) rememberOfflineCoach(browserStorage(), status); else status = offlineCoach(browserStorage());
+  try { const r = await clientFetch('api/ai/status'); status = r.status === 401 ? { authenticationRequired: true, available: false } : r.status === 403 ? { permissionDenied: true, available: false } : r.ok ? await r.json() : null; } catch { status = CLIENT_SESSION.state.required === true && !CLIENT_SESSION.state.authenticated ? { authenticationRequired: true, available: false } : null; }
+  if (status && !status.authenticationRequired && !status.permissionDenied) rememberOfflineCoach(browserStorage(), status); else if (!status) status = offlineCoach(browserStorage());
   GATEWAY = status; renderCoachSettings();
   if (!status?.available) { coachOffText(status); return null; }
   return canUseCoach() ? coachSample : null;
 }
 function coachOffText(status) {
-  if (status?.available && !canUseCoach()) { $('#coachOff').textContent = t('Allow this provider in Settings → Privacy before sending data.'); return; }
+  // Authored DOM text is translated once by translateTree; pretranslation is seen as an unknown source.
+  if (status?.permissionDenied) { $('#coachOff').textContent = 'This function is disabled by the local operator.'; return; }
+  if (status?.functions?.coach === false && status.provider !== 'browser') { $('#coachOff').textContent = 'Server coaching is disabled by the local operator.'; return; }
+  if (status?.authenticationRequired) { $('#coachOff').textContent = 'Sign in to the local server in Settings to use the coach. Stockfish still works.'; return; }
+  if (status?.available && !canUseCoach()) { $('#coachOff').textContent = 'Allow this provider in Settings → Privacy before sending data.'; return; }
   $('#coachOff').textContent = status ? `The coach is off: ${status.reason}. Change it in the coach settings below, or in .env and restart the server. Stockfish analysis, flags and review still work.`
     : 'The coach needs the local AI gateway: start the app with `just serve` and set a provider in .env. Stockfish analysis, flags and review still work.';
 }
@@ -1047,7 +1061,7 @@ async function gatewaySample(input, { signal, onText, task, tools } = {}) {
     const messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input;
     let text = '', truncated = false, usage = null, toolCalls = [];
     try {
-      const res = await fetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json', ...privacyHeaders }, body: JSON.stringify({ messages, task, ...(tools ? { tools } : {}) }), signal: privacySignal });
+      const res = await clientFetch('api/ai/sample', { method: 'POST', headers: { 'Content-Type': 'application/json', ...privacyHeaders }, body: JSON.stringify({ messages, task, ...(tools ? { tools } : {}) }), signal: privacySignal });
       if (!res.ok) { const err = (await res.json().catch(() => null))?.error; throw { code: err?.code || 'unavailable', message: err?.message }; }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buf = '';
@@ -2005,7 +2019,7 @@ const Lib = {
     else this.localChange(this.books, () => this.books.delete(id));
   },
 };
-const SERVER_LIBRARY = createServerLibrary({ onChange: state => {
+const SERVER_LIBRARY = createServerLibrary({ fetcher: clientFetch, onChange: state => {
   if (Lib.where === 'server' && Lib.serverSnapshot !== state.snapshot) {
     Lib.serverSnapshot = state.snapshot; Lib.uid = state.snapshot?.scope || null;
     Lib.games = new Map((state.snapshot?.games || []).map(g => [g.id, g]));
@@ -2023,7 +2037,9 @@ function renderLibraryStorage() {
   $('#libUseServer').setAttribute('aria-pressed', String(selected)); $('#libUseBrowser').setAttribute('aria-pressed', String(!selected));
   const locations = { online: 'Saved on this server', cached: 'Cached server library (read only)', conflict: 'Server library needs refresh', connecting: 'Connecting…', unavailable: 'Server library unavailable' };
   $('#libWhere').textContent = selected ? locations[state.mode] || 'Server library unavailable' : Lib.where === 'cloud' ? 'Saved to your account' : Lib.where === 'local' ? 'Saved in this browser only' : 'Connecting…';
-  const errors = { conflict: 'The server library changed elsewhere. Refresh before retrying; your current edit remains in the form.',
+  const errors = { permission_unavailable: 'Server function permissions could not be confirmed.', permission_denied: 'This function is disabled by the local operator.', conflict: 'The server library changed elsewhere. Refresh before retrying; your current edit remains in the form.',
+    library_cache_cleanup: 'The library view was cleared, but its browser cache could not be erased. Close other Kibitz tabs and retry sign-out.',
+    session_expired: 'The server library session changed. Reconnect before saving changes.',
     session_changed: 'The server library session changed. Reconnect before saving changes.', no_session: 'The server library session changed. Reconnect before saving changes.',
     quota: 'The server library is full. Delete some games or references before retrying.', invalid_record: 'The server rejected a record. Check its PGN or source fields.',
     invalid_changes: 'The server rejected a record. Check its PGN or source fields.', rate_limited: 'Too many server library writes. Try again in a minute.' };
@@ -2674,7 +2690,7 @@ function syncDenseContext() {
 }
 /** No automatic ingestion: checking status reveals the destination before an explicit action. */
 async function loadEmbeddingStatus() {
-  const r = await fetch('api/ai/embeddings', { cache: 'no-store' });
+  const r = await clientFetch('api/ai/embeddings', { cache: 'no-store' });
   if (!r.ok) throw new Error('Embedding service unavailable');
   const descriptor = await r.json(); embeddingIdentity(descriptor); return descriptor;
 }
@@ -2710,7 +2726,7 @@ function renderDenseControls() {
 /** Transport only the selected literal texts. Keys/endpoint selection remain on the gateway. */
 async function requestEmbeddings(texts, descriptor, signal) {
   return Privacy.run(descriptor.provider, 'embeddings', async ({ headers, signal: privacySignal }) => {
-  const r = await fetch('api/ai/embeddings', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ texts, fingerprint: descriptor.fingerprint, scope: descriptor.scope }), signal: privacySignal });
+  const r = await clientFetch('api/ai/embeddings', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ texts, fingerprint: descriptor.fingerprint, scope: descriptor.scope }), signal: privacySignal });
   const j = await r.json();
   if (!r.ok) throw Object.assign(new Error('Embedding request failed'), { code: j?.error?.code });
   return j;
@@ -2747,7 +2763,7 @@ async function runDenseAction(action) {
       if (current()) DENSE.hits = hits;
     }
   } catch (e) {
-    if (current() && e?.name !== 'AbortError') { if (e.code === 'stale_embeddings') DENSE.session.cancel(); DENSE.message = e.code === 'consent_required' ? 'Allow this provider in Settings → Privacy before sending data.' : 'Embedding request failed. Check the provider or rebuild the index.'; }
+    if (current() && e?.name !== 'AbortError') { if (e.code === 'stale_embeddings') DENSE.session.cancel(); DENSE.message = e.code === 'permission_denied' ? 'This function is disabled by the local operator.' : e.code === 'consent_required' ? 'Allow this provider in Settings → Privacy before sending data.' : 'Embedding request failed. Check the provider or rebuild the index.'; }
   } finally { if (current()) { DENSE.busy = ''; renderStudySearch(); refreshGateway(); } }
 }
 function clearDenseIndex() { DENSE.request++; DENSE.session.cancel(); DENSE.busy = ''; DENSE.hits = null; DENSE.query = ''; DENSE.message = 'Semantic index cleared.'; renderStudySearch(); }
@@ -3067,11 +3083,12 @@ function renderCoachSettings() {
   const g = GATEWAY;
   $('#coachSettings').hidden = !g;
   if (!g) return;
-  $('#optProvider').replaceChildren(...(g.providers || []).map(p => el('button', { 'data-v': p.name, 'aria-pressed': String(p.name === g.provider), disabled: !p.available && p.name !== g.provider, title: p.available ? p.model : p.reason, 'data-raw': p.available ? '' : null }, PROVIDER_LABEL[p.name] || p.name)));
+  $('#optProvider').replaceChildren(...(g.providers || []).map(p => el('button', { 'data-v': p.name, 'aria-pressed': String(p.name === g.provider), disabled: g.functions?.configure === false || !p.available && p.name !== g.provider, title: p.available ? p.model : p.reason, 'data-raw': p.available ? '' : null }, PROVIDER_LABEL[p.name] || p.name)));
   const off = (g.providers || []).filter(p => !p.available && p.name !== g.provider).map(p => `${PROVIDER_LABEL[p.name] || p.name}: ${p.reason}`);
   $('#providerHint').replaceChildren(...[g.available ? '' : g.reason, ...off].filter(Boolean).map(t => el('div', {}, t)));
   $('#coachModels').replaceChildren(...(g.models ? [['Quick questions', g.models.quick], ['Chat', g.models.chat], ['Reviews and plans', g.models.review]] : []).flatMap(([k, v]) => [el('dt', {}, k), el('dd', { class: 'mono', translate: 'no' }, v)]));
-  $('#optLocalOnly').checked = !!g.localOnly;
+  $('#optLocalOnly').checked = !!g.localOnly; $('#optLocalOnly').disabled = g.functions?.configure === false;
+  $('#btnTestAi').disabled = g.provider !== 'browser' && g.functions?.test === false;
   $('#quickInBrowserRow').hidden = !g.browser || g.provider === 'browser';
   $('#optQuickInBrowser').checked = S.quickInBrowser;
   $('#coachUsage').textContent = [usageText(g.usage, true), userUsageText(g.user, g.paid)].filter(Boolean).join(' ');
@@ -3180,7 +3197,7 @@ function usageText(u, server = false) {
 }
 async function gatewayPost(path, body) {
   const send = async (headers = {}, signal = undefined) => {
-  const r = await fetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body), signal });
+  const r = await clientFetch('api/ai/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body), signal });
   const j = await r.json().catch(() => null);
   if (!r.ok) throw { code: j?.error?.code || 'unavailable', message: j?.error?.message };
   return j;
@@ -3188,8 +3205,7 @@ async function gatewayPost(path, body) {
   return path === 'test' ? Privacy.run(GATEWAY?.provider, 'coach', ({ headers, signal }) => send(headers, signal)) : send();
 }
 async function refreshGateway() {
-  if (!GATEWAY) return;
-  try { const r = await fetch('api/ai/status'); if (r.ok) { GATEWAY = await r.json(); rememberOfflineCoach(browserStorage(), GATEWAY); renderCoachSettings(); renderStudySearch(); } } catch { /* keep the last status */ }
+  try { const r = await clientFetch('api/ai/status'); if (r.status === 401) { GATEWAY = { authenticationRequired: true, available: false }; renderCoachSettings(); renderStudySearch(); } else if (r.status === 403) { GATEWAY = { permissionDenied: true, available: false }; renderCoachSettings(); renderStudySearch(); } else if (r.ok) { GATEWAY = await r.json(); rememberOfflineCoach(browserStorage(), GATEWAY); renderCoachSettings(); renderStudySearch(); } setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); } catch { /* keep the last status */ }
 }
 async function changeGateway(body) {
   try { GATEWAY = await gatewayPost('config', body); rememberOfflineCoach(browserStorage(), GATEWAY); } catch (e) { toast(e.message || coachError(e)); }
@@ -3994,7 +4010,7 @@ function autoComment(i) {
   commentOn(i);
 }
 function coachError(e) {
-  const m = { timeout: 'The AI provider timed out. Try again or choose another model.', response_too_large: 'The AI provider returned too much data. Try a shorter request or another model.', rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.', needs_consent: 'The in-browser model isn\'t loaded yet: press Load above the chat. It runs on this machine and sends nothing anywhere.', in_browser: 'This model runs in the page; reload the page to use it.' };
+  const m = { permission_unavailable: 'Server function permissions could not be confirmed.', permission_denied: 'This function is disabled by the local operator.', timeout: 'The AI provider timed out. Try again or choose another model.', response_too_large: 'The AI provider returned too much data. Try a shorter request or another model.', rate_limited: 'Too many questions in a short time. Try again in a minute.', not_granted: 'The coach needs your permission to use Claude.', session_expired: 'Your session expired. Sign in again to use the coach.', refused: 'The coach couldn\'t answer that. Try rephrasing.', prompt_too_large: 'This game is too long to send in full. Ask about a specific move.', auth_failed: 'The AI provider refused the request. Check the API key in .env and that your plan includes the model, then restart the server.', model_not_found: 'The AI provider doesn\'t know the model set in .env.', bad_output: 'The coach\'s answer came back in the wrong shape. Try again.', budget_exceeded: 'Today\'s AI budget is used up. It resets at midnight, or raise AI_TOKEN_BUDGET_PER_DAY in .env.', needs_consent: 'The in-browser model isn\'t loaded yet: press Load above the chat. It runs on this machine and sends nothing anywhere.', in_browser: 'This model runs in the page; reload the page to use it.' };
   if (['browser_model', 'budget_exceeded', 'provider_rejected'].includes(e?.code) && e.message) return e.message;
   return m[e?.code] || 'The coach couldn\'t answer just now. Try again.';
 }
@@ -4336,7 +4352,19 @@ function userBooks() { return [...Lib.books.values()].map(b => ({ ...b, user: tr
 const ecoWhy = why => (/^[A-E]\d\d /.test(why || '') ? '' : null);
 function renderReading() {
   if (paneHidden('reading')) return; // runs on every move otherwise; openTab('reading') renders it
-  const fen = nodeFen(); const i = S.cursor; const op = openingAt(i);
+  const fen = nodeFen(); const i = S.cursor; const op = openingAt(i); const gen = S.gen;
+  // Hand the selected position to the existing local scratch board. Keep FEN
+  // out of navigation/history/referrers and recheck retained actions on use.
+  $('#readingExplore').disabled = !whatIfAllowed();
+  $('#readingExploreHint').textContent = whatIfAllowed()
+    ? 'Explore with Stockfish in this page. The game stays as it is.'
+    : 'Choose Full engine help or finish the game to explore here.';
+  $('#readingExplore').onclick = () => {
+    if (S.gen !== gen || S.cursor !== i || nodeFen() !== fen || paneHidden('reading') || !whatIfAllowed()) return;
+    const line = playLine(Chess, fen, []); if (!line) return;
+    openScratch(line, { i: 0, free: true, title: 'What if…' });
+    $('#scratchClose').focus();
+  };
   const feats = K.positionFeatures(new Chess(fen), { ply: i, opening: op });
   const a = anaOf(fen);
   if (a?.best && showEngine()) K.moveMotifs(Chess, fen, a.best).forEach(m => feats.push({ ...m, weight: 2 }));
@@ -4369,7 +4397,6 @@ function renderReading() {
       el('button', { class: 'btn small', onclick: () => openGame(g, r.game.moment) }, 'Open'),
       el('div', {}, `${r.game.title} · ${r.game.white} – ${r.game.black}, ${r.game.event} ${r.game.date}`), el('q', {}, r.game.about)));
   }
-  $('#lichessLink').href = 'https://lichess.org/analysis/standard/' + fen.replace(/ /g, '_');
 }
 async function studyPlan() {
   if (!COACH.sample) return;
@@ -4616,7 +4643,7 @@ modeHint(); renderProgress();
 // gear. A click on the backdrop (outside .settings-body) closes it too.
 {
   const dlg = /** @type {HTMLDialogElement} */ ($('#settings'));
-  $('#btnSettings').addEventListener('click', () => { dlg.showModal(); if (!$('#coachSettings').hidden) refreshGateway(); });
+  $('#btnSettings').addEventListener('click', () => { dlg.showModal(); if (!$('#coachSettings').hidden) refreshGateway(); operatorPanel.probe(); });
   $('#btnSettingsClose').addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 }
@@ -4636,13 +4663,14 @@ keyboardBoard = createKeyboardBoard($('#keyboardBoard'), { Chess, t, announce: a
   onSelect: square => { cg.selectSquare(null); if (square) cg.selectSquare(square); },
 });
 window.addEventListener('storage', event => { if (event.key === PROFILE_KEY || event.key === null) profilePanel.reload(); });
-function canUseCoach() { return !!GATEWAY?.available && (ProviderConsent.allowed(GATEWAY.provider, 'coach') || !!(S.quickInBrowser && GATEWAY.browser)); }
+function canUseCoach() { if (CLIENT_SESSION.state.required === true && !CLIENT_SESSION.check()) return false; return !!GATEWAY?.available && (GATEWAY.functions?.coach !== false || GATEWAY.provider === 'browser' || !!(S.quickInBrowser && GATEWAY.browser)) && (ProviderConsent.allowed(GATEWAY.provider, 'coach') || !!(S.quickInBrowser && GATEWAY.browser)); }
 function applyProviderPermissions() {
   if (window.claude?.hot) return;
   Privacy.changed(); cancelChat(); DENSE.request++; DENSE.session.cancel(); DENSE.busy = false; DENSE.message = ''; DENSE.hits = null;
   chatTurns.length = 0; CHAT.generalTurns.length = 0; CHAT.historyHasSources = false;
   setCoach(canUseCoach() ? coachSample : null); if (!canUseCoach()) coachOffText(GATEWAY); renderStudySearch();
 }
+const operatorPanel = createOperatorPanel($('#operatorSignIn'), { t, enabled: !window.claude?.hot, session: CLIENT_SESSION, onEndSession: () => CLIENT_SESSION.end(), onChange: async state => { if (state.authenticated) await SERVER_LIBRARY.probe(); await refreshGateway(); applyProviderPermissions(); } });
 const privacyPanel = createPrivacyPanel($('#providerPrivacy'), { store: ProviderConsent, onChange: applyProviderPermissions, t });
 $('#btnPrivacy').addEventListener('click', () => $('#providerPrivacy').scrollIntoView({ block: 'start' }));
 $('#providerPrivacy').hidden = !!window.claude?.hot;

@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 const script = fileURLToPath(new URL('../scripts/serve.mjs', import.meta.url));
 async function start(root, database, ai) {
-  const args = [script, root, '--port', '0', '--host', '127.0.0.1', '--library', database, ...(ai ? ['--api', '--env='] : [])];
+  const args = [script, root, '--port', '0', '--host', '127.0.0.1', '--http-dev', '--library', database, ...(ai ? ['--api', '--env='] : [])];
   const child = spawn(process.execPath, args, { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'mock', AI_LOCAL_ONLY: '', EMBEDDING_PROVIDER: 'mock', ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '' } });
   let output = '', errors = '', base = '';
   await new Promise((resolve, reject) => {

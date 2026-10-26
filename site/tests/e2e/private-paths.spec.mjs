@@ -13,7 +13,7 @@ const modelFile = 'qwen2.5-0.5b-instruct-q4_k_m.gguf';
 async function launch(root, models, args, api = true) {
   const probe = net.createServer(); await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve));
   const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
-  const child = spawn(process.execPath, [script, root, '--models', models, '--port', String(port), ...(api ? ['--api', '--env='] : []), ...args], {
+  const child = spawn(process.execPath, [script, root, '--http-dev', '--models', models, '--port', String(port), ...(api ? ['--api', '--env='] : []), ...args], {
     stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'mock', EMBEDDING_PROVIDER: 'mock', AI_LOCAL_ONLY: '',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', MISTRAL_API_KEY: '', OLLAMA_MODEL: '', BROWSER_MODEL: 'qwen2.5-0.5b' },
   });

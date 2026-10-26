@@ -1,13 +1,18 @@
 // Same-origin, cookie-scoped persistence. No provider calls or automatic browser-library upload.
 import crypto from 'node:crypto';
+import { authorizeFunction, permissionFor } from './permissions.mjs';
+import { checkSession, sessionAction } from './session-guard.mjs';
+import { developmentIdentity } from './session-identity.mjs';
 import net from 'node:net';
 import { Chess } from 'chess.js';
 import { compileLibraryGame } from '../src/library/library.js';
 import { LIBRARY_LIMITS } from './library-store.mjs';
 
-const COOKIE = 'kibitz_library', TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const HEADERS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', Vary: 'Cookie' };
 const ERRORS = {
+  permission_unavailable: [503, 'Local operator permissions cannot be verified. Check private server configuration.'],
+  permission_denied: [403, 'This function is disabled for the local operator.'],
+  session_expired: [401, 'Sign in to the local server to continue.'],
   forbidden: [403, 'Cross-origin library access is not allowed.'],
   bad_request: [400, 'Invalid library request.'],
   invalid_record: [400, 'A library record is invalid or unsupported.'],
@@ -26,16 +31,15 @@ const ERRORS = {
 };
 /** @returns {never} */
 const fail = code => { throw Object.assign(new Error(code), { code }); };
-const json = (res, status, body) => { res.writeHead(status, HEADERS); res.end(JSON.stringify(body)); return true; };
-const scopeOf = token => crypto.createHash('sha256').update('kibitz-library-v1\0' + token).digest('hex');
-const tokenOf = req => {
-  const found = /(?:^|;\s*)kibitz_library=([^;]*)/.exec(req.headers.cookie || '');
-  return found && TOKEN.test(found[1]) ? found[1] : null;
+const json = (res, status, body) => {
+  const send = () => { res.writeHead(status, HEADERS); res.end(JSON.stringify(body)); return true; };
+  return status < 400 ? sessionAction(res, send) : send();
 };
-function checkOrigin(req) {
+const scopeOf = token => crypto.createHash('sha256').update('kibitz-library-v1\0' + token).digest('hex');
+function checkOrigin(req, hostname) {
   let host;
   try { host = new URL(`http://${req.headers.host}`).hostname.replace(/^\[|\]$/g, ''); } catch { fail('forbidden'); }
-  if (host !== 'localhost' && !net.isIP(host) || req.headers['sec-fetch-site'] === 'cross-site') fail('forbidden');
+  if ((hostname ? host !== hostname : host !== 'localhost' && !net.isIP(host)) || req.headers['sec-fetch-site'] === 'cross-site') fail('forbidden');
   if (req.headers.origin) {
     const scheme = req.socket.encrypted ? 'https:' : 'http:';
     let origin;
@@ -77,19 +81,20 @@ export async function validateLibraryChanges(changes) {
 
 /**
  * Mount before the AI gateway, which otherwise handles all /api/ paths.
- * Status offers storage without creating a session; explicitly loading records creates one.
- * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges}} [options]
+ * TLS requires an issued backend session; explicit HTTP development may create a synthetic group.
+ * @param {{store?: ReturnType<typeof import('./library-store.mjs').createLibraryStore>|null, validate?: typeof validateLibraryChanges, allowInsecureHttp?: boolean, hostname?: string|null, identity?: typeof developmentIdentity, authorize?: typeof authorizeFunction}} [options]
  */
-export function createLibraryApi({ store = null, validate = validateLibraryChanges } = {}) {
+export function createLibraryApi({ store = null, validate = validateLibraryChanges, allowInsecureHttp = false, hostname = null, identity = developmentIdentity, authorize = authorizeFunction } = {}) {
   let windowAt = Date.now(), writes = 0;
   return async (req, res) => {
     const { pathname } = new URL(req.url, 'http://x');
     if (pathname !== '/api/library' && !pathname.startsWith('/api/library/')) return false;
     try {
-      checkOrigin(req);
+      checkOrigin(req, hostname);
+      let token = identity(req, res, 'library', { allowInsecureHttp });
+      authorize(req, permissionFor(req), { allowInsecureHttp });
       if (pathname === '/api/library/status') {
         if (req.method !== 'GET') fail('method');
-        const token = tokenOf(req);
         return json(res, 200, { available: !!store, scope: store && token ? scopeOf(token) : null });
       }
       if (!['/api/library/records', '/api/library/erase'].includes(pathname)) fail('not_found');
@@ -97,29 +102,28 @@ export function createLibraryApi({ store = null, validate = validateLibraryChang
       const erasing = pathname === '/api/library/erase';
       if (erasing && req.method !== 'POST') fail('method');
       if (!store) fail('unavailable');
-      let token = tokenOf(req);
       if (req.method === 'GET') {
-        if (!token) {
-          token = crypto.randomBytes(32).toString('base64url');
-          res.setHeader('Set-Cookie', `${COOKIE}=${token}; Path=/api/library/; HttpOnly; SameSite=Strict; Max-Age=31536000${req.socket.encrypted ? '; Secure' : ''}`);
-        }
+        if (!token) token = identity(req, res, 'library', { allowInsecureHttp, create: true });
         return json(res, 200, store.read(scopeOf(token)));
       }
       if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) fail('content_type');
       if (!token) fail('no_session');
       if (Date.now() - windowAt >= 60_000) { windowAt = Date.now(); writes = 0; }
       if (++writes > 120) fail('rate_limited');
-      const body = await readJson(req), scope = scopeOf(token);
+      const body = await readJson(req), scope = scopeOf(token); checkSession(req);
       if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(k => !(erasing ? ['scope', 'revision', 'confirm'] : ['scope', 'revision', 'changes']).includes(k))
         || !Number.isSafeInteger(body.revision) || body.revision < 0) fail('bad_request');
       if (body.scope !== scope) fail('session_changed'); // A precondition; only the cookie selects the owner.
       if (erasing) {
         if (body.confirm !== true) fail('bad_request');
-        return json(res, 200, store.erase(scope, body.revision));
+        const result = sessionAction(req, () => store.erase(scope, body.revision));
+        return json(res, 200, result);
       }
       await validate(body.changes);
       if (res.destroyed) return true;
-      return json(res, 200, store.change(scope, body.revision, body.changes));
+      checkSession(req);
+      const result = sessionAction(req, () => store.change(scope, body.revision, body.changes));
+      return json(res, 200, result);
     } catch (error) {
       const code = typeof error?.code === 'string' && Object.hasOwn(ERRORS, error.code) ? error.code : 'unavailable';
       const [status, message] = ERRORS[code];

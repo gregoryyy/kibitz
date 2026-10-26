@@ -33,7 +33,7 @@ build-eco: install
 # A model downloaded by `just offline` is offered too, as "In browser" in the coach settings.
 # Build and serve the site with the AI gateway, configured from .env (see .env.example).
 serve: build
-    node site/scripts/serve.mjs site/dist --api --env .env --usage .kibitz-data/usage.sqlite --models site/models --index _test.html --port {{port}} --host {{host}}
+    node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --usage .kibitz-data/usage.sqlite --models site/models --index _test.html --port {{port}} --host {{host}}
 
 # The coach runs a small model in the browser (WebGPU, or WebAssembly on the CPU). The first run
 # downloads it into site/models/ and checks its SHA-256 (about 1.1 GB; `just offline qwen2.5-0.5b`
@@ -42,11 +42,11 @@ serve: build
 # Offline mode: serve with the in-browser model; nothing leaves this machine
 offline model="": build
     BROWSER_MODEL={{model}} node site/scripts/fetch-model.mjs
-    AI_PROVIDER=browser AI_LOCAL_ONLY=1 BROWSER_RUNTIME=wllama BROWSER_MODEL={{model}} node site/scripts/serve.mjs site/dist --api --env= --usage .kibitz-data/usage.sqlite --models site/models --offline --index _test.html --port {{port}} --host {{host}}
+    AI_PROVIDER=browser AI_LOCAL_ONLY=1 BROWSER_RUNTIME=wllama BROWSER_MODEL={{model}} node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env= --usage .kibitz-data/usage.sqlite --models site/models --offline --index _test.html --port {{port}} --host {{host}}
 
 # Optional Chrome coach: Chrome manages its own model; Load in the page explicitly starts it.
 offline-chrome: build
-    AI_PROVIDER=browser AI_LOCAL_ONLY=1 BROWSER_RUNTIME=chrome node site/scripts/serve.mjs site/dist --api --env= --usage .kibitz-data/usage.sqlite --offline --index _test.html --port {{port}} --host {{host}}
+    AI_PROVIDER=browser AI_LOCAL_ONLY=1 BROWSER_RUNTIME=chrome node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env= --usage .kibitz-data/usage.sqlite --offline --index _test.html --port {{port}} --host {{host}}
 
 # Lint (ESLint) and type-check (tsc --checkJs)
 check: install

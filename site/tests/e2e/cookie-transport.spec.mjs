@@ -21,7 +21,8 @@ for (const secure of [true, false]) test(`${secure ? 'HTTPS' : 'HTTP'} issuance 
       return codes;
     });
     expect(codes).toEqual([200, 200]);
-    const cookies = await context.cookies(base + '/api/library/records'), usage = cookies.find(cookie => cookie.name === 'kibitz_uid'), library = cookies.find(cookie => cookie.name === 'kibitz_library');
+    const nameOf = suffix => secure ? '__Secure-kibitz_' + suffix : 'kibitz_dev_' + suffix;
+    const cookies = await context.cookies(base + '/api/library/records'), usage = cookies.find(cookie => cookie.name === nameOf('uid')), library = cookies.find(cookie => cookie.name === nameOf('library'));
     expect(usage).toMatchObject({ secure, httpOnly: true, sameSite: 'Strict', path: '/api/' });
     expect(library).toMatchObject({ secure, httpOnly: true, sameSite: 'Strict', path: '/api/library/' });
     expect(usage.value).toMatch(/^[A-Za-z0-9_-]{22}$/); expect(library.value).toMatch(/^[A-Za-z0-9_-]{43}$/);

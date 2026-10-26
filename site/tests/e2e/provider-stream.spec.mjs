@@ -8,7 +8,7 @@ const key = 'dummyMistralCredential0123456789abcd';
 async function launch(kind) {
   const probe = net.createServer(); await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve));
   const port = probe.address().port; await new Promise(resolve => probe.close(resolve));
-  const child = spawn(process.execPath, ['--import', preload, script, 'dist', '--api', '--env=', '--index', '_test.html', '--port', String(port)], {
+  const child = spawn(process.execPath, ['--import', preload, script, 'dist', '--api', '--http-dev', '--env=', '--index', '_test.html', '--port', String(port)], {
     stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, AI_PROVIDER: 'mistral', MISTRAL_API_KEY: key, MISTRAL_BASE_URL: 'https://fixture.invalid/v1', MISTRAL_MODEL: 'fixture-model',
       ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', OLLAMA_MODEL: '', AI_LOCAL_ONLY: '', EMBEDDING_PROVIDER: 'mock', OPENAI_LOG: 'debug', ANTHROPIC_LOG: 'debug',
       AI_TIMEOUT_MS: kind.endsWith('hang') ? '350' : '5000', AI_RATE_LIMIT_PER_MINUTE: '1000', AI_RATE_LIMIT_PER_USER_PER_MINUTE: '1000', KIBITZ_STREAM_KIND: kind,

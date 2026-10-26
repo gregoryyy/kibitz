@@ -11,9 +11,11 @@ If the root `.env` does not already exist, copy `.env.example` to `.env`. Edit t
 | Claude | `AI_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL=claude-haiku-5-5`, `ANTHROPIC_EFFORT=medium` | Create a personal API key for local development in the [Claude Console](https://platform.claude.com/docs/en/get-api-key), selecting a workspace-scoped key. |
 | OpenAI | `AI_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_MODEL=gpt-6-luna` | Create an API project key through the [OpenAI developer quickstart](https://developers.openai.com/api/docs/quickstart). Check that this API project has access to the selected model. |
 | Mistral | `AI_PROVIDER=mistral`, `MISTRAL_API_KEY`, `MISTRAL_MODEL=mistral-small-latest` | Activate Studio and create a key using [Mistral's setup instructions](https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key). Check your account's quota, plan and rate limits. |
-| Ollama | `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL` | Use an installed local model as described below; no cloud API key is needed for this path. |
+| Ollama | `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL=https://your-existing-tls-endpoint`, `OLLAMA_MODEL` | Use an installed local model as described below; no cloud API key is needed for this path. |
 | In browser | Use `just offline` or `just offline-chrome` | Explicit model loading/download is separate; see [offline choices](OFFLINE.md). |
 | Mock | `AI_PROVIDER=mock` | Deterministic development replies, with no model service. |
+
+Final operation requires [HTTPS with verified certificates and no provider redirects](TLS-POLICY.md), including Ollama and embeddings. Plain loopback Ollama is available only through explicit `--http-dev` development; remote HTTP is always refused. The example TLS hostname below is a placeholder for an existing operator-managed service, not a provisioned endpoint.
 
 The gateway's default endpoints are the official Claude, OpenAI and Mistral APIs. Optional `<PROVIDER>_BASE_URL` overrides change the actual destination; do not use an untrusted proxy with a provider key. Ollama additionally requires its hostname in `OLLAMA_ALLOWED_HOSTS`. Provider labels alone do not prove where data goes.
 
@@ -52,8 +54,8 @@ Set the root `.env` values, replacing the placeholder with your installed tag:
 ```dotenv
 AI_PROVIDER=ollama
 AI_LOCAL_ONLY=1
-OLLAMA_BASE_URL=http://127.0.0.1:11434
-OLLAMA_ALLOWED_HOSTS=127.0.0.1,localhost
+OLLAMA_BASE_URL=https://ollama.example.invalid
+OLLAMA_ALLOWED_HOSTS=ollama.example.invalid
 OLLAMA_MODEL=your-installed-model:tag
 EMBEDDING_MODEL=
 ```
@@ -62,10 +64,10 @@ Build and run from the repository root:
 
 ```sh
 npm --prefix site run build
-node site/scripts/serve.mjs site/dist --api --env .env --usage .kibitz-data/usage.sqlite --offline --index _test.html
+node site/scripts/serve.mjs site/dist --api --operator .kibitz-data/tls/operator.json --permissions .kibitz-data/tls/permissions.json --sessions .kibitz-data/sessions.sqlite --tls-key .kibitz-data/tls/key.pem --tls-cert .kibitz-data/tls/cert.pem --env .env --usage .kibitz-data/usage.sqlite --offline --index _test.html
 ```
 
-This explicit `--offline` invocation preserves the offline page path and removes legacy external font links if present. The current app already bundles its fonts and uses the same strict same-origin style/font policy in either mode. Coaching still needs the local Node gateway and Ollama process. The browser is served at `http://127.0.0.1:8765/`. Grant **Ollama → coach** permission, then press **Test connection** when ready to load/run the selected model. Local models still use memory and computation. No Ollama CORS wildcard is needed: the browser calls Kibitz's same-origin gateway, and Node contacts Ollama.
+This explicit `--offline` invocation preserves the offline page path and removes legacy external font links if present. The current app already bundles its fonts and uses the same strict same-origin style/font policy in either mode. Coaching still needs the local Node gateway and Ollama process. The browser is served at `https://kibitz.test:8765/`. Grant **Ollama → coach** permission, then press **Test connection** when ready to load/run the selected model. Local models still use memory and computation. No Ollama CORS wildcard is needed: the browser calls Kibitz's same-origin gateway, and Node contacts Ollama.
 
 For an optional persistent server library, add `--library .kibitz-data/library.sqlite` to that server command, then explicitly select it in Library. Keep private databases outside `site/dist/` and any served model root. The usage and library databases are separate; cookie-based collections do not provide accounts or cross-device sync. Follow [data controls](DATA.md) and [backup guidance](CONTAINER.md) for the applicable deployment.
 
