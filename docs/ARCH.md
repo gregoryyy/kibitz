@@ -36,11 +36,11 @@ This split is also the user experience:
 
 The selected deployment is a local single-user app, confirmed in TODO 10.1. Existing loopback defaults, operator env keys and browser/optional private SQLite storage define the target; hosted authentication is deferred. [Deployment scope](DEPLOYMENT.md) distinguishes local hosting from the independent choice of cloud or local model inference.
 
-The owner selected [native Node HTTPS](TLS.md) with operator-supplied certificates
-for the final local deployment. The CLI's optional TLS listener shares the same
-static/API handlers and uses the real socket for Origin and cookie transport
-checks; public identity-file exclusion and validation happen before storage opens.
-Final transport enforcement and the other ASVS remediations remain separate TODOs.
+The CLI serves HTTP on loopback. At the owner's request, the native HTTPS
+listener from PR #139 is [archived with the security-drift work](TLS.md).
+Exported API handlers still check the actual socket for Origin and cookie
+transport; their TLS fixtures do not imply a shipped HTTPS listener or an approved
+network deployment. Final-release transport decisions remain unresolved.
 
 ```mermaid
 flowchart LR

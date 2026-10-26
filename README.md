@@ -40,9 +40,8 @@ just serve             # install if needed, build, serve on http://127.0.0.1:876
 
 Before using a network provider, open **Settings → Coach → Provider permissions** and explicitly allow coach requests or embeddings for that provider. Keys alone do not enable sharing. [Privacy and data flows](docs/PRIVACY.md) explain configured endpoints, separate choices and revocation limits.
 
-For native HTTPS with your own certificate/key pair, use
-[`serve.mjs --tls-key FILE --tls-cert FILE`](docs/TLS.md). Invalid TLS setup stops
-startup; certificate trust and data migration requirements are documented there.
+The supported CLI serves HTTP on loopback. Native HTTPS from PR #139 is
+[preserved with the security-drift work](docs/TLS.md) and removed from this line.
 
 On start the server prints `AI coach: <provider> / <model>`, or why the coach is off. Other recipes:
 

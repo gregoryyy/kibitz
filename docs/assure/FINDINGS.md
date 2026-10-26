@@ -7,8 +7,8 @@ Generated offline from typed, confidence-weighted links. These are recorded devi
 | implements_unassessed | 204 |
 | missing_done_reference | 22 |
 | possible_deviation_impact | 6 |
-| recorded_deviation | 211 |
-| unresolved_reference | 2854 |
+| recorded_deviation | 214 |
+| unresolved_reference | 2862 |
 | verifies_unassessed | 204 |
 
 Confidence threshold: 0.8; dependency depth: 2; per-deviation impact limit: 100; truncated contexts: 0.
@@ -67,8 +67,8 @@ See [README](README.md) for weights, inference rules, exclusions and maintenance
 - gap; 1.00; `object:site/tests/e2e/pawn-distance.spec.mjs#program%3Asetup%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 - gap; 1.00; `object:site/tests/e2e/retrieval-citations.spec.mjs#program%3A%3CArrowFunctionExpression%3A910f53aa1c66%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#test
 - gap; 1.00; `pr:28`: historical\_PR\_file\_absent: site/src/notation.js
+- gap; 1.00; `section:README.md#quick-start`: directory: .github/
 - gap; 1.00; `object:site/tests/e2e/pgn-import.spec.mjs#program%3A%3CArrowFunctionExpression%3Acc9615a0dec6%3E%2F%3CArrowFunctionExpression%3A7c296240cc3b%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
-- gap; 1.00; `object:site/tests/e2e/tools.spec.mjs#program%3A%3CArrowFunctionExpression%3A128a960cc339%3E%3Afunction:0`: unresolved\_import\_call: ./fixtures.mjs\#expect
 
 ### verifies_unassessed
 

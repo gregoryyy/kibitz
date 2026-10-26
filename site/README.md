@@ -16,10 +16,9 @@ The release target is a [local single-user app](../docs/DEPLOYMENT.md). `serve.m
 
 The standard serve recipes retain daily AI usage and per-browser minute allowances in private `.kibitz-data/usage.sqlite`. Direct `serve.mjs` needs explicit `--usage FILE` for persistence. [Usage settings and limits](../docs/USAGE.md) describe cookie grouping, retention and completed-usage admission thresholds.
 
-The CLI also supports [native HTTPS](../docs/TLS.md) with `--tls-key FILE` and
-`--tls-cert FILE`. Operator identities stay outside public trees; invalid TLS
-inputs fail before private storage opens. This supplies the listener prerequisite
-for the final-release ASVS fixes, without migrating existing cookie identities.
+The CLI serves HTTP on loopback. The native HTTPS listener from PR #139 is
+[archived with the security-drift work](../docs/TLS.md); its TLS options are no
+longer supported in this line.
 
 ```bash
 npm install

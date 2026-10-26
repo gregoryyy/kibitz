@@ -7,6 +7,29 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-26 — Remove native HTTPS from the main development line
+
+TODO item: 0.20. Owner-requested rollback of PR #139; prerequisite 11.4.2.7.1 is deferred and the ASVS/release gates remain open.
+
+### Implementation notes
+
+- Restore the pre-#139 HTTP CLI, logging vocabulary, Docker health check, container cases and isolated CSP fixture. Remove the native TLS file loader, HTTPS health probe, their helpers and feature-specific tests. Existing API socket/Origin/Secure-cookie handling and provider HTTPS connections retain their independent behavior and tests.
+- Preserve the implementation in `secdrift`. The archival `secdrift-native-https` tag retains exact pre-removal main `da4ac715e043fe9b6bd502793b5d092d79f693e6`, including #139's final assurance repair and merge. Keep the original implementation entry below as history; replace the active TLS guide with an archive pointer, update deployment/architecture/setup/changelog text and suspend the rejected remediation path pending a new scope decision.
+- Add two actual-CLI/browser regressions in `site/tests/e2e/local-transport.spec.mjs`: normal loopback HTTP still supports Stockfish play, mock coaching and private-library writes with scoped cookies/CSP; removed TLS options fail before storage creation with bounded diagnostics that omit supplied private paths. The rejection test fails against the original #139 CLI with `ERR_KIBITZ_TLS_CONFIG` instead of the expected unknown-option result.
+- Validation: fresh build and all seven focused Chromium cases (local transport and CSP, including missing-parser startup) pass after removal. Setup/documentation links resolve, and the restored runtime/container files match #139's first parent exactly. The complete commit-specific CI result is recorded in the PR after the local workflow run.
+- The first complete local run passed 732 unit/server cases (one opt-in skip), audit and whole-history secret scanning; browser results were 424 passes, one live-model skip and the same dark-scheme SVG arrow failure previously recorded on the baseline. That fixture injected an auto shape before initial engine analysis finished and replaced it via `drawShapes()`. Wait for the initial analysis entry before injecting the arrow, keeping the four-layer/style/orientation/arrow/CSP assertions intact. All twenty web-asset cases pass across five repetitions. No application behavior, retries or assertion strength change; the final committed fixture receives a complete rerun before pushing.
+
+### Deviations
+
+- This rollback removes a previously selected implementation at the owner's direction; it does not resolve the remaining transport/security requirements or substitute a new deployment architecture. No browser-origin, cookie or private-database migration is performed. Preserve backups and ownership cookies rather than restoring the old advice to clear them.
+- A subsequent full rerun exposed a second baseline fixture race: the timed-game test required observing `thinking` even when the worker had already replied. Accept either thinking or the completed reply at that transition; preserve the final move-count, both clock bounds, timeout and PGN assertions. All five clock repetitions pass. Stop the already-failed run and retain its trace before the final validation.
+- Native/container runtime code matches the pre-#139 parent. Actual Linux image verification remains a separate GitHub check; no local Docker result is inferred. Full commit-specific validation is recorded in the removal PR.
+
+### Insights
+
+- A rejected architecture needs an explicit planning stop as well as code removal; otherwise open release prerequisites can restart the same dependency chain. Deferred work is unsatisfied, not silently accepted or certified.
+- Preserve both the rejected stack and the exact merged source before rollback. Removing a feature's dedicated tests should leave a regression for the supported replacement behavior and keep independent security coverage intact.
+
 ## 2026-10-25 — Native HTTPS listener prerequisite
 
 TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open.

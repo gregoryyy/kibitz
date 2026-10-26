@@ -19,15 +19,16 @@ The server reads operator-supplied keys from the root `.env`; keys remain outsid
 
 The optional library's anonymous HttpOnly cookie separates browser collections, without providing a sign-in or cross-device account. Clearing the cookie loses that browser's route to the previous server collection. Browser profiles, progress, repertoires and practice schedules stay local to the browser. The operator is responsible for local files and backups. Explicit export/deletion is tracked in TODO 10.3.
 
-The owner selected native Node HTTPS with operator-supplied certificates for the
-final local-app transport. `serve.mjs --tls-key FILE --tls-cert FILE` now starts
-that listener; [TLS setup and data-transition limits](TLS.md) describe private
-identity files, normal browser trust and the remaining ASVS work. Both options
-are required; an invalid pair exits without an HTTP fallback. HTTP remains the
-RC/development default when neither option is supplied.
+The standard CLI serves HTTP on loopback. On 2026-10-26 the owner requested
+removing PR #139's native HTTPS listener from the main development line and
+[preserving it with the security-drift work](TLS.md). The CLI no longer accepts
+its certificate/key options. This rollback does not resolve the final-release
+transport requirement or authorize a network deployment.
 
-Both APIs issue new cookies with `Secure` on the actual TLS socket. Forwarding
-headers do not control the flag. Existing valid cookies retain their identity
+When the exported API handlers are mounted directly on a TLS server, both issue
+new cookies with `Secure` on the actual socket; this remains handler-level
+behavior, not a supported CLI deployment. Forwarding headers do not control the
+flag. Existing valid cookies retain their identity
 without being reissued; preserve private-library/profile backups before changing
 origin, and do not clear an ownership cookie as a migration strategy. Cookie
 prefix/migration work remains TODO 11.4.2.1. These flags preserve local grouping
