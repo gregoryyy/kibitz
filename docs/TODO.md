@@ -40,6 +40,7 @@ Design background: [research on milestones 5–7, RAG and neurosymbolic games](r
   - [x] 0.16.2 Documentation headings, fenced blocks, project links and cross-level planning/rationale connections.
   - [x] 0.16.3 Compare compatible graph foundations and implement offline search, traversal and source inspection.
 - [x] 0.17 Add confidence-weighted typed links, editable relation assessments, transparent gap/deviation inference, browser filters and an assurance README.
+- [x] 0.18 [Local CI](CI.md): `just ci` runs `.github/workflows/ci.yml` on a clean worktree of a commit before pushing, or instead of Actions, and `--post` reports commit statuses to the PR. Ported from propeller's and lakeshore's local CI. *(added)*
 
 ## 1. Play against the engine
 
