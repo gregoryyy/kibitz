@@ -22,12 +22,12 @@ flowchart LR
 | artifact | 584 |
 | milestone | 13 |
 | todo | 229 |
-| done | 128 |
-| insight | 297 |
-| deviation | 213 |
+| done | 130 |
+| insight | 307 |
+| deviation | 217 |
 | reflection | 2 |
 
-3959 typed edges; 436 scanned text inputs; 315 unresolved references.
+3989 typed edges; 436 scanned text inputs; 315 unresolved references.
 
 ## TODO → DONE index
 
@@ -269,7 +269,9 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 
 | Entry | TODO references | Insights | Deviations | Combined |
 | --- | --- | ---: | ---: | ---: |
+| [2026-10-26 — Agent failure repeated during the drift cleanup](../DONE.md#2026-10-26--agent-failure-repeated-during-the-drift-cleanup) | none recorded | 4 | 2 | 0 |
 | [2026-10-26 — Security drift post-mortem and preserved alternative branch](../DONE.md#2026-10-26--security-drift-post-mortem-and-preserved-alternative-branch) | 0.19 | 3 | 2 | 0 |
+| [2026-10-26 — Agent failure: security scope expansion, excessive CI and unsupported billing diagnosis](../DONE.md#2026-10-26--agent-failure-security-scope-expansion-excessive-ci-and-unsupported-billing-diagnosis) | none recorded | 6 | 2 | 0 |
 | [2026-10-25 — Native HTTPS listener prerequisite](../DONE.md#2026-10-25--native-https-listener-prerequisite) | 11.4.2.1, 11.4.2.7, 11.4.2.7.1 | 1 | 1 | 0 |
 | [2026-10-25 — Confidence-weighted assurance links and review findings](../DONE.md#2026-10-25--confidence-weighted-assurance-links-and-review-findings) | 0.17 | 2 | 2 | 0 |
 | [2026-10-25 — Object, PR-section and documentation assurance browser](../DONE.md#2026-10-25--object-pr-section-and-documentation-assurance-browser) | 0.16, 0.16.1, 0.16.2, 0.16.3 | 2 | 2 | 0 |
@@ -401,7 +403,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 ## Coverage gaps
 
 - 22 checked TODO items have no DONE annotation reference.
-- 7 DONE entries have no resolvable TODO annotation reference.
+- 9 DONE entries have no resolvable TODO annotation reference.
 
 Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain explicit in `lineage.json`. The first fifty records are shown here; no renamed path or completion claim is invented.
 

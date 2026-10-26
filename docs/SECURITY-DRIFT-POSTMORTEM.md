@@ -208,11 +208,13 @@ whole rejected path.
 PRs #141 and #142 remain open: requested assurance-browser work and an independent
 build fix. PR #143 was merged into #141's branch, not `main`. They are outside
 the rejected security stack. Already merged #139 was the recorded owner-selected
-HTTPS feature. The owner subsequently requested its removal as part of this
-cleanup. The separate `fix/remove-native-https` PR restores the local HTTP CLI;
-the `secdrift-native-https` tag preserves exact pre-removal main `da4ac71`, including
-the final #139 integration commits absent from the earlier `secdrift` tip.
-Opening that rollback PR does not merge it or rewrite main. The planning trigger and all shared ancestor
+HTTPS feature. The owner initially requested a removal PR, then clarified that
+implementation work belongs on `secdrift`; only this analysis and DONE notes
+should target `main`. Implementation PR #154 therefore targets `secdrift`, and
+main-code rollback PR #156 is closed without merging. The `secdrift-native-https`
+tag preserves exact main `da4ac71`, including the final #139 integration commits
+absent from the earlier `secdrift` tip. Existing native HTTPS on main has not
+been removed by this documentation PR. The planning trigger and all shared ancestor
 commits are also reachable from `secdrift`; historical main ancestry was not rewritten.
 
 Preservation does not certify the archived code. Its last Playwright job was
