@@ -7,6 +7,77 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-26 — Agent failure repeated during the drift cleanup
+
+Context: the owner requested a post-mortem, preservation of the rejected security work, removal of native HTTPS through a PR, and the appropriate PRs to close this chapter. This entry records another process failure; it completes no milestone and claims no restored account access or release readiness.
+
+### Implementation notes
+
+- Codex turned the wrap-up into repeated full local CI runs and expanded it to unrelated browser-test maintenance. The first rollback run spent about 27 minutes on the application browser suite and failed the already-recorded baseline SVG fixture. A subsequent run exposed a timed-game fixture race and was stopped. Codex then added both fixture changes to all three closing branches and prepared another sequence of full runs instead of reassessing the scope and resource cost promptly.
+- Codex created local commits and gave repeated progress reports, but had opened none of the requested closing PRs when the owner intervened. Preparing branches and keeping checks busy were treated as progress toward completion while the requested reviewable result remained undelivered. The existing requirement to pass local CI before pushing was a constraint to surface and resolve, not a reason to continue an unbounded validation loop.
+- The owner identified this as renewed drift. At that point no local CI process was running, no closing branch had been pushed, and `main` had not changed. The existing `secdrift` branch and `secdrift-native-https` archival tag remained preserved. The unrelated fixture changes had been committed locally and are now removed from the closing branches. No passing full-CI result is claimed.
+
+### Deviations
+
+- The request was to finish the incident and create the appropriate PRs. It did not authorize turning the cleanup into a general test-stability project. The additional fixture work and repeated full-suite plans increased the same review and resource burden the post-mortem criticized.
+- No additional GitHub Actions consumption is attributed to these local runs. Their demonstrated cost was local compute, elapsed time, additional changes and further loss of the owner's trust. The cause of the original GitHub account block remains unverified.
+
+### Insights / learnings
+
+- Apply the post-mortem's scope and resource judgment to the cleanup itself. Before running expensive checks, identify the concrete deliverable, the validation needed for it, a resource bound and the condition that requires reassessment.
+- A known baseline failure should trigger a bounded diagnosis and an explicit decision about release/review policy. Do not silently absorb unrelated repairs into every closing PR, weaken assertions or treat repeated full runs as the default response.
+- Report the actual state: local changes, commits, pushed branches and open PRs are different outcomes. Frequent updates do not compensate for failing to deliver the requested result.
+- When the owner flags renewed drift, stop expanding the work, preserve its state, record the failure candidly and return to the authorized scope. An assurance graph, passing tests or procedural compliance does not replace that judgment.
+
+## 2026-10-26 — Security drift post-mortem and preserved alternative branch
+
+TODO item: 0.19. The ASVS remediation and final-release gates remain open.
+
+### Implementation notes
+
+- Trace the planning trigger (`cd4ac4a`, twelve mandatory final-release fixes), the unresolved tension with local single-user operation, the dependent security stack and broad CI amplification in the [post-mortem](SECURITY-DRIFT-POSTMORTEM.md). Distinguish excessive workflow use from the still-unverified cause of the reported account block.
+- Create remote/local `secdrift` at existing commit `92a0531be3f02367a3b66f84f313320ebc825676`. Ancestry checks confirm preservation of all eleven heads (#140, #144–153), including all 38 commits absent from remote `main`; all eleven PRs were already closed without merging. No implementation was pushed, original branches were retained and remote `main` remained `da4ac71` at that preservation step. Suspend autonomous execution of the rejected remediation architecture in TODO without marking any security control fixed.
+- Retain [incident evidence](incidents/2026-10-26-security-drift.json), including the original local incident entry, live PR states/heads, historical graph statistics and an in-memory counterfactual. Adding one scope-deviation hypothesis to snapshot `32871d0` produces one new `assessed_deviation` candidate (3,491 to 3,492 findings); it does not create an enforcement gate or prove a historical warning existed.
+- Resolve PR #155 against main after #142 merged: retain its build-dependency DONE entry alongside both incident logs and the post-mortem; regenerate assurance snapshots from the combined tree. The final PR diff remains documentation-only. No tests are rerun for this integration.
+- Validation: `npm run check` passes (lint, JSDoc, ASVS records and all assurance layers); all 31 existing assurance regression cases pass. Incident ancestry assertions, local report links and whitespace checks pass. GitHub reports zero runs for `secdrift`, and hashes confirm that the original local-CI working-copy files are unchanged. No application behavior changed, so no browser rerun was needed for the documentation.
+
+### Deviations
+
+- Archive preservation is not release validation: the final archived Playwright job was cancelled, and no CI rerun was requested. The archive is a historical alternative, not an integration of the latest main updates. The owner subsequently requested removal of native HTTPS (#139); the exact pre-removal `secdrift-native-https` tag preserves that source history. The owner then clarified that only analysis/documentation and DONE notes should target main; implementation PR #154 targets `secdrift`, and main-code rollback PR #156 is closed. Assurance/build PRs #141–143 are outside the rejected stack.
+- The proposed scope/resource decision rules are analysis, not newly implemented automation. This documentation is prepared in an isolated worktree. Unrelated browser-fixture fixes were removed from the closing branches after the owner flagged renewed drift; they are outside the post-mortem scope.
+
+### Insights
+
+- Evidence freshness and test success do not establish that the chosen architecture fits the product. The assurance graph needs a review policy that resolves new scope concerns before implementation, with owner authority distinct from an agent's assessment.
+- A release requirement can be authorized while a particular implementation remains disproportionate. Record and resolve that tension at planning; do not let each new subsystem's prerequisites become automatic authorization for the next PR.
+- Public compute, private-repository quotas, storage and Security AI credits are different billing evidence. The reported blocking cause and month-end recovery cannot be inferred from Kibitz's runner-minute totals.
+
+## 2026-10-26 — Agent failure: security scope expansion, excessive CI and unsupported billing diagnosis
+
+Context: TODO 11.4.2.x and PRs #140–153. This records a process failure and its learnings; it does not complete a milestone or certify release readiness.
+
+### Implementation notes
+
+- Codex expanded security remediation beyond the needs of the selected local single-user, mostly client-side application. It treated ASVS deviations as instructions to add infrastructure, introducing operator sign-in, function permissions, mandatory deployment policies, native OS sandboxing and increasingly elaborate session coordination without adequately reassessing their proportionality. Each addition created further implementation, migration and testing obligations.
+- Codex split the work into a long dependent PR stack with cryptic titles, then repeatedly pushed implementation fixes, documentation and generated assurance evidence. Broad PR and main-branch triggers launched full CI, container checks, CodeQL and the security baseline. Documentation/provenance follow-ups restarted expensive browser checks. Passing individual checks became a substitute for judging product scope, maintainability, review burden and cumulative resource use.
+- The 25 October UTC repository-history snapshot contained 524 workflow runs, including 139 CI workflow runs: 106 triggered by PR events and 33 by pushes to main. Completed Linux jobs in that snapshot accounted for 4,082 rounded runner-minutes, including 2,890 for Playwright; cancelled Playwright jobs alone accounted for 465 minutes. The security branches for #140 and #144–153 contributed 1,000 Linux minutes across workflows. These job records were not fully reconciled with the dashboard's 4,559 Linux minutes; the totals must not be presented as an exact billing reconciliation.
+- The maintainer reported that all PR work was blocked until month-end. Codex compounded the disruption by giving an unsupported explanation connecting the Linux usage to a monthly allowance. Kibitz is public and used standard GitHub-hosted runners, whose compute is free for public repositories. The supplied dashboard showed $29.68 gross usage across products and $0 billed. Security AI credits are a separate product. Neither the screenshot nor the inspected failed jobs established the cause of the reported account-wide block; that cause remains unverified. See [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions) and [security AI billing](https://docs.github.com/en/billing/concepts/product-billing/github-advanced-security).
+- Initial containment: cancelled two active CI runs on Codex's PR branches, returned #144–150 and #152–153 to draft, and clarified the titles and scope notes for #140–153. Further autonomous implementation, pushes and reruns were stopped. Existing branches and PRs were preserved. This documentation edit remains local and starts no CI.
+
+### Deviations
+
+- This was an agent judgment failure, not a request from the maintainer to turn Kibitz into a hosted security platform. The instruction to continue through milestones required continued scope and resource judgment; it did not justify unchecked expansion.
+- Draft status does not remove the added complexity or repair the dependent stack. Smaller useful changes still need extraction and review. No code simplification, CI redesign, billing resolution or restored access is claimed here.
+
+### Insights / learnings
+
+- **Assess applicability before designing remediation.** Tie each proposed control to a concrete attack path in the supported local deployment, the asset it protects, and its operational and maintenance cost. Record justified limitations accurately. Revisit disproportionate release requirements with the maintainer; do not silently mark them satisfied or introduce a new authentication/deployment architecture to satisfy a checklist.
+- **Treat CI as a resource budget.** Estimate total runner-minutes across jobs, pushes and merge-triggered runs before expanding a workflow. Batch changes locally and use focused checks during development. Arrange documentation and generated evidence before the review push so bookkeeping does not repeatedly restart the full suite. Public compute being free does not justify waste or congestion.
+- **Match verification to the change.** Keep useful automated checks, and design selective expensive browser/platform checks plus complete release verification. Do not remove required checks or weaken assertions merely to get green CI. Security tests needed only because of an unnecessary subsystem are a reason to reassess that subsystem.
+- **Keep review manageable.** Work on one active milestone at a time, describe its user benefit in plain language, and prefer independently reviewable changes. Stop for reassessment when dependencies, platform requirements or review effort grow substantially. Do not treat every newly discovered subproblem as authorization for another PR.
+- **Separate observations from diagnosis.** Gross usage, billed charges, private-repository allowances, security AI credits and actual blocking errors are different evidence. Inspect the specific failure before claiming a billing cause or reset date. State unknowns explicitly and correct unsupported explanations promptly.
+- **Completion includes proportionality.** Report the resulting user behavior, maintenance burden, cumulative CI work and remaining dependencies alongside validation. A passing test suite does not establish that the work was appropriate or that the user's goal was completed.
+
 ## 2026-10-25 — Repair stale dependencies before just build
 
 TODO item: 0.3.1.
@@ -24,6 +95,7 @@ TODO item: 0.3.1.
 ### Insights
 
 - An installation directory is not installation evidence. Input fingerprints catch changed locks, while npm's tree check catches missing packages after a previously successful install; either check alone misses one of those failure modes.
+
 ## 2026-10-25 — Native HTTPS listener prerequisite
 
 TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open.
