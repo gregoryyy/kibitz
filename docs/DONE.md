@@ -36,8 +36,9 @@ TODO item: 0.19. The ASVS remediation and final-release gates remain open.
 ### Implementation notes
 
 - Trace the planning trigger (`cd4ac4a`, twelve mandatory final-release fixes), the unresolved tension with local single-user operation, the dependent security stack and broad CI amplification in the [post-mortem](SECURITY-DRIFT-POSTMORTEM.md). Distinguish excessive workflow use from the still-unverified cause of the reported account block.
-- Create remote/local `secdrift` at existing commit `92a0531be3f02367a3b66f84f313320ebc825676`. Ancestry checks confirm preservation of all eleven heads (#140, #144–153), including all 38 commits absent from remote `main`; all eleven PRs were already closed without merging. No implementation was pushed, original branches were retained and remote `main` remains `da4ac71`. Suspend autonomous execution of the rejected remediation architecture in TODO without marking any security control fixed.
+- Create remote/local `secdrift` at existing commit `92a0531be3f02367a3b66f84f313320ebc825676`. Ancestry checks confirm preservation of all eleven heads (#140, #144–153), including all 38 commits absent from remote `main`; all eleven PRs were already closed without merging. No implementation was pushed, original branches were retained and remote `main` remained `da4ac71` at that preservation step. Suspend autonomous execution of the rejected remediation architecture in TODO without marking any security control fixed.
 - Retain [incident evidence](incidents/2026-10-26-security-drift.json), including the original local incident entry, live PR states/heads, historical graph statistics and an in-memory counterfactual. Adding one scope-deviation hypothesis to snapshot `32871d0` produces one new `assessed_deviation` candidate (3,491 to 3,492 findings); it does not create an enforcement gate or prove a historical warning existed.
+- Resolve PR #155 against main after #142 merged: retain its build-dependency DONE entry alongside both incident logs and the post-mortem; regenerate assurance snapshots from the combined tree. The final PR diff remains documentation-only. No tests are rerun for this integration.
 - Validation: `npm run check` passes (lint, JSDoc, ASVS records and all assurance layers); all 31 existing assurance regression cases pass. Incident ancestry assertions, local report links and whitespace checks pass. GitHub reports zero runs for `secdrift`, and hashes confirm that the original local-CI working-copy files are unchanged. No application behavior changed, so no browser rerun was needed for the documentation.
 
 ### Deviations
@@ -76,6 +77,24 @@ Context: TODO 11.4.2.x and PRs #140–153. This records a process failure and it
 - **Keep review manageable.** Work on one active milestone at a time, describe its user benefit in plain language, and prefer independently reviewable changes. Stop for reassessment when dependencies, platform requirements or review effort grow substantially. Do not treat every newly discovered subproblem as authorization for another PR.
 - **Separate observations from diagnosis.** Gross usage, billed charges, private-repository allowances, security AI credits and actual blocking errors are different evidence. Inspect the specific failure before claiming a billing cause or reset date. State unknowns explicitly and correct unsupported explanations promptly.
 - **Completion includes proportionality.** Report the resulting user behavior, maintenance burden, cumulative CI work and remaining dependencies alongside validation. A passing test suite does not establish that the work was appropriate or that the user's goal was completed.
+
+## 2026-10-25 — Repair stale dependencies before just build
+
+TODO item: 0.3.1.
+
+### Implementation notes
+
+- Reproduced the actual checkout failure: `just build` failed importing `parse5` because the install recipe treated any existing `site/node_modules` directory as a complete installation. Restored that checkout's exact locked dependencies offline, and verified its original `just build` succeeds without changing its source files or branch.
+- Replaced the directory-only check with a built-in Node helper. A success stamp fingerprints package.json, package-lock.json and runtime ABI/platform/architecture; a matching stamp still requires npm's full dependency-tree check. Missing/mismatched packages or changed inputs trigger exact `npm ci` with development dependencies included and install scripts disabled. Failed/incomplete repairs discard the stamp and stop the dependent recipe. Audit remains a separate required CI check. Complete installations are checked and reused.
+- Added unit coverage for first/incomplete installs, changed manifest/lock/runtime, missing packages despite a successful stamp, failed/partial repairs and removed stamps. A real child-process/browser regression reproduces the missing module, repairs via the actual helper with a local npm stand-in, verifies reuse and later damage repair, and displays the resulting built artifact. The fixture makes no registry/provider call. Actual offline `just build` checks independently exercise real npm and the project build: initial verification, removal/repair of parse5 despite a success stamp, and subsequent reuse all pass. Full lint/JSDoc/ASVS checks, five focused installer groups, the browser regression, and the complete mocked suite (705 passes/one opt-in live skip) pass; whitespace checks pass. CI remains source-specific in the PR.
+
+### Deviations
+
+- Direct `npm run build` remains the build command; run `npm ci --include=dev --ignore-scripts` first when bypassing `just`. The first helper run conservatively reinstalls an existing unverified tree. No new dependency, runtime migration, provider call, model download or source-branch switch is introduced.
+
+### Insights
+
+- An installation directory is not installation evidence. Input fingerprints catch changed locks, while npm's tree check catches missing packages after a previously successful install; either check alone misses one of those failure modes.
 
 ## 2026-10-25 — Native HTTPS listener prerequisite
 
