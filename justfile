@@ -16,9 +16,9 @@ host := env_var_or_default("KIBITZ_HOST", "127.0.0.1")
 default:
     @just --list
 
-# Install site/ dependencies (skipped if already installed)
+# Install exact locked dependencies when missing, changed or incomplete
 install:
-    @[ -d site/node_modules ] || npm --prefix site ci
+    @node site/scripts/install.mjs
 
 # Build site/ into site/dist
 build: install

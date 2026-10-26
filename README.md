@@ -63,6 +63,12 @@ that document's PDF to rebuild it. Bulk rendering excludes agent instructions
 
 The server binds to `127.0.0.1` only. Change the port or address with `KIBITZ_PORT` and `KIBITZ_HOST`, e.g. `KIBITZ_PORT=9000 just serve`.
 
+`just` checks that installed dependencies match the manifest, lockfile and runtime,
+and that npm reports a complete dependency tree. It reinstalls missing/stale
+packages from the lockfile with install scripts disabled; a verified complete
+installation is reused. If bypassing `just`, refresh dependencies with
+`npm --prefix site ci --include=dev --ignore-scripts` after pulling changes.
+
 Without `just`:
 
 ```bash

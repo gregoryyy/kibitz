@@ -7,6 +7,23 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-25 — Repair stale dependencies before just build
+
+TODO item: 0.3.1.
+
+### Implementation notes
+
+- Reproduced the actual checkout failure: `just build` failed importing `parse5` because the install recipe treated any existing `site/node_modules` directory as a complete installation. Restored that checkout's exact locked dependencies offline, and verified its original `just build` succeeds without changing its source files or branch.
+- Replaced the directory-only check with a built-in Node helper. A success stamp fingerprints package.json, package-lock.json and runtime ABI/platform/architecture; a matching stamp still requires npm's full dependency-tree check. Missing/mismatched packages or changed inputs trigger exact `npm ci` with development dependencies included and install scripts disabled. Failed/incomplete repairs discard the stamp and stop the dependent recipe. Audit remains a separate required CI check. Complete installations are checked and reused.
+- Added unit coverage for first/incomplete installs, changed manifest/lock/runtime, missing packages despite a successful stamp, failed/partial repairs and removed stamps. A real child-process/browser regression reproduces the missing module, repairs via the actual helper with a local npm stand-in, verifies reuse and later damage repair, and displays the resulting built artifact. The fixture makes no registry/provider call. Actual offline `just build` checks independently exercise real npm and the project build: initial verification, removal/repair of parse5 despite a success stamp, and subsequent reuse all pass. Full lint/JSDoc/ASVS checks, five focused installer groups, the browser regression, and the complete mocked suite (705 passes/one opt-in live skip) pass; whitespace checks pass. CI remains source-specific in the PR.
+
+### Deviations
+
+- Direct `npm run build` remains the build command; run `npm ci --include=dev --ignore-scripts` first when bypassing `just`. The first helper run conservatively reinstalls an existing unverified tree. No new dependency, runtime migration, provider call, model download or source-branch switch is introduced.
+
+### Insights
+
+- An installation directory is not installation evidence. Input fingerprints catch changed locks, while npm's tree check catches missing packages after a previously successful install; either check alone misses one of those failure modes.
 ## 2026-10-25 — Native HTTPS listener prerequisite
 
 TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open.
