@@ -80,8 +80,7 @@ test('clock: Stockfish uses its time, and the player loses on time', async ({ pa
   await expect(page.locator('#playerBottom .clock')).toHaveText('3:00');
   await typeMove(page, 'e4');               // White's first move starts Black's clock
   await page.clock.runFor(100);             // the scheduled reply starts
-  // A fast worker can finish its reply before the first polling observation.
-  await expect.poll(() => S(page).then(s => s.thinking || s.nodes === 3), { timeout: 20_000 }).toBe(true);
+  await expect.poll(() => S(page).then(s => s.thinking), { timeout: 20_000 }).toBe(true);
   await expect.poll(async () => { await page.clock.runFor(200); return (await S(page)).nodes; }, { timeout: 20_000 }).toBe(3);
   const clk = await page.evaluate(() => ({ after1: window.__kibitz.S.nodes[1].clk, after2: window.__kibitz.S.nodes[2].clk, turn: window.__kibitz.S.clock.turn }));
   expect(clk.after1).toEqual({ w: 180_000, b: 180_000 }); // White's first move isn't timed

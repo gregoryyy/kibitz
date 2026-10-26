@@ -227,18 +227,3 @@ can later be extracted against the current `main`, justified individually and
 reviewed with fresh tests. The release requirement itself still needs an explicit
 scope reconciliation; archiving does not mark an ASVS control fixed or approve a
 release.
-
-## Validation follow-up
-
-The closing PRs include a five-line correction to the existing SVG test fixture:
-wait for the initial analysis entry before injecting its temporary arrow.
-`drawShapes()` otherwise replaces that arrow when startup analysis completes,
-causing the baseline dark-scheme failure already recorded in the local-CI notes.
-The assertions for all four layers, both orientations, arrow rendering and CSP
-remain intact. Five repetitions of all four web-asset cases pass. This fixture
-correction changes no application behavior and does not add a retry policy.
-
-The timed-game fixture also accepts an already-completed engine reply when
-waiting for its transient thinking state. A failure snapshot showed the reply
-and correct clock after that state had passed. Final move-count, clock bounds,
-timeout and PGN assertions remain intact; no application behavior changes.
