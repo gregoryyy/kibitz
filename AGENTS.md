@@ -17,6 +17,7 @@ Node (current LTS) and WebAssembly. Browser code is plain ES modules with chessg
 ## Process
 
 - The repo lives on GitHub. Never commit to `main`. Work on a feature branch (`feat/…`, `fix/…`, `chore/…`, `docs/…`), open a PR (the template has the checklist), and merge only through the PR once CI passes.
+- Before pushing, run `just ci` ([local CI](docs/CI.md)) on the commit and push only a passing branch. Batch fixes, documentation and DONE.md into that push: every push restarts all GitHub workflows. When Actions doesn't run, `just ci --post` after each push sets the PR's `local / …` statuses, and they must be green to merge.
 - Keep one TODO item per branch where practical, and reference its number (e.g. `TODO 2.3`) in the PR.
 - In the same PR, tick the item in TODO.md and add a DONE.md entry with implementation notes, deviations and insights.
 

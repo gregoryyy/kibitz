@@ -6,6 +6,7 @@
 
 - [ ] Tests: `node:test` for logic, Playwright for UI; a bug fix comes with a regression test that fails on the old code
 - [ ] `npm run check` and `npm test` pass in `site/`, and `npm run test:e2e` if the page changed
+- [ ] `just ci` passed on the pushed commit (`just ci --post` if GitHub Actions doesn't run; see docs/CI.md)
 - [ ] TODO.md item ticked and a DONE.md entry added (implementation notes, deviations, insights)
 - [ ] New dependencies are GPL-3.0 compatible and earn their place
 

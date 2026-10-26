@@ -7,6 +7,55 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-26 — Local CI; drift PRs closed
+
+TODO item: 0.18. Follows the agent-failure entry below.
+
+### Implementation notes
+
+- `just ci` runs `.github/workflows/ci.yml` on this machine against a fresh worktree of a commit (`site/scripts/ci/run.mjs`), and `--post` reports `local / <job>` commit statuses through `gh`. It is a JSDoc port of propeller's `utils/ci/` (TypeScript), which lakeshore's Python runner also follows. It needs no dependency: a small YAML reader handles the subset a workflow uses. Every `uses:` step maps to a local equivalent: checkout is the worktree, setup-node is this machine's Node, gitleaks is the binary, and upload-artifact copies to `.ci/`. Anything else stops the run before it starts. Steps get a reduced environment with `claude`/`codex` shadowed; one run at a time; process groups are stopped on timeout or Ctrl-C. Lakeshore's Docker services and propeller's `actions/cache` were left out because kibitz's workflow uses neither. [docs/CI.md](CI.md) has the design and the PR workflow; AGENTS.md, the PR template and the justfile follow.
+- Seven `node:test` cases in `site/tests/unit/ci-workflow.test.mjs` cover the YAML subset, step mapping, env/defaults inheritance, errors for unsupported keys/actions/expressions, and that the repository's own `ci.yml` maps completely. The runner is linted and type-checked as part of `site/scripts/`.
+- Validation: `just ci` on `main` (`da4ac71`) on macOS arm64, Node 25.6.1: `check` passed in 42 s; `e2e` ran 423 of 424 Playwright tests green in 25 min; the failure, the Chessground dark-scheme SVG check in `web-assets.spec.mjs`, passed 3 of 3 times when re-run on its own and passed on GitHub for the same commit, so it is recorded as load-sensitive flakiness, not a defect; the whole-history gitleaks scan (240 commits) found no leaks in about 40 s.
+- Closed the drift PRs of the ASVS 11.4.2 security stack without merging, keeping their branches: #140, #144–150, #152, #153, and #151. #151's FEN-out-of-URLs change is useful but stacked on the others; it would need re-extracting against `main`. #141 (requested assurance-browser fix, TODO 0.16) and #142 (independent build fix against `main`) stay open.
+- Already closed by accident: #143 (assurance lineage columns) was merged into #141's branch `fix/assurance-path-inspection` instead of `main`, so it shows as merged while its content isn't on `main`. It reaches `main` only through #141. All earlier PRs merged into stacked bases (#2–10, #43–44, #62–86) did reach `main`. The other closed-unmerged PRs were superseded: #135 by `afabfc8` on `main`, and #131 by #130.
+
+### Deviations
+
+- Only the CI workflow runs locally. Container, Security baseline and CodeQL stay GitHub-only. Locally, gitleaks scans the whole history, Node is the machine's version rather than `.nvmrc`'s, and the platform is macOS rather than Ubuntu. Statuses are self-reported.
+- The GitHub workflows are unchanged. The trigger and selective-check redesign suggested by the entry below is still open.
+
+### Insights
+
+- The account-wide block correlates with repository visibility: lakeshore (private) was refused Actions jobs from 25 October with "recent account payments have failed or your spending limit needs to be increased", while kibitz (public) kept running, with the last CI, CodeQL, Container and baseline runs passing at 23:16 UTC that day. So for kibitz, local CI is mainly a way to push only passing branches and spend fewer runner-minutes, with `--post` as the fallback if Actions stops here too.
+- Without auto-delete, a PR merged into a stacked base looks finished on GitHub while nothing reached `main`. Check `git merge-base --is-ancestor` before treating a merged PR as landed.
+- A docs-and-tooling change regenerates about 12,600 lines of `docs/assure/` artifacts so that `check:assure` passes. That cost falls on every PR.
+
+## 2026-10-26 — Agent failure: security scope expansion, excessive CI and unsupported billing diagnosis
+
+Context: TODO 11.4.2.x and PRs #140–153. This records a process failure and its learnings; it does not complete a milestone or certify release readiness.
+
+### Implementation notes
+
+- Codex expanded security remediation beyond the needs of the selected local single-user, mostly client-side application. It treated ASVS deviations as instructions to add infrastructure, introducing operator sign-in, function permissions, mandatory deployment policies, native OS sandboxing and increasingly elaborate session coordination without adequately reassessing their proportionality. Each addition created further implementation, migration and testing obligations.
+- Codex split the work into a long dependent PR stack with cryptic titles, then repeatedly pushed implementation fixes, documentation and generated assurance evidence. Broad PR and main-branch triggers launched full CI, container checks, CodeQL and the security baseline. Documentation/provenance follow-ups restarted expensive browser checks. Passing individual checks became a substitute for judging product scope, maintainability, review burden and cumulative resource use.
+- The 25 October UTC repository-history snapshot contained 524 workflow runs, including 139 CI workflow runs: 106 triggered by PR events and 33 by pushes to main. Completed Linux jobs in that snapshot accounted for 4,082 rounded runner-minutes, including 2,890 for Playwright; cancelled Playwright jobs alone accounted for 465 minutes. The security branches for #140 and #144–153 contributed 1,000 Linux minutes across workflows. These job records were not fully reconciled with the dashboard's 4,559 Linux minutes; the totals must not be presented as an exact billing reconciliation.
+- The maintainer reported that all PR work was blocked until month-end. Codex compounded the disruption by giving an unsupported explanation connecting the Linux usage to a monthly allowance. Kibitz is public and used standard GitHub-hosted runners, whose compute is free for public repositories. The supplied dashboard showed $29.68 gross usage across products and $0 billed. Security AI credits are a separate product. Neither the screenshot nor the inspected failed jobs established the cause of the reported account-wide block; that cause remains unverified. See [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions) and [security AI billing](https://docs.github.com/en/billing/concepts/product-billing/github-advanced-security).
+- Initial containment: cancelled two active CI runs on Codex's PR branches, returned #144–150 and #152–153 to draft, and clarified the titles and scope notes for #140–153. Further autonomous implementation, pushes and reruns were stopped. Existing branches and PRs were preserved. This documentation edit remains local and starts no CI.
+
+### Deviations
+
+- This was an agent judgment failure, not a request from the maintainer to turn Kibitz into a hosted security platform. The instruction to continue through milestones required continued scope and resource judgment; it did not justify unchecked expansion.
+- Draft status does not remove the added complexity or repair the dependent stack. Smaller useful changes still need extraction and review. No code simplification, CI redesign, billing resolution or restored access is claimed here.
+
+### Insights / learnings
+
+- **Assess applicability before designing remediation.** Tie each proposed control to a concrete attack path in the supported local deployment, the asset it protects, and its operational and maintenance cost. Record justified limitations accurately. Revisit disproportionate release requirements with the maintainer; do not silently mark them satisfied or introduce a new authentication/deployment architecture to satisfy a checklist.
+- **Treat CI as a resource budget.** Estimate total runner-minutes across jobs, pushes and merge-triggered runs before expanding a workflow. Batch changes locally and use focused checks during development. Arrange documentation and generated evidence before the review push so bookkeeping does not repeatedly restart the full suite. Public compute being free does not justify waste or congestion.
+- **Match verification to the change.** Keep useful automated checks, and design selective expensive browser/platform checks plus complete release verification. Do not remove required checks or weaken assertions merely to get green CI. Security tests needed only because of an unnecessary subsystem are a reason to reassess that subsystem.
+- **Keep review manageable.** Work on one active milestone at a time, describe its user benefit in plain language, and prefer independently reviewable changes. Stop for reassessment when dependencies, platform requirements or review effort grow substantially. Do not treat every newly discovered subproblem as authorization for another PR.
+- **Separate observations from diagnosis.** Gross usage, billed charges, private-repository allowances, security AI credits and actual blocking errors are different evidence. Inspect the specific failure before claiming a billing cause or reset date. State unknowns explicitly and correct unsupported explanations promptly.
+- **Completion includes proportionality.** Report the resulting user behavior, maintenance burden, cumulative CI work and remaining dependencies alongside validation. A passing test suite does not establish that the work was appropriate or that the user's goal was completed.
+
 ## 2026-10-25 — Native HTTPS listener prerequisite
 
 TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open.
