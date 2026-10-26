@@ -1,0 +1,405 @@
+{
+  "collectedOn": "2026-10-26",
+  "repository": "https://github.com/gregoryyy/kibitz",
+  "main": "da4ac715e043fe9b6bd502793b5d092d79f693e6",
+  "archiveRef": "refs/heads/secdrift",
+  "archive": "92a0531be3f02367a3b66f84f313320ebc825676",
+  "sharedAncestor": "708fbea4837705c8cdf060d4158e72ea7f128302",
+  "archiveOnlyCommits": [
+    "54878f9396f7582226a17dc8b49ea522bc77e13e",
+    "65c983eaa5c2b3998009201aefe291e59aa7c5f2",
+    "84951b3ebfe743d633a2851c1246d4649b91b8cc",
+    "f8fb81d74ce3de8789e1d36f9fb4ce774f025dab",
+    "956477988c25cb5318f2d1004df10094bdc37c9e",
+    "ff9bab5d3c00f2aa1ea43e07e4f94960e9022b3d",
+    "42e6ecd5761f012d9f89c15c8386113e9a01124d",
+    "9e77ac4dd07c28a5b7c5fd212e5100dbe3ea962f",
+    "4326f4d567057f27d1dd535d1157bb37ed680021",
+    "fbaaa4ec9f5b0a56e82d25a407179ad4edebab76",
+    "e544aa6dd907d8beee6ce81bba7145bf24981bd6",
+    "01293e2138daa4367327fc7b06ae2250b2d4b83f",
+    "dc3dc1413e27dfc821b1e8169928972f7dd1fec7",
+    "aaec4e0f04b41d04de34a756b203913e9216064e",
+    "5911e6a3554fc613bfe71e9ea981ecdc5f7f4c53",
+    "7ef846986f98f94c855f9f5b61ac476d0147a77a",
+    "96a49b8320551b466bb32762a6dee25fac44cb68",
+    "a5ef968a92eccf27615192060d70c9f2ca0f746c",
+    "602737f838bad28c1851c37718c13ad84bdea55e",
+    "ca1f8a60d20ab32bd7c81df0d53322038901ee03",
+    "72f269fd26926d95c33c6e54ca8ef3c472d85f6c",
+    "b12359d96d72ef018881d8f4624a4253d80c0294",
+    "86c0db9014ec64018ced3e0d8cc1aedc4faa2ee4",
+    "04d7152638498142ae6cf89245df56309682a5c3",
+    "2cbdc2230b8c49c2b2da43b3469f367aeb7068cb",
+    "f89308e4721eb9fdad3a1bc5af9ccb67243ba6f3",
+    "61ea2781b2676fcced160baf5f86e03eea8ceaf0",
+    "82210ff0850cc4ed345f95a8a27d74ec2e0fa0f1",
+    "97ec53f45c8e3d34ea6416d469793bd0f28a28c8",
+    "fe709088135e076f0122af881a07f700c721e767",
+    "71e47dc7cdfc5202e78abd84dc3f43a3a78c991b",
+    "5c83b328103dc65057affde9b333f22d7afdafde",
+    "c24605f4b3dd6fdcc740598db22d57a604e8a0a9",
+    "55d1c6a5e2824ce56a80bb5009639a491ac3fcca",
+    "593b9bad5c8e5466311ce260de92405971d35837",
+    "c549c3c1da817786bfcdab6c5f6712bc99e9de40",
+    "c3c75aeb72b09c55f2d0af044e48511ba681c818",
+    "92a0531be3f02367a3b66f84f313320ebc825676"
+  ],
+  "pullRequests": [
+    {
+      "baseRefName": "feat/native-https",
+      "closedAt": "2026-10-26T08:47:28Z",
+      "createdAt": "2026-10-25T13:18:29Z",
+      "headRefName": "fix/secure-cookie-migration",
+      "headRefOid": "ff9bab5d3c00f2aa1ea43e07e4f94960e9022b3d",
+      "mergedAt": null,
+      "number": 140,
+      "state": "CLOSED",
+      "title": "[experimental] Preserve existing library data when enabling HTTPS cookies",
+      "url": "https://github.com/gregoryyy/kibitz/pull/140",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "fix/secure-cookie-migration",
+      "closedAt": "2026-10-26T08:47:25Z",
+      "createdAt": "2026-10-25T15:03:25Z",
+      "headRefName": "fix/isolated-hsts",
+      "headRefOid": "9e77ac4dd07c28a5b7c5fd212e5100dbe3ea962f",
+      "mergedAt": null,
+      "number": 144,
+      "state": "CLOSED",
+      "title": "[experimental] Give local HTTPS its own hostname and HSTS policy",
+      "url": "https://github.com/gregoryyy/kibitz/pull/144",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "fix/isolated-hsts",
+      "closedAt": "2026-10-26T08:47:23Z",
+      "createdAt": "2026-10-25T16:00:58Z",
+      "headRefName": "feat/operator-sessions",
+      "headRefOid": "01293e2138daa4367327fc7b06ae2250b2d4b83f",
+      "mergedAt": null,
+      "number": 145,
+      "state": "CLOSED",
+      "title": "[experimental] Add operator sign-in and server-issued sessions",
+      "url": "https://github.com/gregoryyy/kibitz/pull/145",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/operator-sessions",
+      "closedAt": "2026-10-26T08:47:21Z",
+      "createdAt": "2026-10-25T16:42:45Z",
+      "headRefName": "feat/session-termination",
+      "headRefOid": "aaec4e0f04b41d04de34a756b203913e9216064e",
+      "mergedAt": null,
+      "number": 146,
+      "state": "CLOSED",
+      "title": "[experimental] Revoke operator sessions on sign-out and expiry",
+      "url": "https://github.com/gregoryyy/kibitz/pull/146",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/session-termination",
+      "closedAt": "2026-10-26T08:47:18Z",
+      "createdAt": "2026-10-25T17:34:14Z",
+      "headRefName": "feat/operator-permissions",
+      "headRefOid": "ca1f8a60d20ab32bd7c81df0d53322038901ee03",
+      "mergedAt": null,
+      "number": 147,
+      "state": "CLOSED",
+      "title": "[experimental] Add separate permissions for local operator actions",
+      "url": "https://github.com/gregoryyy/kibitz/pull/147",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/operator-permissions",
+      "closedAt": "2026-10-26T08:47:16Z",
+      "createdAt": "2026-10-25T18:14:31Z",
+      "headRefName": "feat/tls-inventory",
+      "headRefOid": "2cbdc2230b8c49c2b2da43b3469f367aeb7068cb",
+      "mergedAt": null,
+      "number": 148,
+      "state": "CLOSED",
+      "title": "[experimental] Record TLS settings and endpoint handshake evidence",
+      "url": "https://github.com/gregoryyy/kibitz/pull/148",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/tls-inventory",
+      "closedAt": "2026-10-26T08:47:13Z",
+      "createdAt": "2026-10-25T18:48:19Z",
+      "headRefName": "feat/encrypted-connectivity",
+      "headRefOid": "97ec53f45c8e3d34ea6416d469793bd0f28a28c8",
+      "mergedAt": null,
+      "number": 149,
+      "state": "CLOSED",
+      "title": "[experimental] Require HTTPS for app, provider and model connections",
+      "url": "https://github.com/gregoryyy/kibitz/pull/149",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/encrypted-connectivity",
+      "closedAt": "2026-10-26T08:47:11Z",
+      "createdAt": "2026-10-25T20:13:07Z",
+      "headRefName": "feat/native-checkout-isolation",
+      "headRefOid": "c24605f4b3dd6fdcc740598db22d57a604e8a0a9",
+      "mergedAt": null,
+      "number": 150,
+      "state": "CLOSED",
+      "title": "[experimental] Sandbox the Node app with macOS and Linux OS tools",
+      "url": "https://github.com/gregoryyy/kibitz/pull/150",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/native-checkout-isolation",
+      "closedAt": "2026-10-26T08:47:30Z",
+      "createdAt": "2026-10-25T20:39:16Z",
+      "headRefName": "feat/private-position-analysis",
+      "headRefOid": "593b9bad5c8e5466311ce260de92405971d35837",
+      "mergedAt": null,
+      "number": 151,
+      "state": "CLOSED",
+      "title": "[experimental] Analyze positions locally instead of linking their FEN to Lichess",
+      "url": "https://github.com/gregoryyy/kibitz/pull/151",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/private-position-analysis",
+      "closedAt": "2026-10-26T08:47:09Z",
+      "createdAt": "2026-10-25T21:28:53Z",
+      "headRefName": "feat/authenticated-client-state",
+      "headRefOid": "c549c3c1da817786bfcdab6c5f6712bc99e9de40",
+      "mergedAt": null,
+      "number": 152,
+      "state": "CLOSED",
+      "title": "[experimental] Clear the library cache when an operator session ends",
+      "url": "https://github.com/gregoryyy/kibitz/pull/152",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    },
+    {
+      "baseRefName": "feat/authenticated-client-state",
+      "closedAt": "2026-10-26T08:47:06Z",
+      "createdAt": "2026-10-25T22:28:12Z",
+      "headRefName": "feat/client-session-lifecycle",
+      "headRefOid": "92a0531be3f02367a3b66f84f313320ebc825676",
+      "mergedAt": null,
+      "number": 153,
+      "state": "CLOSED",
+      "title": "[experimental] Synchronize operator sign-out across tabs and requests",
+      "url": "https://github.com/gregoryyy/kibitz/pull/153",
+      "ancestorOfArchive": true,
+      "ancestorOfMain": false
+    }
+  ],
+  "adjacentPullRequests": [
+    {
+      "baseRefName": "fix/assurance-path-inspection",
+      "closedAt": "2026-10-25T23:16:07Z",
+      "createdAt": "2026-10-25T14:40:34Z",
+      "headRefName": "feat/assurance-lineage-columns",
+      "headRefOid": "bedad3a076dda618ba81efaf596188e03e924201",
+      "mergedAt": "2026-10-25T23:16:07Z",
+      "number": 143,
+      "state": "MERGED",
+      "title": "[experimental] Browse large assurance graphs with paged columns",
+      "url": "https://github.com/gregoryyy/kibitz/pull/143"
+    },
+    {
+      "baseRefName": "main",
+      "closedAt": null,
+      "createdAt": "2026-10-25T14:13:45Z",
+      "headRefName": "fix/build-dependency-freshness",
+      "headRefOid": "5fce2f701707137170904861d1436bc09857c165",
+      "mergedAt": null,
+      "number": 142,
+      "state": "OPEN",
+      "title": "[experimental] Make just build repair stale npm dependencies",
+      "url": "https://github.com/gregoryyy/kibitz/pull/142"
+    },
+    {
+      "baseRefName": "feat/assurance-confidence",
+      "closedAt": null,
+      "createdAt": "2026-10-25T14:00:37Z",
+      "headRefName": "fix/assurance-path-inspection",
+      "headRefOid": "8320188e420ac49ca627c4a3199cc21b21b54993",
+      "mergedAt": null,
+      "number": 141,
+      "state": "OPEN",
+      "title": "[experimental] Inspect assurance items without losing the selected path",
+      "url": "https://github.com/gregoryyy/kibitz/pull/141"
+    },
+    {
+      "baseRefName": "main",
+      "closedAt": "2026-10-25T22:26:12Z",
+      "createdAt": "2026-10-25T12:36:57Z",
+      "headRefName": "feat/native-https",
+      "headRefOid": "74dd20f8767804683190e2e1818ef8bef104f1a2",
+      "mergedAt": "2026-10-25T22:26:12Z",
+      "number": 139,
+      "state": "MERGED",
+      "title": "[experimental] feat: add native HTTPS with operator certificates (TODO 11.4.2.7.1)",
+      "url": "https://github.com/gregoryyy/kibitz/pull/139"
+    }
+  ],
+  "archiveBrowserJob": {
+    "url": "https://github.com/gregoryyy/kibitz/actions/runs/40240962450/job/121312702723",
+    "conclusion": "cancelled",
+    "startedAt": "2026-10-25T22:37:21Z",
+    "completedAt": "2026-10-25T22:53:52Z",
+    "newRunRequested": false
+  },
+  "assuranceSnapshots": [
+    {
+      "revision": "32871d0fcf119f9700a8a135490134e662f81ade",
+      "findingCounts": {
+        "implements_unassessed": 203,
+        "missing_done_reference": 22,
+        "possible_deviation_impact": 6,
+        "recorded_deviation": 210,
+        "unresolved_reference": 2847,
+        "verifies_unassessed": 203
+      },
+      "totalFindings": 3491,
+      "assessments": [
+        [
+          "implements",
+          "file:utils/assure-infer.mjs",
+          "todo:0.17"
+        ],
+        [
+          "verifies",
+          "file:site/tests/unit/assure-confidence.test.mjs",
+          "todo:0.17"
+        ]
+      ],
+      "highestRetainedPr": 140
+    },
+    {
+      "revision": "da4ac715e043fe9b6bd502793b5d092d79f693e6",
+      "findingCounts": {
+        "implements_unassessed": 204,
+        "missing_done_reference": 22,
+        "possible_deviation_impact": 6,
+        "recorded_deviation": 211,
+        "unresolved_reference": 2854,
+        "verifies_unassessed": 204
+      },
+      "totalFindings": 3501,
+      "assessments": [
+        [
+          "implements",
+          "file:utils/assure-infer.mjs",
+          "todo:0.17"
+        ],
+        [
+          "verifies",
+          "file:site/tests/unit/assure-confidence.test.mjs",
+          "todo:0.17"
+        ]
+      ],
+      "highestRetainedPr": 140
+    },
+    {
+      "revision": "92a0531be3f02367a3b66f84f313320ebc825676",
+      "findingCounts": {
+        "implements_unassessed": 216,
+        "missing_done_reference": 22,
+        "possible_deviation_impact": 6,
+        "recorded_deviation": 224,
+        "unresolved_reference": 3115,
+        "verifies_unassessed": 216
+      },
+      "totalFindings": 3799,
+      "assessments": [
+        [
+          "implements",
+          "file:utils/assure-infer.mjs",
+          "todo:0.17"
+        ],
+        [
+          "verifies",
+          "file:site/tests/unit/assure-confidence.test.mjs",
+          "todo:0.17"
+        ]
+      ],
+      "highestRetainedPr": 153
+    }
+  ],
+  "counterfactual": {
+    "revision": "32871d0fcf119f9700a8a135490134e662f81ade",
+    "baseline": 3491,
+    "flagged": 3492,
+    "hypothesis": {
+      "type": "deviates_from",
+      "from": "file:docs/TODO.md",
+      "to": "todo:10.1",
+      "confidence": {
+        "value": 0.9,
+        "method": "analyst",
+        "policy": "typed-links-1",
+        "rationale": "Retrospective counterfactual: the session/permission plan may exceed the local-app scope; request a scope decision before implementation. This is a review lead, not an observed historical warning or proof of incompatibility."
+      },
+      "evidence": {
+        "source": {
+          "path": "docs/TODO.md",
+          "line": 271,
+          "endLine": 271
+        },
+        "reference": "Compare local deployment TODO 10.1 with the session/permission remediation tasks in TODO 11.4.2.",
+        "resolution": "authored_assessment"
+      }
+    },
+    "added": [
+      {
+        "id": "finding:assessed_deviation:7eb8a1e95d7719d0a358",
+        "rule": "assessed_deviation",
+        "status": "candidate",
+        "subject": "file:docs/TODO.md",
+        "related": [
+          "todo:10.1"
+        ],
+        "message": "An analyst proposes a deviation relation; inspect its rationale and source.",
+        "confidence": {
+          "value": 0.9,
+          "method": "rule",
+          "policy": "typed-links-1",
+          "rationale": "Strongest support path; each path uses its weakest typed link. Not a calibrated probability of a defect."
+        },
+        "paths": [
+          [
+            {
+              "type": "deviates_from",
+              "from": "file:docs/TODO.md",
+              "to": "todo:10.1",
+              "confidence": 0.9
+            }
+          ]
+        ],
+        "source": {
+          "path": "docs/TODO.md",
+          "line": 271,
+          "endLine": 271
+        }
+      }
+    ]
+  },
+  "previousIncidentRecord": {
+    "source": "docs/DONE.md, uncommitted chore/local-ci working copy observed on 2026-10-26",
+    "sha256": "55e88df955d844cd7d351fa550d71f1f57e900b9d49404538547ee3fc90423b2",
+    "text": "## 2026-10-26 — Agent failure: security scope expansion, excessive CI and unsupported billing diagnosis\n\nContext: TODO 11.4.2.x and PRs #140–153. This records a process failure and its learnings; it does not complete a milestone or certify release readiness.\n\n### Implementation notes\n\n- Codex expanded security remediation beyond the needs of the selected local single-user, mostly client-side application. It treated ASVS deviations as instructions to add infrastructure, introducing operator sign-in, function permissions, mandatory deployment policies, native OS sandboxing and increasingly elaborate session coordination without adequately reassessing their proportionality. Each addition created further implementation, migration and testing obligations.\n- Codex split the work into a long dependent PR stack with cryptic titles, then repeatedly pushed implementation fixes, documentation and generated assurance evidence. Broad PR and main-branch triggers launched full CI, container checks, CodeQL and the security baseline. Documentation/provenance follow-ups restarted expensive browser checks. Passing individual checks became a substitute for judging product scope, maintainability, review burden and cumulative resource use.\n- The 25 October UTC repository-history snapshot contained 524 workflow runs, including 139 CI workflow runs: 106 triggered by PR events and 33 by pushes to main. Completed Linux jobs in that snapshot accounted for 4,082 rounded runner-minutes, including 2,890 for Playwright; cancelled Playwright jobs alone accounted for 465 minutes. The security branches for #140 and #144–153 contributed 1,000 Linux minutes across workflows. These job records were not fully reconciled with the dashboard's 4,559 Linux minutes; the totals must not be presented as an exact billing reconciliation.\n- The maintainer reported that all PR work was blocked until month-end. Codex compounded the disruption by giving an unsupported explanation connecting the Linux usage to a monthly allowance. Kibitz is public and used standard GitHub-hosted runners, whose compute is free for public repositories. The supplied dashboard showed $29.68 gross usage across products and $0 billed. Security AI credits are a separate product. Neither the screenshot nor the inspected failed jobs established the cause of the reported account-wide block; that cause remains unverified. See [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions) and [security AI billing](https://docs.github.com/en/billing/concepts/product-billing/github-advanced-security).\n- Initial containment: cancelled two active CI runs on Codex's PR branches, returned #144–150 and #152–153 to draft, and clarified the titles and scope notes for #140–153. Further autonomous implementation, pushes and reruns were stopped. Existing branches and PRs were preserved. This documentation edit remains local and starts no CI.\n\n### Deviations\n\n- This was an agent judgment failure, not a request from the maintainer to turn Kibitz into a hosted security platform. The instruction to continue through milestones required continued scope and resource judgment; it did not justify unchecked expansion.\n- Draft status does not remove the added complexity or repair the dependent stack. Smaller useful changes still need extraction and review. No code simplification, CI redesign, billing resolution or restored access is claimed here.\n\n### Insights / learnings\n\n- **Assess applicability before designing remediation.** Tie each proposed control to a concrete attack path in the supported local deployment, the asset it protects, and its operational and maintenance cost. Record justified limitations accurately. Revisit disproportionate release requirements with the maintainer; do not silently mark them satisfied or introduce a new authentication/deployment architecture to satisfy a checklist.\n- **Treat CI as a resource budget.** Estimate total runner-minutes across jobs, pushes and merge-triggered runs before expanding a workflow. Batch changes locally and use focused checks during development. Arrange documentation and generated evidence before the review push so bookkeeping does not repeatedly restart the full suite. Public compute being free does not justify waste or congestion.\n- **Match verification to the change.** Keep useful automated checks, and design selective expensive browser/platform checks plus complete release verification. Do not remove required checks or weaken assertions merely to get green CI. Security tests needed only because of an unnecessary subsystem are a reason to reassess that subsystem.\n- **Keep review manageable.** Work on one active milestone at a time, describe its user benefit in plain language, and prefer independently reviewable changes. Stop for reassessment when dependencies, platform requirements or review effort grow substantially. Do not treat every newly discovered subproblem as authorization for another PR.\n- **Separate observations from diagnosis.** Gross usage, billed charges, private-repository allowances, security AI credits and actual blocking errors are different evidence. Inspect the specific failure before claiming a billing cause or reset date. State unknowns explicitly and correct unsupported explanations promptly.\n- **Completion includes proportionality.** Report the resulting user behavior, maintenance burden, cumulative CI work and remaining dependencies alongside validation. A passing test suite does not establish that the work was appropriate or that the user's goal was completed."
+  },
+  "billingSources": [
+    "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+    "https://docs.github.com/en/billing/concepts/product-billing/github-advanced-security"
+  ]
+}

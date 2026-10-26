@@ -4,12 +4,12 @@ Generated offline from typed, confidence-weighted links. These are recorded devi
 
 | Rule | Count |
 | --- | ---: |
-| implements_unassessed | 204 |
+| implements_unassessed | 205 |
 | missing_done_reference | 22 |
 | possible_deviation_impact | 6 |
-| recorded_deviation | 211 |
+| recorded_deviation | 213 |
 | unresolved_reference | 2854 |
-| verifies_unassessed | 204 |
+| verifies_unassessed | 205 |
 
 Confidence threshold: 0.8; dependency depth: 2; per-deviation impact limit: 100; truncated contexts: 0.
 
@@ -50,6 +50,7 @@ See [README](README.md) for weights, inference rules, exclusions and maintenance
 
 ### recorded_deviation
 
+- recorded; 1.00; `done:2026-10-26--security-drift-post-mortem-and-preserved-alternative-branch/deviation:4871e5be2ec46241`: - Archive preservation is not release validation: the final archived Playwright job was cancelled, and no CI rerun was requested. The archive is a historical alternative, not an integration of the latest main updates. Native HTTPS \(\#139\) is already merged and recorded as owner-selected; its removal requires a separate scope decision. Assurance/buil
 - recorded; 1.00; `done:2026-10-20--local-dev-server-and-justfile/deviation:8e6c9c6541026a3f`: - Local serving moved from \`python3 -m http.server\` to Node for the \`just\` recipes, in line with the Node stack. \`npm run serve\` in \`claude/\` still uses Python.
 - recorded; 1.00; `done:2026-10-23--hybrid-passage-retrieval-with-explicit-board-intent/deviation:88a71296b2185261`: - This delivers bounded rank fusion and a deterministic reranker over existing chess signals, with no learned cross-encoder or calibrated semantic abstention. Material/piece-placement signatures, richer position/move motif tags and fuzzy pawn distance remain 8.1/8.2/8.5. Tutor prompts and citation validation remain 8.6. No dependency, external corp
 - recorded; 1.00; `done:2026-10-24--compare-position-retrieval-with-literature-algorithms/deviation:7af3590b0745d56b`: - This is a sourced algorithm comparison and experiment design, not a reproduction of literature algorithms on Kibitz's corpus. Published metrics with different inputs, labels and denominators are not combined into a performance ranking.
@@ -57,7 +58,6 @@ See [README](README.md) for weights, inference rules, exclusions and maintenance
 - recorded; 1.00; `done:2026-10-21--offline-mode-a-small-model-in-the-browser/deviation:24b5c0f6c3453261`: - \*\*Not in our Worker.\*\* wllama starts its own worker \(from a blob URL, allowed by \`worker-src blob:\`\), so the page-side provider doesn't need one.
 - recorded; 1.00; `done:2026-10-23--repertoire-recall-with-spaced-reviews/deviation:a5cb669ea14afa07`: - Review positions individually, rather than requiring exact replay of one route: a transposed position can have several valid saved choices. The representative route retains its full FEN for move numbering and its stored reply; the schedule belongs to the position and choices.
 - recorded; 1.00; `done:2026-10-23--research-rag-neurosymbolic-games-and-milestones-57/deviation:9d4525c1f1ce7c40`: - No dependencies, datasets, model weights, embedding index or engine exports were added. The audit is pinned to \`0176c62\`; the pending Primer-source PR is linked separately.
-- recorded; 1.00; `done:2026-10-23--source-aware-library-records-for-rag/deviation:0a8168554f9dcba4`: - Source metadata extends the existing flat records; normalised snapshots are derived/cached rather than persisted as duplicate tables. SQLite/IndexedDB remains 7.6. This establishes the data contract without requiring that storage migration first.
 
 ### unresolved_reference
 

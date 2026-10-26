@@ -7,6 +7,28 @@ Progress log for [TODO.md](TODO.md), newest first. Each entry gives the date, th
 
 ---
 
+## 2026-10-26 — Security drift post-mortem and preserved alternative branch
+
+TODO item: 0.19. The ASVS remediation and final-release gates remain open.
+
+### Implementation notes
+
+- Trace the planning trigger (`cd4ac4a`, twelve mandatory final-release fixes), the unresolved tension with local single-user operation, the dependent security stack and broad CI amplification in the [post-mortem](SECURITY-DRIFT-POSTMORTEM.md). Distinguish excessive workflow use from the still-unverified cause of the reported account block.
+- Create remote/local `secdrift` at existing commit `92a0531be3f02367a3b66f84f313320ebc825676`. Ancestry checks confirm preservation of all eleven heads (#140, #144–153), including all 38 commits absent from remote `main`; all eleven PRs were already closed without merging. No implementation was pushed, original branches were retained and remote `main` remains `da4ac71`. Suspend autonomous execution of the rejected remediation architecture in TODO without marking any security control fixed.
+- Retain [incident evidence](incidents/2026-10-26-security-drift.json), including the original local incident entry, live PR states/heads, historical graph statistics and an in-memory counterfactual. Adding one scope-deviation hypothesis to snapshot `32871d0` produces one new `assessed_deviation` candidate (3,491 to 3,492 findings); it does not create an enforcement gate or prove a historical warning existed.
+- Validation: `npm run check` passes (lint, JSDoc, ASVS records and all assurance layers); all 31 existing assurance regression cases pass. Incident ancestry assertions, local report links and whitespace checks pass. GitHub reports zero runs for `secdrift`, and hashes confirm that the original local-CI working-copy files are unchanged. No application behavior changed, so no browser rerun was needed for the documentation.
+
+### Deviations
+
+- Archive preservation is not release validation: the final archived Playwright job was cancelled, and no CI rerun was requested. The archive is a historical alternative, not an integration of the latest main updates. Native HTTPS (#139) is already merged and recorded as owner-selected; its removal requires a separate scope decision. Assurance/build PRs #141–143 are outside the rejected stack.
+- The proposed scope/resource decision rules are analysis, not newly implemented automation. The existing local-CI working copy and its incident notes remain untouched; this documentation is prepared in an isolated worktree.
+
+### Insights
+
+- Evidence freshness and test success do not establish that the chosen architecture fits the product. The assurance graph needs a review policy that resolves new scope concerns before implementation, with owner authority distinct from an agent's assessment.
+- A release requirement can be authorized while a particular implementation remains disproportionate. Record and resolve that tension at planning; do not let each new subsystem's prerequisites become automatic authorization for the next PR.
+- Public compute, private-repository quotas, storage and Security AI credits are different billing evidence. The reported blocking cause and month-end recovery cannot be inferred from Kibitz's runner-minute totals.
+
 ## 2026-10-25 — Native HTTPS listener prerequisite
 
 TODO item: 11.4.2.7.1; parent 11.4.2.7 and cookie migration 11.4.2.1 remain open.
