@@ -20,8 +20,8 @@ TODO item: 0.19. The ASVS remediation and final-release gates remain open.
 
 ### Deviations
 
-- Archive preservation is not release validation: the final archived Playwright job was cancelled, and no CI rerun was requested. The archive is a historical alternative, not an integration of the latest main updates. Native HTTPS (#139) is already merged and recorded as owner-selected; its removal requires a separate scope decision. Assurance/build PRs #141–143 are outside the rejected stack.
-- The proposed scope/resource decision rules are analysis, not newly implemented automation. The existing local-CI working copy and its incident notes remain untouched; this documentation is prepared in an isolated worktree.
+- Archive preservation is not release validation: the final archived Playwright job was cancelled, and no CI rerun was requested. The archive is a historical alternative, not an integration of the latest main updates. The owner subsequently requested removal of native HTTPS (#139); its separate rollback PR and the exact pre-removal `secdrift-native-https` tag preserve that decision and source history. Assurance/build PRs #141–143 are outside the rejected stack.
+- The proposed scope/resource decision rules are analysis, not newly implemented automation. This documentation is prepared in an isolated worktree. The closing branches share a five-line SVG fixture correction that waits for startup analysis before adding a test arrow; its existing visual/CSP assertions are unchanged and twenty repeated web-asset cases pass. The shared clock transition fix also passes five repetitions with final clock/PGN checks intact.
 
 ### Insights
 

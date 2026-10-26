@@ -3,6 +3,11 @@ import { test, expect, open, openSettings, closeSettings } from './fixtures.mjs'
 for (const theme of ['light', 'dark']) test(`all Chessground SVG layers retain their light scheme under ${theme} without inline style violations`, async ({ page }) => {
   await page.emulateMedia({ colorScheme: theme });
   await open(page);
+  // Initial analysis calls drawShapes(), replacing test-injected auto shapes.
+  await expect.poll(() => page.evaluate(() => {
+    const { S, ANA } = window.__kibitz;
+    return ANA.has(S.nodes[S.cursor].fen.split(' ').slice(0, 4).join(' '));
+  })).toBe(true);
   const layers = page.locator('#board cg-container > svg');
   for (const orientation of ['white', 'black']) {
     await page.evaluate(orientation => window.__kibitz.ground().set({ orientation }), orientation);

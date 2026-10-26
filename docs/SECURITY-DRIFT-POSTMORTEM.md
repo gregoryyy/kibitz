@@ -207,9 +207,12 @@ whole rejected path.
 
 PRs #141 and #142 remain open: requested assurance-browser work and an independent
 build fix. PR #143 was merged into #141's branch, not `main`. They are outside
-the rejected security stack. Already merged #139 is the recorded owner-selected
-HTTPS feature; whether to back it out is a separate scope decision, not an
-assumption made by this audit. The planning trigger and all shared ancestor
+the rejected security stack. Already merged #139 was the recorded owner-selected
+HTTPS feature. The owner subsequently requested its removal as part of this
+cleanup. The separate `fix/remove-native-https` PR restores the local HTTP CLI;
+the `secdrift-native-https` tag preserves exact pre-removal main `da4ac71`, including
+the final #139 integration commits absent from the earlier `secdrift` tip.
+Opening that rollback PR does not merge it or rewrite main. The planning trigger and all shared ancestor
 commits are also reachable from `secdrift`; historical main ancestry was not rewritten.
 
 Preservation does not certify the archived code. Its last Playwright job was
@@ -224,3 +227,18 @@ can later be extracted against the current `main`, justified individually and
 reviewed with fresh tests. The release requirement itself still needs an explicit
 scope reconciliation; archiving does not mark an ASVS control fixed or approve a
 release.
+
+## Validation follow-up
+
+The closing PRs include a five-line correction to the existing SVG test fixture:
+wait for the initial analysis entry before injecting its temporary arrow.
+`drawShapes()` otherwise replaces that arrow when startup analysis completes,
+causing the baseline dark-scheme failure already recorded in the local-CI notes.
+The assertions for all four layers, both orientations, arrow rendering and CSP
+remain intact. Five repetitions of all four web-asset cases pass. This fixture
+correction changes no application behavior and does not add a retry policy.
+
+The timed-game fixture also accepts an already-completed engine reply when
+waiting for its transient thinking state. A failure snapshot showed the reply
+and correct clock after that state had passed. Final move-count, clock bounds,
+timeout and PGN assertions remain intact; no application behavior changes.

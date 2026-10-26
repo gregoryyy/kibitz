@@ -401,5 +401,13 @@
   "billingSources": [
     "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
     "https://docs.github.com/en/billing/concepts/product-billing/github-advanced-security"
-  ]
+  ],
+  "subsequentOwnerDirection": {
+    "date": "2026-10-26",
+    "action": "Prepare a PR to remove native HTTPS from main",
+    "branch": "fix/remove-native-https",
+    "preservedMainTag": "secdrift-native-https",
+    "preservedMain": "da4ac715e043fe9b6bd502793b5d092d79f693e6",
+    "mergePerformed": false
+  }
 }
