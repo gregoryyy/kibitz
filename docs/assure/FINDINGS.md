@@ -7,8 +7,8 @@ Generated offline from typed, confidence-weighted links. These are recorded devi
 | implements_unassessed | 205 |
 | missing_done_reference | 22 |
 | possible_deviation_impact | 6 |
-| recorded_deviation | 215 |
-| unresolved_reference | 2869 |
+| recorded_deviation | 216 |
+| unresolved_reference | 2863 |
 | verifies_unassessed | 205 |
 
 Confidence threshold: 0.8; dependency depth: 2; per-deviation impact limit: 100; truncated contexts: 0.

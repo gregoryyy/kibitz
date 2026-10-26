@@ -19,15 +19,15 @@ flowchart LR
 
 | Node type | Count |
 | --- | ---: |
-| artifact | 583 |
+| artifact | 586 |
 | milestone | 13 |
 | todo | 229 |
 | done | 129 |
 | insight | 303 |
-| deviation | 215 |
+| deviation | 216 |
 | reflection | 2 |
 
-3976 typed edges; 436 scanned text inputs; 330 unresolved references.
+3987 typed edges; 439 scanned text inputs; 324 unresolved references.
 
 ## TODO → DONE index
 
@@ -269,7 +269,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 
 | Entry | TODO references | Insights | Deviations | Combined |
 | --- | --- | ---: | ---: | ---: |
-| [2026-10-26 — Local CI; drift PRs closed](../DONE.md#2026-10-26--local-ci-drift-prs-closed) | 0.18 | 3 | 2 | 0 |
+| [2026-10-26 — Local CI; drift PRs closed](../DONE.md#2026-10-26--local-ci-drift-prs-closed) | 0.18 | 3 | 3 | 0 |
 | [2026-10-26 — Agent failure: security scope expansion, excessive CI and unsupported billing diagnosis](../DONE.md#2026-10-26--agent-failure-security-scope-expansion-excessive-ci-and-unsupported-billing-diagnosis) | none recorded | 6 | 2 | 0 |
 | [2026-10-25 — Native HTTPS listener prerequisite](../DONE.md#2026-10-25--native-https-listener-prerequisite) | 11.4.2.1, 11.4.2.7, 11.4.2.7.1 | 1 | 1 | 0 |
 | [2026-10-25 — Confidence-weighted assurance links and review findings](../DONE.md#2026-10-25--confidence-weighted-assurance-links-and-review-findings) | 0.17 | 2 | 2 | 0 |

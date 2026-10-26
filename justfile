@@ -3,6 +3,7 @@
 #   just offline       the same, with a small model running in the browser: nothing leaves this machine
 #   just test          unit tests (AI gateway + page modules)
 #   just check         lint and type-check
+#   just ci            the CI workflow on a clean checkout of a commit, on this machine (--post: statuses on GitHub)
 #   just flipbook      render docs/flipbook/, a happy path through the app in screenshots
 #   just pdfs          update missing/outdated Markdown PDFs (just pdf FILE for one)
 #   just eval          the tutor eval set against the coach, with a report in docs/eval/
@@ -58,6 +59,12 @@ test: build
 # End-to-end Playwright tests in the installed Chrome; builds, then starts its own server with the mock AI provider
 e2e: install
     npm --prefix site run test:e2e
+
+# Runs .github/workflows/ci.yml as it is in the commit, in a fresh worktree of it (docs/CI.md).
+# just ci [rev] [--job check,e2e] [--post] [--keep]; --post sets `local / <job>` statuses on GitHub
+# The CI workflow, run locally on a commit (default HEAD)
+ci *args:
+    node site/scripts/ci/run.mjs {{args}}
 
 # The reference positions in site/eval/positions.mjs, asked through the app, scored on key points and
 # the app's move checks, and with judge=<provider> graded by an LLM (keys stay on this machine).

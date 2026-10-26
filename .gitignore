@@ -28,6 +28,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Local CI: logs, summaries and the lock (just ci)
+.ci/
+
 # Environment / secrets
 .kibitz-data/
 .env

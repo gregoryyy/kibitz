@@ -22,6 +22,7 @@ TODO item: 0.18. Follows the agent-failure entry below.
 ### Deviations
 
 - Only the CI workflow runs locally. Container, Security baseline and CodeQL stay GitHub-only. Locally, gitleaks scans the whole history, Node is the machine's version rather than `.nvmrc`'s, and the platform is macOS rather than Ubuntu. Statuses are self-reported.
+- Include the closing branches' browser-fixture corrections: wait for initial analysis before injecting a temporary SVG arrow, and accept an already-completed engine reply when waiting for the transient thinking state. Application behavior and the final rendering/clock/PGN assertions stay unchanged. Twenty repeated web-asset cases and five repeated clock cases pass.
 - The GitHub workflows are unchanged. The trigger and selective-check redesign suggested by the entry below is still open.
 
 ### Insights
