@@ -7,7 +7,7 @@ Generated offline from typed, confidence-weighted links. These are recorded devi
 | implements_unassessed | 204 |
 | missing_done_reference | 22 |
 | possible_deviation_impact | 6 |
-| recorded_deviation | 214 |
+| recorded_deviation | 213 |
 | unresolved_reference | 2862 |
 | verifies_unassessed | 204 |
 

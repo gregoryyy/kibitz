@@ -24,10 +24,10 @@ flowchart LR
 | todo | 229 |
 | done | 128 |
 | insight | 296 |
-| deviation | 214 |
+| deviation | 213 |
 | reflection | 2 |
 
-3938 typed edges; 429 scanned text inputs; 314 unresolved references.
+3936 typed edges; 429 scanned text inputs; 314 unresolved references.
 
 ## TODO → DONE index
 
@@ -269,7 +269,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 
 | Entry | TODO references | Insights | Deviations | Combined |
 | --- | --- | ---: | ---: | ---: |
-| [2026-10-26 — Remove native HTTPS from the main development line](../DONE.md#2026-10-26--remove-native-https-from-the-main-development-line) | 0.20, 11.4.2.7.1 | 2 | 3 | 0 |
+| [2026-10-26 — Remove native HTTPS from the main development line](../DONE.md#2026-10-26--remove-native-https-from-the-main-development-line) | 0.20, 11.4.2.7.1 | 2 | 2 | 0 |
 | [2026-10-25 — Native HTTPS listener prerequisite](../DONE.md#2026-10-25--native-https-listener-prerequisite) | 11.4.2.1, 11.4.2.7, 11.4.2.7.1 | 1 | 1 | 0 |
 | [2026-10-25 — Confidence-weighted assurance links and review findings](../DONE.md#2026-10-25--confidence-weighted-assurance-links-and-review-findings) | 0.17 | 2 | 2 | 0 |
 | [2026-10-25 — Object, PR-section and documentation assurance browser](../DONE.md#2026-10-25--object-pr-section-and-documentation-assurance-browser) | 0.16, 0.16.1, 0.16.2, 0.16.3 | 2 | 2 | 0 |
