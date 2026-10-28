@@ -2,7 +2,7 @@
 
 Notable user-facing changes are collected here. Detailed implementation history
 and verification notes are in [DONE.md](docs/DONE.md). Versions follow the
-[project release policy](docs/RELEASING.md) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[project release policy](docs/releases/README.md) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 The former package value `0.1.0` was an unpublished development baseline.
 This branch prepares `0.1.0-rc.1`; it is a draft candidate, with no published

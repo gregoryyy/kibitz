@@ -91,6 +91,6 @@ licences, compatibility and fresh exact-image/test evidence.
 The original project first-reported date remains 2026-10-25. Medium review is due
 2026-11-01/remediation 2026-11-24; low review is due 2026-11-24/remediation
 2027-01-23. An accepted exception needs the owner's explicit scope, mitigation,
-revised deadline and review date under [the maintenance policy](../MAINTENANCE.md).
+revised deadline and review date under [the maintenance policy](supply-chain.md#component-maintenance-policy).
 No exception is recorded here. Build stages, Actions, embedded Node/WASM internals
 and model provenance retain their separate incomplete release review.

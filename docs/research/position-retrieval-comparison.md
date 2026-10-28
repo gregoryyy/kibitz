@@ -15,7 +15,7 @@ The earlier [aspect-similarity proposal](position-similarity.md) defines possibl
 | Optional fuzzy board channel | [`pawn-distance.js`](../../site/src/library/pawn-distance.js) uses colour-specific pawn-square Jaccard distance; the UI admits distance ≤ 0.25 when explicitly enabled. | Nonempty pawn sets are required for analogies. Used in Combined search; Reading and automatic cited coach retrieval retain exact-pawn behaviour. |
 | Passage embeddings | [`dense-search.js`](../../site/src/library/dense-search.js) ranks explicitly embedded annotation/guide text by cosine similarity, with provider/model/revision/dimension checks. | These are text vectors, not trained board/action embeddings. No board encoder, approximate-nearest-neighbour index or solution encoder is installed. |
 
-EPD equality here means equality of the first four FEN fields, not equality of game history or draw state. Full FEN and occurrence/revision IDs preserve the source arrival and its note. A transposition can share an EPD while two notes remain different retrieval targets. See the [library schema](../LIBRARY.md) and [citation lifecycle](../RETRIEVAL-CITATIONS.md).
+EPD equality here means equality of the first four FEN fields, not equality of game history or draw state. Full FEN and occurrence/revision IDs preserve the source arrival and its note. A transposition can share an EPD while two notes remain different retrieval targets. See the [library schema](../design/library.md) and [citation lifecycle](../design/retrieval.md#retrieved-coach-passages-and-citations).
 
 ## Algorithm comparison
 
@@ -33,9 +33,9 @@ The mechanisms in the middle column come from the linked primary sources. The fi
 
 ### Pawn overlap and rank fusion are narrower components
 
-For colour/square sets A and B, Kibitz computes `d = 1 − |A ∩ B| / |A ∪ B|`, with empty/empty defined as zero. Replacing one pawn square in a sixteen-pawn position gives `2/17 ≈ 0.118`, whether the displacement is one rank or several. Advancing the only pawn in a sparse ending gives distance one. This follows directly from the implemented formula: it measures overlap, without accounting for distance travelled, legal reachability, piece relationships or the solution. The [pawn-distance specification](../PAWN-DISTANCE.md) records the threshold and sparse miss.
+For colour/square sets A and B, Kibitz computes `d = 1 − |A ∩ B| / |A ∪ B|`, with empty/empty defined as zero. Replacing one pawn square in a sixteen-pawn position gives `2/17 ≈ 0.118`, whether the displacement is one rank or several. Advancing the only pawn in a sparse ending gives distance one. This follows directly from the implemented formula: it measures overlap, without accounting for distance travelled, legal reachability, piece relationships or the solution. The [pawn-distance specification](../design/retrieval.md#fuzzy-pawn-structure-distance) records the threshold and sparse miss.
 
-[Cormack, Clarke & Büttcher's RRF (SIGIR 2009)](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf) combines ranks using `sum(1 / (k + rank))`; their experiments used `k = 60`. Kibitz adopts that form, then applies its own term/exact-board ordering. RRF combines existing candidates; it cannot recover an example omitted from every channel or create a missing solution-similarity signal. Its final score is not a calibrated relevance probability. The [hybrid comparison](../HYBRID-SEARCH.md) measures the resulting tradeoffs locally.
+[Cormack, Clarke & Büttcher's RRF (SIGIR 2009)](https://cormack.uwaterloo.ca/cormacksigir09-rrf.pdf) combines ranks using `sum(1 / (k + rank))`; their experiments used `k = 60`. Kibitz adopts that form, then applies its own term/exact-board ordering. RRF combines existing candidates; it cannot recover an example omitted from every channel or create a missing solution-similarity signal. Its final score is not a calibrated relevance probability. The [hybrid comparison](../design/retrieval.md#hybrid-passage-retrieval) measures the resulting tradeoffs locally.
 
 ## What the existing numbers establish
 
@@ -66,7 +66,7 @@ The 2020 combined-feature result and the 2026 dynamic-feature result address dif
 
 ## A fair next comparison
 
-Use the [position benchmark adapter](../RETRIEVAL-EVAL.md#extending-the-benchmark) for methods returning occurrences; keep passage experiments in the passage harness. A supervised pair classifier additionally needs its own grouped classification evaluation before being assessed as a reranker.
+Use the [position benchmark adapter](../design/retrieval.md#extending-the-benchmark) for methods returning occurrences; keep passage experiments in the passage harness. A supervised pair classifier additionally needs its own grouped classification evaluation before being assessed as a reranker.
 
 1. **Freeze eligibility and inputs.** Give all position methods the same permitted, legally replayed sources and stable occurrence IDs. Declare whether queries contain only FEN, a played move/history, a supplied solution, or a bounded engine analysis. Use comparable analysis budgets; do not give only one method the gold solution or labels.
 2. **Add transparent ablations first.** Compare exact/pawn buckets, pawn Jaccard, occupied-piece terms, then a faithful 2014-style reachability/relation encoding. Preserve distance weights and best-per-game grouping in a reproduction; report occurrence-aware adaptations separately. Add 2020-style solution terms on a tactical suite with available/checked continuations.

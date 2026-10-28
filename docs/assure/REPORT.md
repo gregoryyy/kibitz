@@ -19,15 +19,15 @@ flowchart LR
 
 | Node type | Count |
 | --- | ---: |
-| artifact | 587 |
+| artifact | 561 |
 | milestone | 13 |
 | todo | 230 |
-| done | 131 |
-| insight | 308 |
-| deviation | 218 |
+| done | 132 |
+| insight | 309 |
+| deviation | 220 |
 | reflection | 2 |
 
-3998 typed edges; 439 scanned text inputs; 315 unresolved references.
+3838 typed edges; 413 scanned text inputs; 329 unresolved references.
 
 ## TODO → DONE index
 
@@ -270,6 +270,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 
 | Entry | TODO references | Insights | Deviations | Combined |
 | --- | --- | ---: | ---: | ---: |
+| [2026-10-28 — Fewer documentation files](../DONE.md#2026-10-28--fewer-documentation-files) | none recorded | 1 | 2 | 0 |
 | [2026-10-26 — Agent failure repeated during the drift cleanup](../DONE.md#2026-10-26--agent-failure-repeated-during-the-drift-cleanup) | none recorded | 4 | 2 | 0 |
 | [2026-10-26 — Security drift post-mortem and preserved alternative branch](../DONE.md#2026-10-26--security-drift-post-mortem-and-preserved-alternative-branch) | 0.19 | 3 | 2 | 0 |
 | [2026-10-26 — Agent failure: security scope expansion, excessive CI and unsupported billing diagnosis](../DONE.md#2026-10-26--agent-failure-security-scope-expansion-excessive-ci-and-unsupported-billing-diagnosis) | none recorded | 6 | 2 | 0 |
@@ -405,7 +406,7 @@ A DONE reference may describe partial work, deferred scope or a limitation. Chec
 ## Coverage gaps
 
 - 22 checked TODO items have no DONE annotation reference.
-- 9 DONE entries have no resolvable TODO annotation reference.
+- 10 DONE entries have no resolvable TODO annotation reference.
 
 Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain explicit in `lineage.json`. The first fifty records are shown here; no renamed path or completion claim is invented.
 
@@ -415,10 +416,20 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [AGENTS.md:10](../../AGENTS.md) | site/tests/ | directory |
 | [AGENTS.md:11](../../AGENTS.md) | utils/ | directory |
 | [AGENTS.md:11](../../AGENTS.md) | utils/pdf/ | directory |
-| [AGENTS.md:26](../../AGENTS.md) | site/ | directory |
-| [AGENTS.md:28](../../AGENTS.md) | site/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/design/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/eval/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/flipbook/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/guide/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/incidents/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/primer/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/releases/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/research/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/security/ | directory |
+| [AGENTS.md:27](../../AGENTS.md) | site/ | directory |
 | [AGENTS.md:29](../../AGENTS.md) | site/ | directory |
-| [AGENTS.md:29](../../AGENTS.md) | site/tests/e2e/ | directory |
+| [AGENTS.md:30](../../AGENTS.md) | site/ | directory |
+| [AGENTS.md:30](../../AGENTS.md) | site/tests/e2e/ | directory |
 | [AGENTS.md:7](../../AGENTS.md) | site/ | directory |
 | [AGENTS.md:8](../../AGENTS.md) | chess/ | missing |
 | [AGENTS.md:8](../../AGENTS.md) | coach/ | missing |
@@ -451,16 +462,6 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [README.md:165](../../README.md) | .github/workflows/ | directory |
 | [README.md:22](../../README.md) | index.html | ambiguous |
 | [README.md:62](../../README.md) | .github/ | directory |
-| [README.md:80](../../README.md) | dist/_test.html | missing |
-| [README.md:80](../../README.md) | dist/index.html | missing |
-| [README.md:81](../../README.md) | dist/eco.json | missing |
-| [README.md:82](../../README.md) | dist/ | missing |
-| [README.md:82](../../README.md) | site/src/ | directory |
-| [README.md:83](../../README.md) | /_test.html | outside_repository |
-| [README.md:83](../../README.md) | index.html | ambiguous |
-| [README.md:9](../../README.md) | site/ | directory |
-| [THIRD_PARTY_NOTICES.md:10](../../THIRD_PARTY_NOTICES.md) | chessground.js | missing |
-| [THIRD_PARTY_NOTICES.md:10](../../THIRD_PARTY_NOTICES.md) | index.html | ambiguous |
 
 ### Files without extracted relationships (56)
 

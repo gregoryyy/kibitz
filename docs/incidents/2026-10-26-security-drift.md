@@ -15,7 +15,7 @@ is established; that use causing the account block is **not established**.
 
 This review compares Git history, current GitHub PR/branch/job records, the
 historical assurance snapshots and the maintainer's existing local `DONE.md`
-incident entry. The [evidence record](incidents/2026-10-26-security-drift.json)
+incident entry. The [evidence record](2026-10-26-security-drift.json)
 retains the PR heads, ancestry results, snapshot counts, counterfactual assessment
 and original incident text. The latter was uncommitted on `chore/local-ci` when
 read; its metrics and account observations are attributed records, not a new
@@ -27,8 +27,8 @@ Historical event times below are UTC.
 
 | Decision or change | Evidence | Causal role |
 | --- | --- | --- |
-| Select a local single-user application, with hosted authentication deferred | [Deployment decision](DEPLOYMENT.md), TODO 10.1/10.2, 24 October | Establishes the product boundary against which later proposals needed review. |
-| Review ASVS L1 and retain ten deviations and two open controls | [ASVS review](ASVS.md), PR #116 | Identifies differences from a standard. A difference alone does not choose the appropriate product architecture. |
+| Select a local single-user application, with hosted authentication deferred | [Deployment decision](../guide/setup.md#deployment-decision-local-single-user-app), TODO 10.1/10.2, 24 October | Establishes the product boundary against which later proposals needed review. |
+| Review ASVS L1 and retain ten deviations and two open controls | [ASVS review](../security/asvs.md), PR #116 | Identifies differences from a standard. A difference alone does not choose the appropriate product architecture. |
 | Require all twelve conditions fixed before a final release | Commit [`cd4ac4a`](https://github.com/gregoryyy/kibitz/commit/cd4ac4a3cdf49d6972de9a35d0996d92834a6ca4), PR [#133](https://github.com/gregoryyy/kibitz/pull/133), 25 October, 12:06 | Immediate planning trigger: twelve detailed remediation tasks become release prerequisites. The same text still requires preserving the local scope. |
 | Add owner-selected native HTTPS | Commit `26ccec2`, PR [#139](https://github.com/gregoryyy/kibitz/pull/139), 12:35; merged 22:26 | An explicitly recorded transport choice. It adds optional TLS while retaining the HTTP development/RC path. It is distinct from the rejected stack. |
 | Migrate cookies and make TLS the normal required execution path | Commit `54878f9`, PR [#140](https://github.com/gregoryyy/kibitz/pull/140), 13:17 | First visible broadening of defaults in the rejected stack. A useful data-migration fix becomes coupled to a deployment-policy change. |
@@ -105,7 +105,7 @@ product/budget/payment record, not another estimate from repository run minutes.
 
 The mechanism from TODO 0.15–0.17 supplies typed lineage, source replay,
 confidence-weighted assessments and findings. Those are useful foundations. The
-[documented contract](assure/README.md) explicitly distinguishes a reference from
+[documented contract](../assure/README.md) explicitly distinguishes a reference from
 implementation, verification, approval and causation.
 
 The weighted implementation existed on its feature branch before the rejected
@@ -148,7 +148,7 @@ between that revision and the reviewed `main`.
 Adding one **retrospective analyst hypothesis** of type `deviates_from`, from
 `file:docs/TODO.md` to `todo:10.1`, citing the session-remediation TODO, changes the
 output from 3,491 to 3,492 findings. The added result is an `assessed_deviation`
-candidate with its supporting path. The [evidence record](incidents/2026-10-26-security-drift.json)
+candidate with its supporting path. The [evidence record](2026-10-26-security-drift.json)
 contains the complete input hypothesis and added finding. It was applied in
 memory; the historical graph and current authored assessments were not rewritten.
 

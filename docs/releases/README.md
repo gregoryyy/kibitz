@@ -1,20 +1,103 @@
-# Local release review packet
+# Versioning and releases
+
+TODO 12.1 establishes a version policy and a user-facing
+[changelog](../../CHANGELOG.md). Kibitz follows
+[Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
+The package and both root entries in `site/package-lock.json` agree on the
+proposed `0.1.0-rc.1` candidate. The earlier `0.1.0` value was an unpublished
+development baseline; no release tag exists at this draft's preparation.
+The [candidate review](0.1.0-rc.1.md) records the merged original
+prerequisites, retained current-source evidence and approved local exceptions.
+Final source verification and release approval remain open. Preparation and
+integration do not authorize publication.
+The [dated local release review packet](#local-release-review-packet) collects prerequisite
+evidence, approved scoped exceptions and outstanding follow-up; it is not release approval.
+
+The compatibility scope is the documented CLI/configuration behavior, gateway
+and optional library HTTP contracts, versioned data exports and persisted data
+lifecycle, and documented offline update behavior. Internal module organization,
+DOM selectors and retrieval heuristics can evolve; record user-visible effects
+and ranking/quality changes without promising stable internal implementation.
+Stored schema and source-revision identifiers remain independently versioned.
+A package version bump alone does not migrate data or make old cached models compatible.
+
+Before 1.0, interfaces are under development. This project still uses patch bumps
+for compatible fixes and minor bumps for features or incompatible changes. Describe
+every breaking change explicitly, including affected storage/export/API versions,
+backup/migration steps and recovery limits. For example, a compatible fix after
+`0.1.0` is `0.1.1`; an incompatible next development interface is `0.2.0`.
+Use a new major version for incompatible public-contract changes once 1.0 is adopted;
+compatible features increment minor and compatible fixes increment patch.
+Prerelease identifiers such as `0.2.0-rc.1` mark candidates. Build metadata can
+identify a build but does not establish release precedence or compatibility.
+Never replace the source or assets behind an existing release tag.
+
+Ordinary feature/fix PRs add concise, user-relevant entries under **Unreleased**
+when behavior changes. Group entries as Added, Changed, Fixed, Removed or Security
+when useful. Describe the effect and material limitation; keep test logs and
+implementation detail in DONE. A source reorganization or documentation correction
+does not require inventing a release number. Keep all package/lock versions aligned.
+
+Prepare a release in its own branch and PR:
+
+1. Choose the candidate version and exact source scope. Ensure prerequisites are
+   merged through their PRs. Keep the root user guide/changelog consistent with
+   the actual candidate rather than planned work.
+2. In `site/`, update package and lockfile metadata with
+   `npm version VERSION --no-git-tag-version --ignore-scripts`. Substitute the
+   reviewed version; inspect the resulting manifest/lock diff. Keep `private: true`
+   unless a separately reviewed distribution change requires otherwise.
+3. Move the relevant Unreleased entries into a dated version section, leave a new
+   Unreleased section, and link the version/tag comparison. Document data/export,
+   cookie, model and offline-cache compatibility or migration requirements.
+   Back up affected local data before an incompatible migration; preserve unknown
+   data rather than silently deleting it.
+4. Run lint/JSDoc, build, full unit and browser suites for the candidate. Run and
+   record [automated security evidence](../security/supply-chain.md#automated-security-evidence),
+   [OWASP Top 10](../security/owasp-top10.md), [LLM](../security/owasp-llm.md) and [ASVS](../security/asvs.md) reviews.
+   Include exact run/commit identities, unresolved controls/findings and explicit
+   owner disposition of deviations. An open high finding blocks release. Retain
+   artifacts before their thirty-day expiry; a prior feature's green check is
+   not release-commit evidence.
+   For the first final (non-prerelease) release, require every ASVS remediation
+   item **TODO 11.4.2.1–11.4.2.12** to be implemented and verified, with the
+   corresponding assessment updated from its current deviation/open status.
+   The temporary exceptions accepted for PR #133's local RC do not authorize
+   carrying these conditions into the final release. Check both the TODOs and
+   the cited verification; approval or another exception does not count as a fix.
+   Existing review/remediation dates still apply, and a planned release cannot
+   extend them. This ASVS gate does not silently change other findings' deadlines.
+5. Review third-party maintenance deadlines, licences/notices, required source
+   availability, packaged components, platform support and documentation. Confirm
+   the release's actual deployment/security scope. Confirm the merged container
+   and user/provider/Ollama guides match that candidate.
+6. Merge only through the approved release PR with passing CI. After explicit
+   release authorization, tag its exact merged commit as `vVERSION` and publish
+   reviewed release notes/assets. Do not retag a different commit or publish from
+   an unmerged feature branch. Correct a released defect with a new version.
+
+Creating this policy completes TODO 12.1. Packaging TODO 12.2 and guides in 12.4
+have their separate evidence; the actual release gate in 11.6 still requires
+candidate verification and a release decision. Feature and milestone PRs do not
+authorize automatic merges or publishing.
+
+## Local release review packet
 
 Prepared on 2026-10-25 for TODO 11.6. **The release gate remains open.**
 This packet collects evidence and decisions for a local single-user release;
 it does not approve a release, accept risks or assign a published version.
 At this packet's initial preparation, `0.1.0` was the unpublished development
-baseline. The [draft `0.1.0-rc.1` candidate](releases/0.1.0-rc.1.md) now prepares
+baseline. The [draft `0.1.0-rc.1` candidate](0.1.0-rc.1.md) now prepares
 version/changelog metadata on main. Its original prerequisites are integrated;
 final-head checks, final merged source and release approval remain pending.
 
-## Source and prerequisites
+### Source and prerequisites
 
 The initial preparation started at `209e458ec8283ae86ea86a3600632a1de663298c`.
 The owner has now integrated current main `678866198a19bf89416ddfaf3b1fc31f94d5f819`
 into PR #133, producing candidate `002fd92dd33e009f86cf8b79008180888a392e0f`.
 The following original prerequisites are merged. The
-[candidate review](releases/0.1.0-rc.1.md) separates current evidence, earlier
+[candidate review](0.1.0-rc.1.md) separates current evidence, earlier
 feature results, this later review update and remaining final-head checks.
 
 | PR | Result supplied | State at follow-up |
@@ -30,50 +113,50 @@ feature results, this later review update and remaining final-head checks.
 | [132](https://github.com/gregoryyy/kibitz/pull/132) | Pinned browser-model source revisions | Merged |
 | [130](https://github.com/gregoryyy/kibitz/pull/130) | Matched CodeQL actions and integrated Chessground CSP compatibility | Merged |
 
-The tested scope is [local, single-user operation](DEPLOYMENT.md), either native
+The tested scope is [local, single-user operation](../guide/setup.md#deployment-decision-local-single-user-app), either native
 Node or the loopback-published container. It includes cookie-separated private
 storage, optional external providers and optional browser inference. It supplies
 no hosted accounts, network deployment, model-quality certification or registry
-publication. The [Primer motivation](../README.md) and
-[retrieval/literature comparison](research/position-retrieval-comparison.md) describe experiments,
+publication. The [Primer motivation](../../README.md) and
+[retrieval/literature comparison](../research/position-retrieval-comparison.md) describe experiments,
 not evidence that arbitrary generated chess explanations are correct.
 
-## Evidence available before the release candidate
+### Evidence available before the release candidate
 
 | Review/check | Recorded result | Boundary |
 | --- | --- | --- |
-| [OWASP application review](OWASP-TOP10.md) | Ten categories mapped to code, tests and finding dispositions | Source/test review, not certification; re-review changes at the candidate |
-| [OWASP LLM 2025 review and 2026 crosswalk](OWASP-LLM.md) | Deterministic prompt/tool/privacy/output/resource boundaries have regression evidence | Model identity and unrestricted claim verification remain partial |
-| [ASVS 5.0.0 L1](ASVS-L1.md) | All 70 requirements recorded: 28 scoped verifications, 30 justified absences, ten deviations, two open | Record validation does not execute tests or establish compliance |
+| [OWASP application review](../security/owasp-top10.md) | Ten categories mapped to code, tests and finding dispositions | Source/test review, not certification; re-review changes at the candidate |
+| [OWASP LLM 2025 review and 2026 crosswalk](../security/owasp-llm.md) | Deterministic prompt/tool/privacy/output/resource boundaries have regression evidence | Model identity and unrestricted claim verification remain partial |
+| [ASVS 5.0.0 L1](../security/asvs-l1.md) | All 70 requirements recorded: 28 scoped verifications, 30 justified absences, ten deviations, two open | Record validation does not execute tests or establish compliance |
 | Unit/server suite at `92ccc07` | 690 pass, one opt-in live skip | Mock/fake providers; later entrypoint regression also passes independently |
 | Checker regression after main reconciliation | Eight groups pass in each prerequisite branch; unguarded stdin import reproduces failure | CLI/import behavior only; no application/scanner policy change |
-| [Passive web baseline](WEB-ASSETS.md) | [Run 40158959465](https://github.com/gregoryyy/kibitz/actions/runs/40158959465), source `00e7d16`, merge `9c8d6843`: zero high/medium, two informational types | Seven required routes, sixty enabled passive rules; comments and grouping-cookie information retained |
-| [Exact packaged-image scan](IMAGE-ADVISORIES.md) | [Run 40166278799](https://github.com/gregoryyy/kibitz/actions/runs/40166278799), source `92ccc07`, merge `da379a15`: zero high/critical, 23 medium/eight low | Fresh hashed DB, fourteen OS/sixteen library versions, independently verified image/config/rootfs/source identities |
+| [Passive web baseline](../security/supply-chain.md#browser-styles-and-bundled-fonts) | [Run 40158959465](https://github.com/gregoryyy/kibitz/actions/runs/40158959465), source `00e7d16`, merge `9c8d6843`: zero high/medium, two informational types | Seven required routes, sixty enabled passive rules; comments and grouping-cookie information retained |
+| [Exact packaged-image scan](../security/supply-chain.md#packaged-image-advisory-evidence) | [Run 40166278799](https://github.com/gregoryyy/kibitz/actions/runs/40166278799), source `92ccc07`, merge `da379a15`: zero high/critical, 23 medium/eight low | Fresh hashed DB, fourteen OS/sixteen library versions, independently verified image/config/rootfs/source identities |
 | Actual container tests in that run | Four pass: boundaries, Stockfish/mock UI, restart isolation and previous-packaging volume compatibility | Both packaging recipes use the current app/schema; not historical schema-migration evidence |
 | CodeQL | At reviewed main `42761c3`, no open high alerts; medium alerts 20/21/23 remain. PR #124 races 25/26 are fixed without dismissal | Passing PR check does not remove retained medium findings or replace a release-commit scan |
 
 Implementation and exact sanitized identities are in
-[DONE](DONE.md), [web evidence](security/2026-10-25-web-assets.json) and
-[image evidence](security/2026-10-25-image-advisories.json).
+[DONE](../DONE.md), [web evidence](../security/2026-10-25-web-assets.json) and
+[image evidence](../security/2026-10-25-image-advisories.json).
 These historical feature results must not be relabeled as candidate checks.
 Current source-002fd92 evidence is retained in the
-[structured record](releases/0.1.0-rc.1-evidence.json) and
-[raw report archive](releases/evidence/0.1.0-rc.1/002fd92/README.md): 699 unit
+[structured record](0.1.0-rc.1-evidence.json) and
+[raw report archive](evidence/0.1.0-rc.1/002fd92/README.md): 699 unit
 passes/one skip, passing CodeQL/secret/audit, actual image and passive scans.
 The full browser run passes with 423 passes/one skip, completing at 11:46 UTC.
 Later documentation and
 integration commits require final-head checks; earlier green results do not
 replace them.
 
-## Required dispositions
+### Required dispositions
 
 Owner disposition was **approved on 2026-10-25** for local `0.1.0-rc.1`, with
 the owner responsible for follow-up. The owner answered “Approve proposed
 exceptions” for [PR #133](https://github.com/gregoryyy/kibitz/pull/133).
-The [candidate decision table](releases/0.1.0-rc.1.md#owner-dispositions-approved--2026-10-25)
+The [candidate decision table](0.1.0-rc.1.md#owner-dispositions-approved--2026-10-25)
 records scope, mitigations and deadlines. These are deployment-specific
 exceptions; all ten ASVS deviations and both open requirements remain
-unsatisfied in the [versioned assessment](asvs-l1.json).
+unsatisfied in the [versioned assessment](../security/asvs-l1.json).
 
 Local-behavior exceptions and actual endpoint TLS inventory are reviewed by
 **2026-11-01**. Component/build/tool/model review is due **2026-11-01**, with a
@@ -85,8 +168,8 @@ The table below retains the technical conditions and required follow-up.
 **Owner direction on 2026-10-25 adds a final-release condition:** the twelve
 ASVS items may retain their temporary approval in PR #133, but must be fixed
 and verified before the first final (non-prerelease) release. They are tracked
-individually under **TODO 11.4.2.1–11.4.2.12** in [TODO.md](TODO.md).
-The [assessment](asvs-l1.json) links each unsatisfied control to its specific
+individually under **TODO 11.4.2.1–11.4.2.12** in [TODO.md](../TODO.md).
+The [assessment](../security/asvs-l1.json) links each unsatisfied control to its specific
 remediation item. The maintainer owns follow-up; current statuses remain ten
 deviations and two open. No checkbox or RC approval establishes remediation.
 The original review dates and component-plan/finding deadlines remain in force;
@@ -104,21 +187,21 @@ the final-release gate cannot postpone an earlier deadline.
 | 15.2.1 — open | Broader component advisory/age coverage and lower-finding exposure triage are incomplete | Review build stages, Actions, Node/WASM internals and model provenance alongside dated runtime/npm evidence |
 
 The 31 runtime package findings retain individual first-reported dates and
-[review/remediation targets](security/2026-10-25-image-advisories.json): medium
+[review/remediation targets](../security/2026-10-25-image-advisories.json): medium
 review by 2026-11-01/remediation by 2026-11-24; low review by
 2026-11-24/remediation by 2027-01-23. The owner approved their scoped retention
 for this RC, including exposure uncertainties and these original deadlines.
 There is no blanket reachability exclusion or suppression. Apply the
-[maintenance policy](MAINTENANCE.md), including its overdue/release rule.
+[maintenance policy](../security/supply-chain.md#component-maintenance-policy), including its overdue/release rule.
 CodeQL 20/21 are intentional operator capture writes; 23 reflects supported
 local HTTP cookies. Those documented local contexts have the same approved RC
 disposition; the raw alerts remain open.
-The [initial runtime exposure review](security/2026-10-25-runtime-triage.md)
+The [initial runtime exposure review](../security/2026-10-25-runtime-triage.md)
 checks all 25 distinct CVEs against vendor records and the supplied configuration.
 It records CPU/function/service prerequisites, the resolver configuration concern
 and native-linkage/range gaps. All raw findings remain open; owner exceptions do
 not establish that their code paths are unreachable or fixed.
-The [compiled-component/package evidence](COMPONENT-PROVENANCE.md) additionally
+The [compiled-component/package evidence](../security/supply-chain.md#compiled-component-and-package-provenance-evidence) additionally
 records verified registry signatures and exact upstream source candidates, while
 keeping the binary compilation link unverified. Initial Linux Node/asset capture
 passed, while its browser check failed twice on network-change-aborted modules.
@@ -132,7 +215,7 @@ All six direct Action pins also match independently resolved official version
 tags, with a dated, bounded advisory query. Bundled/downloaded tool dependencies
 and hosted runner/platform changes remain separate gaps.
 
-## Candidate work and external inputs
+### Candidate work and external inputs
 
 **Owner direction, 2026-10-25:** retain experimental free-form coaching for the
 first release candidate and document the open verification limitation. Restricted
@@ -141,7 +224,7 @@ unmet, with no claim that general prose is verified; README and the user guide
 state the boundary. This decision does not dispose of other security requirements.
 
 Before approval, select a version and exact merged source, update the changelog
-and package/lock metadata using [the release procedure](RELEASING.md), then run
+and package/lock metadata using [the release procedure](#versioning-and-releases), then run
 lint/JSDoc, build, the complete unit/browser suites and every security workflow.
 Retain actual run/merge/image/DB/report identities and artifacts before expiry.
 Re-review every changed OWASP/LLM/ASVS control and record owner dispositions,

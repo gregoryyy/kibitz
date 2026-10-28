@@ -2,7 +2,7 @@
 
 Ideas for where Kibitz could go beyond [TODO.md](TODO.md). These are directions to explore, not planned work. When an idea is picked up, it becomes TODO items, and this file links to them.
 
-The selected deployment is a [local single-user app](DEPLOYMENT.md). A future hosted service must revisit accounts, sessions/passkeys/OAuth, tenant isolation, account-based quotas, encrypted per-account provider keys and account-wide export/deletion before claiming multi-user support. TODO 10.2 remains explicitly deferred.
+The selected deployment is a [local single-user app](guide/setup.md#deployment-decision-local-single-user-app). A future hosted service must revisit accounts, sessions/passkeys/OAuth, tenant isolation, account-based quotas, encrypted per-account provider keys and account-wide export/deletion before claiming multi-user support. TODO 10.2 remains explicitly deferred.
 
 ## 1. Show the options on the board
 
@@ -176,6 +176,6 @@ Present the [Primer](primer/Primer_v01.md) as a website with animations and inte
 - **Neurosymbolic flow:** animate how the position reaches the rules, Stockfish search/NNUE and feature detectors; how their evidence enters the LLM context; and how explanations, tool requests and board marks pass through validation. Show which component supplies each fact and what happens when a move or motif is unsupported.
 - **RAG flow:** animate the query/aspect, position and tag matching, candidate references, ranking, the selected evidence packet and the answer's citations. Let the reader open a retrieved example on the board. Distinguish exact matches from structural/thematic analogies, explicit passage embeddings and hybrid ranking; show current source citation checks, with semantic support checks and graph retrieval as planned/research extensions.
 - **Inspection and controls:** pause, step forward/back and replay; inspect intermediate facts, tool results, retrieval matches and the context actually sent to the model. Switching the position or aspect should make the changed evidence visible.
-- **Presentation:** reuse the existing Primer text/figures and the [design overview](AI-DESIGN.md). Provide keyboard controls, reduced-motion/static alternatives and a mobile layout. Recorded or mock traces can make the main walkthrough reproducible; live engine/model demonstrations are an optional extension.
+- **Presentation:** reuse the existing Primer text/figures and the [design overview](design/ai.md). Provide keyboard controls, reduced-motion/static alternatives and a mobile layout. Recorded or mock traces can make the main walkthrough reproducible; live engine/model demonstrations are an optional extension.
 - **Builds on:** the Primer sources, tutorial idea 8, the checked coach/board flow (3–4), RAG (8) and the [retrieval research](research/README.md).
 - **Open questions:** the first scenes to animate, how closely the website follows the printed Primer, the animation/site tooling and hosting, and whether any live provider calls belong in the public walkthrough.

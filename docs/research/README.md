@@ -2,7 +2,7 @@
 
 Research date: **2026-10-23**. Repository audit: **`0176c62` on `main`**. These notes describe the current implementation separately from proposed work; they do not complete milestones 5–8.
 
-Subsequent implementation: TODO 8.1–8.8 added material/placement predicates, pattern browsing, [lexical/dense passages](../TEXT-SEARCH.md), [hybrid fusion](../HYBRID-SEARCH.md), [fuzzy pawn distance](../PAWN-DISTANCE.md) and [cited coach context](../RETRIEVAL-CITATIONS.md), with separate position, passage and spatial benchmarks. The [2026-10-24 position retrieval comparison](position-retrieval-comparison.md) maps these paths to literature algorithms and separates recorded Kibitz results from published experiments. Literature implementations and graph-retrieval comparisons remain future work; the original audit below retains its date and proposal scope.
+Subsequent implementation: TODO 8.1–8.8 added material/placement predicates, pattern browsing, [lexical/dense passages](../design/retrieval.md#study-text-search), [hybrid fusion](../design/retrieval.md#hybrid-passage-retrieval), [fuzzy pawn distance](../design/retrieval.md#fuzzy-pawn-structure-distance) and [cited coach context](../design/retrieval.md#retrieved-coach-passages-and-citations), with separate position, passage and spatial benchmarks. The [2026-10-24 position retrieval comparison](position-retrieval-comparison.md) maps these paths to literature algorithms and separates recorded Kibitz results from published experiments. Literature implementations and graph-retrieval comparisons remain future work; the original audit below retains its date and proposal scope.
 
 ## Reading order
 
@@ -12,7 +12,7 @@ Subsequent implementation: TODO 8.1–8.8 added material/placement predicates, p
 4. [Position similarity by aspect](position-similarity.md): candidate symbolic/dynamic distances, conditional metric learning and an aspect-specific evaluation plan.
 5. [Implemented position retrieval versus literature algorithms](position-retrieval-comparison.md): current bucket/predicate/pattern/hybrid paths versus relational BM25, solution-aware retrieval, expert classifiers, CQL and chess embeddings; measurements, input differences and a fair comparison protocol.
 
-Start with the brief [LLM and symbolic design overview](../AI-DESIGN.md) for a feature-level map. Read alongside the [architecture](../ARCH.md), [plan](../TODO.md) and [Primer](../primer/Primer_v01.pdf), whose [editable source](../primer/Primer_v01.md) is also available. The Primer's metadata and position-retrieval discussion is the starting point, rather than evidence that full-text/vector RAG is already implemented.
+Start with the brief [LLM and symbolic design overview](../design/ai.md) for a feature-level map. Read alongside the [architecture](../ARCH.md), [plan](../TODO.md) and [Primer](../primer/Primer_v01.pdf), whose [editable source](../primer/Primer_v01.md) is also available. The Primer's metadata and position-retrieval discussion is the starting point, rather than evidence that full-text/vector RAG is already implemented.
 
 ## Recommendations
 

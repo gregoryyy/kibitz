@@ -74,7 +74,7 @@
       "evidence": [
         "site/src/coach/tools.js",
         "site/server/ai.mjs",
-        "docs/THREAT-MODEL.md"
+        "docs/security/threat-model.md"
       ]
     },
     {
@@ -86,7 +86,7 @@
       "evidence": [
         "site/src/coach/chat.js",
         "site/scripts/build.mjs",
-        "docs/THREAT-MODEL.md"
+        "docs/security/threat-model.md"
       ]
     },
     {
@@ -110,7 +110,7 @@
       "note": "No XML parser or user XML input exists. The shipped SVG icon is a trusted static asset.",
       "evidence": [
         "site/server/public-files.mjs",
-        "docs/VALIDATION.md"
+        "docs/security/asvs.md"
       ]
     },
     {
@@ -120,7 +120,7 @@
       "method": "documentation-review",
       "note": "The validation guide records expected structures, limits, browser/server responsibilities and references to authoritative source constants and tests.",
       "evidence": [
-        "docs/VALIDATION.md"
+        "docs/security/asvs.md"
       ]
     },
     {
@@ -199,7 +199,7 @@
         "site/server/api.mjs",
         "site/server/library-api.mjs",
         "site/server/cookie-transport.test.mjs",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.1"
@@ -212,7 +212,7 @@
       "note": "The local server intentionally has no HSTS policy and supports HTTP. A one-year localhost-wide policy would affect other apps and ports. Reassess transport and deployment before enabling it. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/static.mjs",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.2"
@@ -353,7 +353,7 @@
       "method": "scope-review",
       "note": "No application sign-in or password verification exists, so no credential-stuffing/lockout policy is claimed. Usage admission is not authentication protection.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -364,7 +364,7 @@
       "method": "scope-review",
       "note": "The application has no user password creation or validation. Server provider API keys are operator credentials, not account passwords.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -375,7 +375,7 @@
       "method": "scope-review",
       "note": "There is no application password or password-change workflow.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -386,7 +386,7 @@
       "method": "scope-review",
       "note": "There is no current/new application password transaction to authorize.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -397,7 +397,7 @@
       "method": "scope-review",
       "note": "There is no password enrolment/reset input or password verifier to check against a denylist.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -408,7 +408,7 @@
       "method": "scope-review",
       "note": "There is no user password policy or password field.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -419,7 +419,7 @@
       "method": "scope-review",
       "note": "No application account password input exists. Provider secrets are configured server-side rather than entered into a browser account form.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -430,7 +430,7 @@
       "method": "scope-review",
       "note": "No application password entry workflow exists to restrict paste or password managers.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -441,7 +441,7 @@
       "method": "scope-review",
       "note": "There is no received account password that the application normalizes or verifies.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -452,7 +452,7 @@
       "method": "scope-review",
       "note": "No credential authentication endpoint exists; local rate/token admission does not constitute brute-force protection for hosted accounts.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -463,7 +463,7 @@
       "method": "scope-review",
       "note": "The app creates no root/admin/default user account or account registry. Local grouping cookies are not account authentication.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -474,7 +474,7 @@
       "method": "scope-review",
       "note": "No account activation codes or initial passwords are generated. Random grouping cookies have a separate scoped assessment.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -485,7 +485,7 @@
       "method": "scope-review",
       "note": "No password hints or security-question authentication feature exists.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -498,7 +498,7 @@
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.3"
@@ -534,7 +534,7 @@
       "method": "scope-review",
       "note": "There is no sign-in or reauthentication event. Grouping cookies do not establish authenticated sessions.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -547,7 +547,7 @@
       "evidence": [
         "site/server/api.mjs",
         "site/server/library-api.mjs",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.4"
@@ -559,7 +559,7 @@
       "method": "scope-review",
       "note": "There is no application account registry or disable/delete-account workflow. Library erasure is a separate local-data action.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -570,9 +570,9 @@
       "method": "documentation-review",
       "note": "Deployment/threat documentation identifies the trusted local operator, same-origin browser, per-cookie library data and deferred hosted roles/accounts. Provider consent is not person authentication.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
-        "docs/THREAT-MODEL.md",
-        "docs/VALIDATION.md"
+        "docs/guide/setup.md",
+        "docs/security/threat-model.md",
+        "docs/security/asvs.md"
       ]
     },
     {
@@ -583,8 +583,8 @@
       "note": "Functions are available to trusted local clients and browser consent attestations; there are no authenticated principals or explicit account permissions. Browser Origin/consent controls cannot authorize an untrusted direct client. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/server/api.mjs",
-        "docs/DEPLOYMENT.md",
-        "docs/THREAT-MODEL.md",
+        "docs/guide/setup.md",
+        "docs/security/threat-model.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.5"
@@ -621,7 +621,7 @@
       "method": "scope-review",
       "note": "No self-contained authorization token is accepted. Grouping cookies are opaque references, not JWT claims.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -632,7 +632,7 @@
       "method": "scope-review",
       "note": "No self-contained token creation/verification or client-selected token algorithm exists.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -643,7 +643,7 @@
       "method": "scope-review",
       "note": "No JWT issuer, token-key URL or self-contained-token key resolution is implemented.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -654,7 +654,7 @@
       "method": "scope-review",
       "note": "No self-contained token claims or nbf/exp fields are parsed; grouping-cookie lifecycle deviations are tracked separately.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -665,7 +665,7 @@
       "method": "scope-review",
       "note": "Kibitz is not an OAuth/OIDC authorization server and has no authorization redirect endpoint.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -676,7 +676,7 @@
       "method": "scope-review",
       "note": "There is no OAuth authorization-code issue/redemption operation.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -687,7 +687,7 @@
       "method": "scope-review",
       "note": "No OAuth authorization codes are generated or accepted.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -698,7 +698,7 @@
       "method": "scope-review",
       "note": "No OAuth grants are configured or processed. Server provider API authentication is not an application OAuth authorization server.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -709,7 +709,7 @@
       "method": "scope-review",
       "note": "No OAuth refresh tokens, refresh endpoint or authorization grant state exists.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -720,7 +720,7 @@
       "method": "scope-review",
       "note": "The application does not implement bulk/asymmetric encryption or select padding modes. Node/browser transport TLS is assessed separately; persisted local data is not encrypted by the app.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -731,7 +731,7 @@
       "method": "scope-review",
       "note": "There is no application-managed encryption cipher suite to approve. This is not a claim about provider infrastructure or a guarantee of encryption at rest.",
       "evidence": [
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "site/server/api.mjs"
       ]
     },
@@ -757,7 +757,7 @@
       "evidence": [
         "site/scripts/serve.mjs",
         "site/server/cookie-transport.test.mjs",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.6"
@@ -771,7 +771,7 @@
       "evidence": [
         "site/scripts/serve.mjs",
         "site/server/ai.mjs",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.7"
@@ -785,7 +785,7 @@
       "evidence": [
         "site/server/ai.mjs",
         "site/server/cookie-transport.test.mjs",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.8"
@@ -800,7 +800,7 @@
         "site/server/static.mjs",
         "site/server/static.test.mjs",
         "site/tests/container/image.spec.mjs",
-        "docs/CONTAINER.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.9"
@@ -813,7 +813,7 @@
       "note": "AI keys/cookies/prompts travel in headers/bodies. Explicit external Lichess analysis navigation places the selected FEN in its path and browser history; a private chess position can be sensitive. This is a documented privacy deviation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/src/index.html",
-        "docs/PRIVACY.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.10"
@@ -826,8 +826,8 @@
       "note": "There are no authenticated sessions to terminate. Local history/preferences/library intentionally persist until explicit deletion; closing the page or expiring a grouping cookie does not clear all browser data. Privacy erasure controls are not an authenticated-session lifecycle. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
         "site/src/platform/data.js",
-        "docs/PRIVACY.md",
-        "docs/DEPLOYMENT.md",
+        "docs/guide/setup.md",
+        "docs/guide/setup.md",
         "docs/releases/0.1.0-rc.1.md"
       ],
       "followUp": "TODO 11.4.2.11"
@@ -839,7 +839,7 @@
       "method": "documentation-review",
       "note": "The maintenance policy defines risk-based triage/remediation targets, routine update cadence, tracking fields and release/exception handling. It does not claim current inventory adherence or staffed response guarantees.",
       "evidence": [
-        "docs/MAINTENANCE.md"
+        "docs/security/supply-chain.md"
       ]
     },
     {
@@ -849,13 +849,13 @@
       "method": "documentation-review",
       "note": "Dated evidence includes npm/image inventories, a fresh hashed advisory DB, verified base publisher, actual Node component/ABI versions and seven distributed engine/runtime asset hashes. Registry signatures, Action wrapper pins/queries and both fixed Qwen GGUF source revisions/LFS pointers are reviewed with scope limits. Runtime findings remain 23 medium/eight low under the scoped RC exception, with original deadlines. Build-stage, embedded/native advisory-age coverage, binary compilation linkage, downloaded Action tools and model provenance remain incomplete; this is not release-wide clearance. Owner approved a temporary local 0.1.0-rc.1 evidence-gap exception on 2026-10-25: component/build/tool/model review due 2026-11-01 and remediation plan due 2026-11-24; this requirement stays open. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
       "evidence": [
-        "docs/MAINTENANCE.md",
-        "docs/SECURITY-SCANS.md",
-        "docs/CONTAINER.md",
+        "docs/security/supply-chain.md",
+        "docs/security/supply-chain.md",
+        "docs/guide/setup.md",
         "site/src/fonts/manifest.json",
-        "docs/IMAGE-ADVISORIES.md",
+        "docs/security/supply-chain.md",
         "docs/security/2026-10-25-image-advisories.json",
-        "docs/COMPONENT-PROVENANCE.md",
+        "docs/security/supply-chain.md",
         "docs/security/2026-10-25-compiled-components.json",
         "docs/security/2026-10-25-package-provenance.json",
         "docs/security/2026-10-25-action-advisories.json",
