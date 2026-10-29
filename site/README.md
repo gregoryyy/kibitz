@@ -255,7 +255,7 @@ Open `_test.html?debug` to get `window.__kibitz` in the console, including `S`, 
 
 ## Licences
 
-GPL-3.0-or-later; see [LICENSE](../LICENSE) and [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md). The build copies both into `dist/`.
+GPL-3.0-or-later; see [LICENSE](../LICENSE) and the [third-party notices](../NOTICE). The build copies both into `dist/`.
 
 - Stockfish.js (Stockfish 19): GPL-3.0
 - chessground: GPL-3.0-or-later

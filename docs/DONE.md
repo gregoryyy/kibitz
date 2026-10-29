@@ -17,6 +17,7 @@ No TODO item; the owner asked for `docs/` to be cut back to the vital files.
 - A one-off script rewrote every relative link, anchor and `docs/…` path token in the repository, including this log, `asvs-l1.json` evidence paths and the ASVS generator, which now writes `docs/security/asvs-l1.md`. Collided headings get GitHub's `-1` suffixes. No link or anchor is broken before or after.
 - AGENTS.md now states the layout and that new features extend existing files.
 - The remaining uppercase names below the top level are lowercase too: every subdirectory readme, `assure/{findings,levels,report}.md` and `primer/primer-v01.{md,pdf}`. The flipbook, eval, assurance and primer generators write the new names.
+- The root `THIRD_PARTY_NOTICES.md` is now [NOTICE](../NOTICE), next to `LICENSE`. The build ships it as `dist/NOTICE.txt` (an extension, like `LICENSE.txt`, because the static server picks a file's type from its extension), and the image keeps `/app/NOTICE`. Both Dockerfiles copy the new name, including the frozen previous-runtime fixture, which builds current source. `.dockerignore` admits it.
 
 ### Deviations
 
@@ -3145,7 +3146,7 @@ TODO items: 0.3, 0.4, 0.5, 0.7, 0.8, 0.9, 0.10. Milestone 0 is complete.
 
   `codeql.yml` runs CodeQL (JavaScript and Actions, `security-extended`) on PRs, on `main` and weekly. Every action is pinned to a commit SHA, picked from releases at least two weeks old, and the workflow token is read-only.
 - **PR template (0.9):** `.github/pull_request_template.md` asks for the TODO number and has three checklists: tests, TODO/DONE and dependency licences, and the security rules from AGENTS.md.
-- **Licence (0.10):** `LICENSE` holds the GPL-3.0 text, and `package.json` says `GPL-3.0-or-later`. `THIRD_PARTY_NOTICES.md` lists the following, with chess.js's BSD notice in full:
+- **Licence (0.10):** `LICENSE` holds the GPL-3.0 text, and `package.json` says `GPL-3.0-or-later`. `NOTICE` (then `THIRD_PARTY_NOTICES.md`) lists the following, with chess.js's BSD notice in full:
   - what ships in `dist/`: Stockfish.js, chessground, the cburnett pieces, chess.js and the Lichess opening data;
   - what the page loads: Google Fonts;
   - what the server uses: the Anthropic and OpenAI SDKs.

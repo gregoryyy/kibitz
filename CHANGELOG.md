@@ -17,6 +17,11 @@ pending source, checks and decisions.
   keys, with validated files and no HTTP fallback on invalid TLS configuration.
   Cookie migration and the remaining final-release ASVS fixes are still pending.
 
+### Changed
+
+- Third-party notices are now `NOTICE` in the project root and the image's `/app/`,
+  and `NOTICE.txt` in `dist/`, replacing `THIRD_PARTY_NOTICES.md`.
+
 ## [0.1.0-rc.1] — prepared 2026-10-25, unpublished draft
 
 ### Added

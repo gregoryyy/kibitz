@@ -27,7 +27,7 @@ flowchart LR
 | deviation | 220 |
 | reflection | 2 |
 
-3838 typed edges; 413 scanned text inputs; 330 unresolved references.
+3826 typed edges; 412 scanned text inputs; 316 unresolved references.
 
 ## TODO → DONE index
 
@@ -446,6 +446,10 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [AGENTS.md:9](../../AGENTS.md) | .env | missing |
 | [AGENTS.md:9](../../AGENTS.md) | .kibitz-data/ | missing |
 | [AGENTS.md:9](../../AGENTS.md) | site/server/ | directory |
+| [CHANGELOG.md:22](../../CHANGELOG.md) | /app/ | outside_repository |
+| [CHANGELOG.md:23](../../CHANGELOG.md) | NOTICE.txt | missing |
+| [CHANGELOG.md:23](../../CHANGELOG.md) | THIRD_PARTY_NOTICES.md | missing |
+| [CHANGELOG.md:23](../../CHANGELOG.md) | dist/ | missing |
 | [README.md:119](../../README.md) | .env | missing |
 | [README.md:119](../../README.md) | site/server/ | directory |
 | [README.md:122](../../README.md) | .env | missing |
@@ -458,10 +462,6 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [README.md:163](../../README.md) | site/ | directory |
 | [README.md:164](../../README.md) | index.html | ambiguous |
 | [README.md:164](../../README.md) | scripts/ | missing |
-| [README.md:164](../../README.md) | server/ | missing |
-| [README.md:164](../../README.md) | src/ | missing |
-| [README.md:165](../../README.md) | .github/workflows/ | directory |
-| [README.md:22](../../README.md) | index.html | ambiguous |
 
 ### Files without extracted relationships (56)
 

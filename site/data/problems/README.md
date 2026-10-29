@@ -20,7 +20,7 @@ Each card shows an English/German question. **Open** starts at the full-FEN diag
 
 `study-sources.json` retains fixed Wikipedia revisions, retrieval dates, fetched-HTML digests and the exact 64 diagram cells for Réti and Saavedra. Those diagram/score facts retain **CC BY-SA 4.0**, credited to Wikipedia contributors; revision links provide contributor histories. No third-party prose annotations are copied. Counters are the explicit teaching start, not a recovered historical game clock. The diagram cells independently reconstruct the shipped piece placement and side to move.
 
-The two conventional Lucena/Philidor setups differ from the cited articles' diagrams. They retain the project's **GPL-3.0-or-later** score/note assertion as authored teaching variants, with separate method-reference links and an unknown publication date. The name Lucena does not establish a publication in 1497. The eight additional exercises identify their stable curriculum lesson/exercise IDs and an immutable source-code revision; their source and notes are original GPL-3.0-or-later material. The [shipped notices](../../../THIRD_PARTY_NOTICES.md) retain the separate rights and credits.
+The two conventional Lucena/Philidor setups differ from the cited articles' diagrams. They retain the project's **GPL-3.0-or-later** score/note assertion as authored teaching variants, with separate method-reference links and an unknown publication date. The name Lucena does not establish a publication in 1497. The eight additional exercises identify their stable curriculum lesson/exercise IDs and an immutable source-code revision; their source and notes are original GPL-3.0-or-later material. The [shipped notices](../../../NOTICE) retain the separate rights and credits.
 
 ## What is checked
 

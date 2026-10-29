@@ -1,6 +1,6 @@
 # Third-party notices
 
-Kibitz is licensed under the GNU General Public License, version 3 or (at your option) any later version; see [LICENSE](LICENSE). It includes or loads the components below. The build copies this file and `LICENSE` (as `LICENSE.txt`) into `site/dist/`, so they ship with the page.
+Kibitz is licensed under the GNU General Public License, version 3 or (at your option) any later version; see [LICENSE](LICENSE). It includes or loads the components below. The build copies this file (as `NOTICE.txt`) and `LICENSE` (as `LICENSE.txt`) into `site/dist/`, so they ship with the page.
 
 ## Shipped with the page (`site/dist/`)
 
