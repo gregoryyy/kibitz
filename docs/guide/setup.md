@@ -1,6 +1,6 @@
 # Running Kibitz locally
 
-Deployment, coach providers, privacy, limits, the container, HTTPS and server logs for the local single-user app. Playing and studying are in the [user guide](README.md).
+Deployment, coach providers, privacy, limits, the container, HTTPS and server logs for the local single-user app. Playing and studying are in the [user guide](readme.md).
 
 ## Deployment decision: local single-user app
 
@@ -104,7 +104,7 @@ A future hosted proposal must explicitly revisit this decision, threat model, au
 
 ## Coach providers and local Ollama
 
-This guide configures the standalone [local single-user app](#deployment-decision-local-single-user-app). Start with the [user guide](README.md); [`.env.example`](../../.env.example) is the complete configuration reference. The instructions below are setup steps, not evidence that an account/model has been tested live. External console instructions were checked against the linked primary documentation on 2026-10-25.
+This guide configures the standalone [local single-user app](#deployment-decision-local-single-user-app). Start with the [user guide](readme.md); [`.env.example`](../../.env.example) is the complete configuration reference. The instructions below are setup steps, not evidence that an account/model has been tested live. External console instructions were checked against the linked primary documentation on 2026-10-25.
 
 ### Configure a provider
 
@@ -116,7 +116,7 @@ If the root `.env` does not already exist, copy `.env.example` to `.env`. Edit t
 | OpenAI | `AI_PROVIDER=openai`, `OPENAI_API_KEY`, `OPENAI_MODEL=gpt-6-luna` | Create an API project key through the [OpenAI developer quickstart](https://developers.openai.com/api/docs/quickstart). Check that this API project has access to the selected model. |
 | Mistral | `AI_PROVIDER=mistral`, `MISTRAL_API_KEY`, `MISTRAL_MODEL=mistral-small-latest` | Activate Studio and create a key using [Mistral's setup instructions](https://docs.mistral.ai/getting-started/quickstarts/studio/activate-and-generate-api-key). Check your account's quota, plan and rate limits. |
 | Ollama | `AI_PROVIDER=ollama`, `OLLAMA_BASE_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL` | Use an installed local model as described below; no cloud API key is needed for this path. |
-| In browser | Use `just offline` or `just offline-chrome` | Explicit model loading/download is separate; see [offline choices](README.md#offline-app). |
+| In browser | Use `just offline` or `just offline-chrome` | Explicit model loading/download is separate; see [offline choices](readme.md#offline-app). |
 | Mock | `AI_PROVIDER=mock` | Deterministic development replies, with no model service. |
 
 The gateway's default endpoints are the official Claude, OpenAI and Mistral APIs. Optional `<PROVIDER>_BASE_URL` overrides change the actual destination; do not use an untrusted proxy with a provider key. Ollama additionally requires its hostname in `OLLAMA_ALLOWED_HOSTS`. Provider labels alone do not prove where data goes.
@@ -171,7 +171,7 @@ node site/scripts/serve.mjs site/dist --api --env .env --usage .kibitz-data/usag
 
 This explicit `--offline` invocation preserves the offline page path and removes legacy external font links if present. The current app already bundles its fonts and uses the same strict same-origin style/font policy in either mode. Coaching still needs the local Node gateway and Ollama process. The browser is served at `http://127.0.0.1:8765/`. Grant **Ollama → coach** permission, then press **Test connection** when ready to load/run the selected model. Local models still use memory and computation. No Ollama CORS wildcard is needed: the browser calls Kibitz's same-origin gateway, and Node contacts Ollama.
 
-For an optional persistent server library, add `--library .kibitz-data/library.sqlite` to that server command, then explicitly select it in Library. Keep private databases outside `site/dist/` and any served model root. The usage and library databases are separate; cookie-based collections do not provide accounts or cross-device sync. Follow [data controls](README.md#data-export-and-deletion) and [backup guidance](#local-docker-package) for the applicable deployment.
+For an optional persistent server library, add `--library .kibitz-data/library.sqlite` to that server command, then explicitly select it in Library. Keep private databases outside `site/dist/` and any served model root. The usage and library databases are separate; cookie-based collections do not provide accounts or cross-device sync. Follow [data controls](readme.md#data-export-and-deletion) and [backup guidance](#local-docker-package) for the applicable deployment.
 
 The supplied Docker package has its own loopback. Host `127.0.0.1:11434` is not the host's Ollama service from inside a bridge container. The [container guide](#local-docker-package) documents explicit runtime configuration; use the native Node path above for same-machine Ollama without changing network exposure. A LAN/public bind is not a supported shared-user deployment.
 
@@ -187,7 +187,7 @@ The supplied Docker package has its own loopback. Host `127.0.0.1:11434` is not 
 | Tool or structured reply unsupported | Check the selected task model's capabilities. The fallback may explain existing context; it does not make unavailable engine tool evidence exist. |
 | Usage/cost seems absent | Confirm persistent usage storage, configured prices and provider-reported usage. Browser inference bypasses gateway counters; local/mock work is excluded from paid-user totals. |
 
-Use [fixed-category logs and no-inference health checks](#local-server-logs-and-monitoring) for local diagnostics. Do not share actual `.env` contents, browser cookies or prompt/response payloads with a bug report. Existing [recorded evaluations](../eval/README.md) have provider-specific evidence limits and are not implied by this setup guide.
+Use [fixed-category logs and no-inference health checks](#local-server-logs-and-monitoring) for local diagnostics. Do not share actual `.env` contents, browser cookies or prompt/response payloads with a bug report. Existing [recorded evaluations](../eval/readme.md) have provider-specific evidence limits and are not implied by this setup guide.
 
 ## Provider privacy and opt-in
 
@@ -202,7 +202,7 @@ The selected deployment is a [local single-user app](#deployment-decision-local-
 | Semantic index build | Only the source/language-filtered passages selected for that index | The separately configured embedding provider, after its embedding permission and a Build click. |
 | Semantic query | The written query | The same embedding provider, after permission and an explicit search. |
 | Rules, Stockfish, lessons, keyword search and ordinary library browsing | No model request | Browser/local assets; no model-provider permission required. |
-| In-browser model | Coach context processed on this device | Explicit loading consent applies. Default wllama weights come from the local server; the optional Chrome backend requires a Load click per session and Chrome manages its own model download/storage. [Runtime and erasure limits](README.md#optional-chrome-built-in-coach). |
+| In-browser model | Coach context processed on this device | Explicit loading consent applies. Default wllama weights come from the local server; the optional Chrome backend requires a Load click per session and Chrome manages its own model download/storage. [Runtime and erasure limits](readme.md#optional-chrome-built-in-coach). |
 | Mock provider | Test/development requests | The local deterministic mock; no external model service. |
 
 Coach data follows live-help policy. Imported/user text still enters prompts through `quote()` and validated context; consent does not weaken move/source/tool checks. Lesson reflection drafts are not automatically sent to a model. Vectors stay in browser memory and clear on source/account/policy changes.
@@ -217,7 +217,7 @@ The page bundles its original fonts locally and permits only same-origin font/st
 
 A failed revocation immediately denies that provider/purpose in this tab, with a distinct retry control. The page warns that other tabs/reloads may retain the old grant until revocation saves. Sequential stale-tab edits cannot silently restore another tab's choices; simultaneous localStorage writers still lack a transaction.
 
-Before a network call, the transport rereads permission. Changes abort this tab's pending coach/embedding transports, clear reusable conversation/semantic state and fence late results. Other tabs reload through storage events and reread before new work. Already accepted calls may still finish at the provider. Revocation cannot recall transmitted data or erase provider copies. [Data controls](README.md#data-export-and-deletion) handle local saved data; external retention/deletion belongs to that service/operator.
+Before a network call, the transport rereads permission. Changes abort this tab's pending coach/embedding transports, clear reusable conversation/semantic state and fence late results. Other tabs reload through storage events and reread before new work. Already accepted calls may still finish at the provider. Revocation cannot recall transmitted data or erase provider copies. [Data controls](readme.md#data-export-and-deletion) handle local saved data; external retention/deletion belongs to that service/operator.
 
 The in-browser model and mock work without a network-provider grant. Quick requests can use the separately consented browser model while a network coach is blocked.
 
@@ -335,7 +335,7 @@ Private SQLite usage and library files live in `/data`, outside the served `dist
 The named volume survives container recreation and ordinary `docker compose down`.
 Browser history, preferences and browser-local libraries remain in the browser;
 enabling server storage does not automatically upload them. Use the app's
-[export/erasure controls](README.md#data-export-and-deletion) for the appropriate storage scope. Deleting the
+[export/erasure controls](readme.md#data-export-and-deletion) for the appropriate storage scope. Deleting the
 Docker volume deletes its private server data; it is not an upgrade step.
 
 For a filesystem backup, stop the service, copy the whole private directory, then
@@ -487,7 +487,7 @@ HTTP and HTTPS are different browser origins. Changing scheme/hostname/port can
 change access to localStorage, IndexedDB and service-worker caches. Before
 changing the URL, export browser data and the selected server library and keep
 an appropriate browser-profile/private-SQLite backup as described in
-[data lifecycle](README.md#data-export-and-deletion) and [container operation](#local-docker-package).
+[data lifecycle](readme.md#data-export-and-deletion) and [container operation](#local-docker-package).
 This listener feature performs no browser-origin, cookie or database migration.
 
 New grouping cookies issued on the real TLS socket have Secure; forwarding

@@ -1,6 +1,6 @@
 # Source-aware library records
 
-[Data controls](../guide/README.md#data-export-and-deletion) export complete browser/selected-cookie server records and provide separate confirmed erasure. Server erasure atomically removes that owner's games/references while retaining an advanced revision to reject older pending writes. It does not erase other owners or the separate browser library.
+[Data controls](../guide/readme.md#data-export-and-deletion) export complete browser/selected-cookie server records and provide separate confirmed erasure. Server erasure atomically removes that owner's games/references while retaining an advanced revision to reject older pending writes. It does not erase other owners or the separate browser library.
 
 TODO 7.1 establishes the records needed for RAG. `site/src/library/library.js` compiles a saved PGN into a versioned source, game document, shared positions, game occurrences, annotations and an optional study/problem record. Exact-position/pawn retrieval consumes these records, measured by the [position benchmark](retrieval.md#position-retrieval-evaluation) (8.8). [Passage search](retrieval.md#study-text-search) (8.3) indexes original comments with these same locators, using local keywords or optional explicit embeddings. [Coach citations](retrieval.md#retrieved-coach-passages-and-citations) (8.6) use them to open exact source occurrences; citation identity does not verify a prose claim.
 

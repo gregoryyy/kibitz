@@ -380,7 +380,7 @@ The model cards declare the respective Qwen instruct base models and Apache-2.0
 licences. Those are publisher statements, not independent training/quantization
 lineage, signed build attestations, model-safety or chess-quality evidence. A
 revision pin does not promise permanent hosting. The
-[upgrade procedure](../guide/README.md#model-weight-downloads) keeps source, bytes,
+[upgrade procedure](../guide/readme.md#model-weight-downloads) keeps source, bytes,
 licence and compatibility review together; cloud/Ollama/Chrome identities and
 TODO 11.3.3 remain open.
 
@@ -403,7 +403,7 @@ native reachability. Obtain reliable build/source linkage where absent or record
 the remaining gap explicitly. Build stages, GitHub Actions and browser/model
 runtime changes retain their separate advisory/age and licence review.
 
-The [release packet](../releases/README.md#local-release-review-packet) keeps ASVS 15.2.1 and TODO 11.3.3 open.
+The [release packet](../releases/readme.md#local-release-review-packet) keeps ASVS 15.2.1 and TODO 11.3.3 open.
 Mutable cloud IDs, Ollama tags, Chrome-managed updates and model-training provenance
 are not fixed by these package or byte records. No release, finding suppression,
 owner exception, provider test or teaching-quality claim follows from this work.
@@ -444,7 +444,7 @@ The current ASVS review does not establish that the whole component inventory is
 within these targets. [Automated scans](#automated-security-evidence) and
 [exact-image evidence](#packaged-image-advisory-evidence) supply dated snapshots, including
 individual lower-finding targets. Broader component coverage and exposure triage
-remain in the [release review](../releases/README.md#local-release-review-packet); a snapshot does not establish
+remain in the [release review](../releases/readme.md#local-release-review-packet); a snapshot does not establish
 continuing compliance with this policy.
 
 ## Browser styles and bundled fonts

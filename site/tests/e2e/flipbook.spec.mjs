@@ -25,9 +25,9 @@ async function withOutput(check) {
 }
 
 test('a no-call flipbook plan leaves existing output intact', async () => withOutput(async out => {
-  await fs.writeFile(path.join(out, 'README.md'), 'retain this output');
+  await fs.writeFile(path.join(out, 'readme.md'), 'retain this output');
   const result = await run(['--plan', '--out', out]); expect(result.stdout).toContain('about 9 calls'); expect(result.stdout).toContain('no model requests, browser or output changes');
-  expect(await fs.readFile(path.join(out, 'README.md'), 'utf8')).toBe('retain this output'); expect(await fs.readdir(out)).toEqual(['README.md']);
+  expect(await fs.readFile(path.join(out, 'readme.md'), 'utf8')).toBe('retain this output'); expect(await fs.readdir(out)).toEqual(['readme.md']);
 }));
 
 test('the complete current flipbook renders desktop and German phone screenshots with mock coaching', async ({ baseURL }, info) => {
@@ -44,7 +44,7 @@ test('the complete current flipbook renders desktop and German phone screenshots
     else expect(shot.image).toEqual(shot.viewport);
   }
   expect(capture.shots.at(-1).viewport).toEqual({ width: 390, height: 844 });
-  const readme = await fs.readFile(path.join(out, 'README.md'), 'utf8'); expect(readme).toContain('UI preview, not coaching evidence');
+  const readme = await fs.readFile(path.join(out, 'readme.md'), 'utf8'); expect(readme).toContain('UI preview, not coaching evidence');
   expect(readme).toContain('spaced practice'); expect(readme).toContain('German'); expect(readme).not.toContain('which the app strikes through');
   expect((await fs.readdir(out)).length).toBe(steps.length + 2);
   for (const name of ['run.json', '01-load.png', '19-german-opening-guide.png']) await info.attach(name, { path: path.join(out, name) });

@@ -55,7 +55,7 @@ Legal moves, checked position facts, finite-search assessments and retrieved sta
 
 Logic/UI tests and provider mocks cover rules, tools, state and workflows; the tutor evaluation set measures commentary. Labelled [position](retrieval.md#position-retrieval-evaluation), [lexical/dense passage](retrieval.md#study-text-search) and [hybrid](retrieval.md#hybrid-passage-retrieval) benchmarks measure source relevance and expose unsupported-query/paraphrase gaps. Dense search improves measured recall but returns more unrelated hits; fusion and optional literal filtering introduce their own recall/no-answer tradeoffs. Learner-outcome evaluation remains planned. Relevance, chess correctness and explanation quality are assessed separately.
 
-Read next: [architecture](../ARCH.md), [research index](../research/README.md), [position-similarity study](../research/position-similarity.md), or the [Primer](../primer/Primer_v01.pdf) for background.
+Read next: [architecture](../ARCH.md), [research index](../research/readme.md), [position-similarity study](../research/position-similarity.md), or the [Primer](../primer/primer-v01.pdf) for background.
 
 ## Provider fixture recording
 

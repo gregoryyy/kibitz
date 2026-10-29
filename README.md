@@ -4,11 +4,11 @@ Stockfish plays and measures; a language model explains.
 
 In the browser, play against Stockfish 19 (from 600 Elo up, in five playing styles, with or without a clock, from the start, an opening or any position), see your mistakes flagged as you play, review finished games, keep a games library and get reading suggestions that match the position on the board. Stockfish does all the calculation, locally in Web Workers. An AI model (Claude, OpenAI, Mistral, a local Ollama model, or a small model running in the browser) only explains the engine's output.
 
-One of the main motivations for Kibitz is to experiment with combining large language models (LLMs) and symbolic solvers, using chess as a concrete example. The accompanying paper, *A Gentle Primer on Neurosymbolic AI: Building a Chess Tutor* ([read online](docs/primer/Primer_v01.md), [PDF](docs/primer/Primer_v01.pdf)), is intended for people learning about LLMs and the additional concepts of search, grounding, tool use and agents. It explains each concept through its application in Kibitz.
+One of the main motivations for Kibitz is to experiment with combining large language models (LLMs) and symbolic solvers, using chess as a concrete example. The accompanying paper, *A Gentle Primer on Neurosymbolic AI: Building a Chess Tutor* ([read online](docs/primer/primer-v01.md), [PDF](docs/primer/primer-v01.pdf)), is intended for people learning about LLMs and the additional concepts of search, grounding, tool use and agents. It explains each concept through its application in Kibitz.
 
 The app lives in [`site/`](site/): page source, build scripts, opening data, the local server with its AI gateway, and tests. Design notes are in [site/README.md](site/README.md). Where the project is heading is in [TODO.md](docs/TODO.md), longer-term ideas are in [ROAD.md](docs/ROAD.md), progress is logged in [DONE.md](docs/DONE.md), and the working rules for coding agents and contributors are in [AGENTS.md](AGENTS.md).
 
-[Changelog](CHANGELOG.md) records notable changes. The [version policy](docs/releases/README.md) follows Semantic Versioning; this branch prepares the unpublished draft candidate [`0.1.0-rc.1`](docs/releases/0.1.0-rc.1.md), with release checks and approval still pending.
+[Changelog](CHANGELOG.md) records notable changes. The [version policy](docs/releases/readme.md) follows Semantic Versioning; this branch prepares the unpublished draft candidate [`0.1.0-rc.1`](docs/releases/0.1.0-rc.1.md), with release checks and approval still pending.
 
 The [local Docker package](docs/guide/setup.md#local-docker-package) provides a mock-default recipe with private persistent storage and explicit loopback publishing, verified with real image/browser/restart tests in Linux CI.
 
@@ -27,9 +27,9 @@ The [threat model](docs/security/threat-model.md) maps data flows, local trust a
 
 [Automated security checks](docs/security/supply-chain.md#automated-security-evidence) document dependency/code/secret checks and a pinned passive ZAP baseline against an isolated mock-only staging server, including evidence limits and retained reports.
 
-The [flipbook](docs/flipbook/README.md) follows the Opera Game into source search, opening repertoires, lessons and local practice, including German phone views.
+The [flipbook](docs/flipbook/readme.md) follows the Opera Game into source search, opening repertoires, lessons and local practice, including German phone views.
 
-The [user guide](docs/guide/README.md) walks through playing, analysis, reviews, practice, source search and data controls. [Provider setup and native Ollama](docs/guide/setup.md#coach-providers-and-local-ollama) covers API access, task models, explicit sharing, spending limits and a local offline-serving recipe.
+The [user guide](docs/guide/readme.md) walks through playing, analysis, reviews, practice, source search and data controls. [Provider setup and native Ollama](docs/guide/setup.md#coach-providers-and-local-ollama) covers API access, task models, explicit sharing, spending limits and a local offline-serving recipe.
 
 ## Quick start
 
@@ -86,25 +86,25 @@ npm run serve          # builds, then serves dist/ with the AI gateway on port 8
 
 The [LLM and symbolic design overview](docs/design/ai.md) maps the mechanisms across the features. [ARCH.md](docs/ARCH.md) gives the implementation details.
 
-[Research notes](docs/research/README.md) cover AI use cases in milestones 5–7, the current Stockfish integration, text/structured/graph RAG, and neurosymbolic approaches to chess and other games.
+[Research notes](docs/research/readme.md) cover AI use cases in milestones 5–7, the current Stockfish integration, text/structured/graph RAG, and neurosymbolic approaches to chess and other games.
 
 The coach chat, game-review summary and study plan need a language model. Without one, the page still gives you the full engine features: play, hints, move ratings, analysis, review, library, opening explorer, repertoire builder and reading suggestions.
 
-Coaching prose is experimental. Kibitz checks recognized moves, selected board claims and captured engine evidence; these checks do not verify every explanation or strategic claim. Expand an answer's evidence cards and check important continuations with Stockfish. The [user guide](docs/guide/README.md#analyse-and-ask-the-coach) explains the current limits.
+Coaching prose is experimental. Kibitz checks recognized moves, selected board claims and captured engine evidence; these checks do not verify every explanation or strategic claim. Expand an answer's evidence cards and check important continuations with Stockfish. The [user guide](docs/guide/readme.md#analyse-and-ask-the-coach) explains the current limits.
 
 The **Openings** tab explores recorded continuations from the classics and your saved/imported games. It shows counts and results for the selected collection, with sample games at each move. Try a continuation on the scratch board and step back to explore another branch. During play it follows the help setting and needs Full engine help.
 
-The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. **Review due moves** recalls saved choices on an independent board; [practice scheduling](docs/guide/README.md#spaced-practice) describes intervals and limits.
+The same tab lets you build named repertoires for **White or Black**. Enter a PGN mainline or use **Use board line** to capture the game and scratch variation up to the displayed move. Name the line, add notes and save it; reopen it on the scratch board to explore alternatives. Repertoires stay in this browser, separately from your games, and can be copied as PGN. **Review due moves** recalls saved choices on an independent board; [practice scheduling](docs/guide/readme.md#spaced-practice) describes intervals and limits.
 
-**Settings → Player profile** keeps your explanation level, optional self-reported rating/pool/time control and learning goals in this browser. Saved preferences guide coach requests; goals are quoted user data, and the rating is separate from opponent strength. [Profile behavior and limits](docs/guide/README.md#player-profile) explain saving, request freshness and the absence of automatic rating inference.
+**Settings → Player profile** keeps your explanation level, optional self-reported rating/pool/time control and learning goals in this browser. Saved preferences guide coach requests; goals are quoted user data, and the rating is separate from opponent strength. [Profile behavior and limits](docs/guide/readme.md#player-profile) explain saving, request freshness and the absence of automatic rating inference.
 
-**Review → Review trends** summarizes compatible reviews of your own games in the selected library, with phase coverage and confirmed tactical opportunities. Repeated reviews replace their contribution; geometric candidates and missing evidence do not count as confirmed misses. [Review evidence and limits](docs/guide/README.md#review-trends) explain the historical records and bounded checks.
+**Review → Review trends** summarizes compatible reviews of your own games in the selected library, with phase coverage and confirmed tactical opportunities. Repeated reviews replace their contribution; geometric candidates and missing evidence do not count as confirmed misses. [Review evidence and limits](docs/guide/readme.md#review-trends) explain the historical records and bounded checks.
 
-**Practise your own mistakes** turns compatible reviewed mistakes into independent-board exercises. Stockfish rechecks the reference and original move, then grades any legal answer against a bounded target. Hints, reveal and rules-proven mate stay separate; [exercise scope and grading](docs/guide/README.md#exercises-from-your-own-mistakes) explain the limits.
+**Practise your own mistakes** turns compatible reviewed mistakes into independent-board exercises. Stockfish rechecks the reference and original move, then grades any legal answer against a bounded target. Hints, reveal and rules-proven mate stay separate; [exercise scope and grading](docs/guide/readme.md#exercises-from-your-own-mistakes) explain the limits.
 
 The **Lessons** tab offers bilingual tactics, strategy, endgames and sourced puzzles, with an isolated exercise board, authored hints and local progress. **Play against Stockfish** takes the displayed lesson position into a normal game as either colour, using your current strength and clock settings; an active game is confirmed and saved first.
 
-**Lessons → Spaced practice** combines due lessons, opening recalls and own-mistake exercises, with local schedules, save retries and separate evidence labels. The [intervals and storage lifecycle](docs/guide/README.md#spaced-practice) describe the simple practice heuristic and source-revision boundaries.
+**Lessons → Spaced practice** combines due lessons, opening recalls and own-mistake exercises, with local schedules, save retries and separate evidence labels. The [intervals and storage lifecycle](docs/guide/readme.md#spaced-practice) describe the simple practice heuristic and source-revision boundaries.
 
 The **Classics** library includes 21 games with published score sources and separate score/note rights. Twelve complete games from Capablanca's *Chess Fundamentals* expand the collection; historical teaching versions are labelled, and all notes are original Kibitz material. [Source records and offline checks](site/data/classics/README.md) document the games. **Problems** browses twelve sourced mates/studies with bilingual questions, diagram-first opening and checked recorded branches. [Evidence and scope](site/data/problems/README.md) distinguish actual mates, tablebase outcomes and authored reflections.
 
@@ -112,7 +112,7 @@ In **Library**, search words or combine player, opening/ECO, recorded year range
 
 An optional [server library](site/README.md#server-library) stores games and references in a private SQLite file, with a scoped IndexedDB browser cache. Choose it explicitly in Library; the existing browser library stays separate and is never uploaded automatically.
 
-**Settings → Export or erase your data** provides separate confirmed controls for saved browser data and this browser's server library. [Data formats and deletion scope](docs/guide/README.md#data-export-and-deletion) explain retries, caches and copies outside the app.
+**Settings → Export or erase your data** provides separate confirmed controls for saved browser data and this browser's server library. [Data formats and deletion scope](docs/guide/readme.md#data-export-and-deletion) explain retries, caches and copies outside the app.
 
 The chat also accepts local commands without a model: `play e4`, `open the Opera Game`, a pasted FEN or PGN, `go to move 15`, `remove the queens`, and `undo`. Analysis moves and setups use a scratch board. Leaving a running game asks first and offers a way back. Choose **General chess** above the composer for questions without a position; an answer's context button brings its position back onto the board.
 
@@ -142,7 +142,7 @@ Changes there last until the server restarts; keys never reach the page.
 
 A small model is much weaker than the cloud ones: it puts what Stockfish found into words, and the answer check (TODO 3.4) marks moves it gets wrong.
 
-**Optional Chrome model:** `just offline-chrome` uses supported desktop Chrome's built-in model instead of the GGUF runtime. Press **Load** in the Coach tab to allow Chrome's model download/session; Chrome controls its size, storage and updates. Each reload/unload requires another explicit Load. See [setup, resource and offline limits](docs/guide/README.md#optional-chrome-built-in-coach). No API key is needed; the default `just offline` keeps wllama.
+**Optional Chrome model:** `just offline-chrome` uses supported desktop Chrome's built-in model instead of the GGUF runtime. Press **Load** in the Coach tab to allow Chrome's model download/session; Chrome controls its size, storage and updates. Each reload/unload requires another explicit Load. See [setup, resource and offline limits](docs/guide/readme.md#optional-chrome-built-in-coach). No API key is needed; the default `just offline` keeps wllama.
 
 Add `?debug` to the URL to get `window.__kibitz` (state, `contextFor`, the analysis cache and more) in the browser console.
 

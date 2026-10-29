@@ -141,7 +141,7 @@ Implementation and exact sanitized identities are in
 These historical feature results must not be relabeled as candidate checks.
 Current source-002fd92 evidence is retained in the
 [structured record](0.1.0-rc.1-evidence.json) and
-[raw report archive](evidence/0.1.0-rc.1/002fd92/README.md): 699 unit
+[raw report archive](evidence/0.1.0-rc.1/002fd92/readme.md): 699 unit
 passes/one skip, passing CodeQL/secret/audit, actual image and passive scans.
 The full browser run passes with 423 passes/one skip, completing at 11:46 UTC.
 Later documentation and

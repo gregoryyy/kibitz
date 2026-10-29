@@ -35,11 +35,11 @@ browser's graph display filter.
 | [pull-requests.json](pull-requests.json) | Explicitly refreshed PR bodies, observed state, head/base commits and paginated changed-file lists |
 | [links.json](links.json) | Editable per-type confidence assessments and semantic link hypotheses |
 | [findings.json](findings.json) | Generated findings, rule policy, related nodes, exact supporting paths and input fingerprint |
-| [REPORT.md](REPORT.md), [FINDINGS.md](FINDINGS.md) | Generated inventory/trace index and findings overview |
+| [report.md](report.md), [findings.md](findings.md) | Generated inventory/trace index and findings overview |
 | [types.mjs](types.mjs), [detail-types.mjs](detail-types.mjs), [assessment-types.mjs](assessment-types.mjs) | Typed contracts, allowed endpoints and integrity rules |
 | [schema.json](schema.json), [detail-schema.json](detail-schema.json), [links-schema.json](links-schema.json) | Generated JSON Schema contracts |
 | [confidence.mjs](confidence.mjs) | Shared confidence shape, initial policy and path aggregation |
-| [LEVELS.md](LEVELS.md) | Extraction/replay details, scope limits and browser foundation comparison |
+| [levels.md](levels.md) | Extraction/replay details, scope limits and browser foundation comparison |
 
 The three extracted graphs use schema version **2**, requiring confidence on
 every edge. Assessments and findings have their own version 1 contracts. File IDs
@@ -177,7 +177,7 @@ Symlink targets, private/untracked files and operator configuration stay outside
 scanning. Parsing never executes source. Browser labels/source are plain text;
 the server binds to loopback and exposes only fixed assets and graph-ID sources.
 No arbitrary path endpoint, CDN, telemetry, inference call or weight download is
-needed. See [LEVELS.md](LEVELS.md) for unsupported languages, dynamic calls,
+needed. See [levels.md](levels.md) for unsupported languages, dynamic calls,
 Markdown limits, source replay and retained-PR history limits.
 
 The schemas use [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/json-schema-core).

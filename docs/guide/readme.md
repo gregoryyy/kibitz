@@ -1,6 +1,6 @@
 # Using Kibitz
 
-Kibitz combines a chess engine with a language model: Stockfish calculates locally, while an optional coach explains the supplied evidence. You can play, analyse, review, study and search without a model. Start with the [illustrated flipbook](../flipbook/README.md) for a nineteen-step tour, or follow the tasks below. The [Primer](../primer/Primer_v01.md) explains the project's experiments with search, grounding, tool use and agents.
+Kibitz combines a chess engine with a language model: Stockfish calculates locally, while an optional coach explains the supplied evidence. You can play, analyse, review, study and search without a model. Start with the [illustrated flipbook](../flipbook/readme.md) for a nineteen-step tour, or follow the tasks below. The [Primer](../primer/primer-v01.md) explains the project's experiments with search, grounding, tool use and agents.
 
 ## Start on your own machine
 

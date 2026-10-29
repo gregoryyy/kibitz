@@ -1,6 +1,6 @@
 # Chess position similarity by aspect
 
-Research date: **2026-10-23**. Companion to [ROAD 10](../ROAD.md#10-position-similarity-by-aspect); informs TODO 8.1, 8.4, 8.5 and 8.8. Application audit: **`0176c62`**. This note proposes research and evaluation, not a selected metric, implementation or reproduced benchmark. See the [research index](README.md) for the broader retrieval studies and [design overview](../design/ai.md) for their place in the feature set.
+Research date: **2026-10-23**. Companion to [ROAD 10](../ROAD.md#10-position-similarity-by-aspect); informs TODO 8.1, 8.4, 8.5 and 8.8. Application audit: **`0176c62`**. This note proposes research and evaluation, not a selected metric, implementation or reproduced benchmark. See the [research index](readme.md) for the broader retrieval studies and [design overview](../design/ai.md) for their place in the feature set.
 
 **Implementation update, 2026-10-24:** the [position retrieval literature comparison](position-retrieval-comparison.md) audits `2933295`, including the subsequently implemented material/placement predicates, pattern index, hybrid search and optional pawn Jaccard distance. It compares their actual scope with the algorithms below and records existing benchmark results. Aspect-conditioned learned metrics and solution-similarity ranking remain proposals.
 

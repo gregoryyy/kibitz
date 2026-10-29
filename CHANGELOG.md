@@ -2,7 +2,7 @@
 
 Notable user-facing changes are collected here. Detailed implementation history
 and verification notes are in [DONE.md](docs/DONE.md). Versions follow the
-[project release policy](docs/releases/README.md) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[project release policy](docs/releases/readme.md) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 The former package value `0.1.0` was an unpublished development baseline.
 This branch prepares `0.1.0-rc.1`; it is a draft candidate, with no published
@@ -31,7 +31,7 @@ pending source, checks and decisions.
 - Game reviews, turning-point navigation, player preferences, own-mistake
   exercises, opening repertoires, lessons and browser-local spaced practice.
 - English/German UI and study notes, configurable move notation, keyboard board
-  controls and phone/tablet layouts. The [flipbook](docs/flipbook/README.md) shows
+  controls and phone/tablet layouts. The [flipbook](docs/flipbook/readme.md) shows
   nineteen current-interface steps with recorded coaching provenance.
 - Purpose-specific provider permissions, separate browser/server export/erasure,
   persistent local usage accounting and private operator diagnostics.

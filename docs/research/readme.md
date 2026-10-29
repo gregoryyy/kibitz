@@ -12,7 +12,7 @@ Subsequent implementation: TODO 8.1–8.8 added material/placement predicates, p
 4. [Position similarity by aspect](position-similarity.md): candidate symbolic/dynamic distances, conditional metric learning and an aspect-specific evaluation plan.
 5. [Implemented position retrieval versus literature algorithms](position-retrieval-comparison.md): current bucket/predicate/pattern/hybrid paths versus relational BM25, solution-aware retrieval, expert classifiers, CQL and chess embeddings; measurements, input differences and a fair comparison protocol.
 
-Start with the brief [LLM and symbolic design overview](../design/ai.md) for a feature-level map. Read alongside the [architecture](../ARCH.md), [plan](../TODO.md) and [Primer](../primer/Primer_v01.pdf), whose [editable source](../primer/Primer_v01.md) is also available. The Primer's metadata and position-retrieval discussion is the starting point, rather than evidence that full-text/vector RAG is already implemented.
+Start with the brief [LLM and symbolic design overview](../design/ai.md) for a feature-level map. Read alongside the [architecture](../ARCH.md), [plan](../TODO.md) and [Primer](../primer/primer-v01.pdf), whose [editable source](../primer/primer-v01.md) is also available. The Primer's metadata and position-retrieval discussion is the starting point, rather than evidence that full-text/vector RAG is already implemented.
 
 ## Recommendations
 

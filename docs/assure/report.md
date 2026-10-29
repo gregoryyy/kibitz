@@ -27,7 +27,7 @@ flowchart LR
 | deviation | 220 |
 | reflection | 2 |
 
-3838 typed edges; 413 scanned text inputs; 329 unresolved references.
+3838 typed edges; 413 scanned text inputs; 330 unresolved references.
 
 ## TODO → DONE index
 
@@ -417,6 +417,7 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [AGENTS.md:11](../../AGENTS.md) | utils/ | directory |
 | [AGENTS.md:11](../../AGENTS.md) | utils/pdf/ | directory |
 | [AGENTS.md:12](../../AGENTS.md) | docs/ | directory |
+| [AGENTS.md:12](../../AGENTS.md) | docs/assure/ | directory |
 | [AGENTS.md:12](../../AGENTS.md) | docs/design/ | directory |
 | [AGENTS.md:12](../../AGENTS.md) | docs/eval/ | directory |
 | [AGENTS.md:12](../../AGENTS.md) | docs/flipbook/ | directory |
@@ -461,7 +462,6 @@ Unresolved paths, directories, ambiguous short names and unknown TODO IDs remain
 | [README.md:164](../../README.md) | src/ | missing |
 | [README.md:165](../../README.md) | .github/workflows/ | directory |
 | [README.md:22](../../README.md) | index.html | ambiguous |
-| [README.md:62](../../README.md) | .github/ | directory |
 
 ### Files without extracted relationships (56)
 

@@ -107,7 +107,7 @@ export function run(argv = process.argv.slice(2), root = ROOT) {
   if (extra.length || !['build', 'check'].includes(command)) throw new Error('Usage: node utils/assure-infer.mjs build|check');
   const { layers, assessments } = readAssurance(root), result = inferFindings(layers, assessments);
   result.inputsSha256 = sha(json({ layers, assessments }));
-  const values = [['docs/assure/findings.json', recordsJson(result)], ['docs/assure/FINDINGS.md', findingReport(result)], ['docs/assure/links-schema.json', json(ASSESSMENT_SCHEMA)]];
+  const values = [['docs/assure/findings.json', recordsJson(result)], ['docs/assure/findings.md', findingReport(result)], ['docs/assure/links-schema.json', json(ASSESSMENT_SCHEMA)]];
   for (const [file, value] of values) {
     if (command === 'build') fs.writeFileSync(path.join(root, file), value);
     else if (fs.readFileSync(path.join(root, file), 'utf8') !== value) throw new Error(`Stale assurance findings: ${file}; run node utils/assure-infer.mjs build`);

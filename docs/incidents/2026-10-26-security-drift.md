@@ -105,7 +105,7 @@ product/budget/payment record, not another estimate from repository run minutes.
 
 The mechanism from TODO 0.15–0.17 supplies typed lineage, source replay,
 confidence-weighted assessments and findings. Those are useful foundations. The
-[documented contract](../assure/README.md) explicitly distinguishes a reference from
+[documented contract](../assure/readme.md) explicitly distinguishes a reference from
 implementation, verification, approval and causation.
 
 The weighted implementation existed on its feature branch before the rejected

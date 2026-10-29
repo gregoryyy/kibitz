@@ -20,7 +20,7 @@ A passage can be relevant but wrong; a correct engine line can be a poor teachin
 
 ### Where the Primer and the original code audit stand
 
-The [Primer](../primer/Primer_v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. At the original audit, [knowledge.js](../../site/src/chess/knowledge.js) implemented:
+The [Primer](../primer/primer-v01.pdf) discusses metadata/tag retrieval, exact positions and pawn signatures, then future text and graph methods. At the original audit, [knowledge.js](../../site/src/chess/knowledge.js) implemented:
 
 - `retrieveLiterature`: weighted book metadata/theme/level matches, without book full text;
 - `buildPositionIndex` / `similarPositions`: exact EPD and exact pawn-signature buckets, with limits on structural matches;

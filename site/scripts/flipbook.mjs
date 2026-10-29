@@ -3,7 +3,7 @@
 //                           [--env FILE] [--out DIR] [--plan]
 // Serves the build (site/dist, from `just build`) with the AI gateway, drives the page headlessly
 // with Playwright, applies each step's acts, takes a viewport screenshot and writes docs/flipbook/NN-<id>.png
-// and README.md, which quotes the coach's answers with a count of the moves the engine backs.
+// and readme.md, which quotes the coach's answers with a count of the moves the engine backs.
 // --ai env (the default) uses the provider configured in the repo's .env, as `just serve` does;
 // --ai anthropic (or another provider) uses that provider, with its key and models from .env;
 // --ai mock uses the mock provider, with keys from the shell blanked as in the e2e tests.
@@ -239,10 +239,10 @@ async function main() {
     }
     if (errors.length) throw new Error(`the page reported errors:\n${errors.join('\n')}`);
     const date = new Date().toISOString().slice(0, 10);
-    await fs.writeFile(path.join(staging, 'README.md'), markdown(shots, ai, date));
+    await fs.writeFile(path.join(staging, 'readme.md'), markdown(shots, ai, date));
     await fs.writeFile(path.join(staging, 'run.json'), JSON.stringify({ date, provider: gw.provider, models: statusModels(gw), capture: 'coach-prose-v2', shots }, null, 2) + '\n');
     await publishDirectory(staging, out); staging = null;
-    log(`wrote ${path.join(out, 'README.md')} (${shots.length} steps)`);
+    log(`wrote ${path.join(out, 'readme.md')} (${shots.length} steps)`);
   } finally {
     await browser?.close();
     server.kill();
