@@ -8,7 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { baseline, validateChecklist, renderChecklist, evidenceExists } from '../../scripts/check-asvs.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const checklist = JSON.parse(readFileSync(resolve(root, 'docs/asvs-l1.json'), 'utf8'));
+const checklist = JSON.parse(readFileSync(resolve(root, 'docs/security/asvs-l1.json'), 'utf8'));
 const copy = () => structuredClone(checklist);
 const rejects = (change, pattern) => {
   const data = copy(); change(data);
@@ -19,7 +19,7 @@ test('pinned L1 assessment has all 70 controls, real evidence and a fresh readab
   assert.equal(baseline.length, 70);
   assert.equal(new Set(baseline).size, 70);
   assert.deepEqual(validateChecklist(checklist), []);
-  assert.equal(readFileSync(resolve(root, 'docs/ASVS-L1.md'), 'utf8'), renderChecklist(checklist));
+  assert.equal(readFileSync(resolve(root, 'docs/security/asvs-l1.md'), 'utf8'), renderChecklist(checklist));
   assert.ok(checklist.controls.some(r => r.status === 'open'));
   assert.ok(checklist.controls.some(r => r.status === 'deviation'));
   assert.match(renderChecklist(checklist), /do not establish ASVS compliance/);
@@ -48,7 +48,7 @@ test('assessments need meaningful notes, suitable evidence and visible gap follo
   rejects(d => d.controls[0].note = '  ', /Missing or invalid assessment/);
   rejects(d => d.controls[0].topic = 'hidden\nrow', /Missing or invalid assessment/);
   rejects(d => d.controls[0].note = 'a'.repeat(2001), /Missing or invalid assessment/);
-  for (const evidence of [[], null, 'docs/ASVS.md', ['docs/no-such-asvs-file.md']]) {
+  for (const evidence of [[], null, 'docs/security/asvs.md', ['docs/no-such-asvs-file.md']]) {
     rejects(d => d.controls[0].evidence = evidence, /Invalid evidence/);
   }
   rejects(d => d.controls[0].evidence = ['site/server/api.mjs'], /Code and test evidence required/);
@@ -58,7 +58,7 @@ test('assessments need meaningful notes, suitable evidence and visible gap follo
 });
 
 test('evidence paths reject traversal, absolute paths, hidden secrets and symlink escapes', () => {
-  for (const path of ['../docs/ASVS.md', '/etc/passwd', 'docs/../.env', 'docs/.env', 'site/server/../../.env', 'docs//ASVS.md', 'docs/ASVS.md#x', 'docs/ASVS.md?x']) {
+  for (const path of ['../docs/security/asvs.md', '/etc/passwd', 'docs/../.env', 'docs/.env', 'site/server/../../.env', 'docs/security//asvs.md', 'docs/security/asvs.md#x', 'docs/security/asvs.md?x']) {
     assert.equal(evidenceExists(path), false, path);
   }
   const parent = mkdtempSync(resolve(root, 'docs/asvs-path-test-'));
@@ -92,7 +92,7 @@ test('offline CLI rejects document drift and bad arguments without rewriting; ex
   const temp = mkdtempSync(resolve(tmpdir(), 'kibitz-asvs-cli-'));
   try {
     mkdirSync(resolve(temp, 'site/scripts'), { recursive: true });
-    mkdirSync(resolve(temp, 'docs'));
+    mkdirSync(resolve(temp, 'docs/security'), { recursive: true });
     const script = resolve(temp, 'site/scripts/check-asvs.mjs');
     writeFileSync(script, readFileSync(resolve(root, 'site/scripts/check-asvs.mjs')));
     const data = copy();
@@ -100,8 +100,8 @@ test('offline CLI rejects document drift and bad arguments without rewriting; ex
       row.status = 'not-applicable'; row.method = 'scope-review'; row.evidence = ['docs/scope.md'];
     }
     writeFileSync(resolve(temp, 'docs/scope.md'), 'Test-only local scope.');
-    writeFileSync(resolve(temp, 'docs/asvs-l1.json'), JSON.stringify(data));
-    const output = resolve(temp, 'docs/ASVS-L1.md');
+    writeFileSync(resolve(temp, 'docs/security/asvs-l1.json'), JSON.stringify(data));
+    const output = resolve(temp, 'docs/security/asvs-l1.md');
     writeFileSync(output, 'stale');
     const run = (...args) => spawnSync(process.execPath, [script, ...args], { encoding: 'utf8', env: {} });
     let result = run();

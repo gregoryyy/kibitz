@@ -9,6 +9,7 @@ Everything for the app is in `site/`, a single npm project. The architecture is 
 - `site/server/`: the AI gateway and optional private SQLite library. `site/scripts/serve.mjs --api` mounts the gateway and loads `.env`; independent `--library FILE` enables server storage outside the static tree. Private `.kibitz-data/` files stay out of Git.
 - `site/tests/`, `site/server/*.test.mjs`: tests.
 - `utils/`: repository utilities, including PDF styles and Mermaid support in `utils/pdf/`.
+- `docs/`: only `TODO.md`, `DONE.md`, `ROAD.md` and `ARCH.md` at the top. Everything else is lowercase, readme files included, in `docs/guide/` (users and operators), `docs/design/`, `docs/security/`, `docs/releases/`, `docs/incidents/`, `docs/eval/`, `docs/research/`, `docs/primer/`, `docs/flipbook/` or `docs/assure/`. A new feature or TODO item gets a section in an existing file and a DONE entry, not a new file.
 
 ## Stack
 

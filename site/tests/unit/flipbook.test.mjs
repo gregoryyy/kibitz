@@ -28,12 +28,12 @@ test('transcripts escape HTML, distinguish checker flags from verified claims an
 test('publication rolls back a failed replacement and publishes a complete staged directory together', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'kibitz-flipbook-publish-')), out = path.join(dir, 'out'), staging = path.join(dir, 'staging');
   try {
-    await fs.mkdir(out); await fs.writeFile(path.join(out, 'README.md'), 'previous flipbook');
+    await fs.mkdir(out); await fs.writeFile(path.join(out, 'readme.md'), 'previous flipbook');
     await assert.rejects(publishDirectory(staging, out), /ENOENT/);
-    assert.equal(await fs.readFile(path.join(out, 'README.md'), 'utf8'), 'previous flipbook'); assert.deepEqual(await fs.readdir(dir), ['out']);
-    await fs.mkdir(staging); await fs.writeFile(path.join(staging, 'README.md'), 'updated flipbook'); await fs.writeFile(path.join(staging, '01-step.png'), 'synthetic image');
+    assert.equal(await fs.readFile(path.join(out, 'readme.md'), 'utf8'), 'previous flipbook'); assert.deepEqual(await fs.readdir(dir), ['out']);
+    await fs.mkdir(staging); await fs.writeFile(path.join(staging, 'readme.md'), 'updated flipbook'); await fs.writeFile(path.join(staging, '01-step.png'), 'synthetic image');
     await publishDirectory(staging, out);
-    assert.equal(await fs.readFile(path.join(out, 'README.md'), 'utf8'), 'updated flipbook'); assert.deepEqual(await fs.readdir(dir), ['out']);
-    assert.deepEqual((await fs.readdir(out)).sort(), ['01-step.png', 'README.md']);
+    assert.equal(await fs.readFile(path.join(out, 'readme.md'), 'utf8'), 'updated flipbook'); assert.deepEqual(await fs.readdir(dir), ['out']);
+    assert.deepEqual((await fs.readdir(out)).sort(), ['01-step.png', 'readme.md']);
   } finally { await fs.rm(dir, { recursive: true, force: true }); }
 });

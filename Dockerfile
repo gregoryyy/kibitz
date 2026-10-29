@@ -5,7 +5,7 @@ FROM base AS build
 WORKDIR /app/site
 COPY site/package.json site/package-lock.json ./
 RUN npm ci --ignore-scripts
-COPY LICENSE THIRD_PARTY_NOTICES.md /app/
+COPY LICENSE NOTICE /app/
 COPY site/src ./src
 COPY site/server ./server
 COPY site/scripts ./scripts
@@ -37,7 +37,7 @@ COPY --from=build /app/site/dist ./dist
 COPY --from=build /app/site/src ./src
 COPY --from=build /app/site/server ./server
 COPY --from=build /app/site/scripts/serve.mjs /app/site/scripts/image-inventory.mjs /app/site/scripts/healthcheck.mjs ./scripts/
-COPY --from=build /app/LICENSE /app/THIRD_PARTY_NOTICES.md /app/
+COPY --from=build /app/LICENSE /app/NOTICE /app/
 COPY --from=build --chown=1000:1000 --chmod=0700 /runtime-data /data
 USER 1000:1000
 EXPOSE 8765

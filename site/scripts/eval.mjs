@@ -9,7 +9,7 @@
 // Model variables set in the shell (ANTHROPIC_MODEL, ..., EVAL_JUDGE_MODEL) take precedence over .env.
 // With a paid provider (coach or judge) it prints the models and the number of calls and stops;
 // --yes runs it (scripts/paid.mjs). It stops at the first error from the coach or the judge.
-// Writes docs/eval/<provider>-<model>.json and .md, and regenerates docs/eval/README.md from all runs.
+// Writes docs/eval/<provider>-<model>.json and .md, and regenerates docs/eval/readme.md from all runs.
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
@@ -190,7 +190,7 @@ async function main() {
     await fs.mkdir(directory, { recursive: true });
     await fs.writeFile(path.join(directory, `${name}.json`), JSON.stringify(run, null, 2) + '\n');
     await fs.writeFile(path.join(directory, `${name}.md`), report(run));
-    await fs.writeFile(path.join(directory, 'README.md'), await index(directory));
+    await fs.writeFile(path.join(directory, 'readme.md'), await index(directory));
     log(`overall ${pct(run.summary.overall)}; wrote ${path.join(directory, name + '.md')}`);
   } finally {
     await browser?.close();

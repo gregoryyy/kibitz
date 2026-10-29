@@ -102,7 +102,7 @@ export function buildDetails(root, base, files = trackedFiles(root), prs = valid
   const issue = (layer, source, reference, reason, candidates = []) => layer.unresolved.push({ source, reference, reason, candidates });
   const modules = new Map(), exports = new Map(), pendingImports = [];
   for (const file of files) {
-    if (!['100644', '100755'].includes(file.mode) || !/\.(?:md|m?js|html)$/.test(file.path) || ['docs/assure/REPORT.md', 'docs/assure/FINDINGS.md'].includes(file.path)) continue;
+    if (!['100644', '100755'].includes(file.mode) || !/\.(?:md|m?js|html)$/.test(file.path) || ['docs/assure/report.md', 'docs/assure/findings.md'].includes(file.path)) continue;
     const text = readText(root, file.path); texts.set(file.path, text);
     if (!/\.(?:m?js|html)$/.test(file.path)) continue;
     objects.inputs.push({ path: file.path, sha256: sha256(text) });

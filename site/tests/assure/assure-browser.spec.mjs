@@ -19,7 +19,7 @@ test('search, typed filters, object source, graph walking, history and deep link
 });
 test('documentation navigation, explicit truncation and source endpoint confinement', async ({ page, request }) => {
   await page.goto('/'); await expect(page.locator('#status')).toContainText('offline snapshots');
-  await page.selectOption('#level', '3'); await page.selectOption('#type', 'section'); await page.fill('#search', 'docs/assure/LEVELS.md Level 2');
+  await page.selectOption('#level', '3'); await page.selectOption('#type', 'section'); await page.fill('#search', 'docs/assure/levels.md Level 2');
   await page.locator('#results button').first().click(); await expect(page.locator('#selected-name')).toContainText('Level 2');
   await page.click('#source'); await expect(page.locator('#source-text')).toContainText('ESLint');
   await page.selectOption('#level', ''); await page.selectOption('#type', ''); await page.fill('#search', 'file:docs/DONE.md');

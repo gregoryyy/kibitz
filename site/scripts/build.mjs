@@ -5,7 +5,7 @@
 //   dist/{chess,coach,curriculum,library,openings,platform}/   application ES modules, matching src/
 //   dist/eco.json     opening names by position; dist/openings.json every named line with its moves
 //   dist/opening-variations.json   legal next moves and their nearby named destinations by EPD
-//   dist/LICENSE.txt, dist/THIRD_PARTY_NOTICES.md
+//   dist/LICENSE.txt, dist/NOTICE.txt
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -51,7 +51,7 @@ fs.cpSync(path.join(root, 'src'), dist, {
 copyFonts(path.join(root, 'src/fonts'), path.join(dist, 'fonts'));
 // Licence texts ship with the page (GPL-3.0; chess.js's BSD notice is in the notices file)
 copy(path.join(root, '../LICENSE'), 'LICENSE.txt');
-copy(path.join(root, '../THIRD_PARTY_NOTICES.md'), 'THIRD_PARTY_NOTICES.md');
+copy(path.join(root, '../NOTICE'), 'NOTICE.txt');
 
 const openingOutputs = openingFiles.map(f => path.join(dist, f));
 const openingInputs = ['scripts/build-eco.mjs', 'src/openings/opening-variations.js', 'src/chess/knowledge.js', 'package-lock.json',

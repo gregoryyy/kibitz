@@ -167,7 +167,7 @@ test('report labels cannot move source-relative links or introduce HTML, and CLI
 
 test('only tracked paths are inventoried, symlinks are not read, and regenerated output has an exact freshness check', t => {
   const { root } = fixture(t, { '.gitignore': '.env\n', '.env': 'synthetic-secret=not-an-input', 'untracked.md': '# Private draft\n' });
-  for (const file of ['lineage.json', 'schema.json', 'REPORT.md']) { fs.mkdirSync(path.join(root, 'docs/assure'), { recursive: true }); fs.writeFileSync(path.join(root, 'docs/assure', file), ''); }
+  for (const file of ['lineage.json', 'schema.json', 'report.md']) { fs.mkdirSync(path.join(root, 'docs/assure'), { recursive: true }); fs.writeFileSync(path.join(root, 'docs/assure', file), ''); }
   fs.symlinkSync('../.env', path.join(root, 'docs/symlink.md'));
   execFileSync('git', ['init', '-q'], { cwd: root });
   execFileSync('git', ['add', '.gitignore', 'README.md', 'docs', 'site'], { cwd: root });

@@ -91,7 +91,7 @@ export function renderChecklist(data) {
   const counts = Object.fromEntries(statuses.map(status => [status, data.controls.filter(r => r.status === status).length]));
   const lines = [
     '# ASVS L1 assessment', '',
-    'Generated from [asvs-l1.json](asvs-l1.json). Read [scope and limitations](ASVS.md) before using this assessment.', '',
+    'Generated from [asvs-l1.json](asvs-l1.json). Read [scope and limitations](asvs.md) before using this assessment.', '',
     `Reviewed ${markdownText(data.reviewed)} at revision ${markdownText(data.revision)}.`, '',
     `Coverage: ${baseline.length}/${baseline.length} L1 controls; ${statuses.map(s => `${counts[s]} ${s}`).join(', ')}.`, '',
     '**Coverage and verified entries do not establish ASVS compliance or release approval.**', '',
@@ -102,7 +102,7 @@ export function renderChecklist(data) {
     const row = data.controls.find(r => r.id === id);
     const chapter = Number(id.slice('v5.0.0-'.length).split('.')[0]);
     const url = `https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/${chapters[chapter - 1]}.md`;
-    const evidence = row.evidence.map(path => `[${markdownText(path)}](../${path})`).join('<br>');
+    const evidence = row.evidence.map(path => `[${markdownText(path)}](../../${path})`).join('<br>');
     lines.push(`| [${id}](${url}) ${markdownText(row.topic)} | ${row.status}<br>${row.method} | ${markdownText(row.note)} | ${evidence}${row.followUp ? `<br>${markdownText(row.followUp)}` : ''} |`);
   }
   return `${lines.join('\n')}\n`;
@@ -110,13 +110,13 @@ export function renderChecklist(data) {
 
 export function run(args = process.argv.slice(2)) {
   if (args.some(arg => arg !== '--write') || args.length > 1) throw new Error('Usage: node scripts/check-asvs.mjs [--write]');
-  const data = JSON.parse(readFileSync(resolve(root, 'docs/asvs-l1.json'), 'utf8'));
+  const data = JSON.parse(readFileSync(resolve(root, 'docs/security/asvs-l1.json'), 'utf8'));
   const errors = validateChecklist(data);
   if (errors.length) throw new Error(errors.join('\n'));
   const rendered = renderChecklist(data);
-  const output = resolve(root, 'docs/ASVS-L1.md');
+  const output = resolve(root, 'docs/security/asvs-l1.md');
   if (args.includes('--write')) writeFileSync(output, rendered);
-  else if (readFileSync(output, 'utf8') !== rendered) throw new Error('ASVS-L1.md is stale; run npm run check:asvs -- --write');
+  else if (readFileSync(output, 'utf8') !== rendered) throw new Error('asvs-l1.md is stale; run npm run check:asvs -- --write');
   console.log(`ASVS ${source.version} L1 coverage: ${baseline.length}/${baseline.length}; `
     + statuses.map(s => `${data.controls.filter(r => r.status === s).length} ${s}`).join(', ')
     + '. This checks records and document freshness, not compliance.');

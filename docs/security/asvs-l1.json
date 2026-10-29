@@ -1,0 +1,882 @@
+{
+  "source": {
+    "version": "5.0.0",
+    "level": 1,
+    "totalRequirements": 345,
+    "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.csv",
+    "sha256": "98c8fe911b9edb403af8ee05d3ce8201ecac2659e313b053890a62847cdcf680"
+  },
+  "scope": "local-single-user",
+  "reviewed": "2026-10-25",
+  "revision": "002fd92dd33e009f86cf8b79008180888a392e0f",
+  "controls": [
+    {
+      "id": "v5.0.0-1.2.1",
+      "topic": "Output contexts",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Untrusted prose uses text nodes; JSON responses are serialized, headers use fixed categories. Trusted authored build HTML has a separate parser/CSP boundary. The Chessground 10.4.2 adaptation moves one fixed SVG style declaration into trusted CSS with exact-version/fragment build guards, preserving style-src-attr denial; no untrusted text is added.",
+      "evidence": [
+        "site/src/coach/chat.js",
+        "site/server/api.mjs",
+        "site/server/logging.mjs",
+        "site/tests/e2e/literal-text.spec.mjs",
+        "site/tests/e2e/csp.spec.mjs",
+        "site/scripts/build.mjs",
+        "site/tests/e2e/web-assets.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-1.2.2",
+      "topic": "URL construction",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Library sources accept HTTP(S) URLs without credentials; record IDs are encoded and chess links use checked positions. External navigation privacy is assessed separately.",
+      "evidence": [
+        "site/src/library/library.js",
+        "site/src/library/server-session.js",
+        "site/tests/unit/library.test.mjs",
+        "site/server/library-api.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-1.2.3",
+      "topic": "Structured serialization",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "API/library messages use JSON serialization rather than concatenating untrusted JavaScript. Imported data is not emitted as executable source.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/api.test.mjs",
+        "site/tests/e2e/literal-text.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-1.2.4",
+      "topic": "Database parameters",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Usage and library values use bound SQLite parameters. Fixed migration/schema SQL is application-owned; no client-selected SQL is accepted.",
+      "evidence": [
+        "site/server/library-store.mjs",
+        "site/server/usage-store.mjs",
+        "site/server/library-store.test.mjs",
+        "site/server/usage-store.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-1.2.5",
+      "topic": "OS command boundary",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "The runtime exposes no OS-command tool or client-controlled process invocation. Chess tools run fixed browser engine operations; operator build commands are trusted development actions.",
+      "evidence": [
+        "site/src/coach/tools.js",
+        "site/server/ai.mjs",
+        "docs/security/threat-model.md"
+      ]
+    },
+    {
+      "id": "v5.0.0-1.3.1",
+      "topic": "Rich HTML ingestion",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No WYSIWYG or untrusted HTML rendering feature exists. PGN/model/library text is treated as text. parse5 parses trusted authored build input; it is not used as an untrusted HTML sanitizer.",
+      "evidence": [
+        "site/src/coach/chat.js",
+        "site/scripts/build.mjs",
+        "docs/security/threat-model.md"
+      ]
+    },
+    {
+      "id": "v5.0.0-1.3.2",
+      "topic": "Untrusted code execution",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "No application path evaluates model, PGN or user text as JavaScript. Workers and WASM load trusted build/catalogue assets; tools use a fixed allowlist. This does not certify third-party internals.",
+      "evidence": [
+        "site/src/coach/tools.js",
+        "site/src/coach/coach-tools.js",
+        "site/tests/unit/tools.test.mjs",
+        "site/tests/e2e/tools.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-1.5.1",
+      "topic": "XML ingestion",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No XML parser or user XML input exists. The shipped SVG icon is a trusted static asset.",
+      "evidence": [
+        "site/server/public-files.mjs",
+        "docs/security/asvs.md"
+      ]
+    },
+    {
+      "id": "v5.0.0-2.1.1",
+      "topic": "Documented input rules",
+      "status": "verified",
+      "method": "documentation-review",
+      "note": "The validation guide records expected structures, limits, browser/server responsibilities and references to authoritative source constants and tests.",
+      "evidence": [
+        "docs/security/asvs.md"
+      ]
+    },
+    {
+      "id": "v5.0.0-2.2.1",
+      "topic": "Functional validation",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Gateway roles/provider/consent/limits and server library IDs, revisions, PGN and source metadata are checked before security-relevant work.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/api.test.mjs",
+        "site/server/library-api.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-2.2.2",
+      "topic": "Trusted validation layer",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "The Node gateway enforces its own message/privacy/admission checks; library writes independently validate shared record rules and recompile PGN. Browser checks alone do not authorize writes.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/library-api.test.mjs",
+        "site/server/llm-boundaries.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-2.3.1",
+      "topic": "State transition ordering",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Library mutations use current-owner revisions and transactions. Provider routing/consent is captured after body reads; stale browser work is rejected by session/position checks. No financial or account workflow exists.",
+      "evidence": [
+        "site/server/library-api.mjs",
+        "site/server/api.mjs",
+        "site/src/chess/sessions.js",
+        "site/server/library-api.test.mjs",
+        "site/tests/e2e/keep-game.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-3.2.1",
+      "topic": "Browser response context",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Static/API responses have explicit types, nosniff and frame isolation. Public paths reject hidden/private data; API JSON is not served as HTML. SVG charset remains a separate open item.",
+      "evidence": [
+        "site/server/static.mjs",
+        "site/server/public-files.mjs",
+        "site/server/static.test.mjs",
+        "site/tests/e2e/private-paths.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-3.2.2",
+      "topic": "Literal text rendering",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Coach, imports and literal highlights use text nodes rather than HTML interpolation. Browser regressions exercise hostile markup and regex-like text.",
+      "evidence": [
+        "site/src/coach/chat.js",
+        "site/src/coach/annotations.js",
+        "site/tests/e2e/literal-text.spec.mjs",
+        "site/tests/e2e/annotations.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-3.3.1",
+      "topic": "Cookie transport and names",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "Local HTTP omits Secure; native TLS adds it, but neither grouping-cookie name has a secure prefix. HttpOnly and SameSite=Strict do not satisfy this whole requirement. Renaming library cookies needs a data migration decision. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/cookie-transport.test.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.1"
+    },
+    {
+      "id": "v5.0.0-3.4.1",
+      "topic": "HSTS",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "The local server intentionally has no HSTS policy and supports HTTP. A one-year localhost-wide policy would affect other apps and ports. Reassess transport and deployment before enabling it. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/server/static.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.2"
+    },
+    {
+      "id": "v5.0.0-3.4.2",
+      "topic": "CORS response policy",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "The server does not emit Access-Control-Allow-Origin or reflect arbitrary origins. No wildcard-sensitive CORS response is enabled.",
+      "evidence": [
+        "site/server/static.mjs",
+        "site/server/api.mjs",
+        "site/server/api.test.mjs",
+        "site/server/library-api.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-3.5.1",
+      "topic": "Browser write defenses",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Sensitive writes require JSON and provider consent headers where applicable; library access additionally checks fetch metadata and full native Origin. Direct local non-browser clients remain trusted.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/privacy.test.mjs",
+        "site/server/library-api.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-3.5.2",
+      "topic": "Preflight and origin consistency",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "All AI write routes require JSON and a full Origin matching the native socket scheme/host. Wrong HTTP/HTTPS, FTP, blob and null Origins are rejected despite forwarding-header spoofing. Direct local clients without Origin remain trusted; preflight receives no CORS approval.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/origin-transport.test.mjs",
+        "site/tests/e2e/http-hardening.spec.mjs",
+        "site/server/privacy.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-3.5.3",
+      "topic": "Mutation methods",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Provider work/configuration and library writes/erase require POST/DELETE as appropriate. GET status/read paths do not perform inference or mutate private records; minting a grouping cookie is not authentication.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/api.test.mjs",
+        "site/server/library-api.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-4.1.1",
+      "topic": "Media type and charset",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "JSON, NDJSON, HTML, JS, CSS, text and SVG responses declare UTF-8 with their corresponding media type. Actual CLI GET/HEAD and browser SVG document checks verify the former SVG gap; binary/unknown assets remain binary media types.",
+      "evidence": [
+        "site/server/public-files.mjs",
+        "site/server/public-files.test.mjs",
+        "site/server/api.mjs",
+        "site/tests/e2e/http-hardening.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-4.4.1",
+      "topic": "WebSocket transport",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no WebSocket service/client. Coaching uses HTTP NDJSON, and in-page workers use local message channels.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/src/coach/chat.js"
+      ]
+    },
+    {
+      "id": "v5.0.0-5.2.1",
+      "topic": "Accepted file bounds",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "There is no arbitrary file-upload endpoint. Pasted PGN/JSON is bounded separately. The operator model downloader enforces catalogue size, streaming byte limits and a total deadline before publication.",
+      "evidence": [
+        "site/scripts/download-model.mjs",
+        "site/src/library/import.js",
+        "site/tests/unit/download-model.test.mjs",
+        "site/tests/unit/pgn-import.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-5.2.2",
+      "topic": "Accepted file identity",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Model downloads use fixed GGUF catalogue names and verify exact length/hash before publication; cached files are scoped to the operator-controlled model directory. PGN content is parsed as chess data, not accepted by extension alone.",
+      "evidence": [
+        "site/scripts/download-model.mjs",
+        "site/src/library/import.js",
+        "site/tests/unit/download-model.test.mjs",
+        "site/tests/unit/pgn-import.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-5.3.1",
+      "topic": "Public data execution",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "The static server reads descriptors as bytes and does not execute uploaded/generated data as Node code. Private library/usage files stay outside the static tree; catalogue model serving is narrowly scoped.",
+      "evidence": [
+        "site/server/static.mjs",
+        "site/server/models.mjs",
+        "site/server/library-files.mjs",
+        "site/server/library-files.test.mjs",
+        "site/tests/e2e/public-files.spec.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-5.3.2",
+      "topic": "Path construction",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Static/model/private file boundaries reject traversal, hidden paths and symlink substitution; model filenames and fixture output names come from fixed allowlists. This is scoped to the implemented entry points.",
+      "evidence": [
+        "site/server/public-files.mjs",
+        "site/scripts/fixture-recording.mjs",
+        "site/server/public-files.test.mjs",
+        "site/tests/unit/fixture-recording.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.1.1",
+      "topic": "Credential-attack policy",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No application sign-in or password verification exists, so no credential-stuffing/lockout policy is claimed. Usage admission is not authentication protection.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.1",
+      "topic": "Password length",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "The application has no user password creation or validation. Server provider API keys are operator credentials, not account passwords.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.2",
+      "topic": "Password changes",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no application password or password-change workflow.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.3",
+      "topic": "Password-change proof",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no current/new application password transaction to authorize.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.4",
+      "topic": "Breached-password checks",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no password enrolment/reset input or password verifier to check against a denylist.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.5",
+      "topic": "Password composition",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no user password policy or password field.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.6",
+      "topic": "Password masking",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No application account password input exists. Provider secrets are configured server-side rather than entered into a browser account form.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.7",
+      "topic": "Password-manager support",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No application password entry workflow exists to restrict paste or password managers.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.2.8",
+      "topic": "Password fidelity",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no received account password that the application normalizes or verifies.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.3.1",
+      "topic": "Credential attack controls",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No credential authentication endpoint exists; local rate/token admission does not constitute brute-force protection for hosted accounts.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.3.2",
+      "topic": "Default accounts",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "The app creates no root/admin/default user account or account registry. Local grouping cookies are not account authentication.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.4.1",
+      "topic": "Initial account secrets",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No account activation codes or initial passwords are generated. Random grouping cookies have a separate scoped assessment.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-6.4.2",
+      "topic": "Knowledge-based authentication",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No password hints or security-question authentication feature exists.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-7.2.1",
+      "topic": "Backend grouping verification",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "Backend code validates cookie syntax and uses opaque values as storage keys, but has no issued-session registry or authenticated principal. A local client can choose another syntactically valid usage group; server-wide admission remains separate. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.3"
+    },
+    {
+      "id": "v5.0.0-7.2.2",
+      "topic": "Dynamic opaque groups",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "New usage/library group identifiers are generated dynamically by the server rather than using static provider credentials. This verifies the token-generation property only, not authenticated sessions.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/cookie-transport.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-7.2.3",
+      "topic": "Grouping-token entropy",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Usage identifiers use 16 random bytes and library identifiers 32 random bytes from Node crypto.randomBytes, encoded base64url. The full local identity/lifecycle limitations remain deviations.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "site/server/cookie-transport.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-7.2.4",
+      "topic": "Authentication rotation",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no sign-in or reauthentication event. Grouping cookies do not establish authenticated sessions.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-7.4.1",
+      "topic": "Backend token invalidation",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "Cookie Max-Age/browser clearing does not revoke a copied token at the backend. There is no authenticated logout or server token-expiry registry; private-library erasure removes data rather than establishing session revocation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/server/api.mjs",
+        "site/server/library-api.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.4"
+    },
+    {
+      "id": "v5.0.0-7.4.2",
+      "topic": "Account disablement",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no application account registry or disable/delete-account workflow. Library erasure is a separate local-data action.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-8.1.1",
+      "topic": "Authorization scope",
+      "status": "verified",
+      "method": "documentation-review",
+      "note": "Deployment/threat documentation identifies the trusted local operator, same-origin browser, per-cookie library data and deferred hosted roles/accounts. Provider consent is not person authentication.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "docs/security/threat-model.md",
+        "docs/security/asvs.md"
+      ]
+    },
+    {
+      "id": "v5.0.0-8.2.1",
+      "topic": "Function permissions",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "Functions are available to trusted local clients and browser consent attestations; there are no authenticated principals or explicit account permissions. Browser Origin/consent controls cannot authorize an untrusted direct client. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/server/api.mjs",
+        "docs/guide/setup.md",
+        "docs/security/threat-model.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.5"
+    },
+    {
+      "id": "v5.0.0-8.2.2",
+      "topic": "Library data separation",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Server queries use the current opaque library cookie owner; record IDs alone do not grant another group access. API tests cover independent clients, ownership and revisions. This proves cookie isolation, not person authentication.",
+      "evidence": [
+        "site/server/library-api.mjs",
+        "site/server/library-store.mjs",
+        "site/server/library-api.test.mjs",
+        "site/server/library-store.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-8.3.1",
+      "topic": "Server data enforcement",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Node enforces current-owner library scope, revision and write rules without trusting browser owner fields. A locally trusted direct client remains inside the declared boundary; hosted authorization is absent.",
+      "evidence": [
+        "site/server/library-api.mjs",
+        "site/server/library-store.mjs",
+        "site/server/library-api.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-9.1.1",
+      "topic": "Token signatures",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No self-contained authorization token is accepted. Grouping cookies are opaque references, not JWT claims.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-9.1.2",
+      "topic": "Token algorithm allowlist",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No self-contained token creation/verification or client-selected token algorithm exists.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-9.1.3",
+      "topic": "Token key provenance",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No JWT issuer, token-key URL or self-contained-token key resolution is implemented.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-9.2.1",
+      "topic": "Token claim lifetime",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No self-contained token claims or nbf/exp fields are parsed; grouping-cookie lifecycle deviations are tracked separately.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-10.4.1",
+      "topic": "OAuth redirect registration",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "Kibitz is not an OAuth/OIDC authorization server and has no authorization redirect endpoint.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-10.4.2",
+      "topic": "Authorization-code replay",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no OAuth authorization-code issue/redemption operation.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-10.4.3",
+      "topic": "Authorization-code lifetime",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No OAuth authorization codes are generated or accepted.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-10.4.4",
+      "topic": "OAuth grant restrictions",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No OAuth grants are configured or processed. Server provider API authentication is not an application OAuth authorization server.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-10.4.5",
+      "topic": "Refresh-token replay",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "No OAuth refresh tokens, refresh endpoint or authorization grant state exists.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-11.3.1",
+      "topic": "Application cipher modes",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "The application does not implement bulk/asymmetric encryption or select padding modes. Node/browser transport TLS is assessed separately; persisted local data is not encrypted by the app.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-11.3.2",
+      "topic": "Application cipher selection",
+      "status": "not-applicable",
+      "method": "scope-review",
+      "note": "There is no application-managed encryption cipher suite to approve. This is not a claim about provider infrastructure or a guarantee of encryption at rest.",
+      "evidence": [
+        "docs/guide/setup.md",
+        "site/server/api.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-11.4.1",
+      "topic": "Application cryptographic hashes",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "Reviewed application integrity/scope digests use SHA-256 or HMAC-SHA-256; token entropy uses Node CSPRNG. Non-security retrieval signatures are not represented as cryptographic integrity.",
+      "evidence": [
+        "site/server/library-api.mjs",
+        "site/scripts/download-model.mjs",
+        "site/server/library-api.test.mjs",
+        "site/tests/unit/download-model.test.mjs"
+      ]
+    },
+    {
+      "id": "v5.0.0-12.1.1",
+      "topic": "Deployed TLS versions",
+      "status": "open",
+      "method": "scope-review",
+      "note": "Node TLS fixtures exercise the current default stack, but no release deployment or external-service TLS-version inventory was verified. Confirm minimum/preferred TLS versions for the packaged deployment rather than infer certification from a successful request. Owner approved a temporary evidence-gap exception for local 0.1.0-rc.1 on 2026-10-25, with endpoint/TLS review due 2026-11-01; this requirement stays open. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/scripts/serve.mjs",
+        "site/server/cookie-transport.test.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.6"
+    },
+    {
+      "id": "v5.0.0-12.2.1",
+      "topic": "HTTP transport encryption",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "Selected local operation permits HTTP for browser/server and loopback Ollama; cloud defaults use HTTPS but operator base-URL overrides can permit HTTP. No operator configuration or live provider transport was inspected. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/scripts/serve.mjs",
+        "site/server/ai.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.7"
+    },
+    {
+      "id": "v5.0.0-12.2.2",
+      "topic": "Public TLS trust",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "Local HTTP needs no certificate and local TLS tests use a private test certificate. Node validates HTTPS peers by default, but no deployed public-service certificate inventory was verified. This does not establish public trust for every operator endpoint. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/server/ai.mjs",
+        "site/server/cookie-transport.test.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.8"
+    },
+    {
+      "id": "v5.0.0-13.4.1",
+      "topic": "Source-control metadata",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "The tested non-root Docker app has no /app/.git or /app/site/.git, and its build context excludes checkout metadata. HTTP hidden-path denial also works. Native checkout execution still lets the app user read Git metadata, so the overall local-deployment requirement remains a deviation under the owner-approved local RC scope. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/server/static.mjs",
+        "site/server/static.test.mjs",
+        "site/tests/container/image.spec.mjs",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.9"
+    },
+    {
+      "id": "v5.0.0-14.2.1",
+      "topic": "Sensitive URL content",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "AI keys/cookies/prompts travel in headers/bodies. Explicit external Lichess analysis navigation places the selected FEN in its path and browser history; a private chess position can be sensitive. This is a documented privacy deviation. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/src/index.html",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.10"
+    },
+    {
+      "id": "v5.0.0-14.3.1",
+      "topic": "Client-data lifecycle",
+      "status": "deviation",
+      "method": "scope-review",
+      "note": "There are no authenticated sessions to terminate. Local history/preferences/library intentionally persist until explicit deletion; closing the page or expiring a grouping cookie does not clear all browser data. Privacy erasure controls are not an authenticated-session lifecycle. Owner approved this documented local 0.1.0-rc.1 deviation on 2026-10-25, with review due 2026-11-01 and before another release or deployment/provider/runtime-scope change; the requirement remains unsatisfied. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "site/src/platform/data.js",
+        "docs/guide/setup.md",
+        "docs/guide/setup.md",
+        "docs/releases/0.1.0-rc.1.md"
+      ],
+      "followUp": "TODO 11.4.2.11"
+    },
+    {
+      "id": "v5.0.0-15.1.1",
+      "topic": "Maintenance deadlines",
+      "status": "verified",
+      "method": "documentation-review",
+      "note": "The maintenance policy defines risk-based triage/remediation targets, routine update cadence, tracking fields and release/exception handling. It does not claim current inventory adherence or staffed response guarantees.",
+      "evidence": [
+        "docs/security/supply-chain.md"
+      ]
+    },
+    {
+      "id": "v5.0.0-15.2.1",
+      "topic": "Component remediation evidence",
+      "status": "open",
+      "method": "documentation-review",
+      "note": "Dated evidence includes npm/image inventories, a fresh hashed advisory DB, verified base publisher, actual Node component/ABI versions and seven distributed engine/runtime asset hashes. Registry signatures, Action wrapper pins/queries and both fixed Qwen GGUF source revisions/LFS pointers are reviewed with scope limits. Runtime findings remain 23 medium/eight low under the scoped RC exception, with original deadlines. Build-stage, embedded/native advisory-age coverage, binary compilation linkage, downloaded Action tools and model provenance remain incomplete; this is not release-wide clearance. Owner approved a temporary local 0.1.0-rc.1 evidence-gap exception on 2026-10-25: component/build/tool/model review due 2026-11-01 and remediation plan due 2026-11-24; this requirement stays open. Owner direction requires this condition fixed and verified before the first final (non-prerelease) release; RC acceptance does not close the remediation TODO or extend the existing dates.",
+      "evidence": [
+        "docs/security/supply-chain.md",
+        "docs/security/supply-chain.md",
+        "docs/guide/setup.md",
+        "site/src/fonts/manifest.json",
+        "docs/security/supply-chain.md",
+        "docs/security/2026-10-25-image-advisories.json",
+        "docs/security/supply-chain.md",
+        "docs/security/2026-10-25-compiled-components.json",
+        "docs/security/2026-10-25-package-provenance.json",
+        "docs/security/2026-10-25-action-advisories.json",
+        "docs/security/2026-10-25-runtime-triage.md",
+        "docs/security/2026-10-25-browser-models.json"
+      ],
+      "followUp": "TODO 11.4.2.12"
+    },
+    {
+      "id": "v5.0.0-15.3.1",
+      "topic": "Minimal public fields",
+      "status": "verified",
+      "method": "code-and-test",
+      "note": "AI status uses explicit public configuration fields; keys and private base URLs are omitted. Library responses select only the current cookie owner records/revision/scope, excluding internal ownership fields. Own legacy record metadata remains exportable.",
+      "evidence": [
+        "site/server/ai.mjs",
+        "site/server/library-api.mjs",
+        "site/server/ai.test.mjs",
+        "site/server/llm-boundaries.test.mjs",
+        "site/server/library-api.test.mjs"
+      ]
+    }
+  ]
+}

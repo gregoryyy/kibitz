@@ -1,10 +1,10 @@
 # Tutor eval set
 
-For the separate offline position-retrieval benchmark (TODO 8.8), use `just retrieval-eval`; see [method and recorded results](../../docs/RETRIEVAL-EVAL.md). It needs no browser, engine search or provider.
+For the separate offline position-retrieval benchmark (TODO 8.8), use `just retrieval-eval`; see [method and recorded results](../../docs/design/retrieval.md#position-retrieval-evaluation). It needs no browser, engine search or provider.
 
-For the [lexical passage baseline](../../docs/TEXT-SEARCH.md) (8.3.1), use `just retrieval-eval --mode text`. It searches comments and authored guides with passage-level gold, including paraphrase and unsupported-request cases.
+For the [lexical passage baseline](../../docs/design/retrieval.md#study-text-search) (8.3.1), use `just retrieval-eval --mode text`. It searches comments and authored guides with passage-level gold, including paraphrase and unsupported-request cases.
 
-Reference positions for measuring how well a language model coaches (TODO 3.8). Each position comes with a quick question and the key points a good answer should hit. The results per provider and model are in [docs/eval/](../../docs/eval/README.md).
+Reference positions for measuring how well a language model coaches (TODO 3.8). Each position comes with a quick question and the key points a good answer should hit. The results per provider and model are in [docs/eval/](../../docs/eval/readme.md).
 
 The German companion ([positions-de.mjs](positions-de.mjs), TODO 10.8.4) uses the same ten positions, move sequences and concept counts, with German titles, actual translated question chips and German lexical cues. `--lang de` selects it; `en` remains the default. Reports record their language and German filenames end in `-de`, preserving existing English reports. A restored or imported answer is not a new provider result.
 
@@ -57,7 +57,7 @@ node scripts/eval.mjs --ai openai --lang de --yes --env ../.env
 
 Key-point patterns measure lexical cue coverage. They can match negations, quotations and irrelevant mentions; translated patterns are not calibrated for cross-language score comparisons. The app's move checker and optional judge measure different limited aspects. Mock runs verify the pipeline and carry no real-model coaching claim. Actual German provider trials remain separately recorded evidence, rather than being inferred from English results or mock tests.
 
-Each run writes `docs/eval/<provider>-<model>.md`, with every answer, the key points it hit and the judge's notes, plus a `.json` file. It also regenerates the table in `docs/eval/README.md`. Answers differ between runs, so a difference of a few points between two models means little.
+Each run writes `docs/eval/<provider>-<model>.md`, with every answer, the key points it hit and the judge's notes, plus a `.json` file. It also regenerates the table in `docs/eval/readme.md`. Answers differ between runs, so a difference of a few points between two models means little.
 
 ## Adding a position
 

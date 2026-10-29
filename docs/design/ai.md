@@ -1,0 +1,94 @@
+# LLM and symbolic design
+
+A brief map of the mechanisms combined across Kibitz's features. **Built** includes working prototypes; **Partial** distinguishes existing pieces from remaining work; **Planned** refers to [TODO](../TODO.md); **Exploration** refers to [ROAD](../ROAD.md). Status updated 2026-10-24. Implementation details are in [ARCH](../ARCH.md); background and research are linked below.
+
+## The composition
+
+- **Rules and state:** chess.js validates positions and moves; the application owns game history, clocks, scratch variations and permissions.
+- **Search and evaluation:** separate complete Stockfish opponent and analyst instances produce moves, scores and continuations. Stockfish itself combines NNUE neural evaluation with explicit search; Kibitz uses its UCI results, not standalone neural representations.
+- **Features and records:** pure chess features, motif candidates, checked tactical evidence, opening data, game occurrences and reference metadata make the position queryable.
+- **Language and intent:** the LLM explains, summarises and requests tools from the evidence supplied. The application decides what evidence and actions are permitted.
+
+```mermaid
+flowchart LR
+  E["Rules, search,<br/>features, sources"] --> C["Permitted<br/>context"]
+  C --> L["LLM"]
+  L --> V["Output<br/>checks"]
+  V --> U["Text and<br/>board"]
+  L -- "tool request" --> T["Validated,<br/>bounded tools"]
+  T --> E
+```
+
+## Across the features
+
+| Feature and status | Explicit mechanism | LLM contribution and combination |
+| --- | --- | --- |
+| **Play, analysis, hints, move ratings — Built** | Legal game state, opponent search, analyst scores/PVs and score-change classification. | Optional explanation of permitted results. Playing and measuring need no LLM. |
+| **Tutor commentary and questions — Built** | Current position, checked lines, motifs, themes, recent dialogue and selected aspects form a bounded context. | Explain the position at the player's level; request more evidence when tools are available. |
+| **Own-game exercises — Built; 9.3** | Measured own errors supply source-bound positions; fresh root/child searches recheck targets and arbitrary legal answers on an independent board. Rules prove actual mate; help/reveal/unknown evidence remain separate. | Selection and grading use the local solver and rules. No model request or model grading is required; results describe bounded practice rather than measured mastery. |
+| **Player profile — Built; 9.1** | Validated browser preferences retain explanation level, reported rating provenance and bounded goals; revisions/cache/request guards keep teaching context current. No measured ability model is inferred. | Saved preferences guide explanations; written goals are quoted user data subordinate to app rules and help limits. |
+| **Review and study suggestions — Built/prototype** | Analyse positions, identify mistakes/key moments and aggregate themes. | Summarise the evidence and suggest study topics. Own-game review reports (9.2) now aggregate phase measurements and bounded engine-confirmed opportunities with explicit coverage; this historical tracking does not infer a learner diagnosis or calibrated ability. |
+| **Chat commands and “what if” — Built** | Local command parsing, typed library/board tools, legal scratch moves, reanalysis and undo. | Translate flexible requests into tool calls and explain their results. Plain commands also work without a model. |
+| **Board annotations and variations — Built** | Parse supported move lines and the bounded `board` grammar; check marks against the position before rendering. | Propose arrows, squares and explanations anchored to checked evidence; the renderer owns board changes. |
+| **Reading and similar games — Built/prototype** | Rank reference metadata/theme tags; retrieve games by exact EPD or pawn signature and classics by theme. The 21-game catalogue has per-game published source/rights records and an offline transcription audit (7.3); historical teaching continuations are labelled. Twelve curated problems/studies (7.4) bind exact recorded branches to local tablebase facts, with rules-proven mate-in-one tasks, separate source/prose status and bilingual authored questions. | Explain why the returned reference fits. This retrieves metadata/positions, not book passages. Curated branch evidence does not verify source prose, arbitrary alternatives or learner success; imported copies retain their general status. |
+| **Opening library — Built; 5** | EPD graphs retrieve named continuations, reference-game counts and repertoire choices across transpositions. EPD/route matches retrieve authored opening guides; current pawn patterns select separate structure notes. Recall grades and intervals are deterministic. | Browsing, guides and drills work without a model. The coach receives quoted catalogue metadata and study notes in permitted position context; Stockfish checks concrete alternatives. Names identify branches, not strength or frequency. |
+| **Lessons and progress — Partial; 6/9** | A validated bilingual catalogue (6.1) contains thirteen tactical themes (6.2), eleven strategy lessons (6.3), six tablebase-checked endgame lessons (6.4) and 64 sourced Lichess puzzles (6.5). An isolated player (6.6) offers worked examples and authored hints. Mate proof, source-line recall, rubric self-assessment and reveal remain separate in versioned local progress (6.7), alongside help use and validated Coach counters per theme. Changed task revisions keep separate credit; failed saves can retry. Explicit Stockfish play-out (6.8) starts a normal game from the displayed lesson FEN, with a selected side and confirmed successful save before replacing active play. Personalization (9) remains planned. | Rules/source recall determine the supported result class. Generated wording does not grade moves, source labels do not prove a payoff, and a self-assessment is not automatic mastery evidence. Progress records contain counters rather than written reflection text; future diagnosis/lesson selection can use them. |
+| **Library and richer RAG — Partial; 7/8** | Source-aware records have stable IDs, revisions, PGN locators and separate score/comment licence assertions. Rules-replayed position indexes add versioned material counts and piece-square predicates (8.1), retaining full-FEN/source identity without treating structural matches as move or outcome proof. A separate pattern index/browser (8.2) retains source position themes, recorded move/three-ply candidates and rules-proven mate/promotion facts, with exact branches and explicit evidence classes; it does not promote source claims or geometric patterns into engine verdicts. BM25, explicit embedding search and optional hybrid rank fusion retrieve comment/guide passages with source filters and exact game-step navigation. Hybrid reranking combines literal coverage with exact/pawn/feature-tag signals from an explicitly selected board. Conservative PGN document deduplication (7.2) skips repeat copies while retaining distinct annotations, variations, headers and source assertions; failed/partial imports can retry. Optional SQLite storage (7.6) keeps owner/collection records and optimistic revisions, with an explicit server choice and a verified-scope IndexedDB cache; server acknowledgement remains distinct from cache success. | Embeddings rank text by meaning; they supply no chess verification or calibrated confidence. Keyword search needs no model. Every-term filtering can return no result but checks spelling, not semantic support. Tutor/chat requests receive bounded, quoted passages through local keyword/board retrieval. Request-bound citations open exact source occurrences or study excerpts; source identity is checked, while semantic support remains unverified. Model-requested passage search remains a future extension. |
+| **Visible options, plans and piece power — Exploration; ROAD 1/2/4/9** | Candidate lines, attack/defence relations and bounded plan checks supply board evidence. Corner dots count actual relations. | Explain options and relationships. A proposed plan needs checking; a model does not invent the counts. |
+| **Similarity by aspect — Exploration; ROAD 10** | Compare position, material, pawn, relation and continuation features under an explicit aspect/profile; learned encoders are research candidates. | Explain the analogy and its differences. Similarity selects examples; advice is checked again in the current position. |
+
+Voice input/output (ROAD 5) would connect speech recognition and synthesis to the same validated command/answer path. Courses and mobile wrappers would reuse these boundaries.
+
+## Concepts that recur
+
+- **Context engineering and policy:** fixed coach rules, aspect templates, player level and position-specific evidence. Live-help settings filter context and tool availability before a request; general chat has separate history without board context.
+- **Tool use and bounded agency:** the page runs validated engine/library/board calls, capped at four rounds and six calls per answer, with separate engine budgets. Unsupported models fall back to supplied context. Saved library data is outside the board tools' write scope; leaving play requires confirmation and preserves a return path.
+- **Structured output and verification:** named JSON formats and tool schemas constrain machine-facing data; chat board marks use a small grammar. Prose moves, piece/square claims and displayed lines undergo separate chess checks. Parsing successfully does not establish truth.
+- **Retrieval and provenance:** structural keys/tags, local lexical lookup and opt-in semantic/hybrid passage search find references. Hybrid fusion combines ranks, then reranks complete term/exact board matches. Source revisions and occurrence/annotation IDs retain where evidence came from; an unknown licence stays unknown, and a source statement does not establish chess strength. Embedding indices are scoped, versioned and memory-only. Text-graph retrieval is an exploration. Position/move graphs, attack/defence graphs and text-derived entity graphs represent different relationships.
+- **Graded structural analogy:** optional [pawn-square Jaccard distance](retrieval.md#fuzzy-pawn-structure-distance) broadens Combined search beyond identical pawns, preserving colours and turn/check/phase eligibility. Exact boards, identical pawns and fuzzy overlap receive distinct labels; sparse positions expose limits of square overlap. Neither proximity nor a matching feature verifies a plan.
+- **State consistency and isolation:** asynchronous results check game generation/FEN; scratch analysis leaves the running game intact. Scores use White's perspective and EPD caching; history-dependent draw claims need more than that key.
+- **Runtime and resource policy:** provider adapters and an optional in-browser model share the coach interface. Task routing, local-only settings, caches, cancellation and usage budgets control execution. Keys stay server-side; imported text is quoted and output rendered as text.
+
+## What the checks establish
+
+Legal moves, checked position facts, finite-search assessments and retrieved statements carry different evidence. A motif candidate needs tactical confirmation; an unchecked move stays distinguishable from a backed line. Neither a legal PV nor a valid citation proves the causal explanation in the prose.
+
+Logic/UI tests and provider mocks cover rules, tools, state and workflows; the tutor evaluation set measures commentary. Labelled [position](retrieval.md#position-retrieval-evaluation), [lexical/dense passage](retrieval.md#study-text-search) and [hybrid](retrieval.md#hybrid-passage-retrieval) benchmarks measure source relevance and expose unsupported-query/paraphrase gaps. Dense search improves measured recall but returns more unrelated hits; fusion and optional literal filtering introduce their own recall/no-answer tradeoffs. Learner-outcome evaluation remains planned. Relevance, chess correctness and explanation quality are assessed separately.
+
+Read next: [architecture](../ARCH.md), [research index](../research/readme.md), [position-similarity study](../research/position-similarity.md), or the [Primer](../primer/primer-v01.pdf) for background.
+
+## Provider fixture recording
+
+The contract tests replay JSON files in `site/server/fixtures/` through the real SDKs. They do not call providers. Each file labels its provenance as recorded or hand-written; hand-written examples are not evidence that a configured provider works. TODO 2.15 remains open until OpenAI, Mistral and Ollama have real successful recordings.
+
+The recorder is an operator tool that uses configured credentials and can incur provider charges. From `site/`, inspect a plan before separately authorizing execution:
+
+```sh
+node scripts/record-ai-fixtures.mjs anthropic --plan
+# After approving this exact provider/model plan and its cost:
+node scripts/record-ai-fixtures.mjs anthropic --yes
+```
+
+Names must be explicit, unique selections from `anthropic`, `openai`, `mistral`, `ollama`. All selected configurations are checked first. Local-only mode cannot silently substitute another provider. `--yes` is required even for Ollama: an operator-selected model alias may route to a billed service. No command in ordinary tests uses real credentials or delegates to the network.
+
+The default environment file is repository-root `.env`; `--env FILE` resolves relative to `site/`, and `--env=` skips loading a file. Inherited environment variables still apply. The plan prints model IDs, fixed request/token bounds and the exact output directory, without endpoints or credentials. It sends no requests and creates no output directory. SDK loggers are explicitly silenced even if debug logging is inherited; diagnostics use fixed failure categories, never raw SDK messages or response bodies.
+
+### Bounds and publication
+
+Each provider receives at most two HTTP attempts: short chat (400 output tokens) and native structured annotations (1500). There are no SDK retries, redirects, server-side refusal fallbacks, JSON-mode fallbacks, tools, judge or embeddings. An error stops the run, including later cases/providers. These are request/output bounds, not a billing estimate or a hard spending limit.
+
+Each attempt has a one MiB response cap and one total deadline for headers, body collection and SDK parsing: `AI_TIMEOUT_MS`, normally sixty seconds, capped at five minutes. Accept only HTTP 200 event streams, valid UTF-8, an explicit protocol terminator, a nonempty nontruncated completion without tool calls, and schema-valid annotations for the JSON case. A valid stream/schema does not establish chess correctness, answer quality or provider trust.
+
+The default output is the git-ignored, private `.kibitz-data/ai-fixtures/` directory at the repository root. New directories use mode 0700 and files 0600, subject to host filesystem semantics. Each accepted fixture is written to an exclusive temporary file, then atomically replaces its fixed provider/case filename. An existing destination symlink is replaced as an entry; its target is never opened. Handled publication failures remove temporary files and preserve earlier destinations. A successful chat file remains if the later JSON case fails; publication is per file, not a transaction across the run. Abrupt process/host failure may leave a private `.part` file for operator cleanup.
+
+`--out DIR` deliberately selects another operator-owned directory. Repository destinations are restricted to `.kibitz-data/` and `site/server/fixtures/`; filesystem roots, `.git` and `node_modules` are refused, with existing parent aliases resolved before execution. Paths resolve relative to `site/`. Directory/parent writers, hard links and subsequent edits remain operator-trusted; this is not a sandbox against another process with the operator's filesystem privileges.
+
+### Review before committing
+
+Capture keeps only provider/case/model/date/provenance, HTTP status, content type and raw response body. Requests and account headers are omitted. Known configured cloud API key values and common JSON/percent encodings are refused in metadata, raw bytes and decoded completion text, including text split across separate SSE events. Error bodies are canceled without capture. These checks cannot identify every unknown secret, private provider field or encoding.
+
+Review staged JSON locally before copying individual files into `site/server/fixtures/`: check private/account identifiers, unexpected fields, provenance, selected model, valid stream termination and meaningful output. Do not print sensitive raw captures into CI or an issue. Preserve accepted wire bytes; do not call edited/synthetic data a real unmodified recording. Run `node --test server/contract.test.mjs` after reviewing and copying fixtures. The fixture change needs its own approved live plan and PR; improving this tool does not authorize paid recording.
+
+### Scanner context
+
+CodeQL context 9 under [#99](https://github.com/gregoryyy/kibitz/issues/99) follows network data into a file write. This is the tool's intended capture operation: HTTP contents supply JSON data, while the operator selects the directory and a fixed allowlist selects filenames. Contract replay parses the JSON and returns a `Response` to an SDK; it never executes downloaded code. The [query guidance](https://codeql.github.com/codeql-query-help/javascript/js-http-to-file-access/) calls for inspecting this intent. The old recorder nevertheless had real overwrite/error/size/confirmation defects, covered by the new synthetic regressions. No query is disabled or alert manually dismissed; feature/main scan results and remaining #99 dispositions still govern release triage.

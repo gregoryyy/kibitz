@@ -6,7 +6,7 @@ printed loopback URL. An optional `--port 0` chooses a free port. The browser
 reads the three retained graphs in `docs/assure/`; no build or network access is
 needed after installation.
 
-See [levels, semantics, replay and foundation comparison](../../docs/assure/LEVELS.md).
+See [levels, semantics, replay and foundation comparison](../../docs/assure/levels.md).
 Search by file, symbol, TODO number, PR number or rationale text. Select a result,
 then follow graph nodes or the relation list. Direction, relation and containment
 filters control the walk; Back and copied URL fragments preserve navigation.
@@ -23,5 +23,5 @@ The graph library is pinned in `site/package-lock.json` and served from installe
 Cytoscape.js 3.34.4 (MIT); see [upstream licence](https://github.com/cytoscape/cytoscape.js/blob/v3.34.4/LICENSE).
 
 Confidence-weighted types, analyst overrides and gap/deviation findings are
-explained in the [assurance README](../../docs/assure/README.md). Use the minimum
+explained in the [assurance README](../../docs/assure/readme.md). Use the minimum
 confidence selector for graph walks and the findings panel for review leads.

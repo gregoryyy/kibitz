@@ -1,4 +1,4 @@
-// See docs/AI-FIXTURES.md. Planning/refusal performs no inference or output writes.
+// See docs/design/ai.md. Planning/refusal performs no inference or output writes.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

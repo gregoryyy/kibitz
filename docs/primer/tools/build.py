@@ -5,7 +5,7 @@ from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 FIGS = ROOT / "figs"
 OUT = ROOT
-NAME = "Primer_v01"
+NAME = "primer-v01"
 md = (ROOT / f"{NAME}.md").read_text()
 
 FIG = {1: "fig01_flaw_to_fix", 2: "fig02_tokenization", 3: "fig03_embedding", 4: "fig04_transformer",

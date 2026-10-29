@@ -2,7 +2,7 @@
 
 Notable user-facing changes are collected here. Detailed implementation history
 and verification notes are in [DONE.md](docs/DONE.md). Versions follow the
-[project release policy](docs/RELEASING.md) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[project release policy](docs/releases/readme.md) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 The former package value `0.1.0` was an unpublished development baseline.
 This branch prepares `0.1.0-rc.1`; it is a draft candidate, with no published
@@ -16,6 +16,11 @@ pending source, checks and decisions.
 - Optional native HTTPS listener using operator-supplied certificates and private
   keys, with validated files and no HTTP fallback on invalid TLS configuration.
   Cookie migration and the remaining final-release ASVS fixes are still pending.
+
+### Changed
+
+- Third-party notices are now `NOTICE` in the project root and the image's `/app/`,
+  and `NOTICE.txt` in `dist/`, replacing `THIRD_PARTY_NOTICES.md`.
 
 ## [0.1.0-rc.1] — prepared 2026-10-25, unpublished draft
 
@@ -31,7 +36,7 @@ pending source, checks and decisions.
 - Game reviews, turning-point navigation, player preferences, own-mistake
   exercises, opening repertoires, lessons and browser-local spaced practice.
 - English/German UI and study notes, configurable move notation, keyboard board
-  controls and phone/tablet layouts. The [flipbook](docs/flipbook/README.md) shows
+  controls and phone/tablet layouts. The [flipbook](docs/flipbook/readme.md) shows
   nineteen current-interface steps with recorded coaching provenance.
 - Purpose-specific provider permissions, separate browser/server export/erasure,
   persistent local usage accounting and private operator diagnostics.

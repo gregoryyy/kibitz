@@ -1,7 +1,7 @@
 # Deny by default: no checkout metadata, operator config/data, models or local builds.
 **
 !LICENSE
-!THIRD_PARTY_NOTICES.md
+!NOTICE
 !site/
 !site/package.json
 !site/package-lock.json
