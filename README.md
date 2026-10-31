@@ -2,6 +2,10 @@
 
 Stockfish plays and measures; a language model explains.
 
+![Kibitz analysing Morphy's Opera Game: the coach compares its own idea, 9... a6, with Stockfish's 9... Na6, and every move in the answer is checked against the engine lines](docs/flipbook/03-own-idea.png)
+
+*The coach weighs its own idea against Stockfish's lines in Morphy's Opera Game. The [flipbook](docs/flipbook/readme.md) has the full walkthrough.*
+
 In the browser, play against Stockfish 19 (from 600 Elo up, in five playing styles, with or without a clock, from the start, an opening or any position), see your mistakes flagged as you play, review finished games, keep a games library and get reading suggestions that match the position on the board. Stockfish does all the calculation, locally in Web Workers. An AI model (Claude, OpenAI, Mistral, a local Ollama model, or a small model running in the browser) only explains the engine's output.
 
 One of the main motivations for Kibitz is to experiment with combining large language models (LLMs) and symbolic solvers, using chess as a concrete example. The accompanying paper, *A Gentle Primer on Neurosymbolic AI: Building a Chess Tutor* ([read online](docs/primer/primer-v01.md), [PDF](docs/primer/primer-v01.pdf)), is intended for people learning about LLMs and the additional concepts of search, grounding, tool use and agents. It explains each concept through its application in Kibitz.
