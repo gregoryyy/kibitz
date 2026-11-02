@@ -30,7 +30,7 @@
     "@lichess-org/chessground": "10.4.2",
     "@wllama/wllama": "3.8.1",
     "chess.js": "1.4.0",
-    "openai": "7.39.0",
+    "openai": "7.43.0",
     "parse5": "8.0.1",
     "stockfish": "19.0.1"
   },
